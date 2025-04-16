@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import mapboxgl, { MapMouseEvent } from "mapbox-gl";
+import mapboxgl from "mapbox-gl";
 import { VectoryLayerInterface, vectorLayer, imageLayer } from "../layers";
 import styles from "../styles/styles";
 import { createRoot } from "react-dom/client";
@@ -76,7 +76,7 @@ export const MapComponent = ({
   }
 
   useEffect(() => {
-    //Step 2. Create layers
+    //Step 2. Create particleLayer
     particleLayer = vectorLayer(
       PARTICLE_LAYER_ID,
       PARTICLE_SOURCE_ID,
@@ -86,9 +86,11 @@ export const MapComponent = ({
   }, []);
 
   useEffect(() => {
+    //Step 2. Create overlayLayer
     overlayLayer = imageLayer(OVERLAY_LAYER_ID, OVERLAY_SOURCE_ID, overlay);
   }, [overlay]);
 
+  //toggle different styles
   useEffect(() => {
     if (!map.current) return;
 
@@ -99,9 +101,9 @@ export const MapComponent = ({
     );
   }, [style]);
 
+  //toggle overlay visible
   useEffect(() => {
     if (!map.current || !loadComplete) return;
-
     map.current.setLayoutProperty(
       overlayLayer.id,
       "visibility",
@@ -109,18 +111,19 @@ export const MapComponent = ({
     );
   }, [overlay, loadComplete]);
 
+  //toggle particles visibile
   useEffect(() => {
     if (!map.current || !loadComplete) return;
-
     particleLayer.setVisible(particles);
   }, [particles, loadComplete]);
 
+  //set the numebr of particles shown in the map
   useEffect(() => {
     if (!map.current || !loadComplete) return;
-
     particleLayer.vectorField?.setParticleNum(numParticles);
   }, [numParticles, loadComplete]);
 
+  //get new dataset when dataset date updates
   useEffect(() => {
     if (!map.current) return;
     fetchDataset(dataset, map.current);
@@ -141,27 +144,33 @@ export const MapComponent = ({
       touchPitch: false,
       touchZoomRotate: false,
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-    map.current.on("style.load", async () => {
+  useEffect(() => {
+    if (!map.current) return;
+
+    map.current.once("style.load", async () => {
       await fetchDataset(dataset, map.current!);
-      map.current?.addLayer(overlayLayer);
-      map.current?.addLayer(particleLayer);
+      if (!map.current?.getLayer(OVERLAY_LAYER_ID)) {
+        map.current?.addLayer(overlayLayer);
+      }
+      if (!map?.current?.getLayer(PARTICLE_LAYER_ID)) {
+        map.current?.addLayer(particleLayer);
+      }
       setLoadComplete(true);
     });
 
-    map.current.on("click", async (e: MapMouseEvent) => {
-      console.log(e);
+    const handleClick = async (e: mapboxgl.MapMouseEvent) => {
       const { lng, lat } = e.lngLat;
 
       const [{ bounds, vRange, uRange }, imageBitmap] = await Promise.all([
-        loadMetaDataFromUrl(buildDatasetUrl(dataset, "gsla_meta.json")),
-        loadImageBitmapFromUrl(buildDatasetUrl(dataset, "gsla_input.png")),
+        loadMetaDataFromUrl(buildDatasetUrl(dataset, GSLAMETANAME)),
+        loadImageBitmapFromUrl(buildDatasetUrl(dataset, GSLAPARTICLENAME)),
       ]);
 
       const { width, height } = imageBitmap;
-
       const imageData = extractImageData(imageBitmap, width, height);
-
       const [x, y] = lngLatToImagePixel(lng, lat, bounds, width, height);
       const { u, v } = getVelocityAtPixel(
         x,
@@ -171,12 +180,10 @@ export const MapComponent = ({
         uRange,
         vRange,
       );
-
       const { speed, direction } = velocityToReadable(u, v);
 
       const container = document.createElement("div");
       const root = createRoot(container);
-
       root.render(
         <PopupContent
           lat={lat}
@@ -185,12 +192,17 @@ export const MapComponent = ({
           direction={direction}
         />,
       );
-
       new mapboxgl.Popup()
         .setLngLat([lng, lat])
         .setDOMContent(container)
         .addTo(map.current!);
-    });
+    };
+
+    map.current.on("click", handleClick);
+
+    return () => {
+      map.current?.off("click", handleClick);
+    };
   }, [dataset, style]);
 
   return (
