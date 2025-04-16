@@ -1,0 +1,86 @@
+{
+  "version": 8,
+  "name": "Terrain",
+  "sources": {
+    "composite": {
+      "url": "mapbox://mapbox.mapbox-terrain-v2,mapbox.country-boundaries-v1,mapbox.mapbox-bathymetry-v2",
+      "type": "vector"
+    }
+  },
+  "layers": [
+    {
+      "id": "background",
+      "type": "background",
+      "layout": {},
+      "paint": { "background-color": "hsl(170, 0%, 0%)" }
+    },
+    {
+      "id": "country-base",
+      "type": "fill",
+      "source": "composite",
+      "source-layer": "country_boundaries",
+      "layout": {},
+      "paint": { "fill-color": "hsl(63, 73%, 92%)" }
+    },
+    {
+      "id": "landcover",
+      "type": "fill",
+      "source": "composite",
+      "source-layer": "landcover",
+      "layout": {},
+      "paint": {
+        "fill-color": [
+          "match",
+          ["get", "class"],
+          ["snow"],
+          "hsl(0, 0%, 100%)",
+          ["crop"],
+          "hsl(58, 46%, 71%)",
+          ["grass"],
+          "hsl(92, 47%, 63%)",
+          ["scrub"],
+          "hsl(131, 34%, 53%)",
+          ["wood"],
+          "hsl(95, 47%, 40%)",
+          "hsl(0, 0%, 100%)"
+        ]
+      }
+    },
+    {
+      "id": "depth",
+      "type": "fill",
+      "source": "composite",
+      "source-layer": "depth",
+      "layout": {},
+      "paint": {
+        "fill-color": [
+          "interpolate",
+          ["linear"],
+          ["get", "min_depth"],
+          0,
+          "hsl(181, 35%, 50%)",
+          1750,
+          "hsl(201, 36%, 30%)",
+          7000,
+          "hsl(224, 29%, 22%)"
+        ]
+      }
+    },
+    {
+      "id": "contour",
+      "type": "line",
+      "source": "composite",
+      "source-layer": "contour",
+      "layout": {},
+      "paint": { "line-color": "hsl(181, 0%, 0%)" }
+    },
+    {
+      "id": "country-coastlines",
+      "type": "line",
+      "source": "composite",
+      "source-layer": "country_boundaries",
+      "layout": {},
+      "paint": { "line-width": 2 }
+    }
+  ]
+}
