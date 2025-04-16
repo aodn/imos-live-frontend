@@ -180,7 +180,7 @@ export const MapComponent = ({
         uRange,
         vRange,
       );
-      const { speed, direction } = velocityToReadable(u, v);
+      const { speed, direction, degree } = velocityToReadable(u, v);
 
       const container = document.createElement("div");
       const root = createRoot(container);
@@ -189,6 +189,7 @@ export const MapComponent = ({
           lat={lat}
           lng={lng}
           speed={speed}
+          degree={degree}
           direction={direction}
         />,
       );

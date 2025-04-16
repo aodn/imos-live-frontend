@@ -3,6 +3,11 @@ type Range = [number, number];
 
 export type Velocity = { u: number; v: number };
 
+type DirectionType = {
+  direction: string;
+  degree: number;
+};
+
 /**
  * Converts geographic coordinates to pixel coordinates in the image.
  *
@@ -68,12 +73,21 @@ export function getVelocityAtPixel(
   return { u, v };
 }
 
-export function degreesToCompass(u: number, v: number): string {
-  let direction = (Math.atan2(v, u) * 180) / Math.PI;
-  if (direction < 0) direction += 360;
+/**
+ * standard mathematical (Cartesian) polar coordinates: 0°=east   90°=north   180°=west   270°=south
+ * compass bearings: 0°=north   90°=east  180°=south  270°=west
+ * current degree version is standard mathematical (Cartesian) polar coordinates.
+ * degree = (450 - degree) % 360 this can adjust to compass bearing: 0° is north, increases clockwise
+ * @param u
+ * @param v
+ * @returns direction and degree
+ */
+export function degreesToCompass(u: number, v: number): DirectionType {
+  let degree = (Math.atan2(v, u) * 180) / Math.PI;
+  if (degree < 0) degree += 360;
   const directions = ["E", "NE", "N", "NW", "W", "SW", "S", "SE"];
-  const index = Math.round(direction / 45) % 8;
-  return directions[index];
+  const index = Math.round(degree / 45) % 8;
+  return { direction: directions[index], degree };
 }
 
 /**
@@ -86,10 +100,17 @@ export function generateSpeed(u: number, v: number) {
   return Math.sqrt(u * u + v * v);
 }
 
+/**
+ * generate readable data in speed(m/s), direction and degree.
+ * @param u
+ * @param v
+ * @returns
+ */
 export function velocityToReadable(u: number, v: number) {
   return {
     speed: generateSpeed(u, v),
-    direction: degreesToCompass(u, v),
+    direction: degreesToCompass(u, v).direction,
+    degree: degreesToCompass(u, v).degree,
   };
 }
 

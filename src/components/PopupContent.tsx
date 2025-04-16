@@ -3,17 +3,19 @@ type PopupContentProps = {
   lng: number;
   speed: number;
   direction: string;
+  degree: number;
 };
 
 export const PopupContent = ({
   lat,
   lng,
   speed,
+  degree,
   direction,
 }: PopupContentProps) => {
   return (
     <div style={{ fontSize: "14px" }}>
-      <strong>React Popup</strong>
+      <strong>Current Information</strong>
       <br />
       Lat: {lat.toFixed(4)}
       <br />
@@ -22,6 +24,8 @@ export const PopupContent = ({
       speed: {speed.toFixed(4)}
       <br />
       direction: {direction}
+      <br />
+      degree: {degree}°
     </div>
   );
 };
