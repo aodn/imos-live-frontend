@@ -9,3 +9,6 @@ const mapboxStyles = [
 export const customStyles = [{ title: "Terrain", source: terrain }];
 
 export const styles = mapboxStyles.concat(customStyles);
+
+export const stylesList = [...customStyles, ...mapboxStyles] as const;
+export type StyleTitle = (typeof stylesList)[number]["title"];

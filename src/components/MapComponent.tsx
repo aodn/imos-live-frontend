@@ -91,7 +91,7 @@ export const MapComponent = React.memo(
       map.current.setStyle(
         styles.find((_style) => {
           return _style.title === style;
-        })?.source || "default-style",
+        })?.source || styles[0].source,
       );
     }, [style]);
 

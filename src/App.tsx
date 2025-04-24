@@ -3,11 +3,12 @@ import { getLast7DatesEnding3DaysAgo } from "@/utils";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { MapComponent, MenuComponent } from "@/components";
 import { useState } from "react";
+import { StyleTitle } from "./styles";
 
 const datasets = getLast7DatesEnding3DaysAgo();
 
 function App() {
-  const [style, setStyle] = useState("Dark");
+  const [style, setStyle] = useState<StyleTitle>("Dark");
   const [overlay, setOverlay] = useState(false);
   const [particles, setParticles] = useState(true);
   const [numParticles, setNumParticles] = useState(10000);
