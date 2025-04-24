@@ -2,18 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import { VectoryLayerInterface, vectorLayer, imageLayer } from "../layers";
 import styles from "../styles/styles";
-import { createRoot } from "react-dom/client";
-import { PopupContent } from "./PopupContent";
-import {
-  lngLatToImagePixel,
-  getVelocityAtPixel,
-  velocityToReadable,
-  extractImageData,
-  loadImageBitmapFromUrl,
-  loadMetaDataFromUrl,
-  buildDatasetUrl,
-  addOrUpdateSource,
-} from "../utils";
+import { loadMetaDataFromUrl, buildDatasetUrl } from "../utils";
 import {
   GSLAMETANAME,
   GSLAPARTICLENAME,
@@ -23,6 +12,8 @@ import {
   PARTICLE_LAYER_ID,
   PARTICLE_SOURCE_ID,
 } from "../constants";
+import { addOrUpdateSource, showPopup } from "../helpers";
+import { getOceanCurrentDetails } from "../api";
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_KEY;
 
@@ -163,43 +154,18 @@ export const MapComponent = ({
 
     const handleClick = async (e: mapboxgl.MapMouseEvent) => {
       const { lng, lat } = e.lngLat;
-
-      const [{ bounds, vRange, uRange }, imageBitmap] = await Promise.all([
-        loadMetaDataFromUrl(buildDatasetUrl(dataset, GSLAMETANAME)),
-        loadImageBitmapFromUrl(buildDatasetUrl(dataset, GSLAPARTICLENAME)),
-      ]);
-
-      const { width, height } = imageBitmap;
-      const imageData = extractImageData(imageBitmap, width, height);
-      const [x, y] = lngLatToImagePixel(lng, lat, bounds, width, height);
-      const { u, v } = getVelocityAtPixel(
-        x,
-        y,
-        imageData,
-        width,
-        uRange,
-        vRange,
+      const { alpha, speed, degree, direction } = await getOceanCurrentDetails(
+        dataset,
+        lat,
+        lng,
       );
-      const { speed, direction, degree } = velocityToReadable(u, v);
+      //if alpha is 0, this point could be land.
+      if (!alpha) return;
 
-      const container = document.createElement("div");
-      const root = createRoot(container);
-      root.render(
-        <PopupContent
-          lat={lat}
-          lng={lng}
-          speed={speed}
-          degree={degree}
-          direction={direction}
-        />,
-      );
-      new mapboxgl.Popup()
-        .setLngLat([lng, lat])
-        .setDOMContent(container)
-        .addTo(map.current!);
+      showPopup(map.current!, { lat, lng, speed, direction, degree });
     };
 
-    map.current.on("click", handleClick);
+    map.current?.on("click", handleClick);
 
     return () => {
       map.current?.off("click", handleClick);

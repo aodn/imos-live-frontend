@@ -7,4 +7,3 @@ export * from "./loadImageBitmapFromUrl";
 export * from "./loadMetaDataFromUrl";
 export * from "./shader";
 export * from "./vectorConfig";
-export * from "./addOrUpdateSource";

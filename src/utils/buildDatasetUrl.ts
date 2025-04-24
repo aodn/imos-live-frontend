@@ -8,5 +8,5 @@ const datasetBaseUrl = import.meta.env.VITE_DATASET_BASE_URL;
  * @returns {string} URL path to the resource.
  */
 export function buildDatasetUrl(date: string, type: string) {
-  return `${datasetBaseUrl}images/${date}/${type}`;
+  return `${datasetBaseUrl}/images/${date}/${type}`;
 }

@@ -1,7 +1,7 @@
 type Bounds = [number, number, number, number];
 type Range = [number, number];
 
-export type Velocity = { u: number; v: number };
+type Velocity = { u: number; v: number; visible: boolean };
 
 type DirectionType = {
   direction: string;
@@ -66,11 +66,12 @@ export function getVelocityAtPixel(
   const idx = (y * width + x) * 4; // 4 channels per pixel: RGBA
   const r = imageData[idx];
   const g = imageData[idx + 1];
+  const visible = imageData[idx + 2] !== 0; //if alpha is 0, v and u are nan, this point could be land.
 
   const u = decodeChannel(r, uRange);
   const v = decodeChannel(g, vRange);
-
-  return { u, v };
+  // console.log(`position: x:${x} y:${y}, R:${r},G:${g}, value: u:${u} v:${v}`);
+  return { u, v, visible };
 }
 
 /**
@@ -107,10 +108,11 @@ export function generateSpeed(u: number, v: number) {
  * @returns
  */
 export function velocityToReadable(u: number, v: number) {
+  const compass = degreesToCompass(u, v);
   return {
     speed: generateSpeed(u, v),
-    direction: degreesToCompass(u, v).direction,
-    degree: degreesToCompass(u, v).degree,
+    direction: compass.direction,
+    degree: compass.degree,
   };
 }
 
@@ -133,3 +135,10 @@ export function extractImageData(
   context.drawImage(imageBitmap, 0, 0);
   return context.getImageData(0, 0, width, height).data;
 }
+
+/**
+ * why the u,v are not same to the script.
+ *
+ * debug:
+ * 1. the width and height of png image are correct which means pixels.
+ */

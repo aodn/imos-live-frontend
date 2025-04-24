@@ -14,18 +14,18 @@ export const PopupContent = ({
   direction,
 }: PopupContentProps) => {
   return (
-    <div style={{ fontSize: "14px" }}>
+    <div className="p-1">
       <strong>Current Information</strong>
       <br />
-      Lat: {lat.toFixed(4)}
+      Lat: {lat.toFixed(2)}
       <br />
-      Lng: {lng.toFixed(4)}
+      Lng: {lng.toFixed(2)}
       <br />
-      speed: {speed.toFixed(4)}
+      speed: {speed.toFixed(2)}
       <br />
       direction: {direction}
       <br />
-      degree: {degree}°
+      degree: {degree.toFixed(2)}°
     </div>
   );
 };

@@ -23,6 +23,7 @@ export async function loadMetaDataFromUrl(
   const meta: MetaType = await response.json();
   const { lonRange, latRange, uRange, vRange } = meta;
 
+  //fours lines shape a rectangle, lon x, lat y.
   const bounds: BoundsType = [
     lonRange[0],
     latRange[1],

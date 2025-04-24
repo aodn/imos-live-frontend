@@ -4,3 +4,4 @@ export * from "./MenuComponent";
 export * from "./MenuPane";
 export * from "./NavSelect";
 export * from "./Tabs";
+export * from "./PopupContent";
