@@ -26,12 +26,8 @@ type MapComponentProps = {
   dataset: string;
 };
 
-let times: number = 0;
-
 export const MapComponent = React.memo(
   ({ style, overlay, particles, numParticles, dataset }: MapComponentProps) => {
-    times++;
-    console.log("MapComponent render times: ", times);
     const mapContainer = useRef(null);
     const map = useRef<mapboxgl.Map | null>(null);
     const particleLayer = useRef<VectoryLayerInterface>(null);
@@ -47,7 +43,6 @@ export const MapComponent = React.memo(
       const { maxBounds, bounds, lonRange, latRange, uRange, vRange } =
         await loadMetaDataFromUrl(buildDatasetUrl(dataset, GSLAMETANAME));
 
-      //set map bounds
       map.setMaxBounds(maxBounds);
       particleLayer.current.metadata = {
         bounds,
