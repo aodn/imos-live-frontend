@@ -1,9 +1,13 @@
+import { FixedLengthArray } from "@/types";
+
 /**
- * Generates an array of 7 dates ending 3 days before today.
- *
- * @returns {string[]} An array of date strings in YYYY-MM-DD format.
+ * Get the last 7 dates in the format "YY-MM-DD" ending 3 days ago.
+ * The dates are in descending order, starting from 6 days ago to 3 days ago.
+ * For example, if today is 2023-10-10, the output will be:
+ * ["23-10-07", "23-10-08", "23-10-09", "23-10-10", "23-10-11", "23-10-12", "23-10-13"]
+ * @returns Last 7 dates in the format "YY-MM-DD" ending 3 days ago.
  */
-export function getLast7DatesEnding3DaysAgo(): string[] {
+export function getLast7DatesEnding3DaysAgo(): FixedLengthArray<string, 7> {
   const dates = [];
   const today = new Date();
   const endDate = new Date(today);
@@ -19,5 +23,5 @@ export function getLast7DatesEnding3DaysAgo(): string[] {
     dates.push(`${yy}-${mm}-${dd}`);
   }
 
-  return dates;
+  return dates as FixedLengthArray<string, 7>;
 }

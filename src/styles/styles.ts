@@ -6,8 +6,6 @@ const mapboxStyles = [
   { title: "Satellite", source: "mapbox://styles/mapbox/satellite-v9" },
 ];
 
-const customStyles = [{ title: "Terrain", source: terrain }];
+export const customStyles = [{ title: "Terrain", source: terrain }];
 
-const styles = mapboxStyles.concat(customStyles);
-
-export default styles;
+export const styles = mapboxStyles.concat(customStyles);

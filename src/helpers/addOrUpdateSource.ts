@@ -7,13 +7,13 @@ type CoordinatesType = [
   range: RangeType,
 ];
 
-export const addOrUpdateSource = (
+export function addOrUpdateSource(
   map: mapboxgl.Map,
   id: string,
   url: string,
   lonRange: RangeType,
   latRange: RangeType,
-) => {
+) {
   const source = map.getSource(id) as mapboxgl.ImageSource | undefined;
 
   const coordinates: CoordinatesType = [
@@ -28,4 +28,4 @@ export const addOrUpdateSource = (
   } else {
     map.addSource(id, { type: "image", url, coordinates });
   }
-};
+}

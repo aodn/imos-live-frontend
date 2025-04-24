@@ -2,7 +2,7 @@ import MenuPane from "./MenuPane";
 import Tabs from "./Tabs";
 import NavSelect from "./NavSelect";
 import Menu from "./Menu";
-import styles from "../styles/styles";
+import { styles } from "../styles";
 
 type MenuComponentProps = {
   style: string;

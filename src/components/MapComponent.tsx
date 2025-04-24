@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
-import { VectoryLayerInterface, vectorLayer, imageLayer } from "../layers";
-import styles from "../styles/styles";
-import { loadMetaDataFromUrl, buildDatasetUrl } from "../utils";
+import { VectoryLayerInterface, vectorLayer, imageLayer } from "@/layers";
+import { styles } from "@/styles";
+import { loadMetaDataFromUrl, buildDatasetUrl, debounce } from "@/utils";
 import {
   GSLAMETANAME,
   GSLAPARTICLENAME,
@@ -11,9 +11,10 @@ import {
   OVERLAY_SOURCE_ID,
   PARTICLE_LAYER_ID,
   PARTICLE_SOURCE_ID,
-} from "../constants";
-import { addOrUpdateSource, showPopup } from "../helpers";
-import { getOceanCurrentDetails } from "../api";
+} from "@/constants";
+import { addOrUpdateSource, showPopup } from "@/helpers";
+import { getOceanCurrentDetails } from "@/api";
+import { useDidMountEffect } from "@/hooks";
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_KEY;
 
@@ -25,156 +26,171 @@ type MapComponentProps = {
   dataset: string;
 };
 
-let particleLayer: VectoryLayerInterface;
-let overlayLayer: mapboxgl.Layer;
+let times: number = 0;
 
-export const MapComponent = ({
-  style,
-  overlay,
-  particles,
-  numParticles,
-  dataset,
-}: MapComponentProps) => {
-  const mapContainer = useRef(null);
-  const map = useRef<mapboxgl.Map | null>(null);
-  const [loadComplete, setLoadComplete] = useState(false);
+export const MapComponent = React.memo(
+  ({ style, overlay, particles, numParticles, dataset }: MapComponentProps) => {
+    times++;
+    console.log("MapComponent render times: ", times);
+    const mapContainer = useRef(null);
+    const map = useRef<mapboxgl.Map | null>(null);
+    const particleLayer = useRef<VectoryLayerInterface>(null);
+    const overlayLayer = useRef<mapboxgl.Layer>(null);
+    const [loadComplete, setLoadComplete] = useState(false);
 
-  async function fetchDataset(dataset: string, map: mapboxgl.Map) {
-    const { maxBounds, bounds, lonRange, latRange, uRange, vRange } =
-      await loadMetaDataFromUrl(buildDatasetUrl(dataset, GSLAMETANAME));
+    const selectedStyle = useMemo(() => {
+      return styles.find((s) => s.title === style)?.source;
+    }, [style]);
 
-    //set map bounds
-    map.setMaxBounds(maxBounds);
-    particleLayer.metadata = {
-      bounds,
-      range: [uRange, vRange],
-    };
-    //Step 3. Add sources to layer
-    addOrUpdateSource(
-      map,
-      PARTICLE_SOURCE_ID,
-      buildDatasetUrl(dataset, GSLAPARTICLENAME),
-      lonRange,
-      latRange,
-    );
-    addOrUpdateSource(
-      map,
-      OVERLAY_SOURCE_ID,
-      buildDatasetUrl(dataset, GSLASEALEVELNAME),
-      lonRange,
-      latRange,
-    );
-  }
+    async function fetchDataset(dataset: string, map: mapboxgl.Map) {
+      if (!particleLayer.current) return;
+      const { maxBounds, bounds, lonRange, latRange, uRange, vRange } =
+        await loadMetaDataFromUrl(buildDatasetUrl(dataset, GSLAMETANAME));
 
-  useEffect(() => {
-    //Step 2. Create particleLayer
-    particleLayer = vectorLayer(
-      PARTICLE_LAYER_ID,
-      PARTICLE_SOURCE_ID,
-      particles,
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+      //set map bounds
+      map.setMaxBounds(maxBounds);
+      particleLayer.current.metadata = {
+        bounds,
+        range: [uRange, vRange],
+      };
+      //Step 3. Add sources to layer
+      addOrUpdateSource(
+        map,
+        PARTICLE_SOURCE_ID,
+        buildDatasetUrl(dataset, GSLAPARTICLENAME),
+        lonRange,
+        latRange,
+      );
+      addOrUpdateSource(
+        map,
+        OVERLAY_SOURCE_ID,
+        buildDatasetUrl(dataset, GSLASEALEVELNAME),
+        lonRange,
+        latRange,
+      );
+    }
 
-  useEffect(() => {
-    //Step 2. Create overlayLayer
-    overlayLayer = imageLayer(OVERLAY_LAYER_ID, OVERLAY_SOURCE_ID, overlay);
-  }, [overlay]);
+    useEffect(() => {
+      //Step 2. Create particleLayer
+      particleLayer.current = vectorLayer(
+        PARTICLE_LAYER_ID,
+        PARTICLE_SOURCE_ID,
+        particles,
+      );
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-  //toggle different styles
-  useEffect(() => {
-    if (!map.current) return;
+    useEffect(() => {
+      //Step 2. Create overlayLayer
+      overlayLayer.current = imageLayer(
+        OVERLAY_LAYER_ID,
+        OVERLAY_SOURCE_ID,
+        overlay,
+      );
+    }, [overlay]);
 
-    map.current.setStyle(
-      styles.find((_style) => {
-        return _style.title === style;
-      })?.source || "default-style",
-    );
-  }, [style]);
+    //toggle different styles
+    useEffect(() => {
+      if (!map.current) return;
 
-  //toggle overlay visible
-  useEffect(() => {
-    if (!map.current || !loadComplete) return;
-    map.current.setLayoutProperty(
-      overlayLayer.id,
-      "visibility",
-      overlay ? "visible" : "none",
-    );
-  }, [overlay, loadComplete]);
-
-  //toggle particles visibile
-  useEffect(() => {
-    if (!map.current || !loadComplete) return;
-    particleLayer.setVisible(particles);
-  }, [particles, loadComplete]);
-
-  //set the numebr of particles shown in the map
-  useEffect(() => {
-    if (!map.current || !loadComplete) return;
-    particleLayer.vectorField?.setParticleNum(numParticles);
-  }, [numParticles, loadComplete]);
-
-  //get new dataset when dataset date updates
-  useEffect(() => {
-    if (!map.current) return;
-    fetchDataset(dataset, map.current);
-  }, [dataset]);
-
-  useEffect(() => {
-    if (map.current) return;
-    //Step 1. Initialize map
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current as unknown as HTMLElement,
-      style:
+      map.current.setStyle(
         styles.find((_style) => {
           return _style.title === style;
         })?.source || "default-style",
-      zoom: 3,
-      antialias: true,
-      projection: "mercator",
-      touchPitch: false,
-      touchZoomRotate: false,
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (!map.current) return;
-
-    map.current.once("style.load", async () => {
-      await fetchDataset(dataset, map.current!);
-      if (!map.current?.getLayer(OVERLAY_LAYER_ID)) {
-        map.current?.addLayer(overlayLayer);
-      }
-      if (!map?.current?.getLayer(PARTICLE_LAYER_ID)) {
-        map.current?.addLayer(particleLayer);
-      }
-      setLoadComplete(true);
-    });
-
-    const handleClick = async (e: mapboxgl.MapMouseEvent) => {
-      const { lng, lat } = e.lngLat;
-      const { alpha, speed, degree, direction } = await getOceanCurrentDetails(
-        dataset,
-        lat,
-        lng,
       );
-      //if alpha is 0, this point could be land.
-      if (!alpha) return;
+    }, [style]);
 
-      showPopup(map.current!, { lat, lng, speed, direction, degree });
-    };
+    //toggle overlay visible
+    useEffect(() => {
+      if (!map.current || !loadComplete || !overlayLayer.current) return;
+      map.current.setLayoutProperty(
+        overlayLayer.current.id,
+        "visibility",
+        overlay ? "visible" : "none",
+      );
+    }, [overlay, loadComplete]);
 
-    map.current?.on("click", handleClick);
+    //toggle particles visibile
+    useEffect(() => {
+      if (!map.current || !loadComplete || !particleLayer.current) return;
+      particleLayer.current.setVisible(particles);
+    }, [particles, loadComplete]);
 
-    return () => {
-      map.current?.off("click", handleClick);
-    };
-  }, [dataset, style]);
+    //set the numebr of particles shown in the map
+    useEffect(() => {
+      if (!map.current || !loadComplete || !particleLayer.current) return;
+      particleLayer.current.vectorField?.setParticleNum(numParticles);
+    }, [numParticles, loadComplete]);
 
-  return (
-    <div className="map-component">
-      <div ref={mapContainer} className="map-container" />
-    </div>
-  );
-};
+    //only get new dataset when dataset date updates, aovid initial fetch, which is already done in style.load.
+    useDidMountEffect(() => {
+      if (!map.current || !loadComplete) return;
+      fetchDataset(dataset, map.current);
+    }, [dataset]);
+
+    useEffect(() => {
+      if (map.current) return;
+      //Step 1. Initialize map
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current as unknown as HTMLElement,
+        style: selectedStyle,
+        zoom: 3,
+        antialias: true,
+        projection: "mercator",
+        touchPitch: false,
+        touchZoomRotate: false,
+      });
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
+      if (!map.current) return;
+      //Step 4. Add layers to map{
+      map.current.once("style.load", async () => {
+        if (!overlayLayer.current || !particleLayer.current) return;
+        await fetchDataset(dataset, map.current!);
+
+        if (!map.current?.getLayer(OVERLAY_LAYER_ID)) {
+          map.current?.addLayer(overlayLayer.current);
+        }
+        if (!map?.current?.getLayer(PARTICLE_LAYER_ID)) {
+          map.current?.addLayer(particleLayer.current);
+        }
+        setLoadComplete(true);
+      });
+
+      const handleClick = async (e: mapboxgl.MapMouseEvent) => {
+        const { lng, lat } = e.lngLat;
+        const { alpha, speed, degree, direction } =
+          await getOceanCurrentDetails(dataset, lat, lng);
+        //if alpha is 0, this point could be land.
+        if (!alpha) return;
+
+        showPopup(map.current!, { lat, lng, speed, direction, degree });
+      };
+
+      const debounceClick = debounce(handleClick, 300);
+
+      map.current?.on("click", debounceClick);
+
+      //clean up
+      return () => {
+        map.current?.off("click", debounceClick);
+
+        if (map.current?.getLayer(OVERLAY_LAYER_ID)) {
+          map.current.removeLayer(OVERLAY_LAYER_ID);
+        }
+
+        if (map.current?.getLayer(PARTICLE_LAYER_ID)) {
+          map.current.removeLayer(PARTICLE_LAYER_ID);
+        }
+      };
+    }, [dataset, style]);
+
+    return (
+      <div className="map-component">
+        <div ref={mapContainer} className="map-container" />
+      </div>
+    );
+  },
+);
