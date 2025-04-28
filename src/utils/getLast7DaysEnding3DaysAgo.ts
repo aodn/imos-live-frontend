@@ -4,7 +4,7 @@ import { FixedLengthArray } from "@/types";
  * Get the last 7 dates in the format "YY-MM-DD" ending 3 days ago.
  * The dates are in descending order, starting from 6 days ago to 3 days ago.
  * For example, if today is 2023-10-10, the output will be:
- * ["23-10-07", "23-10-08", "23-10-09", "23-10-10", "23-10-11", "23-10-12", "23-10-13"]
+ * ["23-10-01", "23-10-02", "23-10-03", "23-10-04", "23-10-05", "23-10-06", "23-10-07"]
  * @returns Last 7 dates in the format "YY-MM-DD" ending 3 days ago.
  */
 export function getLast7DatesEnding3DaysAgo(): FixedLengthArray<string, 7> {

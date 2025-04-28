@@ -4,6 +4,7 @@ type PopupContentProps = {
   speed: number;
   direction: string;
   degree: number;
+  gsla: number;
 };
 
 export const PopupContent = ({
@@ -12,6 +13,7 @@ export const PopupContent = ({
   speed,
   degree,
   direction,
+  gsla,
 }: PopupContentProps) => {
   return (
     <div className="p-1">
@@ -21,11 +23,13 @@ export const PopupContent = ({
       <br />
       Lng: {lng.toFixed(2)}
       <br />
-      speed: {speed.toFixed(2)}
+      speed: {speed.toFixed(2)} m/s
       <br />
       direction: {direction}
       <br />
       degree: {degree.toFixed(2)}°
+      <br />
+      gsla: {gsla.toFixed(2)} m
     </div>
   );
 };

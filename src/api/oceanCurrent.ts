@@ -8,6 +8,8 @@ export interface OceanCurrentResponse {
   speedUnit: string;
   degree: number;
   direction: string;
+  gsla: number;
+  gslaUnit: string;
 }
 
 export const getOceanCurrentDetails = async (

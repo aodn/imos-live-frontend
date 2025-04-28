@@ -156,15 +156,15 @@ export const MapComponent = React.memo(
 
       const handleClick = async (e: mapboxgl.MapMouseEvent) => {
         const { lng, lat } = e.lngLat;
-        const { alpha, speed, degree, direction } =
+        const { gsla, alpha, speed, degree, direction } =
           await getOceanCurrentDetails(dataset, lat, lng);
         //if alpha is 0, this point could be land.
         if (!alpha) return;
 
-        showPopup(map.current!, { lat, lng, speed, direction, degree });
+        showPopup(map.current!, { lat, lng, speed, direction, degree, gsla });
       };
 
-      const debounceClick = debounce(handleClick, 300);
+      const debounceClick = debounce(handleClick, 200);
 
       map.current?.on("click", debounceClick);
 

@@ -8,10 +8,11 @@ type PopupOptions = {
   speed: number;
   direction: string;
   degree: number;
+  gsla: number;
 };
 
 export function showPopup(map: mapboxgl.Map, options: PopupOptions) {
-  const { lat, lng, speed, direction, degree } = options;
+  const { lat, lng, speed, direction, degree, gsla } = options;
 
   const container = document.createElement("div");
   const root = createRoot(container);
@@ -22,6 +23,7 @@ export function showPopup(map: mapboxgl.Map, options: PopupOptions) {
       speed={speed}
       direction={direction}
       degree={degree}
+      gsla={gsla}
     />,
   );
 
