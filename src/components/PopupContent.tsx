@@ -16,7 +16,7 @@ export const PopupContent = ({
   gsla,
 }: PopupContentProps) => {
   return (
-    <div className="p-1">
+    <div className="p-2">
       <strong>Current Information</strong>
       <br />
       Lat: {lat.toFixed(2)}

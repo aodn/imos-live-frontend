@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Extra
+.vite
+.ipynb_checkpoints
+venv
+.env
+jsconfig.json
