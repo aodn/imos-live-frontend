@@ -5,10 +5,10 @@ import { PopupContent } from "../components";
 type PopupOptions = {
   lat: number;
   lng: number;
-  speed: number;
-  direction: string;
-  degree: number;
-  gsla: number;
+  speed?: number;
+  direction?: string;
+  degree?: number;
+  gsla?: number;
 };
 
 export function showPopup(map: mapboxgl.Map, options: PopupOptions) {

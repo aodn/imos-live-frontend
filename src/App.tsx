@@ -1,67 +1,15 @@
-import "./App.css";
-import { getLast7DatesEnding3DaysAgo } from "@/utils";
-import "mapbox-gl/dist/mapbox-gl.css";
-import { MapComponent, MenuComponent } from "@/components";
-import { useState } from "react";
-import { StyleTitle } from "./styles";
-
-const datasets = getLast7DatesEnding3DaysAgo();
+import { Route, Routes } from "react-router-dom";
+import { Map as MapPage, Landing as LandingPage } from "@/pages";
+import { Layout } from "@/components";
 
 function App() {
-  const [style, setStyle] = useState<StyleTitle>("Dark");
-  const [overlay, setOverlay] = useState(false);
-  const [particles, setParticles] = useState(true);
-  const [numParticles, setNumParticles] = useState(10000);
-  const [dataset, setDataset] = useState<string>(datasets.at(-1)!);
-
-  const handleSetStyle = (style: string) => {
-    setStyle(style);
-  };
-
-  const handleSetOverlay = (v: boolean) => {
-    setOverlay(v);
-  };
-
-  const handleSetParticles = (v: boolean) => {
-    setParticles(v);
-  };
-
-  const handleSetNumParticles = (numParticles: number) => {
-    setNumParticles(numParticles);
-  };
-
-  const handleSetDataset = (dataset: string) => {
-    setDataset(dataset);
-  };
-
-  const menuProps = {
-    style,
-    overlay,
-    particles,
-    numParticles,
-    dataset,
-    datasets,
-    handleSetStyle,
-    handleSetOverlay,
-    handleSetParticles,
-    handleSetNumParticles,
-    handleSetDataset,
-  };
-
-  const mapProps = {
-    style,
-    overlay,
-    particles,
-    numParticles,
-    dataset,
-    datasets,
-  };
-
   return (
-    <div className="App">
-      <MapComponent {...mapProps} />
-      <MenuComponent {...menuProps} />
-    </div>
+    <Routes>
+      <Route element={<Layout />}>
+        <Route path="/" element={<MapPage />} />
+        <Route path="/landing" element={<LandingPage />} />
+      </Route>
+    </Routes>
   );
 }
 export default App;

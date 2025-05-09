@@ -4,7 +4,7 @@ type props = {
   children: ReactNode;
 };
 const MenuPane = ({ title, children }: props) => (
-  <div className="menu-pane centre">
+  <div className="text-center">
     <p>{title}</p>
     {children}
   </div>

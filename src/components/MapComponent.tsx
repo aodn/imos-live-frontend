@@ -1,88 +1,82 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
-import { VectoryLayerInterface, vectorLayer, imageLayer } from "@/layers";
-import { styles } from "@/styles";
-import { loadMetaDataFromUrl, buildDatasetUrl, debounce } from "@/utils";
 import {
-  GSLAMETANAME,
-  GSLAPARTICLENAME,
-  GSLASEALEVELNAME,
+  VectoryLayerInterface,
+  vectorLayer,
+  imageLayer,
+  circleLayer,
+} from "@/layers";
+import { styles } from "@/styles";
+import {
   OVERLAY_LAYER_ID,
   OVERLAY_SOURCE_ID,
   PARTICLE_LAYER_ID,
   PARTICLE_SOURCE_ID,
+  WAVE_BUOYS_LAYER_ID,
+  WAVE_BUOYS_SOURCE_ID,
 } from "@/constants";
-import { addOrUpdateSource, showPopup } from "@/helpers";
-import { getOceanCurrentDetails } from "@/api";
-import { useDidMountEffect } from "@/hooks";
+import { fetchDataset } from "@/helpers";
+import { useDidMountEffect, useMapClickHandlers } from "@/hooks";
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_KEY;
 
 type MapComponentProps = {
   style: string;
   overlay: boolean;
+  circle: boolean;
   particles: boolean;
   numParticles: number;
   dataset: string;
 };
 
 export const MapComponent = React.memo(
-  ({ style, overlay, particles, numParticles, dataset }: MapComponentProps) => {
+  ({
+    style,
+    overlay,
+    circle,
+    particles,
+    numParticles,
+    dataset,
+  }: MapComponentProps) => {
     const mapContainer = useRef(null);
     const map = useRef<mapboxgl.Map | null>(null);
     const particleLayer = useRef<VectoryLayerInterface>(null);
     const overlayLayer = useRef<mapboxgl.Layer>(null);
+    const waveBuoysLayer = useRef<mapboxgl.Layer>(null);
     const [loadComplete, setLoadComplete] = useState(false);
+
+    useMapClickHandlers({
+      map: map.current,
+      dataset,
+      overlay,
+      particles,
+      circle,
+    });
 
     const selectedStyle = useMemo(() => {
       return styles.find((s) => s.title === style)?.source;
     }, [style]);
 
-    async function fetchDataset(dataset: string, map: mapboxgl.Map) {
-      if (!particleLayer.current) return;
-      const { maxBounds, bounds, lonRange, latRange, uRange, vRange } =
-        await loadMetaDataFromUrl(buildDatasetUrl(dataset, GSLAMETANAME));
-
-      map.setMaxBounds(maxBounds);
-      particleLayer.current.metadata = {
-        bounds,
-        range: [uRange, vRange],
-      };
-      //Step 3. Add sources to layer
-      addOrUpdateSource(
-        map,
-        PARTICLE_SOURCE_ID,
-        buildDatasetUrl(dataset, GSLAPARTICLENAME),
-        lonRange,
-        latRange,
-      );
-      addOrUpdateSource(
-        map,
-        OVERLAY_SOURCE_ID,
-        buildDatasetUrl(dataset, GSLASEALEVELNAME),
-        lonRange,
-        latRange,
-      );
-    }
-
     useEffect(() => {
-      //Step 2. Create particleLayer
       particleLayer.current = vectorLayer(
         PARTICLE_LAYER_ID,
         PARTICLE_SOURCE_ID,
         particles,
       );
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
-      //Step 2. Create overlayLayer
       overlayLayer.current = imageLayer(
         OVERLAY_LAYER_ID,
         OVERLAY_SOURCE_ID,
         overlay,
       );
-    }, [overlay]);
+      waveBuoysLayer.current = circleLayer(
+        WAVE_BUOYS_LAYER_ID,
+        WAVE_BUOYS_SOURCE_ID,
+        circle,
+      );
+    }, [style]);
 
     //toggle different styles
     useEffect(() => {
@@ -105,22 +99,32 @@ export const MapComponent = React.memo(
       );
     }, [overlay, loadComplete]);
 
-    //toggle particles visibile
+    //toggle waveBuoysLayer visible
+    useEffect(() => {
+      if (!map.current || !loadComplete || !waveBuoysLayer.current) return;
+      map.current.setLayoutProperty(
+        waveBuoysLayer.current.id,
+        "visibility",
+        circle ? "visible" : "none",
+      );
+    }, [circle, loadComplete]);
+
+    //toggle particles visible
     useEffect(() => {
       if (!map.current || !loadComplete || !particleLayer.current) return;
       particleLayer.current.setVisible(particles);
     }, [particles, loadComplete]);
 
-    //set the numebr of particles shown in the map
+    //set the number of particles shown in the map
     useEffect(() => {
       if (!map.current || !loadComplete || !particleLayer.current) return;
       particleLayer.current.vectorField?.setParticleNum(numParticles);
     }, [numParticles, loadComplete]);
 
-    //only get new dataset when dataset date updates, aovid initial fetch, which is already done in style.load.
+    //only get new dataset when dataset date updates, avoid initial fetch, which is already done in style.load.
     useDidMountEffect(() => {
-      if (!map.current || !loadComplete) return;
-      fetchDataset(dataset, map.current);
+      if (!map.current || !loadComplete || !particleLayer.current) return;
+      fetchDataset(dataset, map.current, particleLayer);
     }, [dataset]);
 
     useEffect(() => {
@@ -140,10 +144,15 @@ export const MapComponent = React.memo(
 
     useEffect(() => {
       if (!map.current) return;
-      //Step 4. Add layers to map{
+      //Step 4. Add layers to map
       map.current.once("style.load", async () => {
-        if (!overlayLayer.current || !particleLayer.current) return;
-        await fetchDataset(dataset, map.current!);
+        if (
+          !overlayLayer.current ||
+          !particleLayer.current ||
+          !waveBuoysLayer.current
+        )
+          return;
+        await fetchDataset(dataset, map.current!, particleLayer);
 
         if (!map.current?.getLayer(OVERLAY_LAYER_ID)) {
           map.current?.addLayer(overlayLayer.current);
@@ -151,40 +160,16 @@ export const MapComponent = React.memo(
         if (!map?.current?.getLayer(PARTICLE_LAYER_ID)) {
           map.current?.addLayer(particleLayer.current);
         }
+        if (!map?.current?.getLayer(WAVE_BUOYS_LAYER_ID)) {
+          map.current?.addLayer(waveBuoysLayer.current);
+        }
         setLoadComplete(true);
       });
-
-      const handleClick = async (e: mapboxgl.MapMouseEvent) => {
-        const { lng, lat } = e.lngLat;
-        const { gsla, alpha, speed, degree, direction } =
-          await getOceanCurrentDetails(dataset, lat, lng);
-        //if alpha is 0, this point could be land.
-        if (!alpha) return;
-
-        showPopup(map.current!, { lat, lng, speed, direction, degree, gsla });
-      };
-
-      const debounceClick = debounce(handleClick, 200);
-
-      map.current?.on("click", debounceClick);
-
-      //clean up
-      return () => {
-        map.current?.off("click", debounceClick);
-
-        if (map.current?.getLayer(OVERLAY_LAYER_ID)) {
-          map.current.removeLayer(OVERLAY_LAYER_ID);
-        }
-
-        if (map.current?.getLayer(PARTICLE_LAYER_ID)) {
-          map.current.removeLayer(PARTICLE_LAYER_ID);
-        }
-      };
     }, [dataset, style]);
 
     return (
-      <div className="map-component">
-        <div ref={mapContainer} className="map-container" />
+      <div className="w-full h-full">
+        <div ref={mapContainer} className="w-full h-full" />
       </div>
     );
   },

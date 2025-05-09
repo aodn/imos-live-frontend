@@ -97,7 +97,6 @@ function VectorField(map, gl) {
   function setData(dataObject) {
     //set vectorField data and bounds of data, and range of vector components
     ({ data, bounds, range } = dataObject);
-
     //initialize settings, programs, buffers
     initialize();
   }
@@ -113,7 +112,7 @@ function VectorField(map, gl) {
 
   /**
    * This defines a 2D texture grid (width × height) big enough to hold all particles. Each "pixel" in this texture is one particle.
-   * populate a texture where each particle has a random (x, y) position encoded in RG (red/green) channels, so it generate partiles and
+   * populate a texture where each particle has a random (x, y) position encoded in RG (red/green) channels, so it generate particles and
    * spread out randomly.
    * @private
    * @param {number} num - Number of particles.
@@ -122,7 +121,7 @@ function VectorField(map, gl) {
     particleRes = Math.ceil(Math.sqrt(num));
     numParticles = particleRes * particleRes;
 
-    //creata a Uint8Array of size numParticles * 4 (RGBA) to store particle positions
+    //create a Uint8Array of size numParticles * 4 (RGBA) to store particle positions
     //each particle will be represented by 4 bytes (R, G, B, A)
     /**
      * Channel	Possible Meaning	Example
@@ -218,13 +217,13 @@ function VectorField(map, gl) {
 
     canvas.width = data.width;
     canvas.height = data.height;
-
     context.drawImage(data, 0, 0);
+
     //get image pixels from canvas
     //getImageData returns an ImageData object that contains the pixel data for the specified rectangle of the canvas.
     const myData = context.getImageData(0, 0, data.width, data.height);
-    const emptyPixels = new Uint8Array(gl.canvas.width * gl.canvas.height * 4);
 
+    const emptyPixels = new Uint8Array(gl.canvas.width * gl.canvas.height * 4);
     dataTextures = twgl.createTextures(gl, {
       u_image: {
         mag: gl.LINEAR,
@@ -424,7 +423,7 @@ function VectorField(map, gl) {
   }
 
   function draw() {
-    if (state != "ANIMATING") return;
+    if (state !== "ANIMATING") return;
 
     gl.disable(gl.DEPTH_TEST);
     gl.disable(gl.STENCIL_TEST);

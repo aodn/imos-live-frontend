@@ -1,5 +1,5 @@
 import MenuPane from "./MenuPane";
-import Tabs from "./Tabs";
+import { Tabs } from "./Tabs";
 import NavSelect from "./NavSelect";
 import Menu from "./Menu";
 import { styles } from "../styles";
@@ -7,12 +7,14 @@ import { styles } from "../styles";
 type MenuComponentProps = {
   style: string;
   overlay: boolean;
+  circle: boolean;
   particles: boolean;
   numParticles: number;
   dataset: string;
   datasets: string[];
   handleSetStyle: (style: string) => void;
   handleSetOverlay: (v: boolean) => void;
+  handleSetCircle: (v: boolean) => void;
   handleSetParticles: (v: boolean) => void;
   handleSetNumParticles: (v: number) => void;
   handleSetDataset: (dataset: string) => void;
@@ -21,12 +23,14 @@ type MenuComponentProps = {
 export const MenuComponent = ({
   style,
   overlay,
+  circle,
   particles,
   numParticles,
   dataset,
   datasets,
   handleSetStyle,
   handleSetOverlay,
+  handleSetCircle,
   handleSetParticles,
   handleSetNumParticles,
   handleSetDataset,
@@ -51,6 +55,15 @@ export const MenuComponent = ({
               { title: "Off", handleClick: handleSetOverlay, value: false },
             ]}
             active={overlay}
+          />
+        </MenuPane>
+        <MenuPane title={"Circle"}>
+          <Tabs
+            tabs={[
+              { title: "On", handleClick: handleSetCircle, value: true },
+              { title: "Off", handleClick: handleSetCircle, value: false },
+            ]}
+            active={circle}
           />
         </MenuPane>
         <MenuPane title={"Particles"}>

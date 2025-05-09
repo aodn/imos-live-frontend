@@ -12,7 +12,7 @@ const Menu = ({ children }: MenuProps) => {
   }, []);
 
   return (
-    <div className="menu">
+    <div className="bg-[rgba(35,55,75,0.9)] text-[#ddd] px-3 py-1.5 font-mono z-[1] absolute top-0 right-0 m-3 rounded max-w-[25vw">
       <div className="button" onClick={toggleIsExpanded}>
         {isExpanded ? (
           <HiChevronUp className="icon" />

@@ -1,10 +1,10 @@
 type PopupContentProps = {
   lat: number;
   lng: number;
-  speed: number;
-  direction: string;
-  degree: number;
-  gsla: number;
+  speed?: number;
+  direction?: string;
+  degree?: number;
+  gsla?: number;
 };
 
 export const PopupContent = ({
@@ -18,18 +18,13 @@ export const PopupContent = ({
   return (
     <div className="p-2">
       <strong>Current Information</strong>
-      <br />
-      Lat: {lat.toFixed(2)}
-      <br />
-      Lng: {lng.toFixed(2)}
-      <br />
-      speed: {speed.toFixed(2)} m/s
-      <br />
-      direction: {direction}
-      <br />
-      degree: {degree.toFixed(2)}°
-      <br />
-      gsla: {gsla.toFixed(2)} m
+
+      {<p>Lat: {lat.toFixed(2)}</p>}
+      {<p>Lng: {lng.toFixed(2)}</p>}
+      {speed !== undefined && <p>speed: {speed.toFixed(2)} m/s</p>}
+      {degree !== undefined && <p>direction: {direction}</p>}
+      {direction !== undefined && <p>degree: {degree?.toFixed(2)}°</p>}
+      {gsla !== undefined && <p>gsla: {gsla.toFixed(2)} m</p>}
     </div>
   );
 };
