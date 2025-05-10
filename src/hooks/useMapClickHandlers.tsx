@@ -1,16 +1,15 @@
-import { useEffect, useRef } from "react";
+/* eslint-disable react-hooks/exhaustive-deps */
+import { useEffect, useRef, RefObject } from "react";
 import { getOceanCurrentDetails } from "@/api";
 import { showPopup } from "@/helpers";
 import { CircleDetails } from "@/components";
 import { WAVE_BUOYS_LAYER_ID } from "@/constants";
 import { useDrawerStore } from "@/store";
 import { debounce } from "@/utils";
-// @ts-ignore
-import mapboxgl from "mapbox-gl";
 import { WaveBuoyProperties } from "@/types";
 
 type UseMapClickHandlersOptions = {
-  map: mapboxgl.Map | null;
+  map: RefObject<mapboxgl.Map | null>;
   dataset: string;
   overlay: boolean;
   particles: boolean;
@@ -28,25 +27,26 @@ export function useMapClickHandlers({
   const { openDrawer } = useDrawerStore();
 
   useEffect(() => {
-    if (!map) return;
+    if (!map.current) return;
+    const mapInstance = map.current;
     const handleMouseDown = (
       e: mapboxgl.MapMouseEvent & { originalEvent: MouseEvent },
     ) => {
-      const features = map.queryRenderedFeatures(e.point, {
+      const features = map.current!.queryRenderedFeatures(e.point, {
         layers: [WAVE_BUOYS_LAYER_ID],
       });
       waveBuoysLayerClicked.current = !!(features && features.length > 0);
     };
 
-    map.on("mousedown", handleMouseDown);
+    mapInstance.on("mousedown", handleMouseDown);
     return () => {
-      map.off("mousedown", handleMouseDown);
+      mapInstance.off("mousedown", handleMouseDown);
     };
-  }, [map]);
+  }, []);
 
   useEffect(() => {
-    if (!map || (!particles && !overlay)) return;
-
+    if (!map.current || (!particles && !overlay)) return;
+    const mapInstance = map.current;
     const handleClick = async (e: mapboxgl.MapMouseEvent) => {
       if (waveBuoysLayerClicked.current) {
         waveBuoysLayerClicked.current = false;
@@ -59,7 +59,7 @@ export function useMapClickHandlers({
 
       if (!alpha) return;
 
-      showPopup(map, {
+      showPopup(mapInstance, {
         lat,
         lng,
         ...(particles ? { speed, direction, degree } : {}),
@@ -68,25 +68,26 @@ export function useMapClickHandlers({
     };
 
     const debounceClick = debounce(handleClick, 100);
-    map.on("click", debounceClick);
+    mapInstance.on("click", debounceClick);
     return () => {
-      map.off("click", debounceClick);
+      mapInstance.off("click", debounceClick);
     };
-  }, [map, dataset, overlay, particles]);
+  }, [dataset, overlay, particles]);
 
   useEffect(() => {
-    if (!map || !circle) return;
+    if (!map.current || !circle) return;
 
+    const mapInstance = map.current;
     const handleClick = (e: mapboxgl.MapMouseEvent) => {
       if (!e.features?.length) return;
       const { properties } = e.features[0];
       openDrawer(<CircleDetails {...(properties as WaveBuoyProperties)} />);
     };
 
-    map.on("click", WAVE_BUOYS_LAYER_ID, handleClick);
+    mapInstance.on("click", WAVE_BUOYS_LAYER_ID, handleClick);
 
     return () => {
-      map.off("click", WAVE_BUOYS_LAYER_ID, handleClick);
+      mapInstance.off("click", WAVE_BUOYS_LAYER_ID, handleClick);
     };
-  }, [map, circle, openDrawer]);
+  }, [circle, openDrawer]);
 }
