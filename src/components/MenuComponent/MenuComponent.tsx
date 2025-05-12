@@ -1,8 +1,8 @@
-import MenuPane from './MenuPane';
-import { Tabs } from './Tabs';
-import NavSelect from './NavSelect';
-import Menu from './Menu';
-import { styles, StyleTitle } from '../styles';
+import { MenuPane } from '../MenuPane';
+import { Tabs } from '../Tab/Tabs';
+import { NavSelect } from '../NavSelect';
+import { Menu } from '../Menu';
+import { styles, StyleTitle } from '../../styles';
 
 type MenuComponentProps = {
   style: StyleTitle;

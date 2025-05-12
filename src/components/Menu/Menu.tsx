@@ -5,7 +5,7 @@ type MenuProps = {
   children: ReactNode;
 };
 
-const Menu = ({ children }: MenuProps) => {
+export const Menu = ({ children }: MenuProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const toggleIsExpanded = useCallback(() => {
     setIsExpanded(isExpanded => !isExpanded);
@@ -20,5 +20,3 @@ const Menu = ({ children }: MenuProps) => {
     </div>
   );
 };
-
-export default Menu;

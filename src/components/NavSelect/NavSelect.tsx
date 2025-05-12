@@ -11,7 +11,7 @@ type NavSelectProps = {
   handleClick: (v: string) => void;
 };
 
-const NavSelect = ({ options, selected, handleClick }: NavSelectProps) => {
+export const NavSelect = ({ options, selected, handleClick }: NavSelectProps) => {
   const index = options.indexOf(selected);
   return (
     <div className="select">
@@ -59,5 +59,3 @@ const NavSelect = ({ options, selected, handleClick }: NavSelectProps) => {
     </div>
   );
 };
-
-export default NavSelect;
