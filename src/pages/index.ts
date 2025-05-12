@@ -1,2 +1,2 @@
-export * from "./Map.tsx";
-export * from "./Landing.tsx";
+export * from './Map.tsx';
+export * from './Landing.tsx';

@@ -1,6 +1,6 @@
-import { Route, Routes } from "react-router-dom";
-import { Map as MapPage, Landing as LandingPage } from "@/pages";
-import { Layout } from "@/components";
+import { Route, Routes } from 'react-router-dom';
+import { Map as MapPage, Landing as LandingPage } from '@/pages';
+import { Layout } from '@/components';
 
 function App() {
   return (

@@ -3,7 +3,7 @@ import {
   HiChevronDoubleRight,
   HiChevronLeft,
   HiChevronRight,
-} from "react-icons/hi";
+} from 'react-icons/hi';
 
 type NavSelectProps = {
   options: any[];
@@ -19,8 +19,8 @@ const NavSelect = ({ options, selected, handleClick }: NavSelectProps) => {
         onClick={() => handleClick(options[0])}
         className={
           index > 0
-            ? "bg-inherit text-[#ddd] px-1.5 py-1.5 font-mono border-none outline-none inline-block align-middle"
-            : "hidden"
+            ? 'bg-inherit text-[#ddd] px-1.5 py-1.5 font-mono border-none outline-none inline-block align-middle'
+            : 'hidden'
         }
       >
         <HiChevronDoubleLeft />
@@ -29,8 +29,8 @@ const NavSelect = ({ options, selected, handleClick }: NavSelectProps) => {
         onClick={() => handleClick(options[index - 1])}
         className={
           index > 0
-            ? "bg-inherit text-[#ddd] px-1.5 py-1.5 font-mono border-none outline-none inline-block align-middle"
-            : "hidden"
+            ? 'bg-inherit text-[#ddd] px-1.5 py-1.5 font-mono border-none outline-none inline-block align-middle'
+            : 'hidden'
         }
       >
         <HiChevronLeft />
@@ -40,8 +40,8 @@ const NavSelect = ({ options, selected, handleClick }: NavSelectProps) => {
         onClick={() => handleClick(options[index + 1])}
         className={
           index < options.length - 1
-            ? "bg-inherit text-[#ddd] px-1.5 py-1.5 font-mono border-none outline-none inline-block align-middle"
-            : "hidden"
+            ? 'bg-inherit text-[#ddd] px-1.5 py-1.5 font-mono border-none outline-none inline-block align-middle'
+            : 'hidden'
         }
       >
         <HiChevronRight />
@@ -50,8 +50,8 @@ const NavSelect = ({ options, selected, handleClick }: NavSelectProps) => {
         onClick={() => handleClick(options.at(-1))}
         className={
           index < options.length - 1
-            ? "bg-inherit text-[#ddd] px-1.5 py-1.5 font-mono border-none outline-none inline-block align-middle"
-            : "hidden"
+            ? 'bg-inherit text-[#ddd] px-1.5 py-1.5 font-mono border-none outline-none inline-block align-middle'
+            : 'hidden'
         }
       >
         <HiChevronDoubleRight />

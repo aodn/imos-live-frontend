@@ -1,5 +1,5 @@
-import { create } from "zustand";
-import { ReactNode } from "react";
+import { create } from 'zustand';
+import { ReactNode } from 'react';
 
 type DrawerStore = {
   isOpen: boolean;
@@ -8,9 +8,9 @@ type DrawerStore = {
   closeDrawer: () => void;
 };
 
-export const useDrawerStore = create<DrawerStore>((set) => ({
+export const useDrawerStore = create<DrawerStore>(set => ({
   isOpen: false,
   content: null,
-  openDrawer: (content) => set({ isOpen: true, content }),
+  openDrawer: content => set({ isOpen: true, content }),
   closeDrawer: () => set({ isOpen: false, content: null }),
 }));

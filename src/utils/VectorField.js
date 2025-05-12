@@ -1,7 +1,7 @@
-import mapboxgl from "mapbox-gl";
-import * as twgl from "twgl.js";
-import { vs, fs, vsQuad, fsScreen, fsUpdate } from "./shader.js";
-import config from "./vectorConfig.ts";
+import mapboxgl from 'mapbox-gl';
+import * as twgl from 'twgl.js';
+import { vs, fs, vsQuad, fsScreen, fsUpdate } from './shader.js';
+import config from './vectorConfig.ts';
 
 /**
  * 
@@ -70,7 +70,7 @@ function VectorField(map, gl) {
   let framebuffer;
   let particleIndices;
   let particleRes;
-  let state = "PAUSED";
+  let state = 'PAUSED';
   let mapBounds;
   let nParticles = config.nParticles;
 
@@ -212,8 +212,8 @@ function VectorField(map, gl) {
     //initial setting of particle colors
     setColorRamp(config.colours);
 
-    const canvas = document.createElement("canvas");
-    const context = canvas.getContext("2d");
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
 
     canvas.width = data.width;
     canvas.height = data.height;
@@ -423,7 +423,7 @@ function VectorField(map, gl) {
   }
 
   function draw() {
-    if (state !== "ANIMATING") return;
+    if (state !== 'ANIMATING') return;
 
     gl.disable(gl.DEPTH_TEST);
     gl.disable(gl.STENCIL_TEST);
@@ -445,7 +445,7 @@ function VectorField(map, gl) {
    * Begins the animation loop and starts particle movement.
    */
   function startAnimation() {
-    state = "ANIMATING";
+    state = 'ANIMATING';
     setBounds(map.getBounds());
     frame();
   }
@@ -454,7 +454,7 @@ function VectorField(map, gl) {
    * Stops the animation loop and clears render targets.
    */
   function stopAnimation() {
-    state = "PAUSED";
+    state = 'PAUSED';
     clear();
     cancelAnimationFrame(animationId);
   }
@@ -542,8 +542,8 @@ function VectorField(map, gl) {
  * This is then uploaded as a texture to the GPU so shaders can sample colors based on speed.
  */
 function getColorRamp(colors) {
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
 
   canvas.width = 256;
   canvas.height = 1;

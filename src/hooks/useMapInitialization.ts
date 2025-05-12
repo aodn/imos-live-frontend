@@ -1,5 +1,5 @@
-import { useEffect, useRef } from "react";
-import mapboxgl from "mapbox-gl";
+import { useEffect, useRef } from 'react';
+import mapboxgl from 'mapbox-gl';
 
 export const useMapInitialization = (style: string) => {
   const mapContainer = useRef<HTMLDivElement | null>(null);
@@ -13,7 +13,7 @@ export const useMapInitialization = (style: string) => {
       style,
       zoom: 3,
       antialias: true,
-      projection: "mercator",
+      projection: 'mercator',
       touchPitch: false,
       touchZoomRotate: false,
     });

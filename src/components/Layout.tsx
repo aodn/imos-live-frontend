@@ -1,6 +1,6 @@
-import { Outlet } from "react-router-dom";
-import { Drawer } from "@heroui/react";
-import { useDrawerStore } from "@/store";
+import { Outlet } from 'react-router-dom';
+import { Drawer } from '@heroui/react';
+import { useDrawerStore } from '@/store';
 
 export const Layout = () => {
   const { isOpen, closeDrawer, content } = useDrawerStore();
@@ -11,7 +11,6 @@ export const Layout = () => {
       <main className="h-full w-full">
         <Outlet />
       </main>
-
       <footer></footer>
       <aside>
         <Drawer isOpen={isOpen} onClose={closeDrawer} placement="bottom">

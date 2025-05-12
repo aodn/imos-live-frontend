@@ -1,4 +1,4 @@
-import { FixedLengthArray } from "@/types";
+import { FixedLengthArray } from '@/types';
 
 /**
  * Get the last 7 dates in the format "YY-MM-DD" ending 3 days ago.
@@ -17,8 +17,8 @@ export function getLast7DatesEnding3DaysAgo(): FixedLengthArray<string, 7> {
     date.setDate(endDate.getDate() - i);
 
     const yy = String(date.getFullYear()).slice(-2);
-    const mm = String(date.getMonth() + 1).padStart(2, "0");
-    const dd = String(date.getDate()).padStart(2, "0");
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
 
     dates.push(`${yy}-${mm}-${dd}`);
   }

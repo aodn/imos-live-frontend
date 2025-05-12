@@ -7,14 +7,7 @@ type PopupContentProps = {
   gsla?: number;
 };
 
-export const PopupContent = ({
-  lat,
-  lng,
-  speed,
-  degree,
-  direction,
-  gsla,
-}: PopupContentProps) => {
+export const PopupContent = ({ lat, lng, speed, degree, direction, gsla }: PopupContentProps) => {
   return (
     <div className="p-2">
       <strong>Current Information</strong>

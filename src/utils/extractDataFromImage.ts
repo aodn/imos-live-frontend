@@ -86,7 +86,7 @@ export function getVelocityAtPixel(
 export function degreesToCompass(u: number, v: number): DirectionType {
   let degree = (Math.atan2(v, u) * 180) / Math.PI;
   if (degree < 0) degree += 360;
-  const directions = ["E", "NE", "N", "NW", "W", "SW", "S", "SE"];
+  const directions = ['E', 'NE', 'N', 'NW', 'W', 'SW', 'S', 'SE'];
   const index = Math.round(degree / 45) % 8;
   return { direction: directions[index], degree };
 }
@@ -128,10 +128,10 @@ export function extractImageData(
   width: number,
   height: number,
 ): Uint8ClampedArray {
-  const canvas = document.createElement("canvas");
+  const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
-  const context = canvas.getContext("2d")!;
+  const context = canvas.getContext('2d')!;
   context.drawImage(imageBitmap, 0, 0);
   return context.getImageData(0, 0, width, height).data;
 }

@@ -1,20 +1,20 @@
-import { useState } from "react";
-import { StyleTitle } from "@/styles";
-import { MapComponent, MenuComponent } from "@/components";
-import { getLast7DatesEnding3DaysAgo } from "@/utils";
-import "mapbox-gl/dist/mapbox-gl.css";
-
-const datasets = getLast7DatesEnding3DaysAgo();
+import { useMemo, useState } from 'react';
+import { StyleTitle } from '@/styles';
+import { MapComponent, MenuComponent } from '@/components';
+import { getLast7DatesEnding3DaysAgo } from '@/utils';
+import 'mapbox-gl/dist/mapbox-gl.css';
 
 export const Map = () => {
-  const [style, setStyle] = useState<StyleTitle>("Dark");
+  const [style, setStyle] = useState<StyleTitle>('Dark');
   const [overlay, setOverlay] = useState(false);
   const [circle, setCircle] = useState(false);
   const [particles, setParticles] = useState(true);
   const [numParticles, setNumParticles] = useState(10000);
-  const [dataset, setDataset] = useState<string>(datasets.at(-1)!);
+  const [dataset, setDataset] = useState<string>(getLast7DatesEnding3DaysAgo().at(-1)!);
 
-  const handleSetStyle = (style: string) => {
+  const datasets = useMemo(() => getLast7DatesEnding3DaysAgo(), []);
+
+  const handleSetStyle = (style: StyleTitle) => {
     setStyle(style);
   };
 

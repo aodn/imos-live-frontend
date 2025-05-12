@@ -22,21 +22,21 @@ export interface WaveBuoyProperties {
 }
 
 export interface WaveBuoyGeometry {
-  type: "Point";
+  type: 'Point';
   coordinates: [number, number]; // [longitude, latitude]
 }
 
 export interface WaveBuoyFeature {
-  type: "Feature";
+  type: 'Feature';
   properties: WaveBuoyProperties;
   geometry: WaveBuoyGeometry;
 }
 
 export interface WaveBuoyFeatureCollection {
-  type: "FeatureCollection";
+  type: 'FeatureCollection';
   name: string;
   crs: {
-    type: "name";
+    type: 'name';
     properties: {
       name: string;
     };

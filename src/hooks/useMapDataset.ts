@@ -1,12 +1,8 @@
-import { useEffect, RefObject } from "react";
-import { fetchDataset } from "@/helpers";
-import { useDidMountEffect } from "@/hooks";
-import { VectoryLayerInterface } from "@/layers";
-import {
-  OVERLAY_LAYER_ID,
-  PARTICLE_LAYER_ID,
-  WAVE_BUOYS_LAYER_ID,
-} from "@/constants";
+import { useEffect, RefObject } from 'react';
+import { updateSourceByDataset } from '@/helpers';
+import { useDidMountEffect } from '@/hooks';
+import { VectoryLayerInterface } from '@/layers';
+import { OVERLAY_LAYER_ID, PARTICLE_LAYER_ID, WAVE_BUOYS_LAYER_ID } from '@/constants';
 
 export const useMapDataset = (
   map: RefObject<mapboxgl.Map | null>,
@@ -29,14 +25,9 @@ export const useMapDataset = (
     if (!mapInstance) return;
 
     const setupLayers = async () => {
-      if (
-        !overlayLayer.current ||
-        !particleLayer.current ||
-        !waveBuoysLayer.current
-      )
-        return;
+      if (!overlayLayer.current || !particleLayer.current || !waveBuoysLayer.current) return;
 
-      await fetchDataset(dataset, mapInstance, particleLayer);
+      await updateSourceByDataset(dataset, mapInstance, particleLayer);
 
       if (!mapInstance.getLayer(OVERLAY_LAYER_ID)) {
         mapInstance.addLayer(overlayLayer.current);
@@ -51,10 +42,10 @@ export const useMapDataset = (
       setLoadComplete(true);
     };
 
-    mapInstance.on("style.load", setupLayers);
+    mapInstance.on('style.load', setupLayers);
 
     return () => {
-      mapInstance.off("style.load", setupLayers);
+      mapInstance.off('style.load', setupLayers);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dataset]);
@@ -65,6 +56,6 @@ export const useMapDataset = (
    */
   useDidMountEffect(() => {
     if (!map.current || !loadComplete || !particleLayer.current) return;
-    fetchDataset(dataset, map.current, particleLayer);
+    updateSourceByDataset(dataset, map.current, particleLayer);
   }, [loadComplete, dataset]);
 };

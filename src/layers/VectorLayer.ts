@@ -1,5 +1,5 @@
-import type { VectorFieldAPI } from "@/types";
-import VectorField from "../utils/VectorField";
+import type { VectorFieldAPI } from '@/types';
+import VectorField from '../utils/VectorField';
 
 type MetaData =
   | {
@@ -32,29 +32,28 @@ export const vectorLayer = (
   vectorField: undefined, // Initialize vectorField
 
   onAdd: async function (map: mapboxgl.Map, gl: WebGLRenderingContext) {
-    this.vectorField =
-      this.vectorField === undefined ? VectorField(map, gl) : this.vectorField;
+    this.vectorField = this.vectorField === undefined ? VectorField(map, gl) : this.vectorField;
 
-    map.on("sourcedata", (e) => {
+    map.on('sourcedata', e => {
       if (e?.sourceId !== this.sourceId || !e?.isSourceLoaded) return;
 
       const source = map.getSource(this.sourceId);
       if (!source) return;
 
-      if ("image" in source && source.image instanceof ImageBitmap) {
+      if ('image' in source && source.image instanceof ImageBitmap) {
         this.setData(source.image);
       }
     });
 
-    map.on("movestart", () => {
+    map.on('movestart', () => {
       this.onMoveStart();
     });
 
-    map.on("moveend", () => {
+    map.on('moveend', () => {
       this.onMoveEnd();
     });
 
-    map.on("resize", () => {
+    map.on('resize', () => {
       this.onResize();
     });
   },
@@ -101,5 +100,5 @@ export const vectorLayer = (
       this.vectorField?.stopAnimation();
     }
   },
-  type: "custom",
+  type: 'custom',
 });

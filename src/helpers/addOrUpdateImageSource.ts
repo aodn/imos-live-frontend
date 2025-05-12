@@ -1,11 +1,6 @@
 type RangeType = [number, number];
 
-type CoordinatesType = [
-  range: RangeType,
-  range: RangeType,
-  range: RangeType,
-  range: RangeType,
-];
+type CoordinatesType = [range: RangeType, range: RangeType, range: RangeType, range: RangeType];
 
 export function addOrUpdateImageSource(
   map: mapboxgl.Map,
@@ -23,9 +18,9 @@ export function addOrUpdateImageSource(
     [lonRange[0], latRange[0]],
   ];
 
-  if (source && source.type == "image") {
+  if (source && source.type == 'image') {
     source.updateImage({ url, coordinates });
   } else {
-    map.addSource(id, { type: "image", url, coordinates });
+    map.addSource(id, { type: 'image', url, coordinates });
   }
 }

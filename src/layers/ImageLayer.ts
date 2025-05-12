@@ -1,17 +1,13 @@
-import { Layer } from "mapbox-gl";
+import { Layer } from 'mapbox-gl';
 
-export const imageLayer = (
-  id: string,
-  source: string,
-  visible: boolean,
-): Layer => ({
+export const imageLayer = (id: string, source: string, visible: boolean): Layer => ({
   id,
   source,
-  type: "raster",
+  type: 'raster',
   layout: {
-    visibility: visible ? "visible" : "none",
+    visibility: visible ? 'visible' : 'none',
   },
   paint: {
-    "raster-fade-duration": 0,
+    'raster-fade-duration': 0,
   },
 });

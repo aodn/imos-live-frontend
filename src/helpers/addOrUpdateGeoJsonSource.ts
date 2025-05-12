@@ -1,15 +1,11 @@
-export function addOrUpdateGeoJsonSource(
-  map: mapboxgl.Map,
-  id: string,
-  url: string,
-) {
+export function addOrUpdateGeoJsonSource(map: mapboxgl.Map, id: string, url: string) {
   const source = map.getSource(id);
 
-  if (source && source.type === "geojson") {
+  if (source && source.type === 'geojson') {
     source.setData(url);
   } else {
     map.addSource(id, {
-      type: "geojson",
+      type: 'geojson',
       data: url,
     });
   }

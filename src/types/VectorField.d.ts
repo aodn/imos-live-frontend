@@ -1,4 +1,4 @@
-import mapboxgl from "mapbox-gl";
+import mapboxgl from 'mapbox-gl';
 
 export interface VectorFieldAPI {
   /**
@@ -42,9 +42,6 @@ export interface VectorFieldAPI {
  * @param gl The WebGLRenderingContext to render into
  * @returns An object to control and update the vector field simulation
  */
-declare function VectorField(
-  map: mapboxgl.Map,
-  gl: WebGLRenderingContext,
-): VectorFieldAPI;
+declare function VectorField(map: mapboxgl.Map, gl: WebGLRenderingContext): VectorFieldAPI;
 
 export default VectorField;

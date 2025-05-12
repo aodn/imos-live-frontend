@@ -1,11 +1,6 @@
-import {
-  DrawerBody,
-  DrawerContent,
-  DrawerFooter,
-  DrawerHeader,
-} from "@heroui/react";
-import { WaveBuoyProperties } from "@/types";
-import React from "react";
+import { DrawerBody, DrawerContent, DrawerFooter, DrawerHeader } from '@heroui/react';
+import { WaveBuoyProperties } from '@/types';
+import { Fragment } from 'react/jsx-runtime';
 
 export const CircleDetails = (props: WaveBuoyProperties) => {
   return (
@@ -17,12 +12,12 @@ export const CircleDetails = (props: WaveBuoyProperties) => {
             <div className="w-full">
               <dl className="grid grid-cols-[max-content_1fr] gap-x-6 gap-y-4  p-6  text-sm ">
                 {Object.entries(props).map(([key, value]) => (
-                  <React.Fragment key={key}>
+                  <Fragment key={key}>
                     <dt className="font-semibold capitalize text-gray-700">
-                      {key.replace(/_/g, " ")}
+                      {key.replace(/_/g, ' ')}
                     </dt>
                     <dd className="text-gray-900 break-words">
-                      {key === "url" ? (
+                      {key === 'url' ? (
                         <a
                           href={`https://thredds.aodn.org.au/thredds/fileServer/${value}`}
                           target="_blank"
@@ -37,7 +32,7 @@ export const CircleDetails = (props: WaveBuoyProperties) => {
                         <span className="text-gray-400 italic">null</span>
                       )}
                     </dd>
-                  </React.Fragment>
+                  </Fragment>
                 ))}
               </dl>
             </div>

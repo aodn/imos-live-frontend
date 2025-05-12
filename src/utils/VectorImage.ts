@@ -6,7 +6,7 @@ function VectorImage(url: string) {
     const data = new Image();
     data.src = url;
     data.onload = () => resolve(data);
-    data.onerror = () => reject("Error");
+    data.onerror = () => reject('Error');
   });
 }
 

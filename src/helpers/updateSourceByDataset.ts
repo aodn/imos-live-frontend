@@ -1,5 +1,5 @@
-import { addOrUpdateImageSource } from "@/helpers/addOrUpdateImageSource.ts";
-import { addOrUpdateGeoJsonSource } from "@/helpers/addOrUpdateGeoJsonSource.ts";
+import { addOrUpdateImageSource } from '@/helpers/addOrUpdateImageSource.ts';
+import { addOrUpdateGeoJsonSource } from '@/helpers/addOrUpdateGeoJsonSource.ts';
 import {
   GSLAMETANAME,
   GSLAPARTICLENAME,
@@ -7,18 +7,19 @@ import {
   OVERLAY_SOURCE_ID,
   PARTICLE_SOURCE_ID,
   WAVE_BUOYS_SOURCE_ID,
-} from "@/constants";
-import { buildDatasetUrl, loadMetaDataFromUrl } from "@/utils";
-import { VectoryLayerInterface } from "@/layers";
-import React from "react";
+} from '@/constants';
+import { buildDatasetUrl, loadMetaDataFromUrl } from '@/utils';
+import { VectoryLayerInterface } from '@/layers';
+import React from 'react';
 
-export async function fetchDataset(
+export async function updateSourceByDataset(
   dataset: string,
   map: mapboxgl.Map,
   particleLayer: React.RefObject<VectoryLayerInterface | null>,
 ) {
-  const { maxBounds, bounds, lonRange, latRange, uRange, vRange } =
-    await loadMetaDataFromUrl(buildDatasetUrl(dataset, GSLAMETANAME));
+  const { maxBounds, bounds, lonRange, latRange, uRange, vRange } = await loadMetaDataFromUrl(
+    buildDatasetUrl(dataset, GSLAMETANAME),
+  );
 
   map.setMaxBounds(maxBounds);
   particleLayer.current!.metadata = {
@@ -39,5 +40,5 @@ export async function fetchDataset(
     lonRange,
     latRange,
   );
-  addOrUpdateGeoJsonSource(map, WAVE_BUOYS_SOURCE_ID, "/wave_buoys.geojson");
+  addOrUpdateGeoJsonSource(map, WAVE_BUOYS_SOURCE_ID, '/wave_buoys.geojson');
 }

@@ -1,4 +1,4 @@
-import api from "./instance";
+import api from './instance';
 
 export interface OceanCurrentResponse {
   u: number;
@@ -17,11 +17,8 @@ export const getOceanCurrentDetails = async (
   lat: number,
   lon: number,
 ): Promise<OceanCurrentResponse> => {
-  const response = await api.get<OceanCurrentResponse>(
-    `/dataset/ocean-current/${date}`,
-    {
-      params: { lat, lon },
-    },
-  );
+  const response = await api.get<OceanCurrentResponse>(`/dataset/ocean-current/${date}`, {
+    params: { lat, lon },
+  });
   return response.data;
 };

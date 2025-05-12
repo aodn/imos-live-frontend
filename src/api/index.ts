@@ -1,2 +1,2 @@
-export * from "./instance";
-export * from "./oceanCurrent";
+export * from './instance';
+export * from './oceanCurrent';
