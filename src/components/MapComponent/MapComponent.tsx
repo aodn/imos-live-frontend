@@ -1,4 +1,4 @@
-import { memo, useState } from 'react';
+import { memo } from 'react';
 import { styles } from '@/styles';
 import {
   useMapLayers,
@@ -22,30 +22,24 @@ type MapComponentProps = {
 
 export const MapComponent = memo(
   ({ style, overlay, circle, particles, numParticles, dataset }: MapComponentProps) => {
-    const [loadComplete, setLoadComplete] = useState(false);
-
     const { map, mapContainer } = useMapInitialization(
       styles.find(s => s.title === style)?.source || styles[0].source,
     );
-    const { particleLayer, overlayLayer, waveBuoysLayer } = useMapLayers(
+
+    const { loadComplete, particleLayer } = useMapLayers(
       map,
-      loadComplete,
       overlay,
       circle,
       particles,
       numParticles,
       style,
-    );
-    useMapStyle(map, style);
-    useMapData(
-      map,
       dataset,
-      loadComplete,
-      setLoadComplete,
-      particleLayer,
-      overlayLayer,
-      waveBuoysLayer,
     );
+
+    useMapStyle(map, style);
+
+    useMapData(map, dataset, loadComplete, particleLayer);
+
     useMapClickHandlers({
       map,
       dataset,

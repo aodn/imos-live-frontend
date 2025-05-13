@@ -3,8 +3,6 @@ import { WaveBuoyOgcProperties } from '@/types';
 import { Fragment } from 'react/jsx-runtime';
 
 export const CircleDetails = (props: WaveBuoyOgcProperties) => {
-  console.log('WaveBuoyProperties:', props);
-
   return (
     <DrawerContent className="!opacity-100 !translate-y-0 !h-auto bg-white">
       {() => (

@@ -15,7 +15,12 @@ type UseMapClickHandlersOptions = {
   particles: boolean;
   circle: boolean;
 };
-
+/**
+ * add click handlers to the map
+ * 1. disable click on the particle layer and overlay layer when the user clicks on the wave buoys layer.
+ * 2. generate a popup with the ocean current details when the user clicks on the map.
+ * 3. show the circle details inside drawer when the user clicks on the wave buoys layer.
+ */
 export function useMapClickHandlers({
   map,
   dataset,

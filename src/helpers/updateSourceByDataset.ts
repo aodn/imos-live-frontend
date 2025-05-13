@@ -10,7 +10,6 @@ import {
 } from '@/constants';
 import { buildDatasetUrl, loadMetaDataFromUrl, buildOgcBuoysUrl } from '@/utils';
 import { VectoryLayerInterface } from '@/layers';
-import React from 'react';
 
 export async function updateSourceByDataset(
   dataset: string,
