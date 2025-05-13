@@ -14,7 +14,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     //create a proxy for the api to avoid CORS issues
-    //this is only for development
+    //this is only for development. /api/aodn will be replaced with target.
     server: {
       proxy: {
         '/api/aodn': {
