@@ -4,7 +4,7 @@ import { useDidMountEffect } from '@/hooks';
 import { VectoryLayerInterface } from '@/layers';
 import { OVERLAY_LAYER_ID, PARTICLE_LAYER_ID, WAVE_BUOYS_LAYER_ID } from '@/constants';
 
-export const useMapDataset = (
+export function useMapData(
   map: RefObject<mapboxgl.Map | null>,
   dataset: string,
   loadComplete: boolean,
@@ -12,7 +12,7 @@ export const useMapDataset = (
   particleLayer: RefObject<VectoryLayerInterface | null>,
   overlayLayer: RefObject<mapboxgl.Layer | null>,
   waveBuoysLayer: RefObject<mapboxgl.Layer | null>,
-) => {
+) {
   /**
    * When the map is loaded or map.setStyle called, style.load event is fired.
    * This is where we can add our layers to the map.
@@ -58,4 +58,4 @@ export const useMapDataset = (
     if (!map.current || !loadComplete || !particleLayer.current) return;
     updateSourceByDataset(dataset, map.current, particleLayer);
   }, [loadComplete, dataset]);
-};
+}

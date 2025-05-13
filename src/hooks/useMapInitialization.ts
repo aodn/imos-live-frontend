@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 
-export const useMapInitialization = (style: string) => {
+export function useMapInitialization(style: string) {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const map = useRef<mapboxgl.Map | null>(null);
 
@@ -20,4 +20,4 @@ export const useMapInitialization = (style: string) => {
   }, [style]);
 
   return { map, mapContainer };
-};
+}

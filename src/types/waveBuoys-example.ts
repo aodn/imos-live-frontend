@@ -1,3 +1,5 @@
+//these types are based on wave_buoys.geojson in public which is from Eduardo as a sample.
+
 export interface WaveBuoyProperties {
   FID: string;
   file_id: number;

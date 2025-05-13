@@ -3,9 +3,9 @@ import { styles } from '@/styles';
 import {
   useMapLayers,
   useMapStyle,
-  useMapDataset,
   useMapClickHandlers,
   useMapInitialization,
+  useMapData,
 } from '@/hooks';
 import mapboxgl from 'mapbox-gl';
 
@@ -37,7 +37,7 @@ export const MapComponent = memo(
       style,
     );
     useMapStyle(map, style);
-    useMapDataset(
+    useMapData(
       map,
       dataset,
       loadComplete,

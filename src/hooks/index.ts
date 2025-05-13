@@ -4,4 +4,4 @@ export * from './useMapClickHandlers';
 export * from './useMapInitialization';
 export * from './useMapLayers';
 export * from './useMapStyle';
-export * from './useMapDataset';
+export * from './useMapData';

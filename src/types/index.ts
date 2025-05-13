@@ -1,3 +1,4 @@
 export * from './FixedLengthArray';
 export * from './VectorField';
-export * from './WaveBuoys.ts';
+export * from './waveBuoys-example';
+export * from './waveBuoys-ogcapi';

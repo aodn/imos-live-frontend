@@ -8,7 +8,7 @@ import {
   PARTICLE_SOURCE_ID,
   WAVE_BUOYS_SOURCE_ID,
 } from '@/constants';
-import { buildDatasetUrl, loadMetaDataFromUrl } from '@/utils';
+import { buildDatasetUrl, loadMetaDataFromUrl, buildOgcBuoysUrl } from '@/utils';
 import { VectoryLayerInterface } from '@/layers';
 import React from 'react';
 
@@ -40,5 +40,10 @@ export async function updateSourceByDataset(
     lonRange,
     latRange,
   );
-  addOrUpdateGeoJsonSource(map, WAVE_BUOYS_SOURCE_ID, '/wave_buoys.geojson');
+  // addOrUpdateGeoJsonSource(map, WAVE_BUOYS_SOURCE_ID, '/wave_buoys.geojson');
+  addOrUpdateGeoJsonSource(
+    map,
+    WAVE_BUOYS_SOURCE_ID,
+    buildOgcBuoysUrl('b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc'),
+  );
 }

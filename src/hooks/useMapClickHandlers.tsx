@@ -6,7 +6,7 @@ import { CircleDetails } from '@/components';
 import { WAVE_BUOYS_LAYER_ID } from '@/constants';
 import { useDrawerStore } from '@/store';
 import { debounce } from '@/utils';
-import { WaveBuoyProperties } from '@/types';
+import { WaveBuoyOgcProperties } from '@/types';
 
 type UseMapClickHandlersOptions = {
   map: RefObject<mapboxgl.Map | null>;
@@ -88,7 +88,8 @@ export function useMapClickHandlers({
     const handleClick = (e: mapboxgl.MapMouseEvent) => {
       if (!e.features?.length) return;
       const { properties } = e.features[0];
-      openDrawer(<CircleDetails {...(properties as WaveBuoyProperties)} />);
+
+      openDrawer(<CircleDetails {...(properties as WaveBuoyOgcProperties)} />);
     };
 
     mapInstance.on('click', WAVE_BUOYS_LAYER_ID, handleClick);

@@ -10,7 +10,7 @@ import {
   WAVE_BUOYS_SOURCE_ID,
 } from '@/constants';
 
-export const useMapLayers = (
+export function useMapLayers(
   map: React.RefObject<mapboxgl.Map | null>,
   loadComplete: boolean,
   overlay: boolean,
@@ -18,7 +18,7 @@ export const useMapLayers = (
   particles: boolean,
   numParticles: number,
   style: string,
-) => {
+) {
   const particleLayer = useRef<VectoryLayerInterface | null>(null);
   const overlayLayer = useRef<mapboxgl.Layer | null>(null);
   const waveBuoysLayer = useRef<mapboxgl.Layer | null>(null);
@@ -65,4 +65,4 @@ export const useMapLayers = (
   }, [loadComplete, numParticles]);
 
   return { particleLayer, overlayLayer, waveBuoysLayer };
-};
+}
