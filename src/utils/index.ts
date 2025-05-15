@@ -9,3 +9,4 @@ export * from './shader';
 export * from './vectorConfig';
 export * from './debounce';
 export * from './buildOgcBuoysUrl';
+export * from './sleep';

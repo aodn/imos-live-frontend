@@ -6,6 +6,9 @@ import {
   useMapClickHandlers,
   useMapInitialization,
   useMapData,
+  useOverlayLayer,
+  useWaveBuoysLayer,
+  useParticleLayer,
 } from '@/hooks';
 import mapboxgl from 'mapbox-gl';
 
@@ -25,20 +28,22 @@ export const MapComponent = memo(
     const { map, mapContainer } = useMapInitialization(
       styles.find(s => s.title === style)?.source || styles[0].source,
     );
-
-    const { loadComplete, particleLayer } = useMapLayers(
-      map,
-      overlay,
-      circle,
-      particles,
-      numParticles,
-      style,
-      dataset,
-    );
-
     useMapStyle(map, style);
+    // const { loadComplete, particleLayer } = useMapLayers(
+    //   map,
+    //   overlay,
+    //   circle,
+    //   particles,
+    //   numParticles,
+    //   style,
+    //   dataset,
+    // );
 
-    useMapData(map, dataset, loadComplete, particleLayer);
+    useOverlayLayer(map, overlay, style, dataset);
+    useParticleLayer(map, particles, numParticles, style, dataset);
+    useWaveBuoysLayer(map, circle, style);
+
+    // useMapData(map, dataset, loadComplete, particleLayer);
 
     useMapClickHandlers({
       map,
@@ -48,6 +53,8 @@ export const MapComponent = memo(
       circle,
     });
 
+    //TODO: redesign the architectural pattern of the app, move from responsibility-centric patter to feature-centric(per-layer) pattern,
+    // bceause the current pattern is not scalable and hard to maintain as the app grows with more features and layers.
     return <div ref={mapContainer} className="w-full h-full" />;
   },
 );

@@ -5,3 +5,6 @@ export * from './useMapInitialization';
 export * from './useMapLayers';
 export * from './useMapStyle';
 export * from './useMapData';
+export * from './useParticleLayer';
+export * from './useOverlayLayer';
+export * from './useWaveBuoysLayer';
