@@ -11,7 +11,7 @@ type MetaType = {
   vRange: RangeType;
 };
 
-type ProcessedMetaType = MetaType & {
+export type ProcessedMetaType = MetaType & {
   bounds: BoundsType;
   maxBounds: MaxBoundsType;
 };

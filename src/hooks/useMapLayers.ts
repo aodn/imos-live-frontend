@@ -2,6 +2,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { VectoryLayerInterface, vectorLayer, imageLayer, circleLayer } from '@/layers';
 import {
+  GSLAMETANAME,
+  GSLAPARTICLENAME,
+  GSLASEALEVELNAME,
   OVERLAY_LAYER_ID,
   OVERLAY_SOURCE_ID,
   PARTICLE_LAYER_ID,
@@ -9,7 +12,8 @@ import {
   WAVE_BUOYS_LAYER_ID,
   WAVE_BUOYS_SOURCE_ID,
 } from '@/constants';
-import { updateSourceByDataset } from '@/helpers';
+import { updateMapData } from '@/helpers';
+import { buildDatasetUrl, buildOgcBuoysUrl, loadMetaDataFromUrl } from '@/utils';
 
 export function useMapLayers(
   map: React.RefObject<mapboxgl.Map | null>,
@@ -49,8 +53,20 @@ export function useMapLayers(
 
     const setupLayers = async () => {
       if (!overlayLayer.current || !particleLayer.current || !waveBuoysLayer.current) return;
-
-      await updateSourceByDataset(dataset, mapInstance, particleLayer);
+      const { maxBounds, bounds, lonRange, latRange, uRange, vRange } = await loadMetaDataFromUrl(
+        buildDatasetUrl(dataset, GSLAMETANAME),
+      );
+      updateMapData(
+        {
+          particleSource: buildDatasetUrl(dataset, GSLAPARTICLENAME),
+          overlaySource: buildDatasetUrl(dataset, GSLASEALEVELNAME),
+          waveBuoysSource: buildOgcBuoysUrl('b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc'),
+          // waveBuoysSource: buildOgcBuoysUrl('/wave_buoys.geojson'),
+        },
+        { maxBounds, bounds, lonRange, latRange, uRange, vRange },
+        mapInstance,
+        particleLayer,
+      );
 
       if (!mapInstance.getLayer(OVERLAY_LAYER_ID)) {
         mapInstance.addLayer(overlayLayer.current);

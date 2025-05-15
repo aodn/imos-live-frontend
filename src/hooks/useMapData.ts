@@ -1,7 +1,9 @@
 import { RefObject } from 'react';
-import { updateSourceByDataset } from '@/helpers';
+import { updateMapData } from '@/helpers';
 import { useDidMountEffect } from '@/hooks';
 import { VectoryLayerInterface } from '@/layers';
+import { buildDatasetUrl, buildOgcBuoysUrl, loadMetaDataFromUrl } from '@/utils';
+import { GSLAMETANAME, GSLAPARTICLENAME, GSLASEALEVELNAME } from '@/constants';
 
 /**
  * When the dataset changes, we need to update the layers with the new dataset.
@@ -16,6 +18,24 @@ export function useMapData(
 ) {
   useDidMountEffect(() => {
     if (!map.current || !loadComplete || !particleLayer.current) return;
-    updateSourceByDataset(dataset, map.current, particleLayer);
+
+    const updateDataByDataset = async () => {
+      const { maxBounds, bounds, lonRange, latRange, uRange, vRange } = await loadMetaDataFromUrl(
+        buildDatasetUrl(dataset, GSLAMETANAME),
+      );
+      updateMapData(
+        {
+          particleSource: buildDatasetUrl(dataset, GSLAPARTICLENAME),
+          overlaySource: buildDatasetUrl(dataset, GSLASEALEVELNAME),
+          waveBuoysSource: buildOgcBuoysUrl('b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc'),
+          // waveBuoysSource: buildOgcBuoysUrl('/wave_buoys.geojson'),
+        },
+        { maxBounds, bounds, lonRange, latRange, uRange, vRange },
+        map.current!,
+        particleLayer,
+      );
+    };
+
+    updateDataByDataset();
   }, [loadComplete, dataset]);
 }
