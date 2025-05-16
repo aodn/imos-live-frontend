@@ -5,16 +5,16 @@ import { vectorLayer } from '@/layers';
 import { loadMetaDataFromUrl, buildDatasetUrl } from '@/utils';
 import { useEffect } from 'react';
 import { useDidMountEffect } from './useDidMountEffect';
-import { useVectoryLayerVisibility } from './useVectorLayerVisibility';
-import { useVectorLayerRef } from './useVectorLayerRef';
+import { useParticleLayerVisibility } from './useParticleLayerVisibility';
+import { useParticleLayerRef } from './useParticleLayerRef';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 
 export function useParticleLayer(
   map: React.RefObject<mapboxgl.Map | null>,
   particles: boolean,
-  numParticles: number,
   style: string,
   dataset: string,
+  numParticles: number,
 ) {
   const setDataByDataset = async () => {
     const { maxBounds, bounds, lonRange, latRange, uRange, vRange } = await loadMetaDataFromUrl(
@@ -44,14 +44,14 @@ export function useParticleLayer(
     }
   };
 
-  const particleLayer = useVectorLayerRef(
+  const particleLayer = useParticleLayerRef(
     () => vectorLayer(PARTICLE_LAYER_ID, PARTICLE_SOURCE_ID, particles),
     style,
   );
 
   const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [style, dataset]);
 
-  useVectoryLayerVisibility(map, loadComplete, particleLayer, particles);
+  useParticleLayerVisibility(map, loadComplete, particleLayer, particles);
 
   useEffect(() => {
     if (!map || !loadComplete || !particleLayer.current) return;

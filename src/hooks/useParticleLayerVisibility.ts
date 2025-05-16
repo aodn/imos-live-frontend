@@ -1,7 +1,7 @@
 import { VectoryLayerInterface } from '@/layers';
 import { useEffect } from 'react';
 
-export function useVectoryLayerVisibility(
+export function useParticleLayerVisibility(
   map: React.RefObject<mapboxgl.Map | null>,
   loadComplete: boolean,
   layer: React.RefObject<VectoryLayerInterface | null>,

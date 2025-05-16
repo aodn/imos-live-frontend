@@ -32,8 +32,8 @@ export function useOverlayLayer(
     if (!overlayLayer.current) return;
     await setDataByDataset();
 
-    if (!map.current!.getLayer(OVERLAY_LAYER_ID)) {
-      map.current!.addLayer(overlayLayer.current);
+    if (!map.current?.getLayer(OVERLAY_LAYER_ID)) {
+      map.current?.addLayer(overlayLayer.current);
     }
   };
 

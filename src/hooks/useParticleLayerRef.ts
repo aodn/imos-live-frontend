@@ -1,7 +1,7 @@
 import { VectoryLayerInterface } from '@/layers';
 import { useEffect, useRef } from 'react';
 
-export function useVectorLayerRef<T extends VectoryLayerInterface>(
+export function useParticleLayerRef<T extends VectoryLayerInterface>(
   createLayer: () => T,
   deps: any,
 ) {

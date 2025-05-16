@@ -6,18 +6,19 @@ export function useMapboxLayerSetup(
   deps: any[],
 ) {
   const [loadComplete, setLoadComplete] = useState(false);
-  const mapInstance = map.current;
+
   useEffect(() => {
-    if (!mapInstance) return;
+    if (!map.current) return;
 
     const setupLayer = async () => {
       await setupLayerFn();
       setLoadComplete(true);
     };
 
-    mapInstance.on('style.load', setupLayer);
+    map.current.on('style.load', setupLayer);
     return () => {
-      mapInstance.off('style.load', setupLayer);
+      // eslint-disable-next-line
+      map.current?.off('style.load', setupLayer);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [...deps]);
