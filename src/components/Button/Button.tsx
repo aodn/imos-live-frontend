@@ -1,6 +1,7 @@
 import { forwardRef } from 'react';
 import { useButton, Ripple, Spinner, ButtonProps as BaseButtonProps } from '@heroui/react';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface ButtonProps extends BaseButtonProps {}
 
 export const ImosButton = forwardRef<HTMLButtonElement, ButtonProps>((props, ref) => {

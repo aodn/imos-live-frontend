@@ -8,3 +8,8 @@ export * from './useMapData';
 export * from './useParticleLayer';
 export * from './useOverlayLayer';
 export * from './useWaveBuoysLayer';
+export * from './useMapboxLayerVisibility';
+export * from './useVectorLayerVisibility';
+export * from './useMapboxLayerRef';
+export * from './useVectorLayerRef';
+export * from './useMapboxLayerSetup';

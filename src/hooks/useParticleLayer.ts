@@ -1,10 +1,13 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { GSLAMETANAME, GSLAPARTICLENAME, PARTICLE_LAYER_ID, PARTICLE_SOURCE_ID } from '@/constants';
 import { addOrUpdateImageSource } from '@/helpers';
-import { vectorLayer, VectoryLayerInterface } from '@/layers';
+import { vectorLayer } from '@/layers';
 import { loadMetaDataFromUrl, buildDatasetUrl } from '@/utils';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect } from 'react';
 import { useDidMountEffect } from './useDidMountEffect';
+import { useVectoryLayerVisibility } from './useVectorLayerVisibility';
+import { useVectorLayerRef } from './useVectorLayerRef';
+import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 
 export function useParticleLayer(
   map: React.RefObject<mapboxgl.Map | null>,
@@ -13,60 +16,43 @@ export function useParticleLayer(
   style: string,
   dataset: string,
 ) {
-  const [loadComplete, setLoadComplete] = useState(false);
-  const particleLayer = useRef<VectoryLayerInterface | null>(null);
+  const setDataByDataset = async () => {
+    const { maxBounds, bounds, lonRange, latRange, uRange, vRange } = await loadMetaDataFromUrl(
+      buildDatasetUrl(dataset, GSLAMETANAME),
+    );
 
-  useEffect(() => {
-    if (!particleLayer.current) {
-      particleLayer.current = vectorLayer(PARTICLE_LAYER_ID, PARTICLE_SOURCE_ID, particles);
+    map.current!.setMaxBounds(maxBounds);
+    particleLayer.current!.metadata = {
+      bounds,
+      range: [uRange, vRange],
+    };
+
+    addOrUpdateImageSource(
+      map.current!,
+      PARTICLE_SOURCE_ID,
+      buildDatasetUrl(dataset, GSLAPARTICLENAME),
+      lonRange,
+      latRange,
+    );
+  };
+
+  const setupLayer = async () => {
+    if (!particleLayer.current) return;
+    await setDataByDataset();
+    if (!map.current!.getLayer(PARTICLE_LAYER_ID)) {
+      map.current!.addLayer(particleLayer.current);
     }
-  }, [style]);
+  };
 
-  useEffect(() => {
-    const mapInstance = map.current;
-    if (!mapInstance) return;
+  const particleLayer = useVectorLayerRef(
+    () => vectorLayer(PARTICLE_LAYER_ID, PARTICLE_SOURCE_ID, particles),
+    style,
+  );
 
-    const setupLayers = async () => {
-      if (!particleLayer.current) return;
-      const { maxBounds, bounds, lonRange, latRange, uRange, vRange } = await loadMetaDataFromUrl(
-        buildDatasetUrl(dataset, GSLAMETANAME),
-      );
+  const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [style, dataset]);
 
-      mapInstance.setMaxBounds(maxBounds);
-      particleLayer.current!.metadata = {
-        bounds,
-        range: [uRange, vRange],
-      };
+  useVectoryLayerVisibility(map, loadComplete, particleLayer, particles);
 
-      addOrUpdateImageSource(
-        mapInstance,
-        PARTICLE_SOURCE_ID,
-        buildDatasetUrl(dataset, GSLAPARTICLENAME),
-        lonRange,
-        latRange,
-      );
-
-      if (!mapInstance.getLayer(PARTICLE_LAYER_ID)) {
-        mapInstance.addLayer(particleLayer.current);
-      }
-      console.log('Particle layer added');
-      setLoadComplete(true);
-    };
-
-    mapInstance.on('style.load', setupLayers);
-
-    return () => {
-      mapInstance.off('style.load', setupLayers);
-    };
-  }, [dataset]);
-
-  // Toggle particles visibility
-  useEffect(() => {
-    if (!map.current || !loadComplete || !particleLayer.current) return;
-    particleLayer.current.setVisible(particles);
-  }, [loadComplete, particles]);
-
-  // Set number of particles
   useEffect(() => {
     if (!map || !loadComplete || !particleLayer.current) return;
     particleLayer.current.vectorField?.setParticleNum(numParticles);
@@ -74,28 +60,6 @@ export function useParticleLayer(
 
   useDidMountEffect(() => {
     if (!map.current || !loadComplete || !particleLayer.current) return;
-
-    const updateDataByDataset = async () => {
-      const { maxBounds, bounds, lonRange, latRange, uRange, vRange } = await loadMetaDataFromUrl(
-        buildDatasetUrl(dataset, GSLAMETANAME),
-      );
-
-      map.current!.setMaxBounds(maxBounds);
-      particleLayer.current!.metadata = {
-        bounds,
-        range: [uRange, vRange],
-      };
-
-      addOrUpdateImageSource(
-        map.current!,
-        PARTICLE_SOURCE_ID,
-        buildDatasetUrl(dataset, GSLAPARTICLENAME),
-        lonRange,
-        latRange,
-      );
-    };
-
-    updateDataByDataset();
+    setDataByDataset();
   }, [loadComplete, dataset]);
-  return { particleLayer };
 }
