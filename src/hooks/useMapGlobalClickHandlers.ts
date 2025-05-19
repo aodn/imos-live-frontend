@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, RefObject } from 'react';
 import { getOceanCurrentDetails } from '@/api';
 import { showPopup } from '@/helpers';
@@ -10,6 +9,7 @@ type UseMapClickHandlersOptions = {
   overlay: boolean;
   particles: boolean;
   waveBuoysLayerClicked: React.RefObject<boolean>;
+  distanceMeasurement: boolean;
 };
 //Mapbox GL JS only allows layer-specific click events on vector layers (e.g., fill, circle, line).
 //For image layers, raster layers, or fully custom WebGL layers, you’re forced to use a global map click handler
@@ -19,9 +19,11 @@ export function useMapGlobalClickHandlers({
   overlay,
   particles,
   waveBuoysLayerClicked,
+  distanceMeasurement,
 }: UseMapClickHandlersOptions) {
   useEffect(() => {
-    if (!map.current || (!particles && !overlay)) return;
+    if (!map.current || (!particles && !overlay) || distanceMeasurement) return;
+    const mapInstance = map.current;
 
     const handleClick = async (e: mapboxgl.MapMouseEvent) => {
       if (waveBuoysLayerClicked.current) {
@@ -38,7 +40,7 @@ export function useMapGlobalClickHandlers({
 
       if (!alpha) return;
 
-      showPopup(map.current!, {
+      showPopup(mapInstance!, {
         lat,
         lng,
         ...(particles ? { speed, direction, degree } : {}),
@@ -48,9 +50,9 @@ export function useMapGlobalClickHandlers({
 
     const debounceClick = debounce(handleClick, 100);
 
-    map.current.on('click', debounceClick);
+    mapInstance.on('click', debounceClick);
     return () => {
-      map.current?.off('click', debounceClick);
+      mapInstance.off('click', debounceClick);
     };
-  }, [dataset, overlay, particles]);
+  }, [dataset, overlay, particles, distanceMeasurement, map, waveBuoysLayerClicked]);
 }

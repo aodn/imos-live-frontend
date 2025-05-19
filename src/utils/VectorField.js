@@ -1,7 +1,7 @@
 import mapboxgl from 'mapbox-gl';
 import * as twgl from 'twgl.js';
 import { vs, fs, vsQuad, fsScreen, fsUpdate } from './shader.js';
-import config from './vectorConfig.ts';
+import { vectorConfig as config } from '@/config';
 
 /**
  * 

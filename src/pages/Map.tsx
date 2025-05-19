@@ -10,6 +10,7 @@ export const Map = () => {
   const [circle, setCircle] = useState(false);
   const [particles, setParticles] = useState(true);
   const [numParticles, setNumParticles] = useState(10000);
+  const [distanceMeasurement, setDistanceMeasurement] = useState(false);
   const [dataset, setDataset] = useState<string>(getLast7DatesEnding3DaysAgo().at(-1)!);
 
   const datasets = useMemo(() => getLast7DatesEnding3DaysAgo(), []);
@@ -27,11 +28,12 @@ export const Map = () => {
   const handleSetParticles = (v: boolean) => {
     setParticles(v);
   };
-
+  const handleSetDistanceMeasurement = (v: boolean) => {
+    setDistanceMeasurement(v);
+  };
   const handleSetNumParticles = (numParticles: number) => {
     setNumParticles(numParticles);
   };
-
   const handleSetDataset = (dataset: string) => {
     setDataset(dataset);
   };
@@ -42,6 +44,7 @@ export const Map = () => {
     circle,
     particles,
     numParticles,
+    distanceMeasurement,
     dataset,
     datasets,
     handleSetStyle,
@@ -49,6 +52,7 @@ export const Map = () => {
     handleSetCircle,
     handleSetParticles,
     handleSetNumParticles,
+    handleSetDistanceMeasurement,
     handleSetDataset,
   };
 
@@ -57,6 +61,7 @@ export const Map = () => {
     overlay,
     circle,
     particles,
+    distanceMeasurement,
     numParticles,
     dataset,
     datasets,

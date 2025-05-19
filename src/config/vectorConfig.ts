@@ -1,4 +1,4 @@
-const config = {
+export const vectorConfig = {
   // Number of particles
   nParticles: 10000,
 
@@ -43,5 +43,3 @@ const config = {
     1.0: '#f80759',
   },
 };
-
-export default config;

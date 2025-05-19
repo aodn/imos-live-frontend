@@ -12,3 +12,5 @@ export * from './useWaveBuoysLayerClickHandler';
 export * from './useMapGlobalClickHandlers';
 export * from './useParticleLayerRef';
 export * from './useParticleLayerVisibility';
+export * from './useDistanceMeasurementLayers';
+export * from './useDistanceMeasurementLayersClickHandler';

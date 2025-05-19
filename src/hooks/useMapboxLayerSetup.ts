@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 export function useMapboxLayerSetup(
   map: React.RefObject<mapboxgl.Map | null>,
   setupLayerFn: () => Promise<void>,
-  deps: any[],
+  deps: any[] = [],
 ) {
   const [loadComplete, setLoadComplete] = useState(false);
 
@@ -21,7 +21,7 @@ export function useMapboxLayerSetup(
       map.current?.off('style.load', setupLayer);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [...deps]);
+  }, deps);
 
   return { loadComplete };
 }

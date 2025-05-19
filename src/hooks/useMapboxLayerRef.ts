@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-export function useMapboxLayerRef<T extends mapboxgl.Layer>(createLayer: () => T, deps: any) {
+export function useMapboxLayerRef<T extends mapboxgl.Layer>(createLayer: () => T, deps?: any) {
   const layerRef = useRef<T | null>(null);
 
   useEffect(() => {

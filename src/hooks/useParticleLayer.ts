@@ -1,5 +1,10 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { GSLAMETANAME, GSLAPARTICLENAME, PARTICLE_LAYER_ID, PARTICLE_SOURCE_ID } from '@/constants';
+import {
+  GSLA_META_NAME,
+  GSLA_PARTICLE_NAME,
+  PARTICLE_LAYER_ID,
+  PARTICLE_SOURCE_ID,
+} from '@/constants';
 import { addOrUpdateImageSource } from '@/helpers';
 import { vectorLayer } from '@/layers';
 import { loadMetaDataFromUrl, buildDatasetUrl } from '@/utils';
@@ -18,7 +23,7 @@ export function useParticleLayer(
 ) {
   const setDataByDataset = async () => {
     const { maxBounds, bounds, lonRange, latRange, uRange, vRange } = await loadMetaDataFromUrl(
-      buildDatasetUrl(dataset, GSLAMETANAME),
+      buildDatasetUrl(dataset, GSLA_META_NAME),
     );
 
     map.current!.setMaxBounds(maxBounds);
@@ -30,7 +35,7 @@ export function useParticleLayer(
     addOrUpdateImageSource(
       map.current!,
       PARTICLE_SOURCE_ID,
-      buildDatasetUrl(dataset, GSLAPARTICLENAME),
+      buildDatasetUrl(dataset, GSLA_PARTICLE_NAME),
       lonRange,
       latRange,
     );

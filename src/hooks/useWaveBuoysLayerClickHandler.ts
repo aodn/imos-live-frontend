@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 export function useWaveBuoysLayerClickHandler(
   map: React.RefObject<mapboxgl.Map | null>,
   circle: boolean,
+  distanceMeasurement: boolean,
 ) {
   const waveBuoysLayerClicked = useRef(false);
   const { openDrawer } = useDrawerStore();
@@ -30,7 +31,7 @@ export function useWaveBuoysLayerClickHandler(
   }, [map]);
 
   useEffect(() => {
-    if (!map.current || !circle) return;
+    if (!map.current || !circle || distanceMeasurement) return;
     const mapInstace = map.current;
 
     const handleClick = (e: mapboxgl.MapMouseEvent) => {
@@ -44,7 +45,7 @@ export function useWaveBuoysLayerClickHandler(
     return () => {
       mapInstace?.off('click', WAVE_BUOYS_LAYER_ID, handleClick);
     };
-  }, [circle, map]);
+  }, [circle, map, distanceMeasurement]);
 
   return { clickedPointData, openDrawer, waveBuoysLayerClicked };
 }

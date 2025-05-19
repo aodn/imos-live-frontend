@@ -1,4 +1,9 @@
-import { GSLAMETANAME, GSLASEALEVELNAME, OVERLAY_LAYER_ID, OVERLAY_SOURCE_ID } from '@/constants';
+import {
+  GSLA_META_NAME,
+  GSLA_SEA_LEVEL_NAME,
+  OVERLAY_LAYER_ID,
+  OVERLAY_SOURCE_ID,
+} from '@/constants';
 import { addOrUpdateImageSource } from '@/helpers';
 import { imageLayer } from '@/layers';
 import { loadMetaDataFromUrl, buildDatasetUrl } from '@/utils';
@@ -6,6 +11,7 @@ import { useDidMountEffect } from './useDidMountEffect';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
 import { useMapboxLayerRef } from './useMapboxLayerRef';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
+import { overlayLayerConfig } from '@/config';
 
 export function useOverlayLayer(
   map: React.RefObject<mapboxgl.Map | null>,
@@ -15,14 +21,14 @@ export function useOverlayLayer(
 ) {
   const setDataByDataset = async () => {
     const { maxBounds, lonRange, latRange } = await loadMetaDataFromUrl(
-      buildDatasetUrl(dataset, GSLAMETANAME),
+      buildDatasetUrl(dataset, GSLA_META_NAME),
     );
     map.current!.setMaxBounds(maxBounds);
 
     addOrUpdateImageSource(
       map.current!,
       OVERLAY_SOURCE_ID,
-      buildDatasetUrl(dataset, GSLASEALEVELNAME),
+      buildDatasetUrl(dataset, GSLA_SEA_LEVEL_NAME),
       lonRange,
       latRange,
     );
@@ -38,7 +44,11 @@ export function useOverlayLayer(
   };
 
   const overlayLayer = useMapboxLayerRef(
-    () => imageLayer(OVERLAY_LAYER_ID, OVERLAY_SOURCE_ID, overlay),
+    () =>
+      imageLayer(
+        { id: OVERLAY_LAYER_ID, source: OVERLAY_SOURCE_ID, ...overlayLayerConfig },
+        overlay,
+      ),
     style,
   );
 

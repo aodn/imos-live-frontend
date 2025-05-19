@@ -9,6 +9,7 @@ type MenuComponentProps = {
   overlay: boolean;
   circle: boolean;
   particles: boolean;
+  distanceMeasurement: boolean;
   numParticles: number;
   dataset: string;
   datasets: string[];
@@ -16,6 +17,7 @@ type MenuComponentProps = {
   handleSetOverlay: (v: boolean) => void;
   handleSetCircle: (v: boolean) => void;
   handleSetParticles: (v: boolean) => void;
+  handleSetDistanceMeasurement: (v: boolean) => void;
   handleSetNumParticles: (v: number) => void;
   handleSetDataset: (dataset: string) => void;
 };
@@ -26,6 +28,7 @@ export const MenuComponent = ({
   circle,
   particles,
   numParticles,
+  distanceMeasurement,
   dataset,
   datasets,
   handleSetStyle,
@@ -33,6 +36,7 @@ export const MenuComponent = ({
   handleSetCircle,
   handleSetParticles,
   handleSetNumParticles,
+  handleSetDistanceMeasurement,
   handleSetDataset,
 }: MenuComponentProps) => {
   return (
@@ -73,6 +77,15 @@ export const MenuComponent = ({
               { title: 'Off', handleClick: handleSetParticles, value: false },
             ]}
             active={particles}
+          />
+        </MenuPane>
+        <MenuPane title={'Measurement'}>
+          <Tabs
+            tabs={[
+              { title: 'On', handleClick: handleSetDistanceMeasurement, value: true },
+              { title: 'Off', handleClick: handleSetDistanceMeasurement, value: false },
+            ]}
+            active={distanceMeasurement}
           />
         </MenuPane>
         <MenuPane title={'Number'}>

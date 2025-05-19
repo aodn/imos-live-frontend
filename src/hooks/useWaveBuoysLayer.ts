@@ -1,11 +1,12 @@
 import { circleLayer } from '@/layers';
-import { GSLAMETANAME, WAVE_BUOYS_LAYER_ID, WAVE_BUOYS_SOURCE_ID } from '@/constants';
+import { GSLA_META_NAME, WAVE_BUOYS_LAYER_ID, WAVE_BUOYS_SOURCE_ID } from '@/constants';
 import { addOrUpdateGeoJsonSource } from '@/helpers';
 import { buildDatasetUrl, buildOgcBuoysUrl, loadMetaDataFromUrl } from '@/utils';
 import { useDidMountEffect } from './useDidMountEffect';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
 import { useMapboxLayerRef } from './useMapboxLayerRef';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
+import { waveBuoysLayerConfig } from '@/config';
 
 export function useWaveBuoysLayer(
   map: React.RefObject<mapboxgl.Map | null>,
@@ -14,7 +15,7 @@ export function useWaveBuoysLayer(
   dataset: string,
 ) {
   const setDataByDataset = async () => {
-    const { maxBounds } = await loadMetaDataFromUrl(buildDatasetUrl(dataset, GSLAMETANAME));
+    const { maxBounds } = await loadMetaDataFromUrl(buildDatasetUrl(dataset, GSLA_META_NAME));
     map.current!.setMaxBounds(maxBounds);
     addOrUpdateGeoJsonSource(
       map.current!,
@@ -32,7 +33,15 @@ export function useWaveBuoysLayer(
   };
 
   const waveBuoysLayer = useMapboxLayerRef(
-    () => circleLayer(WAVE_BUOYS_LAYER_ID, WAVE_BUOYS_SOURCE_ID, circle),
+    () =>
+      circleLayer(
+        {
+          id: WAVE_BUOYS_LAYER_ID,
+          source: WAVE_BUOYS_SOURCE_ID,
+          ...waveBuoysLayerConfig,
+        },
+        circle,
+      ),
     style,
   );
 

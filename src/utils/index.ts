@@ -1,4 +1,3 @@
-export * from './VectorField';
 export * from './VectorImage';
 export * from './buildDatasetUrl';
 export * from './extractDataFromImage';
@@ -6,7 +5,6 @@ export * from './getLast7DaysEnding3DaysAgo';
 export * from './loadImageBitmapFromUrl';
 export * from './loadMetaDataFromUrl';
 export * from './shader';
-export * from './vectorConfig';
 export * from './debounce';
 export * from './buildOgcBuoysUrl';
 export * from './sleep';
