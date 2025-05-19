@@ -1,3 +1,10 @@
+import {
+  MEASURE_LINES_LAYER_ID,
+  MEASURE_POINTS_LAYER_ID,
+  OVERLAY_LAYER_ID,
+  PARTICLE_LAYER_ID,
+  WAVE_BUOYS_LAYER_ID,
+} from '@/constants';
 import { CircleLayerSpecification, LineLayerSpecification } from 'mapbox-gl';
 
 export const waveBuoysLayerConfig: Partial<CircleLayerSpecification> = {
@@ -46,3 +53,12 @@ export const measureLinesConfig: Partial<LineLayerSpecification> = {
   },
   filter: ['in', '$type', 'LineString'],
 };
+
+//last one is the top layer.
+export const layersOrder = [
+  OVERLAY_LAYER_ID,
+  PARTICLE_LAYER_ID,
+  WAVE_BUOYS_LAYER_ID,
+  MEASURE_LINES_LAYER_ID,
+  MEASURE_POINTS_LAYER_ID,
+];

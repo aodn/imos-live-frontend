@@ -1,12 +1,12 @@
 import { circleLayer } from '@/layers';
 import { GSLA_META_NAME, WAVE_BUOYS_LAYER_ID, WAVE_BUOYS_SOURCE_ID } from '@/constants';
-import { addOrUpdateGeoJsonSource } from '@/helpers';
+import { addLayerInOrder, addOrUpdateGeoJsonSource } from '@/helpers';
 import { buildDatasetUrl, buildOgcBuoysUrl, loadMetaDataFromUrl } from '@/utils';
 import { useDidMountEffect } from './useDidMountEffect';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
 import { useMapboxLayerRef } from './useMapboxLayerRef';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
-import { waveBuoysLayerConfig } from '@/config';
+import { layersOrder, waveBuoysLayerConfig } from '@/config';
 
 export function useWaveBuoysLayer(
   map: React.RefObject<mapboxgl.Map | null>,
@@ -28,7 +28,7 @@ export function useWaveBuoysLayer(
     if (!waveBuoysLayer.current) return;
     await setDataByDataset();
     if (!map.current!.getLayer(WAVE_BUOYS_LAYER_ID)) {
-      map.current!.addLayer(waveBuoysLayer.current);
+      addLayerInOrder(map, layersOrder, waveBuoysLayer.current, WAVE_BUOYS_LAYER_ID);
     }
   };
 

@@ -4,14 +4,14 @@ import {
   OVERLAY_LAYER_ID,
   OVERLAY_SOURCE_ID,
 } from '@/constants';
-import { addOrUpdateImageSource } from '@/helpers';
+import { addLayerInOrder, addOrUpdateImageSource } from '@/helpers';
 import { imageLayer } from '@/layers';
 import { loadMetaDataFromUrl, buildDatasetUrl } from '@/utils';
 import { useDidMountEffect } from './useDidMountEffect';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
 import { useMapboxLayerRef } from './useMapboxLayerRef';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
-import { overlayLayerConfig } from '@/config';
+import { layersOrder, overlayLayerConfig } from '@/config';
 
 export function useOverlayLayer(
   map: React.RefObject<mapboxgl.Map | null>,
@@ -39,7 +39,7 @@ export function useOverlayLayer(
     await setDataByDataset();
 
     if (!map.current?.getLayer(OVERLAY_LAYER_ID)) {
-      map.current?.addLayer(overlayLayer.current);
+      addLayerInOrder(map, layersOrder, overlayLayer.current, OVERLAY_LAYER_ID);
     }
   };
 

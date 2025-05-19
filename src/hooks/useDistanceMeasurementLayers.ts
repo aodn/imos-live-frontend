@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   MEASURE_LINES_LAYER_ID,
   MEASURE_LINES_SOURCE_ID,
@@ -5,15 +6,14 @@ import {
   MEASURE_POINTS_SOURCE_ID,
 } from '@/constants';
 import { circleLayer, lineLayer } from '@/layers';
-import { useMapboxLayerRef } from './useMapboxLayerRef';
+import { layersOrder, measureLinesConfig, measurePointsConfig } from '@/config';
+import { addLayerInOrder, addOrUpdateGeoJsonSource } from '@/helpers';
+import { sleep } from '@/utils';
 import { FeatureCollection, GeoJsonProperties, Geometry } from 'geojson';
+import { useMapboxLayerRef } from './useMapboxLayerRef';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
-import { addOrUpdateGeoJsonSource } from '@/helpers';
-import { measureLinesConfig, measurePointsConfig } from '@/config';
-import { useState } from 'react';
 import { useDidMountEffect } from './useDidMountEffect';
-import { sleep } from '@/utils';
 
 export function useDistanceMeasurementLayers(
   map: React.RefObject<mapboxgl.Map | null>,
@@ -32,11 +32,11 @@ export function useDistanceMeasurementLayers(
     if (measurePointsLayer.current) {
       addOrUpdateGeoJsonSource(map.current!, MEASURE_POINTS_SOURCE_ID, measurePointsGeojson);
       if (!map.current?.getLayer(MEASURE_POINTS_LAYER_ID))
-        map.current?.addLayer(measurePointsLayer.current);
+        addLayerInOrder(map, layersOrder, measurePointsLayer.current, MEASURE_POINTS_LAYER_ID);
     }
     if (measureLineLayer.current) {
       if (!map.current?.getLayer(MEASURE_LINES_LAYER_ID))
-        map.current?.addLayer(measureLineLayer.current, MEASURE_POINTS_LAYER_ID);
+        addLayerInOrder(map, layersOrder, measureLineLayer.current, MEASURE_LINES_LAYER_ID);
     }
   };
 

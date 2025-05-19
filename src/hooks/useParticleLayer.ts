@@ -5,7 +5,7 @@ import {
   PARTICLE_LAYER_ID,
   PARTICLE_SOURCE_ID,
 } from '@/constants';
-import { addOrUpdateImageSource } from '@/helpers';
+import { addLayerInOrder, addOrUpdateImageSource } from '@/helpers';
 import { vectorLayer } from '@/layers';
 import { loadMetaDataFromUrl, buildDatasetUrl } from '@/utils';
 import { useEffect } from 'react';
@@ -13,6 +13,7 @@ import { useDidMountEffect } from './useDidMountEffect';
 import { useParticleLayerVisibility } from './useParticleLayerVisibility';
 import { useParticleLayerRef } from './useParticleLayerRef';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
+import { layersOrder } from '@/config';
 
 export function useParticleLayer(
   map: React.RefObject<mapboxgl.Map | null>,
@@ -45,7 +46,7 @@ export function useParticleLayer(
     if (!particleLayer.current) return;
     await setDataByDataset();
     if (!map.current!.getLayer(PARTICLE_LAYER_ID)) {
-      map.current!.addLayer(particleLayer.current);
+      addLayerInOrder(map, layersOrder, particleLayer.current, PARTICLE_LAYER_ID);
     }
   };
 
