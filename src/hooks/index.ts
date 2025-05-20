@@ -9,7 +9,7 @@ export * from './useMapboxLayerVisibility';
 export * from './useMapboxLayerRef';
 export * from './useMapboxLayerSetup';
 export * from './useWaveBuoysLayerClickHandler';
-export * from './useMapGlobalClickHandlers';
+export * from './useParticleOverlayLayersClickHandlers';
 export * from './useParticleLayerRef';
 export * from './useParticleLayerVisibility';
 export * from './useDistanceMeasurementLayers';

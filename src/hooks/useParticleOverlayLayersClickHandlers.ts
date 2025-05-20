@@ -13,7 +13,7 @@ type UseMapClickHandlersOptions = {
 };
 //Mapbox GL JS only allows layer-specific click events on vector layers (e.g., fill, circle, line).
 //For image layers, raster layers, or fully custom WebGL layers, you’re forced to use a global map click handler
-export function useMapGlobalClickHandlers({
+export function useParticleOverlayLayersClickHandlers({
   map,
   dataset,
   overlay,

@@ -94,5 +94,5 @@ export function useDistanceMeasurementLayersClickHandler(
     }
   }, [distanceMeasurement, setMeasurePointsGeojson]);
 
-  return { distance };
+  return { distance, setDistance };
 }

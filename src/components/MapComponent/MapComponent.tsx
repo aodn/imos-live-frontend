@@ -7,7 +7,7 @@ import {
   useWaveBuoysLayer,
   useParticleLayer,
   useWaveBuoysLayerClickHandler,
-  useMapGlobalClickHandlers,
+  useParticleOverlayLayersClickHandlers,
   useDistanceMeasurementLayers,
   useDistanceMeasurementLayersClickHandler,
 } from '@/hooks';
@@ -41,10 +41,14 @@ export const MapComponent = memo(
     const { map, mapContainer } = useMapInitialization(
       styles.find(s => s.title === style)?.source || styles[0].source,
     );
+
     //2. create layer, set data to layer and add layer to map.
     useOverlayLayer(map, overlay, style, dataset);
+
     useParticleLayer(map, particles, style, dataset, numParticles);
+
     useWaveBuoysLayer(map, circle, style, dataset);
+
     const { measurePointsGeojson, setMeasurePointsGeojson } = useDistanceMeasurementLayers(
       map,
       distanceMeasurement,
@@ -64,7 +68,7 @@ export const MapComponent = memo(
       }
     }, [waveBuoysLayerClickedPointData, openDrawer]);
 
-    useMapGlobalClickHandlers({
+    useParticleOverlayLayersClickHandlers({
       map,
       dataset,
       overlay,
@@ -72,7 +76,8 @@ export const MapComponent = memo(
       waveBuoysLayerClicked,
       distanceMeasurement,
     });
-    const { distance } = useDistanceMeasurementLayersClickHandler(
+
+    const { distance, setDistance } = useDistanceMeasurementLayersClickHandler(
       map,
       distanceMeasurement,
       measurePointsGeojson,
@@ -85,7 +90,13 @@ export const MapComponent = memo(
     return (
       <>
         <div ref={mapContainer} className="w-full h-full" />
-        {distance && <DistanceMeasurement distance={distance} />}
+        {distance && (
+          <DistanceMeasurement
+            distance={distance}
+            setDistance={setDistance}
+            setMeasurePointsGeojson={setMeasurePointsGeojson}
+          />
+        )}
       </>
     );
   },
