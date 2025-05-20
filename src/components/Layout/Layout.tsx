@@ -3,7 +3,11 @@ import { Drawer } from '@heroui/react';
 import { useDrawerStore } from '@/store';
 
 export const Layout = () => {
-  const { isOpen, closeDrawer, content } = useDrawerStore();
+  const { isOpen, closeDrawer, content } = useDrawerStore(s => ({
+    isOpen: s.isOpen,
+    closeDrawer: s.closeDrawer,
+    content: s.content,
+  }));
 
   return (
     <div className="min-h-screen w-full">

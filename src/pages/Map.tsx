@@ -1,76 +1,19 @@
-import { useMemo, useState } from 'react';
-import { StyleTitle } from '@/styles';
 import { MapComponent, MenuComponent } from '@/components';
-import { getLast7DatesEnding3DaysAgo } from '@/utils';
+import { useMapUIStore } from '@/store';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { useEffect } from 'react';
 
 export const Map = () => {
-  const [style, setStyle] = useState<StyleTitle>('Dark');
-  const [overlay, setOverlay] = useState(false);
-  const [circle, setCircle] = useState(false);
-  const [particles, setParticles] = useState(true);
-  const [numParticles, setNumParticles] = useState(10000);
-  const [distanceMeasurement, setDistanceMeasurement] = useState(false);
-  const [dataset, setDataset] = useState<string>(getLast7DatesEnding3DaysAgo().at(-1)!);
+  const refreshDatasets = useMapUIStore(s => s.refreshDatasets);
 
-  const datasets = useMemo(() => getLast7DatesEnding3DaysAgo(), []);
-
-  const handleSetStyle = (style: StyleTitle) => {
-    setStyle(style);
-  };
-
-  const handleSetOverlay = (v: boolean) => {
-    setOverlay(v);
-  };
-  const handleSetCircle = (v: boolean) => {
-    setCircle(v);
-  };
-  const handleSetParticles = (v: boolean) => {
-    setParticles(v);
-  };
-  const handleSetDistanceMeasurement = (v: boolean) => {
-    setDistanceMeasurement(v);
-  };
-  const handleSetNumParticles = (numParticles: number) => {
-    setNumParticles(numParticles);
-  };
-  const handleSetDataset = (dataset: string) => {
-    setDataset(dataset);
-  };
-
-  const menuProps = {
-    style,
-    overlay,
-    circle,
-    particles,
-    numParticles,
-    distanceMeasurement,
-    dataset,
-    datasets,
-    handleSetStyle,
-    handleSetOverlay,
-    handleSetCircle,
-    handleSetParticles,
-    handleSetNumParticles,
-    handleSetDistanceMeasurement,
-    handleSetDataset,
-  };
-
-  const mapProps = {
-    style,
-    overlay,
-    circle,
-    particles,
-    distanceMeasurement,
-    numParticles,
-    dataset,
-    datasets,
-  };
+  useEffect(() => {
+    refreshDatasets();
+  }, [refreshDatasets]);
 
   return (
     <div className="h-screen w-screen">
-      <MapComponent {...mapProps} />
-      <MenuComponent {...menuProps} />
+      <MapComponent />
+      <MenuComponent />
     </div>
   );
 };

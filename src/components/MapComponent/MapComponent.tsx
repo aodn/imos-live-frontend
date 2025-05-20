@@ -14,90 +14,74 @@ import {
 import mapboxgl from 'mapbox-gl';
 import { CircleDetails } from '../CircleDetails';
 import { DistanceMeasurement } from '../DistanceMeasurement';
+import { selectAllStates, useMapUIStore } from '@/store';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_KEY;
 
-type MapComponentProps = {
-  style: string;
-  overlay: boolean;
-  circle: boolean;
-  particles: boolean;
-  distanceMeasurement: boolean;
-  numParticles: number;
-  dataset: string;
-};
+export const MapComponent = memo(() => {
+  const { style, overlay, circle, particles, distanceMeasurement, numParticles, dataset } =
+    useMapUIStore(selectAllStates);
 
-export const MapComponent = memo(
-  ({
-    style,
-    overlay,
-    circle,
-    particles,
+  //1. map initialization.
+  const { map, mapContainer } = useMapInitialization(
+    styles.find(s => s.title === style)?.source || styles[0].source,
+  );
+
+  //2. create layer, set data to layer and add layer to map.
+  useOverlayLayer(map, overlay, style, dataset);
+
+  useParticleLayer(map, particles, style, dataset, numParticles);
+
+  useWaveBuoysLayer(map, circle, style, dataset);
+
+  const { measurePointsGeojson, setMeasurePointsGeojson } = useDistanceMeasurementLayers(
+    map,
     distanceMeasurement,
-    numParticles,
+  );
+
+  //3. add click event listners to map and layers.
+  const {
+    clickedPointData: waveBuoysLayerClickedPointData,
+    openDrawer,
+    waveBuoysLayerClicked,
+  } = useWaveBuoysLayerClickHandler(map, circle, distanceMeasurement);
+
+  //the reason open drawer in useEffect is because hook is only good for logics without rendering components.
+  useEffect(() => {
+    if (waveBuoysLayerClickedPointData) {
+      openDrawer(<CircleDetails {...waveBuoysLayerClickedPointData} />);
+    }
+  }, [waveBuoysLayerClickedPointData, openDrawer]);
+
+  useParticleOverlayLayersClickHandlers({
+    map,
     dataset,
-  }: MapComponentProps) => {
-    //1. map initialization.
-    const { map, mapContainer } = useMapInitialization(
-      styles.find(s => s.title === style)?.source || styles[0].source,
-    );
+    overlay,
+    particles,
+    waveBuoysLayerClicked,
+    distanceMeasurement,
+  });
 
-    //2. create layer, set data to layer and add layer to map.
-    useOverlayLayer(map, overlay, style, dataset);
+  const { distance, setDistance } = useDistanceMeasurementLayersClickHandler(
+    map,
+    distanceMeasurement,
+    measurePointsGeojson,
+    setMeasurePointsGeojson,
+  );
 
-    useParticleLayer(map, particles, style, dataset, numParticles);
+  //4. enable to toggle style.
+  useMapStyle(map, style);
 
-    useWaveBuoysLayer(map, circle, style, dataset);
-
-    const { measurePointsGeojson, setMeasurePointsGeojson } = useDistanceMeasurementLayers(
-      map,
-      distanceMeasurement,
-    );
-
-    //3. add click event listners to map and layers.
-    const {
-      clickedPointData: waveBuoysLayerClickedPointData,
-      openDrawer,
-      waveBuoysLayerClicked,
-    } = useWaveBuoysLayerClickHandler(map, circle, distanceMeasurement);
-
-    //the reason open drawer in useEffect is because hook is only good for logics without rendering components.
-    useEffect(() => {
-      if (waveBuoysLayerClickedPointData) {
-        openDrawer(<CircleDetails {...waveBuoysLayerClickedPointData} />);
-      }
-    }, [waveBuoysLayerClickedPointData, openDrawer]);
-
-    useParticleOverlayLayersClickHandlers({
-      map,
-      dataset,
-      overlay,
-      particles,
-      waveBuoysLayerClicked,
-      distanceMeasurement,
-    });
-
-    const { distance, setDistance } = useDistanceMeasurementLayersClickHandler(
-      map,
-      distanceMeasurement,
-      measurePointsGeojson,
-      setMeasurePointsGeojson,
-    );
-
-    //4. enable to toggle style.
-    useMapStyle(map, style);
-
-    return (
-      <>
-        <div ref={mapContainer} className="w-full h-full" />
-        {distance && (
-          <DistanceMeasurement
-            distance={distance}
-            setDistance={setDistance}
-            setMeasurePointsGeojson={setMeasurePointsGeojson}
-          />
-        )}
-      </>
-    );
-  },
-);
+  return (
+    <>
+      <div ref={mapContainer} className="w-full h-full" />
+      {distance && (
+        <DistanceMeasurement
+          distance={distance}
+          setDistance={setDistance}
+          setMeasurePointsGeojson={setMeasurePointsGeojson}
+        />
+      )}
+    </>
+  );
+});
