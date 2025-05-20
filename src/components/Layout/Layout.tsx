@@ -1,7 +1,7 @@
 import { Outlet } from 'react-router-dom';
-import { Drawer } from '@heroui/react';
 import { useDrawerStore } from '@/store';
 import { useShallow } from 'zustand/shallow';
+import { Drawer } from '../ui/drawer';
 
 export const Layout = () => {
   const { isOpen, closeDrawer, content } = useDrawerStore(
@@ -15,12 +15,15 @@ export const Layout = () => {
   return (
     <div className="min-h-screen w-full">
       <header></header>
-      <main className="h-full w-full">
-        <Outlet />
+      <main className="h-full w-full flex">
+        {/* TODO sidebar */}
+        <div className="flex-1">
+          <Outlet />
+        </div>
       </main>
       <footer></footer>
       <aside>
-        <Drawer isOpen={isOpen} onClose={closeDrawer} placement="bottom">
+        <Drawer open={isOpen} onClose={closeDrawer} direction="bottom">
           {content}
         </Drawer>
       </aside>
