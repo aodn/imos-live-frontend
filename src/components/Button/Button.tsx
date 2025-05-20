@@ -4,7 +4,7 @@ import { useButton, Ripple, Spinner, ButtonProps as BaseButtonProps } from '@her
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface ButtonProps extends BaseButtonProps {}
 
-export const ImosButton = forwardRef<HTMLButtonElement, ButtonProps>((props, ref) => {
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>((props, ref) => {
   const {
     domRef,
     children,
@@ -35,5 +35,3 @@ export const ImosButton = forwardRef<HTMLButtonElement, ButtonProps>((props, ref
     </button>
   );
 });
-
-ImosButton.displayName = 'ImosButton';

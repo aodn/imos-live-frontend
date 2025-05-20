@@ -1,5 +1,5 @@
 import { FeatureCollection, Geometry, GeoJsonProperties } from 'geojson';
-import { ImosButton } from '../Button';
+import { Button } from '../Button';
 export const DistanceMeasurement = ({
   distance,
   setDistance,
@@ -16,7 +16,7 @@ export const DistanceMeasurement = ({
   return (
     <div className="fixed top-10 left-10 z-10 bg-slate-400 shadow-sm  px-4 py-2 rounded">
       <p>Total distance: {distance} km</p>
-      <ImosButton children="clear" onClick={clearMeasurements} />
+      <Button children="clear" onClick={clearMeasurements} />
     </div>
   );
 };

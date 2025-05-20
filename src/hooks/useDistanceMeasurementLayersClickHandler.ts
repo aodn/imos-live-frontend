@@ -89,10 +89,11 @@ export function useDistanceMeasurementLayersClickHandler(
 
   useEffect(() => {
     if (!distanceMeasurement) {
+      if (map.current) map.current.getCanvas().style.cursor = 'grab';
       setMeasurePointsGeojson({ type: 'FeatureCollection', features: [] });
       setDistance('');
     }
-  }, [distanceMeasurement, setMeasurePointsGeojson]);
+  }, [distanceMeasurement, map, setMeasurePointsGeojson]);
 
   return { distance, setDistance };
 }
