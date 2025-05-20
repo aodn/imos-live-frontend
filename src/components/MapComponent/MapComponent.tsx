@@ -10,6 +10,7 @@ import {
   useParticleOverlayLayersClickHandlers,
   useDistanceMeasurementLayers,
   useDistanceMeasurementLayersClickHandler,
+  useMapResize,
 } from '@/hooks';
 import mapboxgl from 'mapbox-gl';
 import { CircleDetails } from '../CircleDetails';
@@ -72,6 +73,9 @@ export const MapComponent = memo(() => {
 
   //4. enable to toggle style.
   useMapStyle(map, style);
+
+  //5. enable map resize when its parent div size udpate.
+  useMapResize(map, mapContainer);
 
   return (
     <>

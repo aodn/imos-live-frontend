@@ -1,15 +1,17 @@
 import { Route, Routes } from 'react-router-dom';
 import { Map as MapPage, Landing as LandingPage } from '@/pages';
-import { Layout } from '@/components';
+import { Layout, SidebarProvider } from '@/components';
 
 function App() {
   return (
-    <Routes>
-      <Route element={<Layout />}>
-        <Route path="/" element={<MapPage />} />
-        <Route path="/landing" element={<LandingPage />} />
-      </Route>
-    </Routes>
+    <SidebarProvider>
+      <Routes>
+        <Route element={<Layout />}>
+          <Route path="/" element={<MapPage />} />
+          <Route path="/landing" element={<LandingPage />} />
+        </Route>
+      </Routes>
+    </SidebarProvider>
   );
 }
 export default App;

@@ -14,7 +14,7 @@ export const DistanceMeasurement = ({
     setMeasurePointsGeojson({ type: 'FeatureCollection', features: [] });
   };
   return (
-    <div className="fixed top-10 left-10 z-10 bg-slate-400 shadow-sm  px-4 py-2 rounded">
+    <div className="absolute top-10 left-10 z-10 bg-slate-400 shadow-sm  px-4 py-2 rounded">
       <p>Total distance: {distance} km</p>
       <button onClick={clearMeasurements}>clear</button>
     </div>
