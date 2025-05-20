@@ -1,13 +1,16 @@
 import { Outlet } from 'react-router-dom';
 import { Drawer } from '@heroui/react';
 import { useDrawerStore } from '@/store';
+import { useShallow } from 'zustand/shallow';
 
 export const Layout = () => {
-  const { isOpen, closeDrawer, content } = useDrawerStore(s => ({
-    isOpen: s.isOpen,
-    closeDrawer: s.closeDrawer,
-    content: s.content,
-  }));
+  const { isOpen, closeDrawer, content } = useDrawerStore(
+    useShallow(s => ({
+      isOpen: s.isOpen,
+      closeDrawer: s.closeDrawer,
+      content: s.content,
+    })),
+  );
 
   return (
     <div className="min-h-screen w-full">
