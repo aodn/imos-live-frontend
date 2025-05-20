@@ -18,11 +18,10 @@ import { selectAllStates, useMapUIStore } from '@/store';
 import { useShallow } from 'zustand/shallow';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_KEY;
-let times = 0;
 export const MapComponent = memo(() => {
   const { style, overlay, circle, particles, distanceMeasurement, numParticles, dataset } =
     useMapUIStore(useShallow(selectAllStates));
-  console.log(times++);
+
   //1. map initialization.
   const { map, mapContainer } = useMapInitialization(
     styles.find(s => s.title === style)?.source || styles[0].source,
@@ -38,6 +37,7 @@ export const MapComponent = memo(() => {
   const { measurePointsGeojson, setMeasurePointsGeojson } = useDistanceMeasurementLayers(
     map,
     distanceMeasurement,
+    style,
   );
 
   //3. add click event listners to map and layers.

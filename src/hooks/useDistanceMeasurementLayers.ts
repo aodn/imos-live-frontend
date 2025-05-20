@@ -18,6 +18,7 @@ import { useDidMountEffect } from './useDidMountEffect';
 export function useDistanceMeasurementLayers(
   map: React.RefObject<mapboxgl.Map | null>,
   distanceMeasurement: boolean,
+  style: string,
 ) {
   const [measurePointsGeojson, setMeasurePointsGeojson] = useState<
     FeatureCollection<Geometry, GeoJsonProperties>
@@ -40,25 +41,29 @@ export function useDistanceMeasurementLayers(
     }
   };
 
-  const measurePointsLayer = useMapboxLayerRef(() =>
-    circleLayer(
-      { id: MEASURE_POINTS_LAYER_ID, source: MEASURE_POINTS_SOURCE_ID, ...measurePointsConfig },
-      distanceMeasurement,
-    ),
+  const measurePointsLayer = useMapboxLayerRef(
+    () =>
+      circleLayer(
+        { id: MEASURE_POINTS_LAYER_ID, source: MEASURE_POINTS_SOURCE_ID, ...measurePointsConfig },
+        distanceMeasurement,
+      ),
+    style,
   );
 
-  const measureLineLayer = useMapboxLayerRef(() =>
-    lineLayer(
-      {
-        id: MEASURE_LINES_LAYER_ID,
-        source: MEASURE_LINES_SOURCE_ID,
-        ...measureLinesConfig,
-      },
-      distanceMeasurement,
-    ),
+  const measureLineLayer = useMapboxLayerRef(
+    () =>
+      lineLayer(
+        {
+          id: MEASURE_LINES_LAYER_ID,
+          source: MEASURE_LINES_SOURCE_ID,
+          ...measureLinesConfig,
+        },
+        distanceMeasurement,
+      ),
+    style,
   );
 
-  const { loadComplete } = useMapboxLayerSetup(map, setupLayer);
+  const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [style]);
 
   useDidMountEffect(() => {
     if (!map.current || !loadComplete) return;
