@@ -1,4 +1,7 @@
 /** @type {import('tailwindcss').Config} */
+
+//this has been deprecrated by v4, but by adding @config "../tailwind.config.js"; in index.css,
+//this config still works.
 export default {
   content: [
     './src/**/*.{js,ts,jsx,tsx,html}', // adjust as needed for your project
@@ -6,7 +9,15 @@ export default {
     // add other folders where you use Tailwind classes
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        'imos-white': '#fff',
+        'imos-black': '##000',
+        'imos-red': '#e53935',
+        'imos-grey': '#232936',
+      },
+    },
   },
+
   plugins: [],
 };

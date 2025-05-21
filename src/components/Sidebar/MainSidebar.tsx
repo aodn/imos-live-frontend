@@ -7,10 +7,10 @@ export const MainSidebar = () => {
     <Sidebar>
       <SidebarHeader>
         <div className="p-4 flex justify-between">
-          <h2 className="text-lg font-bold">IMOS LIVE</h2>
+          <h2 className="text-lg font-bold text-imos-grey ">IMOS LIVE</h2>
           {open && (
             <button onClick={toggleSidebar}>
-              <CloseIcon size="xl" className="text-red-700" />
+              <CloseIcon size="xl" color="imos-grey" className="" />
             </button>
           )}
         </div>

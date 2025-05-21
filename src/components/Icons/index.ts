@@ -5,6 +5,14 @@ import Menu from './menu.svg?react';
 export const CloseIcon = withIcon(Close);
 export const MenuIcon = withIcon(Menu);
 
+export const icons = {
+  CloseIcon,
+  MenuIcon,
+};
+
+export * from './withIcon';
+export * from './IconTable';
+
 /**
  * The PowerShell command to change all svg's fill to 'currentColor'
  * Get-ChildItem -Recurse -Filter *.svg | ForEach-Object {

@@ -1,5 +1,10 @@
 @import 'tailwindcss';
-@import "tw-animate-css";
+@import 'tw-animate-css';
+
+/* since tailwindcss v4 has deprecated tailwind.config.js, so to use it have add this line
+   https://tailwindcss.com/blog/tailwindcss-v4
+*/
+@config "../tailwind.config.js";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -7,6 +12,12 @@
   box-sizing: border-box;
 }
 
+/* 
+   instead of using tailwindcss.config.js, using @theme to add css variable is the new way
+   to add cusomt style. And these variable can follow naming parttern similar to before to 
+   be used in code. The naming pattern is in this url: https://tailwindcss.com/docs/theme.
+
+*/
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
