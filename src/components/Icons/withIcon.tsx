@@ -1,5 +1,5 @@
 import React, { forwardRef } from 'react';
-import cn from 'classnames';
+import cn from 'clsx';
 
 type IconSize = 'xs' | 'sm' | 'base' | 'lg' | 'xl';
 type Color = 'imos-white' | 'imos-black' | 'imos-red' | 'imos-grey';
@@ -31,10 +31,18 @@ export function withIcon(
 ): React.FC<IconProps> {
   const WrappedIcon = forwardRef<SVGSVGElement, IconProps>(
     ({ size = 'base', color = 'imos-black', className, ...rest }, ref) => {
+      //size-X is to override shadcn/ui button's behavior to force all direct SVG children to have a consistent size.
+      const defaultClass = 'size-X';
       const sizeClass = `${SIZE_MAP[size as IconSize]}`;
       const colorClass = `${COLOR_MAP[color as Color]}`;
 
-      return <IconComponent ref={ref} className={cn(sizeClass, colorClass, className)} {...rest} />;
+      return (
+        <IconComponent
+          ref={ref}
+          className={cn(defaultClass, sizeClass, colorClass, className)}
+          {...rest}
+        />
+      );
     },
   );
 

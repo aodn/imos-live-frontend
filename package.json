@@ -34,7 +34,6 @@
     "@turf/turf": "^7.2.0",
     "axios": "^1.8.4",
     "class-variance-authority": "^0.7.1",
-    "classnames": "^2.5.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.10.1",
     "lucide-react": "^0.511.0",

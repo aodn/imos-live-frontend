@@ -1,7 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import { useDrawerStore } from '@/store';
 import { useShallow } from 'zustand/shallow';
-import { Drawer, useSidebar } from '@/components/ui';
+import { Button, Drawer, useSidebar } from '@/components/ui';
 import { MainSidebar } from '@/components/Sidebar';
 import { MenuIcon } from '@/components/Icons';
 
@@ -21,9 +21,14 @@ export const Layout = () => {
         <MainSidebar />
         <div className="flex-1 relative">
           {!open && (
-            <button className="absolute left-2 top-2 z-99 w-10" onClick={toggleSidebar}>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="absolute left-2 top-2 z-99"
+              onClick={toggleSidebar}
+            >
               <MenuIcon size="xl" className="text-white" />
-            </button>
+            </Button>
           )}
           <Outlet />
         </div>

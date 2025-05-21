@@ -1,4 +1,11 @@
-import { Sidebar, SidebarContent, SidebarHeader, SidebarFooter, useSidebar } from '@/components/ui';
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarHeader,
+  SidebarFooter,
+  useSidebar,
+  Button,
+} from '@/components/ui';
 import { CloseIcon } from '@/components/Icons';
 
 export const MainSidebar = () => {
@@ -9,9 +16,9 @@ export const MainSidebar = () => {
         <div className="p-4 flex justify-between">
           <h2 className="text-lg font-bold text-imos-grey ">IMOS LIVE</h2>
           {open && (
-            <button onClick={toggleSidebar}>
-              <CloseIcon size="xl" color="imos-grey" className="" />
-            </button>
+            <Button onClick={toggleSidebar} size="icon" variant="ghost">
+              <CloseIcon size="xl" color="imos-grey" />
+            </Button>
           )}
         </div>
       </SidebarHeader>
