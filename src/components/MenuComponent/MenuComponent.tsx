@@ -1,7 +1,6 @@
 import { MenuPane } from '../MenuPane';
 import { Tabs } from '../Tab/Tabs';
 import { NavSelect } from '../NavSelect';
-import { Menu } from '../Menu';
 import { styles } from '../../styles';
 import { useMapUIStore } from '@/store';
 
@@ -25,7 +24,7 @@ export const MenuComponent = () => {
   } = useMapUIStore();
 
   return (
-    <Menu>
+    <>
       <MenuPane title={'Styles'}>
         <Tabs
           tabs={styles.map(({ title }) => ({
@@ -97,6 +96,6 @@ export const MenuComponent = () => {
       <MenuPane title={'Date'}>
         <NavSelect options={datasets} selected={dataset} handleClick={setDataset} />
       </MenuPane>
-    </Menu>
+    </>
   );
 };

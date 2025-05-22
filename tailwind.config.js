@@ -12,7 +12,7 @@ export default {
     extend: {
       colors: {
         'imos-white': '#fff',
-        'imos-black': '##000',
+        'imos-black': '#000',
         'imos-red': '#e53935',
         'imos-grey': '#232936',
       },

@@ -11,3 +11,4 @@ export * from './DistanceMeasurement';
 export * from './ui';
 export * from './Sidebar';
 export * from './DragWrapper';
+export * from './Icons';

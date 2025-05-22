@@ -1,42 +1,57 @@
 import { ReactNode, useEffect, useRef, useState } from 'react';
 import { Rnd } from 'react-rnd';
+import { useResizeObserver } from '@/hooks';
 
-export const DragWrapper = ({ children }: { children: ReactNode }) => {
-  const contentRef = useRef<HTMLDivElement>(null);
+type SizeType = {
+  width: number;
+  height: number;
+};
 
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [size, setSize] = useState<{ width: number; height: number } | null>(null);
+type PositionType = {
+  x: number;
+  y: number;
+};
 
-  const clampPosition = (x, y, width, height, parent) => {
-    const parentRect = parent.getBoundingClientRect();
-    console.log(parentRect);
-    return {
-      x: Math.max(0, Math.min(x, parentRect.width - width)),
-      y: Math.max(0, Math.min(y, parentRect.height - height)),
-    };
-  };
+export const DragWrapper = ({
+  children,
+  ref,
+  dragHandleClassName,
+  bounds = 'parent',
+}: {
+  children: ReactNode;
+  ref?: React.RefObject<HTMLDivElement | null>;
+  dragHandleClassName?: string;
+  bounds?: 'window' | 'parent';
+}) => {
+  const [size, setSize] = useState<SizeType>();
+  const [position, setPostion] = useState<PositionType>({ x: 10, y: 10 });
+  const tempWrapperRef = useRef<HTMLDivElement>(null);
+
+  //doing nothing, just satisfy ts.
+  if (!ref) ref = tempWrapperRef;
+
+  useResizeObserver(ref, () => {
+    if (ref?.current) {
+      const rect = ref.current.getBoundingClientRect();
+      console.log(rect);
+
+      setSize(prev =>
+        prev?.width !== rect.width || prev?.height !== rect.height
+          ? { width: rect.width, height: rect.height }
+          : prev,
+      );
+    }
+  });
 
   useEffect(() => {
-    if (contentRef.current && !size) {
-      const rect = contentRef.current.getBoundingClientRect();
-      console.log(rect);
-      setSize({
-        width: rect.width > 0 ? rect.width : 0,
-        height: rect.height > 0 ? rect.height : 0,
-      });
-    }
-  }, [size]);
+    if (!tempWrapperRef.current) return;
+    const { width, height } = tempWrapperRef.current.getBoundingClientRect();
+    setSize({ width, height });
+  }, []);
 
   if (!size) {
     return (
-      <div
-        className="absolute -left-9999 -top-9999"
-        ref={contentRef}
-        style={{
-          opacity: 0,
-          pointerEvents: 'none',
-        }}
-      >
+      <div ref={tempWrapperRef} className="absolute -left-9999 -top-9999">
         {children}
       </div>
     );
@@ -44,17 +59,16 @@ export const DragWrapper = ({ children }: { children: ReactNode }) => {
 
   return (
     <Rnd
-      dragHandleClassName="imos-drag-handle"
-      position={position}
-      size={size}
-      onDragStop={(e, d) => {
-        const parent = (e.target as HTMLElement).parentNode;
-        const clamped = clampPosition(d.x, d.y, size.width, size.height, parent);
-        setPosition(clamped);
+      className="overflow-hidden"
+      dragHandleClassName={dragHandleClassName}
+      size={{ width: size.width, height: size.height }}
+      position={{ x: position.x, y: position.y }}
+      onDragStop={(_e, d) => {
+        setPostion({ x: d.x, y: d.y });
       }}
-      bounds="parent"
+      bounds={bounds}
     >
-      <div className="absolute  z-10 bg-[rgba(35,55,75,0.9)]">{children}</div>
+      <div>{children}</div>
     </Rnd>
   );
 };
