@@ -19,7 +19,7 @@ export const Layout = () => {
       <header></header>
       <main className="h-full w-full flex">
         <MainSidebar />
-        <div className="flex-1 relative">
+        <div className="flex-1 h-full relative">
           {!open && (
             <Button
               size="icon"

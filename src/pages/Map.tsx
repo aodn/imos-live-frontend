@@ -1,4 +1,4 @@
-import { MapComponent, MenuComponent } from '@/components';
+import { MapComponent, MenuComponent, DragWrapper } from '@/components';
 import { useMapUIStore } from '@/store';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useEffect } from 'react';
@@ -11,9 +11,11 @@ export const Map = () => {
   }, [refreshDatasets]);
 
   return (
-    <div className="h-full w-full">
+    <div className="h-full w-full border-8 border-imos-red">
       <MapComponent />
-      <MenuComponent />
+      <DragWrapper>
+        <MenuComponent />
+      </DragWrapper>
     </div>
   );
 };

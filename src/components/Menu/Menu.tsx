@@ -1,22 +1,23 @@
-import { useState, useCallback, ReactNode } from 'react';
-import { HiChevronUp, HiOutlineMenu } from 'react-icons/hi';
+import { Button } from '../ui';
 
 type MenuProps = {
   children: ReactNode;
 };
 
 export const Menu = ({ children }: MenuProps) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const toggleIsExpanded = useCallback(() => {
-    setIsExpanded(isExpanded => !isExpanded);
-  }, []);
+  // const [isExpanded, setIsExpanded] = useState(false);
+  // const toggleIsExpanded = useCallback(() => {
+  //   setIsExpanded(isExpanded => !isExpanded);
+  // }, []);
 
   return (
-    <div className="bg-[rgba(35,55,75,0.9)] text-[#ddd] px-3 py-1.5 font-mono z-[1] absolute top-0 right-0 m-3 rounded max-w-[25vw]">
-      <div className="button" onClick={toggleIsExpanded}>
+    <div className="  text-[#ddd]  font-mono   rounded">
+      <Button className="imos-drag-handle w-full">Drag me</Button>
+      {/* <div className="button" onClick={toggleIsExpanded}>
         {isExpanded ? <HiChevronUp className="icon" /> : <HiOutlineMenu className="icon border" />}
       </div>
-      {isExpanded ? children : null}
+      {isExpanded ? children : null} */}
+      <div className="px-2">{children}</div>
     </div>
   );
 };

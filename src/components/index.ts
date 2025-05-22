@@ -10,3 +10,4 @@ export * from './CircleDetails';
 export * from './DistanceMeasurement';
 export * from './ui';
 export * from './Sidebar';
+export * from './DragWrapper';
