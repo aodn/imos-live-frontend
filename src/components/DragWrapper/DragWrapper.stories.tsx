@@ -14,23 +14,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const WindowBounds: Story = {
-  args: {
-    children: (
-      <div className="w-40">
-        <Button className="dragHandleClassName">Drag me</Button>
-        <p>
-          Lorem ipsum dolor, sit amet consectetur adipisicing elit. Autem modi id illo omnis
-          molestias adipisci magni ullam error, ipsam sapiente.
-        </p>
-      </div>
-    ),
-    dragHandleClassName: 'dragHandleClassName',
-    bounds: 'window',
-  },
-};
-
-export const ParentBounds: Story = {
+export const Primary: Story = {
   args: {
     children: (
       <div className="w-40">

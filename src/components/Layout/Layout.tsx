@@ -1,4 +1,4 @@
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import { useDrawerStore } from '@/store';
 import { useShallow } from 'zustand/shallow';
 import { Button, Drawer, useSidebar } from '@/components/ui';
@@ -7,7 +7,6 @@ import { MenuIcon } from '@/components/Icons';
 import { cn } from '@/lib/utils';
 
 export const Layout = () => {
-  const location = useLocation();
   const { isOpen, closeDrawer, content } = useDrawerStore(
     useShallow(s => ({
       isOpen: s.isOpen,
@@ -18,12 +17,7 @@ export const Layout = () => {
   const { toggleSidebar, open } = useSidebar();
 
   return (
-    <div
-      className={cn('w-full overflow-hidden', {
-        'h-screen': location.pathname === '/',
-        'min-h-screen ': location.pathname !== '/',
-      })}
-    >
+    <div className={cn('w-full min-h-screen')}>
       <header></header>
       <main className="h-full w-full flex">
         <MainSidebar />

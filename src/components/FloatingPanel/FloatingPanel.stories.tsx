@@ -17,8 +17,17 @@ type Story = StoryObj<typeof meta>;
 export const Primary: Story = {
   args: {
     children: <MenuComponent />,
-    bounds: 'window',
     TriggerComp: CollapsibleTrigger,
-    wrapperClassName: 'bg-[rgba(35,55,75,0.9)] text-[#ddd] font-mono rounded p-2',
+    initialPosition: {
+      x: 20,
+      y: 20,
+    },
+  },
+  render: args => {
+    return (
+      <div className="relative border-2 border-imos-red w-[800px] h-[800px] overflow-hidden">
+        <FloatingPanel {...args} />
+      </div>
+    );
   },
 };

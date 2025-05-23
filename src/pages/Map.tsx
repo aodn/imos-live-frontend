@@ -12,7 +12,8 @@ export const Map = () => {
   }, [refreshDatasets]);
 
   return (
-    <div className="h-full w-full overflow-hidden">
+    //Draggable element's parent needs to be relative so that overflow-hidden can work.
+    <div className="relative overflow-hidden h-full w-full">
       <MapComponent />
       <FloatingPanel TriggerComp={CollapsibleTrigger} children={<MenuComponent />} />
     </div>
