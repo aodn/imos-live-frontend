@@ -21,14 +21,25 @@ export const Primary: Story = {
   args: {
     open: false,
     trigger: null,
-    children: null,
+    wrapperClassName: 'bg-imos-grey rounded p-2 w-60',
+    children: (
+      <div>
+        <p className="text-imos-white">
+          Lorem ipsum dolor, sit amet consectetur adipisicing elit. Dicta nobis maiores numquam
+          voluptatum tenetur impedit architecto cum? Aperiam eveniet quasi animi adipisci quae
+          distinctio nemo reiciendis omnis laborum, maxime accusamus nulla dolorum doloremque
+          consequatur odit eaque quidem esse quibusdam numquam, soluta quos nisi. Debitis quisquam
+          consectetur ipsa laudantium tempore molestias, illum nesciunt. Odit veniam, placeat
+          accusamus nesciunt laboriosam doloribus magni doloremque molestias? Minima,
+        </p>
+      </div>
+    ),
   },
   render: args => {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const { open, toggle } = useToggle(true);
     return (
       <CollapsibleComponent
-        wrapperClassName="bg-imos-grey rounded p-2 w-60"
         {...args}
         trigger={
           <Button variant="ghost" size="icon" className="hover:bg-transparent" onClick={toggle}>
@@ -39,18 +50,6 @@ export const Primary: Story = {
           </Button>
         }
         open={open}
-        children={
-          <div>
-            <p className="text-imos-white">
-              Lorem ipsum dolor, sit amet consectetur adipisicing elit. Dicta nobis maiores numquam
-              voluptatum tenetur impedit architecto cum? Aperiam eveniet quasi animi adipisci quae
-              distinctio nemo reiciendis omnis laborum, maxime accusamus nulla dolorum doloremque
-              consequatur odit eaque quidem esse quibusdam numquam, soluta quos nisi. Debitis
-              quisquam consectetur ipsa laudantium tempore molestias, illum nesciunt. Odit veniam,
-              placeat accusamus nesciunt laboriosam doloribus magni doloremque molestias? Minima,
-            </p>
-          </div>
-        }
       />
     );
   },

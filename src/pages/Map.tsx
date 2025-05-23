@@ -12,11 +12,10 @@ import { useToggle } from '@/hooks';
 import { cn } from '@/lib/utils';
 import { useMapUIStore } from '@/store';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 
 export const Map = () => {
   const refreshDatasets = useMapUIStore(s => s.refreshDatasets);
-  const ref = useRef<HTMLDivElement>(null);
   const { open, toggle } = useToggle(false);
 
   useEffect(() => {
@@ -26,12 +25,9 @@ export const Map = () => {
   return (
     <div className="h-full w-full">
       <MapComponent />
-      {/* TODO move trigger content to a component */}
-      <DragWrapper bounds="parent" dragHandleClassName={PANEL_DRAG_HANDLER_CLASSNAME} ref={ref}>
+      <DragWrapper bounds="parent" dragHandleClassName={PANEL_DRAG_HANDLER_CLASSNAME}>
         <CollapsibleComponent
-          ref={ref}
-          //TODO fix the bug that cannot set padding here.
-          wrapperClassName="bg-[rgba(35,55,75,0.9)] text-[#ddd] font-mono rounded"
+          wrapperClassName="bg-[rgba(35,55,75,0.9)] text-[#ddd] font-mono rounded p-4"
           open={open}
           trigger={
             <div className="flex">
@@ -56,5 +52,3 @@ export const Map = () => {
     </div>
   );
 };
-
-// TODO 1. import component in storybook.

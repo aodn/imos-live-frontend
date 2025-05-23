@@ -14,33 +14,22 @@ type PositionType = {
 
 export const DragWrapper = ({
   children,
-  ref,
   dragHandleClassName,
   bounds = 'parent',
 }: {
   children: ReactNode;
-  ref?: React.RefObject<HTMLDivElement | null>;
   dragHandleClassName?: string;
   bounds?: 'window' | 'parent';
 }) => {
   const [size, setSize] = useState<SizeType>();
   const [position, setPostion] = useState<PositionType>({ x: 10, y: 10 });
   const tempWrapperRef = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLDivElement>(null);
 
-  //doing nothing, just satisfy ts.
-  if (!ref) ref = tempWrapperRef;
-
-  useResizeObserver(ref, () => {
-    if (ref?.current) {
-      const rect = ref.current.getBoundingClientRect();
-      console.log(rect);
-
-      setSize(prev =>
-        prev?.width !== rect.width || prev?.height !== rect.height
-          ? { width: rect.width, height: rect.height }
-          : prev,
-      );
-    }
+  useResizeObserver(ref, entry => {
+    const { width, height } = entry.contentRect;
+    console.log(width, height);
+    setSize(prev => (prev?.width !== width || prev?.height !== height ? { width, height } : prev));
   });
 
   useEffect(() => {
@@ -68,7 +57,7 @@ export const DragWrapper = ({
       }}
       bounds={bounds}
     >
-      <div>{children}</div>
+      <div ref={ref}>{children}</div>
     </Rnd>
   );
 };
