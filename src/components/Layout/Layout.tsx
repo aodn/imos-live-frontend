@@ -15,11 +15,13 @@ export const Layout = () => {
     })),
   );
   const { toggleSidebar, open } = useSidebar();
+  //TODO maybe do not use useSidebar, it is context, better use zustand to make consistent.
 
   return (
     <div className={cn('w-full min-h-screen')}>
       <header></header>
       <main className="h-full w-full flex">
+        {/* TODO maybe move this sidebar to map page, because it is only used in that page and it is not a sidebar over other elements.*/}
         <MainSidebar />
         <div className="flex-1 h-full relative">
           {!open && (
