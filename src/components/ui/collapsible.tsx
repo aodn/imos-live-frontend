@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import clsx from 'clsx';
 
-type Props = {
+export type CollapsibleComponentProps = {
   maxHeight?: number;
   open: boolean;
   trigger: ReactNode;
@@ -15,7 +15,7 @@ export const CollapsibleComponent = ({
   trigger,
   children,
   wrapperClassName = '',
-}: Props) => {
+}: CollapsibleComponentProps) => {
   const animationClassName = 'transition-all duration-300 ease-in-out';
 
   return (

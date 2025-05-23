@@ -12,3 +12,4 @@ export * from './ui';
 export * from './Sidebar';
 export * from './DragWrapper';
 export * from './Icons';
+export * from './FloatingPanel';

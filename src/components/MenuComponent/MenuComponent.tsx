@@ -24,7 +24,7 @@ export const MenuComponent = () => {
   } = useMapUIStore();
 
   return (
-    <>
+    <div className="bg-[rgba(35,55,75,1)]">
       <MenuPane title={'Styles'}>
         <Tabs
           tabs={styles.map(({ title }) => ({
@@ -96,6 +96,6 @@ export const MenuComponent = () => {
       <MenuPane title={'Date'}>
         <NavSelect options={datasets} selected={dataset} handleClick={setDataset} />
       </MenuPane>
-    </>
+    </div>
   );
 };

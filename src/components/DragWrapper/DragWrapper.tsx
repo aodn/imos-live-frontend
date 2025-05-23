@@ -12,15 +12,17 @@ type PositionType = {
   y: number;
 };
 
+export type DragWrapperProps = {
+  children: ReactNode;
+  dragHandleClassName?: string;
+  bounds?: 'window' | 'parent';
+};
+
 export const DragWrapper = ({
   children,
   dragHandleClassName,
   bounds = 'parent',
-}: {
-  children: ReactNode;
-  dragHandleClassName?: string;
-  bounds?: 'window' | 'parent';
-}) => {
+}: DragWrapperProps) => {
   const [size, setSize] = useState<SizeType>();
   const [position, setPostion] = useState<PositionType>({ x: 10, y: 10 });
   const tempWrapperRef = useRef<HTMLDivElement>(null);
@@ -28,7 +30,6 @@ export const DragWrapper = ({
 
   useResizeObserver(ref, entry => {
     const { width, height } = entry.contentRect;
-    console.log(width, height);
     setSize(prev => (prev?.width !== width || prev?.height !== height ? { width, height } : prev));
   });
 
@@ -48,7 +49,7 @@ export const DragWrapper = ({
 
   return (
     <Rnd
-      className="overflow-hidden"
+      className="overflow-hidden w-full h-full"
       dragHandleClassName={dragHandleClassName}
       size={{ width: size.width, height: size.height }}
       position={{ x: position.x, y: position.y }}
