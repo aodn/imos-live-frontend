@@ -14,13 +14,18 @@ export const FloatingPanel = ({
   wrapperClassName = '',
   bounds,
   TriggerComp,
+  initialPosition,
 }: FloatingPanelProps) => {
   const { open, toggle } = useToggle(false);
   const dragHandleId = useId();
   const dragHandleClass = `panel-drag-handle-${dragHandleId}`;
 
   return (
-    <DragWrapper bounds={bounds} dragHandleClassName={dragHandleClass}>
+    <DragWrapper
+      bounds={bounds}
+      dragHandleClassName={dragHandleClass}
+      initialPosition={initialPosition}
+    >
       <CollapsibleComponent
         maxHeight={maxHeight}
         wrapperClassName={wrapperClassName}

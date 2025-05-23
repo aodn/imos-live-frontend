@@ -19,8 +19,8 @@ export const Primary: Story = {
     children: <MenuComponent />,
     TriggerComp: CollapsibleTrigger,
     initialPosition: {
-      x: 20,
-      y: 20,
+      x: 0,
+      y: 0,
     },
   },
   render: args => {

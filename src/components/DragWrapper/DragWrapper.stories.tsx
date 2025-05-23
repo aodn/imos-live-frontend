@@ -17,7 +17,7 @@ type Story = StoryObj<typeof meta>;
 export const Primary: Story = {
   args: {
     children: (
-      <div className="w-40">
+      <div className="w-40 bg-blue-500 p-2 rounded-lg">
         <Button className="dragHandleClassName">Drag me</Button>
         <p>
           Lorem ipsum dolor, sit amet consectetur adipisicing elit. Autem modi id illo omnis
@@ -27,6 +27,7 @@ export const Primary: Story = {
     ),
     bounds: 'parent',
     dragHandleClassName: 'dragHandleClassName',
+    initialPosition: { x: 100, y: 20 },
   },
   render: args => {
     return (
