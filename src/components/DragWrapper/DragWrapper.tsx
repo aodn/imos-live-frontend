@@ -30,7 +30,6 @@ export const DragWrapper = ({
   const tempWrapperRef = useRef<HTMLDivElement>(null);
   const ref = useRef<HTMLDivElement>(null);
   const inititalPositionMeasured = useRef(false);
-
   //get the size of the draggable element
   useEffect(() => {
     if (!tempWrapperRef.current) return;
@@ -52,7 +51,6 @@ export const DragWrapper = ({
 
     if (bounds === 'window') {
       containerWidth = window.innerWidth;
-      console.log(containerWidth);
     } else if (bounds === 'parent' && ref.current?.parentElement) {
       containerWidth = ref.current.parentElement.parentElement?.getBoundingClientRect().width ?? 0;
     }
