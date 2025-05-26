@@ -1,9 +1,8 @@
 import { useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 
-export function useMapInitialization(style: string) {
+export function useMapInitialization(style: string, map: React.RefObject<mapboxgl.Map | null>) {
   const mapContainer = useRef<HTMLDivElement | null>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
 
   useEffect(() => {
     if (map.current) return;
@@ -17,7 +16,7 @@ export function useMapInitialization(style: string) {
       touchPitch: false,
       touchZoomRotate: false,
     });
-  }, [style]);
+  }, [map, style]);
 
   return { map, mapContainer };
 }

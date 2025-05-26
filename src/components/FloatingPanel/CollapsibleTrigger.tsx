@@ -21,11 +21,12 @@ export const CollapsibleTrigger = ({
   return (
     <div
       className={cn(
-        'w-full flex items-center relative bg-[rgba(35,55,75,1)] active:bg-[rgba(35,55,75,0.9)] ',
+        'w-full flex items-center relative cursor-grab bg-[rgba(35,55,75,1)] active:bg-[rgba(35,55,75,0.9)] ',
+        dragHandleClass,
         clasName,
       )}
     >
-      <Button variant="ghost" size="icon" className="hover:bg-transparent" onClick={toggle}>
+      <Button variant="ghost" size="icon" className="hover:bg-transparent " onClick={toggle}>
         {FirstIcon ? (
           <FirstIcon
             color="imos-white"
@@ -42,8 +43,7 @@ export const CollapsibleTrigger = ({
         variant="ghost"
         size="icon"
         className={cn(
-          'absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2  hover:bg-transparent',
-          dragHandleClass,
+          'absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2  hover:bg-transparent cursor-grab',
         )}
       >
         {SecondIcon ? (

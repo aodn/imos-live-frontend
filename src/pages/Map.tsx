@@ -1,10 +1,19 @@
 import { MapComponent, FloatingPanel, Sidebar, MenuComponent, MapControlPanel } from '@/components';
 import { useMapUIStore } from '@/store';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 export const Map = () => {
   const refreshDatasets = useMapUIStore(s => s.refreshDatasets);
+  const mapRef = useRef<mapboxgl.Map | null>(null);
+
+  const handleZoomIn = () => {
+    mapRef.current?.zoomIn({ duration: 300 });
+  };
+
+  const handleZoomOut = () => {
+    mapRef.current?.zoomOut({ duration: 300 });
+  };
 
   useEffect(() => {
     refreshDatasets();
@@ -25,8 +34,12 @@ export const Map = () => {
       >
         <>
           <div className="h-full w-full relative">
-            <MapComponent />
-            <MapControlPanel className="absolute top-16 left-4 z-10" />
+            <MapComponent ref={mapRef} />
+            <MapControlPanel
+              onZoomIn={handleZoomIn}
+              onZoomOut={handleZoomOut}
+              className="absolute top-16 left-4 z-10"
+            />
           </div>
 
           <FloatingPanel

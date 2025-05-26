@@ -34,6 +34,7 @@ export const DragWrapper = ({
   const ref = useRef<HTMLDivElement>(null);
   const parentSizeRef = useRef<{ width: number; height: number }>({ width: 0, height: 0 });
   const inititalPositionMeasured = useRef(false);
+
   // Helper function to get container dimensions
   const getContainerDimensions = () => {
     if (bounds === 'window') {

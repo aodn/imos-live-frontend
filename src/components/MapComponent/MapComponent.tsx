@@ -19,13 +19,15 @@ import { selectAllStates, useMapUIStore } from '@/store';
 import { useShallow } from 'zustand/shallow';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_KEY;
-export const MapComponent = memo(() => {
+
+export const MapComponent = memo(({ ref }: { ref: React.RefObject<mapboxgl.Map | null> }) => {
   const { style, overlay, circle, particles, distanceMeasurement, numParticles, dataset } =
     useMapUIStore(useShallow(selectAllStates));
 
   //1. map initialization.
   const { map, mapContainer } = useMapInitialization(
     styles.find(s => s.title === style)?.source || styles[0].source,
+    ref,
   );
 
   //2. create layer, set data to layer and add layer to map.
