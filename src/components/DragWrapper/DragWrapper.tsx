@@ -40,6 +40,7 @@ export const DragWrapper = ({
       return { width: window.innerWidth, height: window.innerHeight };
     } else if (bounds === 'parent' && ref.current?.parentElement) {
       const parentElement = ref.current.parentElement.parentElement;
+
       const parentRect = parentElement?.getBoundingClientRect();
       return { width: parentRect?.width ?? 0, height: parentRect?.height ?? 0 };
     }

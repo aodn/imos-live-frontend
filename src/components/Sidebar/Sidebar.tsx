@@ -43,10 +43,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
   };
 
   return (
-    <div className="relative flex h-full w-full overflow-hidden">
+    <div className="flex relative  h-full w-full   overflow-hidden">
       <aside
         className={cn(
-          'relative h-full bg-gray-900 text-white shadow-lg z-10 overflow-hidden transition-width duration-300 ease-in-out',
+          'relative h-full bg-gray-900 text-white shadow-lg z-10 overflow-hidden transition-width duration-100 ease-in-out',
           wrapperClassName,
         )}
         style={{

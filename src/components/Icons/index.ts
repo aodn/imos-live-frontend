@@ -6,6 +6,9 @@ import DragIndicator from './drag_indicator.svg?react';
 import Maps from './maps.svg?react';
 import Layers from './layers.svg?react';
 import Measures from './meaurement.svg?react';
+import AddCircle from './add_circle.svg?react';
+import MinusCircle from './minus_circle.svg?react';
+import Hand from './hand.svg?react';
 
 export const CloseIcon = withIcon(Close);
 export const MenuIcon = withIcon(Menu);
@@ -14,6 +17,9 @@ export const DragIndicatorIcon = withIcon(DragIndicator);
 export const MapsIcon = withIcon(Maps);
 export const LayersIcon = withIcon(Layers);
 export const MeasuresIcon = withIcon(Measures);
+export const AddCircleIcon = withIcon(AddCircle);
+export const MinusCircleIcon = withIcon(MinusCircle);
+export const HandIcon = withIcon(Hand);
 
 export const icons = {
   CloseIcon,
@@ -23,6 +29,9 @@ export const icons = {
   MapsIcon,
   LayersIcon,
   MeasuresIcon,
+  AddCircleIcon,
+  MinusCircleIcon,
+  HandIcon,
 };
 
 export * from './withIcon';
