@@ -13,3 +13,4 @@ export * from './Sidebar';
 export * from './DragWrapper';
 export * from './Icons';
 export * from './FloatingPanel';
+export * from './Drawer';
