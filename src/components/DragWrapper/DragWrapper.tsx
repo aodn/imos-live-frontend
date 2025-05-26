@@ -17,6 +17,7 @@ export type DragWrapperProps = {
   dragHandleClassName?: string;
   bounds?: 'window' | 'parent';
   initialPosition?: PositionType;
+  disableDragging?: boolean;
 };
 
 export const DragWrapper = ({
@@ -24,6 +25,7 @@ export const DragWrapper = ({
   dragHandleClassName,
   bounds = 'parent',
   initialPosition = { x: 10, y: 10 },
+  disableDragging = false,
 }: DragWrapperProps) => {
   const [size, setSize] = useState<SizeType>();
   const [position, setPosition] = useState<PositionType>({ x: 0, y: 0 });
@@ -180,6 +182,7 @@ export const DragWrapper = ({
 
   return (
     <Rnd
+      disableDragging={disableDragging}
       key={key}
       dragHandleClassName={dragHandleClassName}
       size={{ width: size.width, height: size.height }}

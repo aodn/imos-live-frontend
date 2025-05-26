@@ -343,7 +343,18 @@ export const Drawer: React.FC<DrawerProps> = ({
   return (
     <>
       {isOpen && (
-        <div className="fixed inset-0 z-40 transition-opacity duration-300" onClick={handleClose} />
+        <div
+          className="fixed inset-0 z-40 transition-opacity duration-300"
+          role="button"
+          tabIndex={0}
+          aria-label="Close drawer"
+          onClick={handleClose}
+          onKeyDown={e => {
+            if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') {
+              handleClose();
+            }
+          }}
+        />
       )}
 
       <div

@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { Button } from './button';
+import { Button } from './Button';
 import { MenuIcon } from '../Icons';
 import { Loader2 } from 'lucide-react';
 import { action } from '@storybook/addon-actions';

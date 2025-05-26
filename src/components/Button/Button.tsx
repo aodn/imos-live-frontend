@@ -32,25 +32,34 @@ const buttonVariants = cva(
   },
 );
 
-function Button({
+const activeBgByVariant: Record<string, string> = {
+  default: 'bg-primary/90',
+  destructive: 'bg-destructive/90',
+  outline: 'bg-accent',
+  secondary: 'bg-secondary/80',
+  ghost: 'bg-accent dark:bg-accent/50',
+  link: '',
+};
+
+export function Button({
   className,
   variant,
   size,
   asChild = false,
+  isActive = false,
   ...props
 }: React.ComponentProps<'button'> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean;
+    isActive?: boolean;
   }) {
   const Comp = asChild ? Slot : 'button';
-
+  const activeClass = isActive ? activeBgByVariant[variant || 'default'] : '';
   return (
     <Comp
       data-slot="button"
-      className={cn(buttonVariants({ variant, size, className }))}
+      className={cn(buttonVariants({ variant, size }), activeClass, className)}
       {...props}
     />
   );
 }
-
-export { Button, buttonVariants };

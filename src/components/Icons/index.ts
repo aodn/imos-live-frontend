@@ -3,17 +3,26 @@ import Close from './close.svg?react';
 import Menu from './menu.svg?react';
 import ArrowDown from './arrow_down.svg?react';
 import DragIndicator from './drag_indicator.svg?react';
+import Maps from './maps.svg?react';
+import Layers from './layers.svg?react';
+import Measures from './meaurement.svg?react';
 
 export const CloseIcon = withIcon(Close);
 export const MenuIcon = withIcon(Menu);
 export const ArrowDownIcon = withIcon(ArrowDown);
 export const DragIndicatorIcon = withIcon(DragIndicator);
+export const MapsIcon = withIcon(Maps);
+export const LayersIcon = withIcon(Layers);
+export const MeasuresIcon = withIcon(Measures);
 
 export const icons = {
   CloseIcon,
   MenuIcon,
   ArrowDownIcon,
   DragIndicatorIcon,
+  MapsIcon,
+  LayersIcon,
+  MeasuresIcon,
 };
 
 export * from './withIcon';

@@ -1,20 +1,42 @@
 import { cn } from '@/lib/utils';
-import { ArrowDownIcon, Button, DragIndicatorIcon } from '..';
+import { ArrowDownIcon, Button, DragIndicatorIcon, IconProps } from '..';
 
 export type CollapsibleTriggerProps = {
   dragHandleClass: string;
   open: boolean;
   toggle: () => void;
+  clasName?: string;
+  FirstIcon?: React.FC<IconProps>;
+  SecondIcon?: React.FC<IconProps>;
 };
 
-export const CollapsibleTrigger = ({ open, toggle, dragHandleClass }: CollapsibleTriggerProps) => {
+export const CollapsibleTrigger = ({
+  open,
+  toggle,
+  dragHandleClass,
+  clasName,
+  FirstIcon,
+  SecondIcon,
+}: CollapsibleTriggerProps) => {
   return (
-    <div className="flex items-center relative bg-[rgba(35,55,75,1)] active:bg-[rgba(35,55,75,0.9)]">
+    <div
+      className={cn(
+        'w-full flex items-center relative bg-[rgba(35,55,75,1)] active:bg-[rgba(35,55,75,0.9)] ',
+        clasName,
+      )}
+    >
       <Button variant="ghost" size="icon" className="hover:bg-transparent" onClick={toggle}>
-        <ArrowDownIcon
-          color="imos-white"
-          className={cn('transition-transform duration-300', open && 'rotate-180')}
-        />
+        {FirstIcon ? (
+          <FirstIcon
+            color="imos-white"
+            className={cn('transition-transform duration-300', open && 'rotate-180')}
+          />
+        ) : (
+          <ArrowDownIcon
+            color="imos-white"
+            className={cn('transition-transform duration-300', open && 'rotate-180')}
+          />
+        )}
       </Button>
       <Button
         variant="ghost"
@@ -24,7 +46,11 @@ export const CollapsibleTrigger = ({ open, toggle, dragHandleClass }: Collapsibl
           dragHandleClass,
         )}
       >
-        <DragIndicatorIcon color="imos-white" size="xl" className="rotate-180" />
+        {SecondIcon ? (
+          <SecondIcon color="imos-white" size="xl" className="rotate-180" />
+        ) : (
+          <DragIndicatorIcon color="imos-white" size="xl" className="rotate-180" />
+        )}
       </Button>
     </div>
   );

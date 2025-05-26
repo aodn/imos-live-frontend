@@ -1,11 +1,12 @@
 import { CollapsibleComponent, CollapsibleComponentProps, DragWrapper, DragWrapperProps } from '..';
 import { useToggle } from '@/hooks';
 import { useId } from 'react';
-import { CollapsibleTriggerProps } from './CollapsibleTrigger';
+import { cn } from '@/lib/utils';
+import { CollapsibleTrigger } from './CollapsibleTrigger';
 
 type FloatingPanelProps = Omit<CollapsibleComponentProps, 'open' | 'toggle' | 'trigger'> &
   Omit<DragWrapperProps, 'children' | 'dragHandleClassName'> & {
-    TriggerComp: React.FunctionComponent<CollapsibleTriggerProps>;
+    collapsible?: boolean;
   };
 
 export const FloatingPanel = ({
@@ -13,8 +14,8 @@ export const FloatingPanel = ({
   children,
   wrapperClassName = '',
   bounds,
-  TriggerComp,
   initialPosition,
+  collapsible = false,
 }: FloatingPanelProps) => {
   const { open, toggle } = useToggle(false);
   const dragHandleId = useId();
@@ -26,13 +27,23 @@ export const FloatingPanel = ({
       dragHandleClassName={dragHandleClass}
       initialPosition={initialPosition}
     >
-      <CollapsibleComponent
-        maxHeight={maxHeight}
-        wrapperClassName={wrapperClassName}
-        open={open}
-        trigger={<TriggerComp open={open} toggle={toggle} dragHandleClass={dragHandleClass} />}
-        children={children}
-      />
+      {collapsible && (
+        <CollapsibleComponent
+          maxHeight={maxHeight}
+          wrapperClassName={wrapperClassName}
+          open={open}
+          trigger={
+            <CollapsibleTrigger
+              clasName="rounded-t-xl"
+              open={open}
+              toggle={toggle}
+              dragHandleClass={dragHandleClass}
+            />
+          }
+          children={children}
+        />
+      )}
+      {!collapsible && <div className={cn(wrapperClassName, dragHandleClass)}>{children}</div>}
     </DragWrapper>
   );
 };

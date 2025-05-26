@@ -1,5 +1,4 @@
-import { MapComponent, FloatingPanel, MenuComponent, Sidebar } from '@/components';
-import { CollapsibleTrigger } from '@/components/FloatingPanel/CollapsibleTrigger';
+import { MapComponent, FloatingPanel, Sidebar, MenuComponent } from '@/components';
 import { useMapUIStore } from '@/store';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useEffect } from 'react';
@@ -29,7 +28,16 @@ export const Map = () => {
           <MapComponent />
           <FloatingPanel
             bounds="parent"
-            TriggerComp={CollapsibleTrigger}
+            collapsible
+            // children={
+            //   <FeaturesMenu
+            //     features={[
+            //       { icon: LayersIcon, label: 'Layers' },
+            //       { icon: MapsIcon, label: 'Maps' },
+            //       { icon: MeasuresIcon, label: 'Measurement' },
+            //     ]}
+            //   />
+            // }
             children={<MenuComponent />}
             initialPosition={{ x: 10, y: 20 }}
           />
