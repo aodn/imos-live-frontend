@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { DragWrapper } from './DragWrapper';
-import { Button } from '../ui';
+import { Button } from '../Button';
 
 const meta = {
   title: 'DragWrapper',

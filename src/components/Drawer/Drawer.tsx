@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { DragIndicatorIcon, CloseIcon } from '../Icons';
-import { Button } from '../ui';
+import { Button } from '../Button';
 import { useDrawerStore } from '@/store';
 import { useShallow } from 'zustand/shallow';
 

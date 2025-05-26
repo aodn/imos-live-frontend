@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { Drawer, DrawerProps } from './Drawer';
 import { useDrawerStore } from '@/store';
 import { useShallow } from 'zustand/shallow';
-import { Button } from '../ui';
+import { Button } from '../Button';
 
 const meta = {
   title: 'Drawer',

@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
-import { Button, CollapsibleComponent } from '../ui';
+import { Button } from '../Button';
+import { CollapsibleComponent } from '../Collapsible';
 import { ArrowDownIcon, DragIndicatorIcon } from '../Icons';
 import { useToggle } from '@/hooks/useToggle';
 import clsx from 'clsx';

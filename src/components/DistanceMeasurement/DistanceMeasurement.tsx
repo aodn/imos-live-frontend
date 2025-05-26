@@ -1,5 +1,5 @@
 import { FeatureCollection, Geometry, GeoJsonProperties } from 'geojson';
-import { Button } from '../ui';
+import { Button } from '../Button';
 
 export const DistanceMeasurement = ({
   distance,

@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { CollapsibleComponent } from './collapsible';
+import { CollapsibleComponent } from '../Collapsible';
 import { useToggle } from '@/hooks/useToggle';
-import { Button } from './button';
+import { Button } from '../Button';
 import { ArrowDownIcon } from '../Icons';
 import clsx from 'clsx';
 
