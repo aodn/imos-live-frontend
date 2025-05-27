@@ -17,3 +17,5 @@ export * from './FloatingPanel';
 export * from './Drawer';
 export * from './FeaturesMenu';
 export * from './MapControlPanel';
+export * from './Input';
+export * from './MainSidebar';

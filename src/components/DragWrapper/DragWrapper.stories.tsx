@@ -3,10 +3,10 @@ import { DragWrapper } from './DragWrapper';
 import { Button } from '../Button';
 
 const meta = {
-  title: 'DragWrapper',
+  title: 'components/DragWrapper',
   component: DragWrapper,
   parameters: {
-    layout: 'centered',
+    layout: 'fullscreen',
   },
   tags: ['autodocs'],
 } satisfies Meta<typeof DragWrapper>;

@@ -3,10 +3,10 @@ import { FeaturesMenu } from './FeaturesMenu';
 import { LayersIcon, MapsIcon, MeasuresIcon } from '../Icons';
 
 const meta = {
-  title: 'FeaturesMenu',
+  title: 'components/FeaturesMenu',
   component: FeaturesMenu,
   parameters: {
-    layout: 'centered',
+    layout: 'fullscreen',
   },
   tags: ['autodocs'],
 } satisfies Meta<typeof FeaturesMenu>;

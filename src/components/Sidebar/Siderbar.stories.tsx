@@ -3,10 +3,10 @@ import { CloseIcon, MenuIcon } from '../Icons';
 
 import { Sidebar } from './Sidebar';
 const meta = {
-  title: 'Sidebar',
+  title: 'components/Sidebar',
   component: Sidebar,
   parameters: {
-    layout: 'centered',
+    layout: 'fullscreen',
   },
   tags: ['autodocs'],
 } satisfies Meta<typeof Sidebar>;

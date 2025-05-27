@@ -5,10 +5,10 @@ import { useShallow } from 'zustand/shallow';
 import { Button } from '../Button';
 
 const meta = {
-  title: 'Drawer',
+  title: 'components/Drawer',
   component: Drawer,
   parameters: {
-    layout: 'centered',
+    layout: 'fullscreen',
     controls: { disable: true },
   },
   tags: ['autodocs'],

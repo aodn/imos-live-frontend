@@ -1,0 +1,6 @@
+.parent:has(.input:focus) {
+  @apply ring-2 ring-[#F58121];
+}
+.parent:has(.input:active) {
+  @apply ring-2 ring-[#F58121];
+}

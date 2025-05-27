@@ -2,10 +2,10 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { IconTable } from './IconTable';
 
 const meta = {
-  title: 'IconTable',
+  title: 'components/IconTable',
   component: IconTable,
   parameters: {
-    layout: 'centered',
+    layout: 'fullscreen',
   },
   tags: ['autodocs'],
   argTypes: {},

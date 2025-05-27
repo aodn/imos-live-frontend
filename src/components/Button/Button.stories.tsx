@@ -5,7 +5,7 @@ import { Loader2 } from 'lucide-react';
 import { action } from '@storybook/addon-actions';
 
 const meta = {
-  title: 'Button',
+  title: 'components/Button',
   component: Button,
   parameters: {
     layout: 'centered',

@@ -8,3 +8,4 @@ export * from './shader';
 export * from './debounce';
 export * from './buildOgcBuoysUrl';
 export * from './sleep';
+export * from './getScaledDimensions';

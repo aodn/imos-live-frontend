@@ -2,10 +2,10 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { FloatingPanel } from './FloatingPanel';
 import { MenuComponent } from '../MenuComponent';
 const meta = {
-  title: 'FloatingPanel',
+  title: 'components/FloatingPanel',
   component: FloatingPanel,
   parameters: {
-    layout: 'centered',
+    layout: 'fullscreen',
   },
   tags: ['autodocs'],
 } satisfies Meta<typeof FloatingPanel>;

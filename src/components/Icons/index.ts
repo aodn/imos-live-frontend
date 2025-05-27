@@ -9,6 +9,15 @@ import Measures from './meaurement.svg?react';
 import AddCircle from './add_circle.svg?react';
 import MinusCircle from './minus_circle.svg?react';
 import Hand from './hand.svg?react';
+import Alert from './alert.svg?react';
+import Config from './config.svg?react';
+import Search from './search.svg?react';
+import MapLayers from './map_layers.svg?react';
+import WaterSurface from './water_surface.svg?react';
+import Wave from './wave.svg?react';
+import Radar from './radar.svg?react';
+import Satellite from './satellite.svg?react';
+import Widgets from './widgets.svg?react';
 
 export const CloseIcon = withIcon(Close);
 export const MenuIcon = withIcon(Menu);
@@ -20,6 +29,15 @@ export const MeasuresIcon = withIcon(Measures);
 export const AddCircleIcon = withIcon(AddCircle);
 export const MinusCircleIcon = withIcon(MinusCircle);
 export const HandIcon = withIcon(Hand);
+export const AlertIcon = withIcon(Alert);
+export const ConfigIcon = withIcon(Config);
+export const SearchIcon = withIcon(Search);
+export const MapLayersIcon = withIcon(MapLayers);
+export const WaterSurfaceIcon = withIcon(WaterSurface);
+export const WaveIcon = withIcon(Wave);
+export const RadarIcon = withIcon(Radar);
+export const SatelliteIcon = withIcon(Satellite);
+export const WidgetsIcon = withIcon(Widgets);
 
 export const icons = {
   CloseIcon,
@@ -32,6 +50,15 @@ export const icons = {
   AddCircleIcon,
   MinusCircleIcon,
   HandIcon,
+  AlertIcon,
+  ConfigIcon,
+  SearchIcon,
+  MapLayersIcon,
+  WaterSurfaceIcon,
+  WaveIcon,
+  RadarIcon,
+  SatelliteIcon,
+  WidgetsIcon,
 };
 
 export * from './withIcon';

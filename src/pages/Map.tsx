@@ -1,4 +1,14 @@
-import { MapComponent, FloatingPanel, Sidebar, MenuComponent, MapControlPanel } from '@/components';
+import {
+  MapComponent,
+  FloatingPanel,
+  Sidebar,
+  MenuComponent,
+  MapControlPanel,
+  MainSidebarContent,
+  headderDataMock,
+  layerProductsMock,
+  featuredDatasetMock,
+} from '@/components';
 import { useMapUIStore } from '@/store';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useEffect, useRef } from 'react';
@@ -23,13 +33,14 @@ export const Map = () => {
     //MapPage height is set to 100vh
     <div className="overflow-hidden h-screen w-full">
       <Sidebar
-        width={600}
+        width={540}
         defaultOpen={true}
         sidebarContent={
-          <p>
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Quibusdam ipsum ex optio
-            possimus
-          </p>
+          <MainSidebarContent
+            headerData={headderDataMock}
+            layerProducts={layerProductsMock}
+            featuredDatasets={featuredDatasetMock}
+          />
         }
       >
         <>

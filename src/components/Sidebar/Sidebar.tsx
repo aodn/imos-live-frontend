@@ -43,10 +43,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
   };
 
   return (
-    <div className="flex relative  h-full w-full   overflow-hidden">
+    <div className="flex relative  h-full w-full  overflow-hidden">
       <aside
         className={cn(
-          'relative h-full bg-gray-900 text-white shadow-lg z-10 overflow-hidden transition-width duration-100 ease-in-out',
+          'relative h-full  shadow-lg z-10 overflow-y-auto transition-width duration-100 ease-in-out',
           wrapperClassName,
         )}
         style={{
@@ -65,7 +65,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {closeButtonContent || <CloseIcon size="xl" />}
         </Button>
 
-        <div className="p-6">{sidebarContent}</div>
+        <div className="px-4">{sidebarContent}</div>
       </aside>
 
       {!open && (

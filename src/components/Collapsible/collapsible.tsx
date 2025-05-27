@@ -1,5 +1,4 @@
 import { ReactNode } from 'react';
-import clsx from 'clsx';
 
 export type CollapsibleComponentProps = {
   maxHeight?: number;
@@ -7,6 +6,7 @@ export type CollapsibleComponentProps = {
   trigger: ReactNode;
   children: ReactNode;
   wrapperClassName?: string;
+  direction?: 'down' | 'up';
 };
 
 export const CollapsibleComponent = ({
@@ -15,19 +15,38 @@ export const CollapsibleComponent = ({
   trigger,
   children,
   wrapperClassName = '',
+  direction = 'down',
 }: CollapsibleComponentProps) => {
-  const animationClassName = 'transition-all duration-300 ease-in-out';
+  const isUpward = direction === 'up';
 
   return (
     <div className={wrapperClassName}>
+      {isUpward && (
+        <div
+          className="overflow-hidden transition-all duration-300 ease-in-out"
+          style={{
+            maxHeight: open ? `${maxHeight}px` : 0,
+            transform: open ? 'translateY(0)' : `translateY(100%)`,
+          }}
+          data-state={open ? 'open' : 'closed'}
+        >
+          <div>{children}</div>
+        </div>
+      )}
+
       <div>{trigger}</div>
-      <div
-        className={clsx('overflow-hidden', animationClassName)}
-        style={{ maxHeight: open ? `${maxHeight}px` : 0 }}
-        data-state={open ? 'open' : 'closed'}
-      >
-        <div>{children}</div>
-      </div>
+
+      {!isUpward && (
+        <div
+          className="overflow-hidden transition-all duration-300 ease-in-out"
+          style={{
+            maxHeight: open ? `${maxHeight}px` : 0,
+          }}
+          data-state={open ? 'open' : 'closed'}
+        >
+          <div>{children}</div>
+        </div>
+      )}
     </div>
   );
 };
