@@ -19,3 +19,4 @@ export * from './FeaturesMenu';
 export * from './MapControlPanel';
 export * from './Input';
 export * from './MainSidebar';
+export * from './Image';

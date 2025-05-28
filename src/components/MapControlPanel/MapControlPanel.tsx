@@ -3,27 +3,39 @@ import { AddCircleIcon, MinusCircleIcon, HandIcon } from '../Icons';
 import { cn } from '@/lib/utils';
 
 export const MapControlPanel = ({
-  onZoomIn,
-  onZoomOut,
-  onPan,
+  ref: mapRef,
   isPanActive = false,
   className = '',
 }: {
-  onZoomIn?: () => void;
-  onZoomOut?: () => void;
-  onPan?: () => void;
+  ref: React.RefObject<mapboxgl.Map | null>;
   isPanActive?: boolean;
   className?: string;
 }) => {
+  const handleZoomIn = () => {
+    mapRef.current?.zoomIn({ duration: 300 });
+  };
+
+  const handleZoomOut = () => {
+    mapRef.current?.zoomOut({ duration: 300 });
+  };
+
+  const handlePan = () => {};
+
   return (
     <div className={cn('flex flex-col items-center gap-2 p-4  bg-transparent', className)}>
-      <Button variant="ghost" size="icon" aria-label="Zoom in" onClick={onZoomIn}>
+      <Button variant="ghost" size="icon" aria-label="Zoom in" onClick={handleZoomIn}>
         <AddCircleIcon size="xl" color="imos-white" />
       </Button>
-      <Button variant="ghost" size="icon" aria-label="Zoom out" onClick={onZoomOut}>
+      <Button variant="ghost" size="icon" aria-label="Zoom out" onClick={handleZoomOut}>
         <MinusCircleIcon size="xl" color="imos-white" />
       </Button>
-      <Button variant="ghost" size="icon" aria-label="Pan" onClick={onPan} isActive={isPanActive}>
+      <Button
+        variant="ghost"
+        size="icon"
+        aria-label="Pan"
+        onClick={handlePan}
+        isActive={isPanActive}
+      >
         <HandIcon size="xl" color="imos-white" />
       </Button>
     </div>

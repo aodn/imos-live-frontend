@@ -7,17 +7,11 @@ import { useMapUIStore } from '@/store';
 export const MenuComponent = () => {
   const {
     style,
-    overlay,
-    circle,
-    particles,
     numParticles,
     distanceMeasurement,
     dataset,
     datasets,
     setStyle,
-    setOverlay,
-    setCircle,
-    setParticles,
     setNumParticles,
     setDistanceMeasurement,
     setDataset,
@@ -35,33 +29,7 @@ export const MenuComponent = () => {
           active={style}
         />
       </MenuPane>
-      <MenuPane title={'Overlay'}>
-        <Tabs
-          tabs={[
-            { title: 'On', handleClick: setOverlay, value: true },
-            { title: 'Off', handleClick: setOverlay, value: false },
-          ]}
-          active={overlay}
-        />
-      </MenuPane>
-      <MenuPane title={'Circle'}>
-        <Tabs
-          tabs={[
-            { title: 'On', handleClick: setCircle, value: true },
-            { title: 'Off', handleClick: setCircle, value: false },
-          ]}
-          active={circle}
-        />
-      </MenuPane>
-      <MenuPane title={'Particles'}>
-        <Tabs
-          tabs={[
-            { title: 'On', handleClick: setParticles, value: true },
-            { title: 'Off', handleClick: setParticles, value: false },
-          ]}
-          active={particles}
-        />
-      </MenuPane>
+
       <MenuPane title={'Measurement'}>
         <Tabs
           tabs={[

@@ -18,7 +18,7 @@ export const featuredDatasetMock: LayersDataset[] = [
       src: 'src/assets/layer_test_1.jpg',
       alt: 'Layer Test 1',
     },
-    title: 'Featured Dataset 01',
+    title: 'GSLA Ocean current',
     description:
       'm ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.m ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
     addToMap: () => console.log('Add to map clicked'),
@@ -30,7 +30,7 @@ export const featuredDatasetMock: LayersDataset[] = [
       src: 'src/assets/layer_test_2.jpg',
       alt: 'Layer Test 2',
     },
-    title: 'Featured Dataset 02',
+    title: 'GSLA Anomaly sea levels',
     description:
       'm ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.m ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
     addToMap: () => console.log('Add to map clicked'),
@@ -42,7 +42,7 @@ export const featuredDatasetMock: LayersDataset[] = [
       src: 'src/assets/layer_test_3.jpg',
       alt: 'Layer Test 3',
     },
-    title: 'Featured Dataset 03',
+    title: 'Wave buoys',
     description:
       'm ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.m ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
     addToMap: () => console.log('Add to map clicked'),

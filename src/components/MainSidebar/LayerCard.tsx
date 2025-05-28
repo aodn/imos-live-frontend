@@ -1,5 +1,6 @@
 import { Button } from '../Button';
 import { MapLayersIcon } from '../Icons';
+import { Image } from '../Image';
 import { LayersDataset } from './MainSidebarContent';
 
 export type LayerCardProps = LayersDataset & {
@@ -23,7 +24,7 @@ export const LayerCard = ({
   return (
     <div className="flex gap-x-6 p-4 rounded-lg shadow-lg bg-white border border-gray-300 overflow-hidden">
       <div className="flex-1 min-w-30 rounded-lg overflow-hidden aspect-square">
-        <img alt={image.alt} src={image.src} className="w-full h-full object-cover" />
+        <Image alt={image.alt} src={image.src} fill imageClassName="object-cover" />
       </div>
       <div className="flex-1  flex flex-col justify-between">
         <div>

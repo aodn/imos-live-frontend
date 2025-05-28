@@ -29,9 +29,9 @@ export type LayerProducts = {
   fn?: () => void;
 }[];
 
-interface MainSidebarProps {
+type MainSidebarProps = {
   className?: string;
-}
+};
 
 export const MainSidebarContent: React.FC<MainSidebarProps> = ({ className = '' }) => {
   const { overlay, particles, circle, displayOverlay, displayCircle, displayParticles } =

@@ -1,6 +1,7 @@
 import { getScaledDimensions } from '@/utils';
 import { cn } from '@/lib/utils';
 import { HeaderData } from './MainSidebarContent';
+import { Image } from '../Image';
 
 export type HeaderProps = {
   className?: string;
@@ -15,7 +16,7 @@ export const Header = ({ image, title, className }: HeaderProps) => {
       )}
     >
       <div className="border-r-2 flex-1 flex items-center justify-center">
-        <img
+        <Image
           src={image.src}
           alt={image.alt || 'imos logo'}
           height={50}
