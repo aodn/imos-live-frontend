@@ -1,27 +1,35 @@
-import { Button } from '../Button';
-import { cn } from '@/lib/utils';
+import { useToggle } from '@/hooks';
+import { CollapsibleComponent } from '..';
+import { LayerProductsCollapsibleTrigger } from './LayerProductsCollapsibleTrigger';
+import { LayerProductsContent } from './LayerProductsContent';
 import { LayerProducts as LayerProductsType } from './MainSidebarContent';
 
-export type LayerProductsProps = {
+type LayerProductsProps = {
   products: LayerProductsType;
   className?: string;
+  title: string;
 };
 
-export const LayerProducts = ({ products, className }: LayerProductsProps) => {
+export const LayerProducts = ({ products, className, title }: LayerProductsProps) => {
+  const { open, toggle } = useToggle(false);
+
   return (
-    <div className={cn('w-full flex flex-col gap-y-4', className)}>
-      {products.map(({ label, Icon, fn }, index) => (
-        <Button
-          variant="ghost"
-          key={label + index}
-          data-testid={`layer-product-${label}`}
-          className="w-full gap-x-8 text-2xl py-6 justify-start"
-          onClick={fn}
-        >
-          {Icon && <Icon size="xl" />}
-          <span>{label}</span>
-        </Button>
-      ))}
+    <div className={className}>
+      <CollapsibleComponent
+        wrapperClassName="border rounded-lg shadow-lg"
+        direction="up"
+        open={open}
+        trigger={
+          <LayerProductsCollapsibleTrigger
+            title={title}
+            open={open}
+            onToggle={toggle}
+            direction="up"
+          />
+        }
+      >
+        {<LayerProductsContent className="px-4 py-2" products={products} />}
+      </CollapsibleComponent>
     </div>
   );
 };

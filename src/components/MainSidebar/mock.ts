@@ -1,5 +1,6 @@
+import { OVERLAY_LAYER_ID, PARTICLE_LAYER_ID, WAVE_BUOYS_LAYER_ID } from '@/constants';
 import { WaterSurfaceIcon, WaveIcon, RadarIcon, SatelliteIcon } from '../Icons';
-import { FeaturedCardProps } from './FeaturedCard';
+import { LayersDataset } from './MainSidebarContent';
 
 export const headderDataMock = {
   title: 'IMOS Live',
@@ -11,7 +12,7 @@ export const headderDataMock = {
   },
 };
 
-export const featuredDatasetMock: FeaturedCardProps[] = [
+export const featuredDatasetMock: LayersDataset[] = [
   {
     image: {
       src: 'src/assets/layer_test_1.jpg',
@@ -21,6 +22,8 @@ export const featuredDatasetMock: FeaturedCardProps[] = [
     description:
       'm ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.m ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
     addToMap: () => console.log('Add to map clicked'),
+    layerId: PARTICLE_LAYER_ID,
+    visible: false,
   },
   {
     image: {
@@ -31,6 +34,8 @@ export const featuredDatasetMock: FeaturedCardProps[] = [
     description:
       'm ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.m ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
     addToMap: () => console.log('Add to map clicked'),
+    layerId: OVERLAY_LAYER_ID,
+    visible: false,
   },
   {
     image: {
@@ -41,6 +46,8 @@ export const featuredDatasetMock: FeaturedCardProps[] = [
     description:
       'm ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.m ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
     addToMap: () => console.log('Add to map clicked'),
+    layerId: WAVE_BUOYS_LAYER_ID,
+    visible: false,
   },
 ];
 

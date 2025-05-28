@@ -5,9 +5,6 @@ import {
   MenuComponent,
   MapControlPanel,
   MainSidebarContent,
-  headderDataMock,
-  layerProductsMock,
-  featuredDatasetMock,
 } from '@/components';
 import { useMapUIStore } from '@/store';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -30,19 +27,8 @@ export const Map = () => {
   }, [refreshDatasets]);
 
   return (
-    //MapPage height is set to 100vh
     <div className="overflow-hidden h-screen w-full">
-      <Sidebar
-        width={540}
-        defaultOpen={true}
-        sidebarContent={
-          <MainSidebarContent
-            headerData={headderDataMock}
-            layerProducts={layerProductsMock}
-            featuredDatasets={featuredDatasetMock}
-          />
-        }
-      >
+      <Sidebar width={540} defaultOpen={true} sidebarContent={<MainSidebarContent />}>
         <>
           <div className="h-full w-full relative">
             <MapComponent ref={mapRef} />

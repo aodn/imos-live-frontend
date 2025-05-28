@@ -9,3 +9,4 @@ export * from './debounce';
 export * from './buildOgcBuoysUrl';
 export * from './sleep';
 export * from './getScaledDimensions';
+export * from './normalizeLayerSets';

@@ -1,22 +1,22 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { LayerProducts } from './LayerProducts';
-import { layerProductsMock } from './mock';
+import { LayerSets } from './LayerSets';
+import { featuredDatasetMock } from './mock';
 
 const meta = {
-  title: 'components/MainSidebar/LayerProducts',
-  component: LayerProducts,
+  title: 'components/MainSidebar/LayerSets',
+  component: LayerSets,
   parameters: {
     layout: 'centered',
   },
   tags: ['autodocs'],
-} satisfies Meta<typeof LayerProducts>;
+} satisfies Meta<typeof LayerSets>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Primary: Story = {
   args: {
-    products: layerProductsMock,
+    layersDatasets: featuredDatasetMock,
     title: 'OC Products',
   },
 };

@@ -1,22 +1,26 @@
-import React, { useState } from 'react';
-import { Input } from '../Input';
-import { Button, CollapsibleComponent, ConfigIcon, SearchIcon } from '..';
-import { FeaturedCard, FeaturedCardProps } from './FeaturedCard';
-import { LayerProducts } from './LayerProducts';
-import { useToggle } from '@/hooks';
+import { Search } from './Search';
 import { Header } from './Header';
-import { LayerProductsCollapsibleTrigger } from './LayerProductsCollapsibleTrigger';
 import { ImageType } from '@/types';
+import { LayerProducts } from './LayerProducts';
+import { cn } from '@/lib/utils';
+import { LayerSets } from './LayerSets';
+import { headderDataMock, layerProductsMock, featuredDatasetMock } from './mock';
+import { useMapUIStore } from '@/store';
+import { useShallow } from 'zustand/shallow';
+import { useMemo } from 'react';
+import { normalizeLayerSets } from '@/utils';
 
 export type HeaderData = {
   image: ImageType;
   title: string;
 };
-export type FeaturedDataset = {
+export type LayersDataset = {
   image: ImageType;
   title: string;
   description: string;
-  addToMap: () => void;
+  addToMap: (v: boolean) => void;
+  layerId: string;
+  visible: boolean;
 };
 
 export type LayerProducts = {
@@ -26,96 +30,49 @@ export type LayerProducts = {
 }[];
 
 interface MainSidebarProps {
-  headerData: HeaderData;
-  featuredDatasets: FeaturedCardProps[];
-  layerProducts: LayerProducts;
   className?: string;
 }
 
-export const MainSidebarContent: React.FC<MainSidebarProps> = ({
-  headerData,
-  featuredDatasets,
-  layerProducts,
-  className = '',
-}) => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const { open, toggle } = useToggle(false);
-
-  const onChange = (value: string) => {
-    setSearchQuery(value);
-  };
-
-  const handleSearch = (v: string) => () => {
-    console.log('search query', v);
-  };
-  //TODO: 1. encapsulate the search in a component. 2. encapsulate layers products in a component. 3. add functionality to the search input, layer products and featured datasets.
+export const MainSidebarContent: React.FC<MainSidebarProps> = ({ className = '' }) => {
+  const { overlay, particles, circle, displayOverlay, displayCircle, displayParticles } =
+    useMapUIStore(
+      useShallow(s => ({
+        overlay: s.overlay,
+        particles: s.particles,
+        circle: s.circle,
+        displayOverlay: s.setOverlay,
+        displayCircle: s.setCircle,
+        displayParticles: s.setParticles,
+      })),
+    );
+  const normalizedLayerSets = useMemo(() => {
+    return normalizeLayerSets(
+      featuredDatasetMock.map(item => ({ ...item })),
+      {
+        displayCircle,
+        displayOverlay,
+        displayParticles,
+      },
+      {
+        particles,
+        overlay,
+        circle,
+      },
+    );
+  }, [displayCircle, displayOverlay, displayParticles, particles, overlay, circle]);
   return (
-    <div className={`h-full  ${className}`}>
-      {/* Header */}
-      <Header {...headerData} />
+    <div className={cn('h-full', className)}>
+      <Header image={headderDataMock.image} title={headderDataMock.title} />
 
-      {/* Search Input */}
-      <div className="px-2 mt-4">
-        <Input
-          wrapperClassName="w-full"
-          value={searchQuery}
-          onChange={onChange}
-          label={'Search for open data'}
-          slotSuffix={
-            <div className="flex items-center gap-x-2">
-              <Button
-                size={'icon'}
-                variant={'secondary'}
-                className="hover:scale-110 active:scale-110 transition-transform"
-              >
-                <ConfigIcon color="imos-grey" />
-              </Button>
+      <Search className="mt-4 px-2" />
 
-              <Button
-                onClick={handleSearch(searchQuery)}
-                size={'icon'}
-                className="hover:scale-110 active:scale-110 transition-transform"
-              >
-                <SearchIcon color="imos-white" />
-              </Button>
-            </div>
-          }
-        />
-      </div>
+      <LayerSets
+        title="Featured Functions"
+        layersDatasets={normalizedLayerSets}
+        className="px-2 mt-4"
+      />
 
-      {/*Featured Functions  */}
-      <h2 className="text-lg font-bold px-2 mt-4">Featured Functions</h2>
-      <div className="flex flex-col gap-y-4 px-2 mt-4">
-        {featuredDatasets.map(dataset => (
-          <div key={dataset.title}>
-            <FeaturedCard
-              image={dataset.image}
-              title={dataset.title}
-              description={dataset.description}
-              addToMap={dataset.addToMap}
-            />
-          </div>
-        ))}
-      </div>
-
-      {/* Layers products */}
-      <div className="mt-4 px-8">
-        <CollapsibleComponent
-          wrapperClassName="border rounded-lg shadow-lg"
-          direction="up"
-          open={open}
-          trigger={
-            <LayerProductsCollapsibleTrigger
-              title="OC Products"
-              open={open}
-              onToggle={toggle}
-              direction="up"
-            />
-          }
-        >
-          {<LayerProducts className="px-4 py-2" products={layerProducts} />}
-        </CollapsibleComponent>
-      </div>
+      <LayerProducts products={layerProductsMock} title="OC Products" className="mt-4 px-8" />
     </div>
   );
 };
