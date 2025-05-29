@@ -14,33 +14,16 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-const generateData = (startYear: number, endYear: number) => {
-  const data = [];
-
-  for (let year = startYear; year <= endYear; year++) {
-    const baseValue = 50;
-    const waveValue = Math.sin((year - startYear) * 0.3) * 20;
-    const randomVariation = (Math.random() - 0.5) * 10;
-    const value = baseValue + waveValue + randomVariation;
-
-    data.push({
-      year,
-      value: Math.max(0, Math.min(100, value)),
-    });
-  }
-
-  return data;
-};
-
 export const Combined: Story = {
   args: {
     viewMode: 'combined',
-    startYear: 1990,
-    endYear: 2025,
-    currentPointYear: 1998,
-    allData: generateData(1990, 2025),
+    timeUnit: 'day',
+    startDate: new Date(2020, 0, 1),
+    endDate: new Date(2030, 11, 31),
     pointHandleIcon: <TriangleIcon size="xl" color="imos-grey" />,
     rangeHandleIcon: <TriangleIcon size="xl" color="imos-grey" className="rotate-180" />,
+    wrapperClassName: 'mt-10',
+    onChange: v => console.log(v),
   },
   render: args => {
     return <Slider {...args} />;
@@ -50,11 +33,12 @@ export const Combined: Story = {
 export const Point: Story = {
   args: {
     viewMode: 'point',
-    startYear: 1990,
-    endYear: 2025,
-    currentPointYear: 1998,
-    allData: generateData(1990, 2025),
+    timeUnit: 'year',
+    startDate: new Date(1990, 0, 1),
+    endDate: new Date(2030, 11, 31),
     pointHandleIcon: <TriangleIcon size="xl" color="imos-grey" />,
+    wrapperClassName: 'mt-10',
+    onChange: v => console.log(v),
   },
   render: args => {
     return <Slider {...args} />;
@@ -64,11 +48,12 @@ export const Point: Story = {
 export const Range: Story = {
   args: {
     viewMode: 'range',
-    startYear: 1990,
-    endYear: 2025,
-    currentPointYear: 1998,
-    allData: generateData(1990, 2025),
+    timeUnit: 'month',
+    startDate: new Date(2020, 0, 1),
+    endDate: new Date(2021, 11, 31),
     rangeHandleIcon: <TriangleIcon size="xl" color="imos-grey" className="rotate-180" />,
+    wrapperClassName: 'mt-10',
+    onChange: v => console.log(v),
   },
   render: args => {
     return <Slider {...args} />;

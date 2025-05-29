@@ -1,295 +1,326 @@
 import React, { useState, useRef, useCallback, useEffect, ReactNode } from 'react';
-import { Chart } from './Chart';
-import { generateYearsByStep } from '@/utils';
+import { cn } from '@/lib/utils';
 import { SliderHandle } from './SliderHandle';
 import { SliderTrack } from './SliderTrack';
-import { cn } from '@/lib/utils';
 
 export type ViewMode = 'range' | 'point' | 'combined';
+export type IsDragging = 'start' | 'end' | 'point' | null;
+export type TimeUnit = 'day' | 'month' | 'year';
 
-type SliderProps = {
-  viewMode: ViewMode;
-  startYear: number;
-  endYear: number;
-  currentPointYear: number;
-  initialRange?: {
-    start: number;
-    end: number;
+type RangeSelection = {
+  range: {
+    start: Date;
+    end: Date;
   };
-  showChart?: boolean;
-  wrapperClassName?: string;
-  sliderClassName?: string;
-  pointHandleIcon?: ReactNode;
-  rangeHandleIcon?: ReactNode;
-  allData: {
-    year: number;
-    value: number;
-  }[];
 };
 
-export type IsDragging = 'start' | 'end' | 'point' | null;
+type PointSelection = {
+  point: Date;
+};
+
+type CombinedSelection = RangeSelection & PointSelection;
+
+export type SelectionResult = RangeSelection | PointSelection | CombinedSelection;
+
+export type SliderProps = {
+  viewMode: ViewMode;
+  startDate: Date;
+  endDate: Date;
+  timeUnit: TimeUnit;
+  stepSize?: number; // How many units per major tick (default: 1 for days, 1 for months, 5 for years)
+  initialRange?: { start: Date; end: Date };
+  initialPoint?: Date;
+  wrapperClassName?: string;
+  pointHandleIcon?: ReactNode;
+  rangeHandleIcon?: ReactNode;
+  onChange: (v: SelectionResult) => void;
+};
+
+// Utility functions for date calculations
+const addTimeUnit = (date: Date, amount: number, unit: TimeUnit): Date => {
+  const newDate = new Date(date);
+  switch (unit) {
+    case 'day':
+      newDate.setDate(newDate.getDate() + amount);
+      break;
+    case 'month':
+      newDate.setMonth(newDate.getMonth() + amount);
+      break;
+    case 'year':
+      newDate.setFullYear(newDate.getFullYear() + amount);
+      break;
+  }
+  return newDate;
+};
+
+const getTimeDifference = (date1: Date, date2: Date, unit: TimeUnit): number => {
+  const diffMs = date2.getTime() - date1.getTime();
+  switch (unit) {
+    case 'day':
+      return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    case 'month':
+      return (
+        (date2.getFullYear() - date1.getFullYear()) * 12 + (date2.getMonth() - date1.getMonth())
+      );
+    case 'year':
+      return date2.getFullYear() - date1.getFullYear();
+  }
+};
+
+const formatDateForDisplay = (date: Date, unit: TimeUnit): string => {
+  switch (unit) {
+    case 'day':
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: date.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined,
+      });
+    case 'month':
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        year: 'numeric',
+      });
+    case 'year':
+      return date.getFullYear().toString();
+  }
+};
+
+const generateTimeSteps = (
+  startDate: Date,
+  endDate: Date,
+  unit: TimeUnit,
+  stepSize: number,
+): Date[] => {
+  const steps: Date[] = [];
+  const totalUnits = getTimeDifference(startDate, endDate, unit);
+  const numberOfSteps = Math.min(10, Math.max(3, Math.floor(totalUnits / stepSize)));
+  const actualStepSize = Math.floor(totalUnits / numberOfSteps);
+
+  for (let i = 0; i <= numberOfSteps; i++) {
+    const stepDate = addTimeUnit(startDate, i * actualStepSize, unit);
+    if (stepDate <= endDate) {
+      steps.push(stepDate);
+    }
+  }
+
+  // Ensure end date is included
+  if (steps[steps.length - 1]?.getTime() !== endDate.getTime()) {
+    steps.push(endDate);
+  }
+
+  return steps;
+};
 
 export const Slider = ({
   viewMode,
-  startYear,
-  endYear,
-  currentPointYear,
-  allData,
+  startDate,
+  endDate,
+  timeUnit,
+  stepSize,
   initialRange,
-  showChart = true,
+  initialPoint,
   wrapperClassName,
-  sliderClassName,
   pointHandleIcon,
   rangeHandleIcon,
+  onChange,
 }: SliderProps) => {
-  // Range mode state
-  const [rangeStart, setRangeStart] = useState(initialRange?.start || 0);
-  const [rangeEnd, setRangeEnd] = useState(initialRange?.end || 100);
+  const sliderRef = useRef<HTMLDivElement>(null);
+  const defaultStepSize = stepSize || (timeUnit === 'year' ? 5 : 1);
+  const timeSteps = generateTimeSteps(startDate, endDate, timeUnit, defaultStepSize);
+
+  const totalTimeUnits = getTimeDifference(startDate, endDate, timeUnit);
+  const minGapPercent = (1 / totalTimeUnits) * 100 * 5; // Minimum 5 units gap
+
+  // Initialize positions
+  const getInitialRangeStart = () => {
+    if (initialRange?.start) {
+      const diff = getTimeDifference(startDate, initialRange.start, timeUnit);
+      return Math.max(0, Math.min(100, (diff / totalTimeUnits) * 100));
+    }
+    return 0;
+  };
+
+  const getInitialRangeEnd = () => {
+    if (initialRange?.end) {
+      const diff = getTimeDifference(startDate, initialRange.end, timeUnit);
+      return Math.max(0, Math.min(100, (diff / totalTimeUnits) * 100));
+    }
+    return 100;
+  };
+
+  const getInitialPointPosition = () => {
+    if (initialPoint) {
+      const diff = getTimeDifference(startDate, initialPoint, timeUnit);
+      return Math.max(0, Math.min(100, (diff / totalTimeUnits) * 100));
+    }
+    return 50;
+  };
+
+  const [rangeStart, setRangeStart] = useState(getInitialRangeStart());
+  const [rangeEnd, setRangeEnd] = useState(getInitialRangeEnd());
+  const [pointPosition, setPointPosition] = useState(getInitialPointPosition());
   const [isDragging, setIsDragging] = useState<IsDragging>(null);
 
-  // Point mode state
-  const [pointPosition, setPointPosition] = useState(50);
+  const getDateFromPercent = (percent: number): Date => {
+    const unitsFromStart = (percent / 100) * totalTimeUnits;
+    return addTimeUnit(startDate, Math.round(unitsFromStart), timeUnit);
+  };
 
-  const sliderRef = useRef<HTMLDivElement>(null);
+  const startLabel = getDateFromPercent(rangeStart);
+  const endLabel = getDateFromPercent(rangeEnd);
+  const pointLabel = getDateFromPercent(pointPosition);
 
-  const yearsByStep = generateYearsByStep(startYear, endYear, 5);
-  // Calculate data based on current mode
-  const totalYears = allData.length;
-  let visibleData = allData;
-  let startYearCopy = startYear;
-  let endYearCopy = endYear;
-  let currentPointYearCopy = currentPointYear;
+  useEffect(() => {
+    switch (viewMode) {
+      case 'range':
+        onChange({ range: { start: startLabel, end: endLabel } });
+        break;
+      case 'point':
+        onChange({ point: pointLabel });
+        break;
+      case 'combined':
+        onChange({
+          range: { start: startLabel, end: endLabel },
+          point: pointLabel,
+        });
+        break;
+    }
+  }, [endLabel, onChange, pointLabel, startLabel, viewMode]);
 
-  if (viewMode === 'range') {
-    const startIndex = Math.floor((rangeStart / 100) * (totalYears - 1));
-    const endIndex = Math.floor((rangeEnd / 100) * (totalYears - 1));
-    visibleData = allData.slice(startIndex, endIndex + 1);
-    startYearCopy = allData[startIndex]?.year || 1990;
-    endYearCopy = allData[endIndex]?.year || 2025;
-  } else if (viewMode === 'point') {
-    const pointIndex = Math.floor((pointPosition / 100) * (totalYears - 1));
-    currentPointYearCopy = allData[pointIndex]?.year || 1990;
-    // Show a wider range around the point for context
-    const contextStart = Math.max(0, pointIndex - 10);
-    const contextEnd = Math.min(totalYears - 1, pointIndex + 10);
-    visibleData = allData.slice(contextStart, contextEnd + 1);
-  } else if (viewMode === 'combined') {
-    // Combined mode: show range with point
-    const startIndex = Math.floor((rangeStart / 100) * (totalYears - 1));
-    const endIndex = Math.floor((rangeEnd / 100) * (totalYears - 1));
-    const pointIndex = Math.floor((pointPosition / 100) * (totalYears - 1));
-
-    visibleData = allData.slice(startIndex, endIndex + 1);
-    startYearCopy = allData[startIndex]?.year || startYear;
-    endYearCopy = allData[endIndex]?.year || endYear;
-    currentPointYearCopy = allData[pointIndex]?.year || currentPointYear;
-  }
-
-  // Range slider handlers
-  const handleMouseDown = (handle: 'start' | 'end' | 'point') => (e: React.MouseEvent) => {
+  const handleMouseDown = (handle: IsDragging) => (e: React.MouseEvent) => {
     e.preventDefault();
     setIsDragging(handle);
   };
 
-  const handleRangeMouseMove = useCallback(
-    (e: MouseEvent) => {
+  const handleMouseMove = useCallback(
+    (e: globalThis.MouseEvent) => {
       if (!isDragging || !sliderRef.current) return;
-
       const rect = sliderRef.current.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
+      const percentage = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
 
       if (isDragging === 'start') {
-        setRangeStart(Math.min(percentage, rangeEnd - 5));
+        setRangeStart(Math.min(percentage, rangeEnd - minGapPercent));
       } else if (isDragging === 'end') {
-        setRangeEnd(Math.max(percentage, rangeStart + 5));
+        setRangeEnd(Math.max(percentage, rangeStart + minGapPercent));
       } else if (isDragging === 'point') {
         setPointPosition(percentage);
       }
     },
-    [isDragging, rangeEnd, rangeStart],
+    [isDragging, rangeStart, rangeEnd, minGapPercent],
   );
 
-  const handleMouseUp = useCallback(() => {
-    setIsDragging(null);
-  }, []);
-
-  // Point slider handlers - now integrated into main mouse handlers
-  const handlePointMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsDragging('point');
-  };
+  const handleMouseUp = useCallback(() => setIsDragging(null), []);
 
   useEffect(() => {
     if (isDragging) {
-      document.addEventListener('mousemove', handleRangeMouseMove);
+      document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
       return () => {
-        document.removeEventListener('mousemove', handleRangeMouseMove);
+        document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  }, [isDragging, handleRangeMouseMove, handleMouseUp]);
+  }, [isDragging, handleMouseMove, handleMouseUp]);
 
   const handleTrackClick = (e: React.MouseEvent) => {
     if (!sliderRef.current || isDragging) return;
-
     const rect = sliderRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const percentage = (x / rect.width) * 100;
+    const percentage = ((e.clientX - rect.left) / rect.width) * 100;
+
+    const setClosestHandle = (pos: number) => {
+      const distances = [
+        { type: 'start', dist: Math.abs(pos - rangeStart) },
+        { type: 'end', dist: Math.abs(pos - rangeEnd) },
+        { type: 'point', dist: Math.abs(pos - pointPosition) },
+      ];
+      const closest = distances.reduce((a, b) => (a.dist < b.dist ? a : b)).type;
+      if (closest === 'point') {
+        setPointPosition(pos);
+      } else if (closest === 'start') {
+        setRangeStart(Math.min(pos, rangeEnd - minGapPercent));
+      } else if (closest === 'end') {
+        setRangeEnd(Math.max(pos, rangeStart + minGapPercent));
+      }
+    };
 
     if (viewMode === 'range') {
       const distanceToStart = Math.abs(percentage - rangeStart);
       const distanceToEnd = Math.abs(percentage - rangeEnd);
-
       if (distanceToStart < distanceToEnd) {
-        setRangeStart(Math.min(percentage, rangeEnd - 5));
+        setRangeStart(Math.min(percentage, rangeEnd - minGapPercent));
       } else {
-        setRangeEnd(Math.max(percentage, rangeStart + 5));
+        setRangeEnd(Math.max(percentage, rangeStart + minGapPercent));
       }
     } else if (viewMode === 'point') {
       setPointPosition(percentage);
     } else if (viewMode === 'combined') {
-      // In combined mode, find the closest handle
-      const distanceToStart = Math.abs(percentage - rangeStart);
-      const distanceToEnd = Math.abs(percentage - rangeEnd);
-      const distanceToPoint = Math.abs(percentage - pointPosition);
-
-      const minDistance = Math.min(distanceToStart, distanceToEnd, distanceToPoint);
-
-      if (minDistance === distanceToPoint) {
-        setPointPosition(percentage);
-      } else if (minDistance === distanceToStart) {
-        setRangeStart(Math.min(percentage, rangeEnd - 5));
-      } else {
-        setRangeEnd(Math.max(percentage, rangeStart + 5));
-      }
+      setClosestHandle(percentage);
     }
   };
 
-  let sliderContent: ReactNode;
-
-  if (viewMode === 'range') {
-    sliderContent = (
-      <>
-        {/* Range Slider */}
-        <SliderTrack
-          mode="range"
-          rangeStart={rangeStart}
-          rangeEnd={rangeEnd}
-          onTrackClick={handleTrackClick}
-        />
-
-        {/* Start handle */}
+  const renderHandles = () => {
+    const handleProps = {
+      range: [
         <SliderHandle
+          key="start"
           className="top-0"
           labelClassName="-top-6 bg-blue-600"
           icon={rangeHandleIcon}
           onDragging={isDragging === 'start'}
           position={rangeStart}
-          label={startYearCopy}
+          label={formatDateForDisplay(startLabel, timeUnit)}
           onMouseDown={handleMouseDown('start')}
-        />
-
-        {/* End handle */}
+        />,
         <SliderHandle
+          key="end"
           className="top-0"
           labelClassName="-top-6 bg-blue-600"
           icon={rangeHandleIcon}
           onDragging={isDragging === 'end'}
           position={rangeEnd}
-          label={endYearCopy}
+          label={formatDateForDisplay(endLabel, timeUnit)}
           onMouseDown={handleMouseDown('end')}
-        />
-      </>
-    );
-  } else if (viewMode === 'point') {
-    sliderContent = (
-      <>
-        {/* Point Slider */}
-        <SliderTrack pointPosition={pointPosition} onTrackClick={handleTrackClick} mode="point" />
-
-        {/* Point handle */}
+        />,
+      ],
+      point: [
         <SliderHandle
+          key="point"
           className="top-2"
           labelClassName="top-10 bg-red-600"
           icon={pointHandleIcon}
           onDragging={isDragging === 'point'}
           position={pointPosition}
-          label={currentPointYearCopy}
-          onMouseDown={handlePointMouseDown}
-        />
-      </>
-    );
-  } else {
-    sliderContent = (
-      <>
-        {/* Combined Slider */}
-        <SliderTrack
-          pointPosition={pointPosition}
-          rangeStart={rangeStart}
-          rangeEnd={rangeEnd}
-          onTrackClick={handleTrackClick}
-          mode="combined"
-        />
-
-        {/* Range start handle */}
-        <SliderHandle
-          className="top-0"
-          labelClassName="-top-6 bg-blue-600"
-          icon={rangeHandleIcon}
-          onDragging={isDragging === 'start'}
-          position={rangeStart}
-          label={startYearCopy}
-          onMouseDown={handleMouseDown('start')}
-        />
-
-        {/* Range end handle */}
-        <SliderHandle
-          className="top-0"
-          labelClassName="-top-6 bg-blue-600"
-          icon={rangeHandleIcon}
-          onDragging={isDragging === 'end'}
-          position={rangeEnd}
-          label={endYearCopy}
-          onMouseDown={handleMouseDown('end')}
-        />
-
-        {/* Point handle */}
-        <SliderHandle
-          className="top-2"
-          labelClassName="top-10 bg-red-600"
-          icon={pointHandleIcon}
-          onDragging={isDragging === 'point'}
-          position={pointPosition}
-          label={currentPointYearCopy}
+          label={formatDateForDisplay(pointLabel, timeUnit)}
           onMouseDown={handleMouseDown('point')}
-        />
-      </>
-    );
-  }
+        />,
+      ],
+    };
+
+    if (viewMode === 'range') return handleProps.range;
+    if (viewMode === 'point') return handleProps.point;
+    return [...handleProps.range, ...handleProps.point];
+  };
 
   return (
-    <div className={cn('w-full', wrapperClassName)}>
-      {/* Chart */}
-      {showChart && (
-        <Chart
-          viewMode={viewMode}
-          visibleData={visibleData}
-          currentPointYear={currentPointYearCopy}
-        />
-      )}
-
-      {/* Slider Container */}
-      <div className={cn('relative', sliderClassName)} ref={sliderRef}>
-        {sliderContent}
-
-        {/* Timeline labels */}
-        <div className="flex justify-between mt-4 text-sm text-gray-500">
-          {yearsByStep.map(year => (
-            <span key={year}>{year}</span>
-          ))}
-        </div>
+    <div className={cn('w-full relative', wrapperClassName)} ref={sliderRef}>
+      <SliderTrack
+        mode={viewMode}
+        pointPosition={pointPosition}
+        rangeStart={rangeStart}
+        rangeEnd={rangeEnd}
+        onTrackClick={handleTrackClick}
+        timeUnit={timeUnit}
+        startDate={startDate}
+        endDate={endDate}
+        totalUnits={totalTimeUnits}
+      />
+      {renderHandles()}
+      <div className="flex justify-between mt-4 text-sm text-gray-500">
+        {timeSteps.map((date, index) => (
+          <span key={index} className="text-center">
+            {formatDateForDisplay(date, timeUnit)}
+          </span>
+        ))}
       </div>
     </div>
   );

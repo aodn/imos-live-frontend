@@ -1,4 +1,5 @@
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, ReferenceLine } from 'recharts';
+
 type ChartProps = {
   visibleData: {
     year: number;

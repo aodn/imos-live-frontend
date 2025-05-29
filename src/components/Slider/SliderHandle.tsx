@@ -1,13 +1,13 @@
-import { Button } from '../Button';
 import { cn } from '@/lib/utils';
 import { ReactNode } from 'react';
+import { Button } from '../Button';
 
 type SliderHandleProps = {
   className?: string;
   labelClassName?: string;
   onDragging: boolean;
   position: number;
-  label: number;
+  label: string; // Changed from number to string
   icon: ReactNode;
   onMouseDown: (e: React.MouseEvent) => void;
 };
@@ -26,9 +26,9 @@ export const SliderHandle = ({
       size={'icon'}
       variant={'ghost'}
       className={cn(
-        'absolute  transform -translate-y-1/2 -translate-x-1/2 transition-all duration-200 hover:scale-110 hover:bg-transparent active:bg-transparent focus-visible:ring-0 ',
+        'absolute transform -translate-y-1/2 -translate-x-1/2 transition-all duration-200 hover:scale-110 hover:bg-transparent active:bg-transparent focus-visible:ring-0',
         className,
-        { 'scale-110 ': onDragging },
+        { 'scale-110': onDragging },
       )}
       style={{ left: `${position}%` }}
       onMouseDown={onMouseDown}

@@ -37,7 +37,7 @@ type Story = StoryObj<typeof SliderHandle>;
 export const Default: Story = {
   args: {
     position: 50,
-    label: 50,
+    label: '50',
     onDragging: true,
     icon: <TriangleIcon size="xl" color="imos-grey" className="rotate-180" />,
   },
