@@ -2,6 +2,7 @@ import React, { useState, useRef, useCallback, useEffect, ReactNode } from 'reac
 import { cn } from '@/lib/utils';
 import { SliderHandle } from './SliderHandle';
 import { SliderTrack } from './SliderTrack';
+import { addTimeUnit, formatDateForDisplay, generateTimeSteps, getTimeDifference } from '@/utils';
 
 export type ViewMode = 'range' | 'point' | 'combined';
 export type IsDragging = 'start' | 'end' | 'point' | null;
@@ -36,81 +37,6 @@ export type SliderProps = {
   onChange: (v: SelectionResult) => void;
 };
 
-// Utility functions for date calculations
-const addTimeUnit = (date: Date, amount: number, unit: TimeUnit): Date => {
-  const newDate = new Date(date);
-  switch (unit) {
-    case 'day':
-      newDate.setDate(newDate.getDate() + amount);
-      break;
-    case 'month':
-      newDate.setMonth(newDate.getMonth() + amount);
-      break;
-    case 'year':
-      newDate.setFullYear(newDate.getFullYear() + amount);
-      break;
-  }
-  return newDate;
-};
-
-const getTimeDifference = (date1: Date, date2: Date, unit: TimeUnit): number => {
-  const diffMs = date2.getTime() - date1.getTime();
-  switch (unit) {
-    case 'day':
-      return Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    case 'month':
-      return (
-        (date2.getFullYear() - date1.getFullYear()) * 12 + (date2.getMonth() - date1.getMonth())
-      );
-    case 'year':
-      return date2.getFullYear() - date1.getFullYear();
-  }
-};
-
-const formatDateForDisplay = (date: Date, unit: TimeUnit): string => {
-  switch (unit) {
-    case 'day':
-      return date.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: date.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined,
-      });
-    case 'month':
-      return date.toLocaleDateString('en-US', {
-        month: 'short',
-        year: 'numeric',
-      });
-    case 'year':
-      return date.getFullYear().toString();
-  }
-};
-
-const generateTimeSteps = (
-  startDate: Date,
-  endDate: Date,
-  unit: TimeUnit,
-  stepSize: number,
-): Date[] => {
-  const steps: Date[] = [];
-  const totalUnits = getTimeDifference(startDate, endDate, unit);
-  const numberOfSteps = Math.min(10, Math.max(3, Math.floor(totalUnits / stepSize)));
-  const actualStepSize = Math.floor(totalUnits / numberOfSteps);
-
-  for (let i = 0; i <= numberOfSteps; i++) {
-    const stepDate = addTimeUnit(startDate, i * actualStepSize, unit);
-    if (stepDate <= endDate) {
-      steps.push(stepDate);
-    }
-  }
-
-  // Ensure end date is included
-  if (steps[steps.length - 1]?.getTime() !== endDate.getTime()) {
-    steps.push(endDate);
-  }
-
-  return steps;
-};
-
 export const Slider = ({
   viewMode,
   startDate,
@@ -126,10 +52,10 @@ export const Slider = ({
 }: SliderProps) => {
   const sliderRef = useRef<HTMLDivElement>(null);
   const defaultStepSize = stepSize || (timeUnit === 'year' ? 5 : 1);
-  const timeSteps = generateTimeSteps(startDate, endDate, timeUnit, defaultStepSize);
+  const timeSteps = generateTimeSteps(startDate, endDate, timeUnit, defaultStepSize); //display date below slider.
 
   const totalTimeUnits = getTimeDifference(startDate, endDate, timeUnit);
-  const minGapPercent = (1 / totalTimeUnits) * 100 * 5; // Minimum 5 units gap
+  const minGapPercent = (1 / totalTimeUnits) * 100 * 5; //when move selection at minimum 5 units gap.
 
   // Initialize positions
   const getInitialRangeStart = () => {
@@ -302,26 +228,28 @@ export const Slider = ({
   };
 
   return (
-    <div className={cn('w-full relative', wrapperClassName)} ref={sliderRef}>
-      <SliderTrack
-        mode={viewMode}
-        pointPosition={pointPosition}
-        rangeStart={rangeStart}
-        rangeEnd={rangeEnd}
-        onTrackClick={handleTrackClick}
-        timeUnit={timeUnit}
-        startDate={startDate}
-        endDate={endDate}
-        totalUnits={totalTimeUnits}
-      />
-      {renderHandles()}
-      <div className="flex justify-between mt-4 text-sm text-gray-500">
-        {timeSteps.map((date, index) => (
-          <span key={index} className="text-center">
-            {formatDateForDisplay(date, timeUnit)}
-          </span>
-        ))}
-      </div>
+    <div className="border-4 w-100 absolute top-1/2 left-1/2 -translate-x-1/2">
+      <div className={cn('relative', wrapperClassName)} ref={sliderRef}>
+        <SliderTrack
+          mode={viewMode}
+          pointPosition={pointPosition}
+          rangeStart={rangeStart}
+          rangeEnd={rangeEnd}
+          onTrackClick={handleTrackClick}
+          timeUnit={timeUnit}
+          startDate={startDate}
+          endDate={endDate}
+          totalUnits={totalTimeUnits}
+        />
+        {renderHandles()}
+        <div className="flex justify-between mt-4 text-sm text-gray-500">
+          {timeSteps.map((date, index) => (
+            <span key={index} className="text-center">
+              {formatDateForDisplay(date, timeUnit)}
+            </span>
+          ))}
+        </div>
+      </div>{' '}
     </div>
   );
 };

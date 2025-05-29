@@ -19,7 +19,7 @@ export const Combined: Story = {
     viewMode: 'combined',
     timeUnit: 'day',
     startDate: new Date(2020, 0, 1),
-    endDate: new Date(2030, 11, 31),
+    endDate: new Date(2020, 11, 31),
     pointHandleIcon: <TriangleIcon size="xl" color="imos-grey" />,
     rangeHandleIcon: <TriangleIcon size="xl" color="imos-grey" className="rotate-180" />,
     wrapperClassName: 'mt-10',
@@ -33,9 +33,9 @@ export const Combined: Story = {
 export const Point: Story = {
   args: {
     viewMode: 'point',
-    timeUnit: 'year',
-    startDate: new Date(1990, 0, 1),
-    endDate: new Date(2030, 11, 31),
+    timeUnit: 'month',
+    startDate: new Date(2020, 0, 1),
+    endDate: new Date(2022, 0, 1),
     pointHandleIcon: <TriangleIcon size="xl" color="imos-grey" />,
     wrapperClassName: 'mt-10',
     onChange: v => console.log(v),

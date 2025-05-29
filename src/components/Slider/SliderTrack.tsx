@@ -2,22 +2,42 @@
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 import { cn } from '@/lib/utils';
 import { TimeUnit } from './Slider';
+import { addTimeUnit } from '@/utils';
 
-const addTimeUnit = (date: Date, amount: number, unit: TimeUnit): Date => {
-  const newDate = new Date(date);
-  switch (unit) {
-    case 'day':
-      newDate.setDate(newDate.getDate() + amount);
-      break;
-    case 'month':
-      newDate.setMonth(newDate.getMonth() + amount);
-      break;
-    case 'year':
-      newDate.setFullYear(newDate.getFullYear() + amount);
-      break;
-  }
-  return newDate;
+type BaseSliderTrackProps = {
+  onTrackClick: (e: React.MouseEvent) => void;
+  baseTrackclassName?: string;
+  timeUnit: TimeUnit;
+  startDate: Date;
+  endDate: Date;
+  totalUnits: number;
 };
+
+type PointModeProps = {
+  mode: 'point';
+  activeTrackClassName?: string;
+  pointPosition: number;
+};
+
+type CombinedModeProps = {
+  mode: 'combined';
+  rangeStart: number;
+  rangeEnd: number;
+  pointPosition: number;
+  inactiveTrackClassName?: string;
+  activeTrackClassName?: string;
+};
+
+type RangeModeProps = {
+  mode: 'range';
+  rangeStart: number;
+  rangeEnd: number;
+  inactiveTrackClassName?: string;
+  activeTrackClassName?: string;
+};
+
+type SliderTrackProps = BaseSliderTrackProps &
+  (PointModeProps | RangeModeProps | CombinedModeProps);
 
 const generateRulerScales = (
   startDate: Date,
@@ -99,7 +119,6 @@ const generateRulerScales = (
   return scales;
 };
 
-// Updated SliderTrack component with ruler scales
 export const SliderTrack = ({
   onTrackClick,
   baseTrackclassName,
@@ -223,39 +242,3 @@ export const SliderTrack = ({
     );
   }
 };
-
-// Type definitions for SliderTrack (you'll need these too)
-type BaseSliderTrackProps = {
-  onTrackClick: (e: React.MouseEvent) => void;
-  baseTrackclassName?: string;
-  timeUnit: TimeUnit;
-  startDate: Date;
-  endDate: Date;
-  totalUnits: number;
-};
-
-type PointModeProps = {
-  mode: 'point';
-  activeTrackClassName?: string;
-  pointPosition: number;
-};
-
-type CombinedModeProps = {
-  mode: 'combined';
-  rangeStart: number;
-  rangeEnd: number;
-  pointPosition: number;
-  inactiveTrackClassName?: string;
-  activeTrackClassName?: string;
-};
-
-type RangeModeProps = {
-  mode: 'range';
-  rangeStart: number;
-  rangeEnd: number;
-  inactiveTrackClassName?: string;
-  activeTrackClassName?: string;
-};
-
-type SliderTrackProps = BaseSliderTrackProps &
-  (PointModeProps | RangeModeProps | CombinedModeProps);
