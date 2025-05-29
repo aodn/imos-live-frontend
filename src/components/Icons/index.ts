@@ -18,6 +18,7 @@ import Wave from './wave.svg?react';
 import Radar from './radar.svg?react';
 import Satellite from './satellite.svg?react';
 import Widgets from './widgets.svg?react';
+import Triangle from './triangle.svg?react';
 
 export const CloseIcon = withIcon(Close);
 export const MenuIcon = withIcon(Menu);
@@ -38,6 +39,7 @@ export const WaveIcon = withIcon(Wave);
 export const RadarIcon = withIcon(Radar);
 export const SatelliteIcon = withIcon(Satellite);
 export const WidgetsIcon = withIcon(Widgets);
+export const TriangleIcon = withIcon(Triangle);
 
 export const icons = {
   CloseIcon,
@@ -59,6 +61,7 @@ export const icons = {
   RadarIcon,
   SatelliteIcon,
   WidgetsIcon,
+  TriangleIcon,
 };
 
 export * from './withIcon';

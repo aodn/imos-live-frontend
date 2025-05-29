@@ -1,25 +1,33 @@
-/* eslint-disable jsx-a11y/click-events-have-key-events */
-/* eslint-disable jsx-a11y/no-static-element-interactions */
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect, ReactNode } from 'react';
 import { Chart } from './Chart';
 import { generateYearsByStep } from '@/utils';
+import { SliderHandle } from './SliderHandle';
+import { SliderTrack } from './SliderTrack';
+import { cn } from '@/lib/utils';
 
-type ViewMode = 'range' | 'point' | 'combined';
+export type ViewMode = 'range' | 'point' | 'combined';
 
 type SliderProps = {
   viewMode: ViewMode;
   startYear: number;
   endYear: number;
   currentPointYear: number;
-  allData: {
-    year: number;
-    value: number;
-  }[];
   initialRange?: {
     start: number;
     end: number;
   };
+  showChart?: boolean;
+  wrapperClassName?: string;
+  sliderClassName?: string;
+  pointHandleIcon?: ReactNode;
+  rangeHandleIcon?: ReactNode;
+  allData: {
+    year: number;
+    value: number;
+  }[];
 };
+
+export type IsDragging = 'start' | 'end' | 'point' | null;
 
 export const Slider = ({
   viewMode,
@@ -28,11 +36,16 @@ export const Slider = ({
   currentPointYear,
   allData,
   initialRange,
+  showChart = true,
+  wrapperClassName,
+  sliderClassName,
+  pointHandleIcon,
+  rangeHandleIcon,
 }: SliderProps) => {
   // Range mode state
   const [rangeStart, setRangeStart] = useState(initialRange?.start || 0);
   const [rangeEnd, setRangeEnd] = useState(initialRange?.end || 100);
-  const [isDragging, setIsDragging] = useState<'start' | 'end' | 'point' | null>(null);
+  const [isDragging, setIsDragging] = useState<IsDragging>(null);
 
   // Point mode state
   const [pointPosition, setPointPosition] = useState(50);
@@ -107,7 +120,7 @@ export const Slider = ({
     setIsDragging('point');
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isDragging) {
       document.addEventListener('mousemove', handleRangeMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
@@ -154,172 +167,122 @@ export const Slider = ({
     }
   };
 
+  let sliderContent: ReactNode;
+
+  if (viewMode === 'range') {
+    sliderContent = (
+      <>
+        {/* Range Slider */}
+        <SliderTrack
+          mode="range"
+          rangeStart={rangeStart}
+          rangeEnd={rangeEnd}
+          onTrackClick={handleTrackClick}
+        />
+
+        {/* Start handle */}
+        <SliderHandle
+          className="top-0"
+          labelClassName="-top-6 bg-blue-600"
+          icon={rangeHandleIcon}
+          onDragging={isDragging === 'start'}
+          position={rangeStart}
+          label={startYearCopy}
+          onMouseDown={handleMouseDown('start')}
+        />
+
+        {/* End handle */}
+        <SliderHandle
+          className="top-0"
+          labelClassName="-top-6 bg-blue-600"
+          icon={rangeHandleIcon}
+          onDragging={isDragging === 'end'}
+          position={rangeEnd}
+          label={endYearCopy}
+          onMouseDown={handleMouseDown('end')}
+        />
+      </>
+    );
+  } else if (viewMode === 'point') {
+    sliderContent = (
+      <>
+        {/* Point Slider */}
+        <SliderTrack pointPosition={pointPosition} onTrackClick={handleTrackClick} mode="point" />
+
+        {/* Point handle */}
+        <SliderHandle
+          className="top-2"
+          labelClassName="top-10 bg-red-600"
+          icon={pointHandleIcon}
+          onDragging={isDragging === 'point'}
+          position={pointPosition}
+          label={currentPointYearCopy}
+          onMouseDown={handlePointMouseDown}
+        />
+      </>
+    );
+  } else {
+    sliderContent = (
+      <>
+        {/* Combined Slider */}
+        <SliderTrack
+          pointPosition={pointPosition}
+          rangeStart={rangeStart}
+          rangeEnd={rangeEnd}
+          onTrackClick={handleTrackClick}
+          mode="combined"
+        />
+
+        {/* Range start handle */}
+        <SliderHandle
+          className="top-0"
+          labelClassName="-top-6 bg-blue-600"
+          icon={rangeHandleIcon}
+          onDragging={isDragging === 'start'}
+          position={rangeStart}
+          label={startYearCopy}
+          onMouseDown={handleMouseDown('start')}
+        />
+
+        {/* Range end handle */}
+        <SliderHandle
+          className="top-0"
+          labelClassName="-top-6 bg-blue-600"
+          icon={rangeHandleIcon}
+          onDragging={isDragging === 'end'}
+          position={rangeEnd}
+          label={endYearCopy}
+          onMouseDown={handleMouseDown('end')}
+        />
+
+        {/* Point handle */}
+        <SliderHandle
+          className="top-2"
+          labelClassName="top-10 bg-red-600"
+          icon={pointHandleIcon}
+          onDragging={isDragging === 'point'}
+          position={pointPosition}
+          label={currentPointYearCopy}
+          onMouseDown={handleMouseDown('point')}
+        />
+      </>
+    );
+  }
+
   return (
-    <div className="w-full max-w-6xl mx-auto p-6  border-4">
-      {/* chart */}
-      <Chart
-        viewMode={viewMode}
-        visibleData={visibleData}
-        currentPointYear={currentPointYearCopy}
-      />
+    <div className={cn('w-full', wrapperClassName)}>
+      {/* Chart */}
+      {showChart && (
+        <Chart
+          viewMode={viewMode}
+          visibleData={visibleData}
+          currentPointYear={currentPointYearCopy}
+        />
+      )}
 
       {/* Slider Container */}
-      <div className="relative border-2" ref={sliderRef}>
-        {viewMode === 'range' ? (
-          <>
-            {/* Range Slider */}
-            <div
-              className="w-full h-2 bg-gray-300 rounded-full relative overflow-hidden cursor-pointer"
-              onClick={handleTrackClick}
-              role="slider"
-              tabIndex={0}
-              aria-valuenow={pointPosition}
-              aria-valuemin={0}
-              aria-valuemax={100}
-            >
-              <div
-                className="absolute h-full bg-gray-300 rounded-l-full"
-                style={{ width: `${rangeStart}%` }}
-              />
-              <div
-                className="absolute h-full bg-gray-300 rounded-r-full right-0"
-                style={{ width: `${100 - rangeEnd}%` }}
-              />
-              <div
-                className="absolute h-full bg-blue-500 transition-all duration-200"
-                style={{
-                  left: `${rangeStart}%`,
-                  width: `${rangeEnd - rangeStart}%`,
-                }}
-              />
-            </div>
-
-            {/* Start handle */}
-            <div
-              className={`absolute top-0 w-6 h-6 bg-white border-2 border-blue-500 rounded-full shadow-lg cursor-pointer transform -translate-y-3 -translate-x-3 transition-all duration-200 hover:scale-110 ${
-                isDragging === 'start' ? 'scale-110 shadow-xl' : ''
-              }`}
-              style={{ left: `${rangeStart}%` }}
-              onMouseDown={handleMouseDown('start')}
-            >
-              <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
-                {startYearCopy}
-              </div>
-            </div>
-
-            {/* End handle */}
-            <div
-              className={`absolute top-0 w-6 h-6 bg-white border-2 border-blue-500 rounded-full shadow-lg cursor-pointer transform -translate-y-3 -translate-x-3 transition-all duration-200 hover:scale-110 ${
-                isDragging === 'end' ? 'scale-110 shadow-xl' : ''
-              }`}
-              style={{ left: `${rangeEnd}%` }}
-              onMouseDown={handleMouseDown('end')}
-            >
-              <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
-                {endYearCopy}
-              </div>
-            </div>
-          </>
-        ) : viewMode === 'point' ? (
-          <>
-            {/* Point Slider */}
-            <div
-              className="w-full h-2 bg-gray-300 rounded-full relative overflow-hidden cursor-pointer"
-              onClick={handleTrackClick}
-            >
-              <div
-                className="h-full bg-red-500 rounded-full transition-all duration-200"
-                style={{ width: `${pointPosition}%` }}
-              />
-            </div>
-
-            {/* Point handle */}
-            <div
-              className={`absolute top-0 w-6 h-6 bg-white border-2 border-red-500 rounded-full shadow-lg cursor-pointer transform -translate-y-3 -translate-x-3 transition-all duration-200 hover:scale-110 ${
-                isDragging === 'point' ? 'scale-110 shadow-xl' : ''
-              }`}
-              style={{ left: `${pointPosition}%` }}
-              onMouseDown={handlePointMouseDown}
-            >
-              <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
-                {currentPointYearCopy}
-              </div>
-            </div>
-          </>
-        ) : (
-          <>
-            {/* Combined Slider */}
-
-            <div
-              className="w-full h-2 bg-gray-300 rounded-full relative overflow-hidden cursor-pointer"
-              onClick={handleTrackClick}
-            >
-              {/* Inactive sections */}
-              <div
-                className="absolute h-full bg-gray-300 rounded-l-full"
-                style={{ width: `${rangeStart}%` }}
-              />
-              <div
-                className="absolute h-full bg-gray-300 rounded-r-full right-0"
-                style={{ width: `${100 - rangeEnd}%` }}
-              />
-
-              {/* Active range track */}
-              <div
-                className="absolute h-full bg-blue-500 transition-all duration-200"
-                style={{
-                  left: `${rangeStart}%`,
-                  width: `${rangeEnd - rangeStart}%`,
-                }}
-              />
-
-              {/* Point indicator line */}
-              <div
-                className="absolute h-full w-1 bg-red-500 transition-all duration-200"
-                style={{ left: `${pointPosition}%` }}
-              />
-            </div>
-
-            {/* Range start handle */}
-            <div
-              className={`absolute top-0 w-6 h-6 bg-white border-2 border-blue-500 rounded-full shadow-lg cursor-pointer transform -translate-y-3 -translate-x-3 transition-all duration-200 hover:scale-110 ${
-                isDragging === 'start' ? 'scale-110 shadow-xl' : ''
-              }`}
-              style={{ left: `${rangeStart}%` }}
-              onMouseDown={handleMouseDown('start')}
-            >
-              <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
-                {startYearCopy}
-              </div>
-            </div>
-
-            {/* Range end handle */}
-            <div
-              className={`absolute top-0 w-6 h-6 bg-white border-2 border-blue-500 rounded-full shadow-lg cursor-pointer transform -translate-y-3 -translate-x-3 transition-all duration-200 hover:scale-110 ${
-                isDragging === 'end' ? 'scale-110 shadow-xl' : ''
-              }`}
-              style={{ left: `${rangeEnd}%` }}
-              onMouseDown={handleMouseDown('end')}
-            >
-              <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-blue-600  text-white text-xs px-2 py-1 rounded whitespace-nowrap">
-                {endYearCopy}
-              </div>
-            </div>
-
-            {/* Point handle */}
-            <div
-              className={`absolute top-0 w-6 h-6 bg-white border-2 border-red-500 rounded-full shadow-lg cursor-pointer transform -translate-y-3 -translate-x-3 transition-all duration-200 hover:scale-110 ${
-                isDragging === 'point' ? 'scale-110 shadow-xl' : ''
-              }`}
-              style={{ left: `${pointPosition}%` }}
-              onMouseDown={handleMouseDown('point')}
-            >
-              <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-red-600 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
-                {currentPointYearCopy}
-              </div>
-            </div>
-          </>
-        )}
+      <div className={cn('relative', sliderClassName)} ref={sliderRef}>
+        {sliderContent}
 
         {/* Timeline labels */}
         <div className="flex justify-between mt-4 text-sm text-gray-500">
@@ -327,11 +290,6 @@ export const Slider = ({
             <span key={year}>{year}</span>
           ))}
         </div>
-      </div>
-
-      {/* Display Information */}
-      <div className="mt-4 text-center">
-        range:{startYearCopy}-{endYearCopy} point:{currentPointYearCopy}
       </div>
     </div>
   );
