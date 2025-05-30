@@ -33,9 +33,9 @@ export const Combined: Story = {
 export const Point: Story = {
   args: {
     viewMode: 'point',
-    timeUnit: 'month',
+    timeUnit: 'day',
     startDate: new Date(2020, 0, 1),
-    endDate: new Date(2022, 0, 1),
+    endDate: new Date(2020, 1, 14),
     pointHandleIcon: <TriangleIcon size="xl" color="imos-grey" />,
     wrapperClassName: 'mt-10',
     onChange: v => console.log(v),

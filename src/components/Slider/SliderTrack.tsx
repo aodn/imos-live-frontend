@@ -2,42 +2,42 @@
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 import { cn } from '@/lib/utils';
 import { TimeUnit } from './Slider';
-import { addTimeUnit } from '@/utils';
 
-type BaseSliderTrackProps = {
-  onTrackClick: (e: React.MouseEvent) => void;
-  baseTrackclassName?: string;
-  timeUnit: TimeUnit;
-  startDate: Date;
-  endDate: Date;
-  totalUnits: number;
+const sliderUnitsConfig = {
+  gap: 24,
+  width: {
+    short: 1,
+    medium: 2,
+    long: 2,
+  },
+  height: {
+    short: 8,
+    medium: 16,
+    long: 24,
+  },
 };
 
-type PointModeProps = {
-  mode: 'point';
-  activeTrackClassName?: string;
-  pointPosition: number;
+type NumOfScales = {
+  short: number;
+  medium: number;
+  long: number;
 };
 
-type CombinedModeProps = {
-  mode: 'combined';
-  rangeStart: number;
-  rangeEnd: number;
-  pointPosition: number;
-  inactiveTrackClassName?: string;
-  activeTrackClassName?: string;
+const addTimeUnit = (date: Date, amount: number, unit: TimeUnit): Date => {
+  const newDate = new Date(date);
+  switch (unit) {
+    case 'day':
+      newDate.setDate(newDate.getDate() + amount);
+      break;
+    case 'month':
+      newDate.setMonth(newDate.getMonth() + amount);
+      break;
+    case 'year':
+      newDate.setFullYear(newDate.getFullYear() + amount);
+      break;
+  }
+  return newDate;
 };
-
-type RangeModeProps = {
-  mode: 'range';
-  rangeStart: number;
-  rangeEnd: number;
-  inactiveTrackClassName?: string;
-  activeTrackClassName?: string;
-};
-
-type SliderTrackProps = BaseSliderTrackProps &
-  (PointModeProps | RangeModeProps | CombinedModeProps);
 
 const generateRulerScales = (
   startDate: Date,
@@ -46,6 +46,9 @@ const generateRulerScales = (
   totalUnits: number,
 ) => {
   const scales: { position: number; type: 'short' | 'medium' | 'long'; date: Date }[] = [];
+  let numberOfShortScale = 0;
+  let numberOfLongScale = 0;
+  let numberOfMediumScale = 0;
 
   if (timeUnit === 'day') {
     // Generate all days as short scales
@@ -61,10 +64,14 @@ const generateRulerScales = (
         // Long scale for first day of month
         if (dayOfMonth === 1) {
           type = 'long';
+          numberOfLongScale++;
         }
         // Medium scale for Mondays (start of week)
         else if (dayOfWeek === 1) {
           type = 'medium';
+          numberOfMediumScale++;
+        } else {
+          numberOfShortScale++;
         }
 
         scales.push({ position, type, date: currentDate });
@@ -83,10 +90,14 @@ const generateRulerScales = (
         // Long scale for January (start of year)
         if (month === 0) {
           type = 'long';
+          numberOfLongScale++;
         }
         // Medium scale for every 3 months (Jan, Apr, Jul, Oct)
         else if (month % 3 === 0) {
           type = 'medium';
+          numberOfMediumScale++;
+        } else {
+          numberOfShortScale++;
         }
 
         scales.push({ position, type, date: currentDate });
@@ -105,10 +116,14 @@ const generateRulerScales = (
         // Long scale for every 10 years
         if (year % 10 === 0) {
           type = 'long';
+          numberOfLongScale++;
         }
         // Medium scale for every 5 years
         else if (year % 5 === 0) {
           type = 'medium';
+          numberOfMediumScale++;
+        } else {
+          numberOfShortScale++;
         }
 
         scales.push({ position, type, date: currentDate });
@@ -116,9 +131,26 @@ const generateRulerScales = (
     }
   }
 
-  return scales;
+  return {
+    scales,
+    numberOfScales: {
+      short: numberOfShortScale,
+      medium: numberOfMediumScale,
+      long: numberOfLongScale,
+    },
+  };
 };
 
+const generateTrackWidth = (totalUnits: number, numOfScales: NumOfScales) => {
+  return (
+    totalUnits * sliderUnitsConfig.gap +
+    numOfScales.long * sliderUnitsConfig.width.long +
+    numOfScales.medium * sliderUnitsConfig.width.medium +
+    numOfScales.short * sliderUnitsConfig.width.short
+  );
+};
+
+// Updated SliderTrack component with ruler scales
 export const SliderTrack = ({
   onTrackClick,
   baseTrackclassName,
@@ -128,7 +160,12 @@ export const SliderTrack = ({
   totalUnits,
   ...props
 }: SliderTrackProps) => {
-  const rulerScales = generateRulerScales(startDate, endDate, timeUnit, totalUnits);
+  const { scales: rulerScales, numberOfScales } = generateRulerScales(
+    startDate,
+    endDate,
+    timeUnit,
+    totalUnits,
+  );
 
   const renderRulerScales = () => (
     <div className="absolute inset-0 pointer-events-none">
@@ -137,8 +174,8 @@ export const SliderTrack = ({
           key={index}
           className={cn('absolute bg-gray-600 transform -translate-x-0.5', {
             'w-px h-1 -top-1': scale.type === 'short',
-            'w-px h-2 -top-2': scale.type === 'medium',
-            'w-px h-3 -top-3': scale.type === 'long',
+            'w-px h-4 -top-2': scale.type === 'medium',
+            'w-px h-6 -top-6': scale.type === 'long',
           })}
           style={{ left: `${scale.position}%` }}
         />
@@ -149,28 +186,30 @@ export const SliderTrack = ({
   if (props.mode === 'point') {
     return (
       <div
+        style={{ width: generateTrackWidth(totalUnits, numberOfScales) }}
         className={cn(
-          'w-full h-2 bg-gray-300 rounded-full relative overflow-visible cursor-pointer',
+          'h-8 bg-gray-300 rounded-full relative overflow-visible cursor-pointer',
           baseTrackclassName,
         )}
         onClick={onTrackClick}
       >
         {renderRulerScales()}
-        <div
+        {/* <div
           className={cn(
-            'h-full bg-red-500 rounded-full transition-all duration-200 relative z-10',
+            'h-full bg-red-500 rounded-full transition-all duration-200 z-10',
             props.activeTrackClassName,
           )}
           style={{ width: `${props.pointPosition}%` }}
-        />
+        /> */}
       </div>
     );
   }
   if (props.mode === 'range') {
     return (
       <div
+        style={{ width: generateTrackWidth(totalUnits, numberOfScales) }}
         className={cn(
-          'w-full h-2 bg-gray-300 rounded-full relative overflow-visible cursor-pointer',
+          ' h-2 bg-gray-300 rounded-full relative overflow-visible cursor-pointer',
           baseTrackclassName,
         )}
         onClick={onTrackClick}
@@ -207,8 +246,9 @@ export const SliderTrack = ({
   if (props.mode === 'combined') {
     return (
       <div
+        style={{ width: generateTrackWidth(totalUnits, numberOfScales) }}
         className={cn(
-          'w-full h-2 bg-gray-300 rounded-full relative overflow-visible cursor-pointer',
+          'h-2 bg-gray-300 rounded-full relative overflow-visible cursor-pointer',
           baseTrackclassName,
         )}
         onClick={onTrackClick}
@@ -242,3 +282,39 @@ export const SliderTrack = ({
     );
   }
 };
+
+// Type definitions for SliderTrack (you'll need these too)
+type BaseSliderTrackProps = {
+  onTrackClick: (e: React.MouseEvent) => void;
+  baseTrackclassName?: string;
+  timeUnit: TimeUnit;
+  startDate: Date;
+  endDate: Date;
+  totalUnits: number;
+};
+
+type PointModeProps = {
+  mode: 'point';
+  activeTrackClassName?: string;
+  pointPosition: number;
+};
+
+type CombinedModeProps = {
+  mode: 'combined';
+  rangeStart: number;
+  rangeEnd: number;
+  pointPosition: number;
+  inactiveTrackClassName?: string;
+  activeTrackClassName?: string;
+};
+
+type RangeModeProps = {
+  mode: 'range';
+  rangeStart: number;
+  rangeEnd: number;
+  inactiveTrackClassName?: string;
+  activeTrackClassName?: string;
+};
+
+type SliderTrackProps = BaseSliderTrackProps &
+  (PointModeProps | RangeModeProps | CombinedModeProps);

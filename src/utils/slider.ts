@@ -17,7 +17,7 @@ export const addTimeUnit = (date: Date, amount: number, unit: TimeUnit): Date =>
   return newDate;
 };
 
-export const getTimeDifference = (date1: Date, date2: Date, unit: TimeUnit): number => {
+export const getTotalTimeUnitsByTimeMode = (date1: Date, date2: Date, unit: TimeUnit): number => {
   const diffMs = date2.getTime() - date1.getTime();
   switch (unit) {
     case 'day':
@@ -56,7 +56,7 @@ export const generateTimeSteps = (
   stepSize: number,
 ): Date[] => {
   const steps: Date[] = [];
-  const totalUnits = getTimeDifference(startDate, endDate, unit);
+  const totalUnits = getTotalTimeUnitsByTimeMode(startDate, endDate, unit);
   const numberOfSteps = Math.min(10, Math.max(3, Math.floor(totalUnits / stepSize)));
   const actualStepSize = Math.floor(totalUnits / numberOfSteps);
 
