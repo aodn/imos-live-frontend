@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect, ReactNode, useLayoutEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { SliderHandle } from './SliderHandle';
 import { SliderTrack } from './SliderTrack';
@@ -10,47 +10,12 @@ import {
   generateTimeLabels,
   getTotalTimeScales,
   generateTrackWidth,
+  clamp,
 } from '@/utils';
-import { useDrag } from '@/hooks';
+import { useDrag, useResizeObserver } from '@/hooks';
+import { SliderProps, DragHandle, SelectionResult } from './type';
 
-export type ViewMode = 'range' | 'point' | 'combined';
-export type TimeUnit = 'day' | 'month' | 'year';
-export type DragHandle = 'start' | 'end' | 'point' | null;
-
-type RangeSelection = {
-  range: {
-    start: Date;
-    end: Date;
-  };
-};
-
-type PointSelection = {
-  point: Date;
-};
-
-type CombinedSelection = RangeSelection & PointSelection;
-
-export type SelectionResult = RangeSelection | PointSelection | CombinedSelection;
-
-export interface SliderProps {
-  viewMode: ViewMode;
-  startDate: Date;
-  endDate: Date;
-  timeUnit: TimeUnit;
-  initialRange?: { start: Date; end: Date };
-  initialPoint?: Date;
-  wrapperClassName?: string;
-  pointHandleIcon?: ReactNode;
-  rangeHandleIcon?: ReactNode;
-  onChange: (selection: SelectionResult) => void;
-  sliderMovabale?: boolean;
-  isFixedWidth?: boolean;
-  fixedWidth?: number;
-}
-
-const MIN_GAP_UNITS = 5;
-
-export const Slider = ({
+export const DateSlider = ({
   viewMode,
   startDate,
   endDate,
@@ -63,15 +28,15 @@ export const Slider = ({
   sliderMovabale = true,
   isFixedWidth = false,
   fixedWidth = 300,
+  minGapScaleUnits = 3,
   onChange,
+  parentContainerRef,
 }: SliderProps) => {
-  // Refs
   const sliderRef = useRef<HTMLDivElement>(null);
-  const sliderParentRef = useRef<HTMLDivElement>(null);
+  // const sliderParentRef = useRef<HTMLDivElement>(null);
 
-  // Computed values
   const totalScaleUnits = getTotalTimeScales(startDate, endDate, timeUnit);
-  const minGapPercent = (1 / totalScaleUnits) * 100 * MIN_GAP_UNITS;
+  const minGapPercent = (1 / totalScaleUnits) * 100 * minGapScaleUnits;
   const { scales, numberOfScales } = generateScalesWithInfo(
     startDate,
     endDate,
@@ -90,22 +55,16 @@ export const Slider = ({
     sliderWidth,
   );
 
-  // State
   const [dimensions, setDimensions] = useState({ parent: 0, slider: 0 });
   const [isDragging, setIsDragging] = useState<DragHandle>(null);
   const [dragStarted, setDragStarted] = useState(false);
 
-  // Position state
   const [rangeStart, setRangeStart] = useState(() => getInitialRangeStart());
   const [rangeEnd, setRangeEnd] = useState(() => getInitialRangeEnd());
   const [pointPosition, setPointPosition] = useState(() => getInitialPointPosition());
 
-  // Initialize dimensions
-  useLayoutEffect(() => {
-    updateDimensions();
-  }, []);
+  useResizeObserver(parentContainerRef || { current: null }, updateDimensions);
 
-  // Drag hook
   const { dragHandlers, isDragging: isContainerDragging } = useDrag({
     targetRef: sliderMovabale ? sliderRef : undefined,
     initialPosition: { x: 0, y: 0 },
@@ -120,11 +79,11 @@ export const Slider = ({
     },
   });
 
-  // Helper functions
   function updateDimensions() {
-    if (sliderParentRef.current && sliderRef.current) {
-      const parentWidth = sliderParentRef.current.getBoundingClientRect().width;
+    if (parentContainerRef?.current && sliderRef.current) {
+      const parentWidth = parentContainerRef.current.getBoundingClientRect().width;
       const sliderWidth = sliderRef.current.getBoundingClientRect().width;
+
       setDimensions({ parent: parentWidth, slider: sliderWidth });
     }
   }
@@ -148,7 +107,7 @@ export const Slider = ({
   }
 
   function clampPercent(value: number): number {
-    return Math.max(0, Math.min(100, value));
+    return clamp(value, 0, 100);
   }
 
   const getDateFromPercent = useCallback(
@@ -179,15 +138,13 @@ export const Slider = ({
     (handle: DragHandle, percentage: number) => {
       switch (handle) {
         case 'start':
-          setRangeStart(percentage => {
-            setRangeEnd(currentEnd => Math.min(percentage, currentEnd - minGapPercent));
-            return percentage;
+          setRangeStart(() => {
+            return clamp(percentage, 0, rangeEnd - minGapPercent);
           });
           break;
         case 'end':
-          setRangeEnd(percentage => {
-            setRangeStart(currentStart => Math.max(percentage, currentStart + minGapPercent));
-            return percentage;
+          setRangeEnd(() => {
+            return clamp(percentage, rangeStart + minGapPercent, 100);
           });
           break;
         case 'point':
@@ -195,7 +152,7 @@ export const Slider = ({
           break;
       }
     },
-    [minGapPercent],
+    [minGapPercent, rangeStart, rangeEnd], // Include all dependencies
   );
 
   function findClosestHandle(percentage: number): DragHandle {
@@ -237,7 +194,7 @@ export const Slider = ({
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(handle);
-    setDragStarted(false); // Reset drag state
+    setDragStarted(false);
   };
 
   const handleMouseMove = useCallback(
@@ -292,7 +249,6 @@ export const Slider = ({
     }
   };
 
-  // Effects
   useEffect(() => {
     const selection = createSelectionResult();
     onChange(selection);
@@ -310,7 +266,6 @@ export const Slider = ({
     };
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
-  // Render helpers
   function renderHandles() {
     const handles = [];
 
@@ -357,7 +312,6 @@ export const Slider = ({
     return handles;
   }
 
-  //its width should be same as slider track.
   function renderTimeLabels(width: number) {
     return (
       <div
@@ -374,23 +328,18 @@ export const Slider = ({
   }
 
   return (
-    <div
-      className="border-4 w-100 absolute top-1/2 left-1/2 -translate-x-1/2"
-      ref={sliderParentRef}
-    >
-      <div className={cn('relative w-fit', wrapperClassName)} ref={sliderRef} {...dragHandlers}>
-        <SliderTrack
-          mode={viewMode}
-          pointPosition={pointPosition}
-          rangeStart={rangeStart}
-          rangeEnd={rangeEnd}
-          onTrackClick={handleTrackClick}
-          scales={scales}
-          width={sliderWidth}
-        />
-        {renderHandles()}
-        {renderTimeLabels(sliderWidth)}
-      </div>
+    <div className={cn('relative w-fit', wrapperClassName)} ref={sliderRef} {...dragHandlers}>
+      <SliderTrack
+        mode={viewMode}
+        pointPosition={pointPosition}
+        rangeStart={rangeStart}
+        rangeEnd={rangeEnd}
+        onTrackClick={handleTrackClick}
+        scales={scales}
+        width={sliderWidth}
+      />
+      {renderHandles()}
+      {renderTimeLabels(sliderWidth)}
     </div>
   );
 };

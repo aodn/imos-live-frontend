@@ -1,6 +1,7 @@
+import { clamp } from '@/utils';
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 
-interface UseDragProps {
+type UseDragProps = {
   targetRef?: React.RefObject<HTMLElement | null>;
   initialPosition?: { x: number; y: number };
   constrainToAxis?: 'x' | 'y' | 'both';
@@ -15,16 +16,16 @@ interface UseDragProps {
   onDragStart?: (position: { x: number; y: number }) => void;
   onDragStarted?: (position: { x: number; y: number }) => void;
   onDragEnd?: (position: { x: number; y: number }) => void;
-}
+};
 
-interface DragState {
+type DragState = {
   isDragging: boolean;
   startX: number;
   startY: number;
   deltaX: number;
   deltaY: number;
   position: { x: number; y: number };
-}
+};
 
 export const useDrag = ({
   targetRef,
@@ -57,8 +58,8 @@ export const useDrag = ({
       if (!bounds) return pos;
 
       return {
-        x: Math.min(Math.max(pos.x, bounds.left ?? -Infinity), bounds.right ?? Infinity),
-        y: Math.min(Math.max(pos.y, bounds.top ?? -Infinity), bounds.bottom ?? Infinity),
+        x: clamp(pos.x, bounds.left ?? -Infinity, bounds.right ?? Infinity),
+        y: clamp(pos.y, bounds.top ?? -Infinity, bounds.bottom ?? Infinity),
       };
     },
     [bounds],

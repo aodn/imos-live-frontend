@@ -6,7 +6,7 @@ export function useMapResize(
 ) {
   useEffect(() => {
     if (!map.current) return;
-    const observer = new window.ResizeObserver(() => {
+    const observer = new ResizeObserver(() => {
       map.current?.resize();
     });
     if (mapContainer.current) {

@@ -1,6 +1,7 @@
 import { ReactNode, useEffect, useRef, useState } from 'react';
 import { Rnd } from 'react-rnd';
 import { useResizeObserver } from '@/hooks';
+import { clamp } from '@/utils';
 
 type SizeType = {
   width: number;
@@ -57,8 +58,8 @@ export const DragWrapper = ({
     const maxY = container.height - currentSize.height;
 
     return {
-      x: Math.max(0, Math.min(currentPos.x, maxX)),
-      y: Math.max(0, Math.min(currentPos.y, maxY)),
+      x: clamp(currentPos.x, 0, maxX),
+      y: clamp(currentPos.y, 0, maxY),
     };
   };
 
@@ -124,8 +125,8 @@ export const DragWrapper = ({
         const newY = distanceFromTop;
 
         // Ensure within bounds
-        const clampedX = Math.max(0, Math.min(newX, newParentWidth - size.width));
-        const clampedY = Math.max(0, Math.min(newY, newParentHeight - size.height));
+        const clampedX = clamp(newX, 0, newParentWidth - size.width);
+        const clampedY = clamp(newY, 0, newParentHeight - size.height);
 
         // Update position and force Rnd to re-render with new position
         setPosition({

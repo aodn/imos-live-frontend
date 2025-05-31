@@ -1,6 +1,5 @@
-import { TimeUnit } from '@/components/Slider';
 import { sliderUnitsConfig } from '@/components/Slider/config';
-import { NumOfScales, Scale, ScaleType } from '@/components/Slider/SliderTrack';
+import { NumOfScales, Scale, ScaleType, TimeUnit } from '@/components/Slider/type';
 
 // ----------------------------------
 // Date Arithmetic

@@ -12,3 +12,4 @@ export * from './getScaledDimensions';
 export * from './normalizeLayerSets';
 export * from './generateYearsByStep';
 export * from './slider';
+export * from './clamp';

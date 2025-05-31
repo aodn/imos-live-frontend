@@ -9,6 +9,8 @@ export function useResizeObserver<T extends HTMLElement>(
 
   useEffect(() => {
     if (!ref.current) return;
+    const element = ref.current;
+
     const observer = new ResizeObserver(entries => {
       if (!entries[0]) return;
 
@@ -21,7 +23,7 @@ export function useResizeObserver<T extends HTMLElement>(
       }, debounceMs);
     });
 
-    observer.observe(ref.current);
+    observer.observe(element);
 
     return () => {
       observer.disconnect();

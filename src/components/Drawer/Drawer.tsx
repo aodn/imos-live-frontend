@@ -3,6 +3,7 @@ import { DragIndicatorIcon, CloseIcon } from '../Icons';
 import { Button } from '../Button';
 import { useDrawerStore } from '@/store';
 import { useShallow } from 'zustand/shallow';
+import { clamp } from '@/utils';
 
 type Direction = 'left' | 'right' | 'top' | 'bottom';
 type SnapPoint = number | `${number}%`;
@@ -155,7 +156,7 @@ export const Drawer: React.FC<DrawerProps> = ({
       }
 
       const maxSize = getMaxSize(direction);
-      const newSize = Math.max(0, Math.min(maxSize, dragStart.initialSize + delta));
+      const newSize = clamp(maxSize, 0, dragStart.initialSize + delta);
 
       setCurrentSize(newSize);
     },
