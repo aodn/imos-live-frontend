@@ -68,6 +68,11 @@ const meta = {
       control: 'number',
       description: 'Minimum number of time units allowed between range handles.',
     },
+    trackPaddingX: {
+      control: 'number',
+      description:
+        'add padding between track. ensure slider handle and two ends of track can be seen',
+    },
   },
   tags: ['autodocs'],
 } satisfies Meta<typeof DateSlider>;
@@ -75,42 +80,21 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-// export const Point: Story = {
-//   args: {
-//     viewMode: 'point',
-//     timeUnit: 'day',
-//     startDate: new Date(2020, 0, 1),
-//     endDate: new Date(2020, 2, 14),
-//     pointHandleIcon: <TriangleIcon size="xl" color="imos-grey" />,
-//     wrapperClassName: 'mt-10',
-//     onChange: v => console.log(v),
-//     initialPoint: new Date(2020, 0, 7),
-//   },
-//   render: args => {
-//     // eslint-disable-next-line react-hooks/rules-of-hooks
-//     const sliderParentRef = useRef<HTMLDivElement>(null);
-//     return (
-//       <div ref={sliderParentRef} className="p-8 min-w-full">
-//         <DateSlider
-//           {...args}
-//           startDate={new Date(args.startDate)}
-//           endDate={new Date(args.endDate)}
-//           parentContainerRef={sliderParentRef}
-//         />
-//       </div>
-//     );
-//   },
-// };
-export const Point: Story = {
+export const PointMovable: Story = {
   args: {
     viewMode: 'point',
     timeUnit: 'day',
     startDate: new Date(2020, 0, 1),
     endDate: new Date(2020, 2, 14),
-    pointHandleIcon: <TriangleIcon size="xl" color="imos-grey" />,
-    wrapperClassName: 'mt-10',
+    pointHandleIcon: <TriangleIcon size="xxl" color="imos-grey" />,
+    wrapperClassName: 'my-10',
     onChange: v => console.log(v),
     initialPoint: new Date(2020, 0, 7),
+    scaleUnitConfig: {
+      gap: 72,
+      width: { short: 1, medium: 2, long: 2 },
+      height: { short: 16, medium: 32, long: 64 },
+    },
   },
   render: args => {
     // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -118,8 +102,8 @@ export const Point: Story = {
     return (
       <div
         ref={sliderParentRef}
-        className="border-4 relative mx-auto mt-20"
-        style={{ width: '800px' }} // Fixed width instead of w-100
+        className="border-2  mx-auto mt-20 overflow-hidden"
+        style={{ width: '800px' }}
       >
         <DateSlider
           {...args}
@@ -131,16 +115,58 @@ export const Point: Story = {
     );
   },
 };
+
+export const PointStatic: Story = {
+  args: {
+    viewMode: 'point',
+    timeUnit: 'day',
+    startDate: new Date(2020, 0, 1),
+    endDate: new Date(2020, 0, 10),
+    pointHandleIcon: <TriangleIcon size="xxl" color="imos-grey" />,
+    wrapperClassName: 'my-10',
+    onChange: v => console.log(v),
+    initialPoint: new Date(2020, 0, 7),
+    isFixedWidth: true,
+    fixedWidth: 750,
+    sliderMovabale: false,
+  },
+  render: args => {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const sliderParentRef = useRef<HTMLDivElement>(null);
+    return (
+      <div
+        ref={sliderParentRef}
+        className="border-2  mx-auto mt-20 px-4 overflow-hidden"
+        style={{ width: '800px' }}
+      >
+        <DateSlider
+          {...args}
+          startDate={new Date(args.startDate)}
+          endDate={new Date(args.endDate)}
+          parentContainerRef={sliderParentRef}
+        />
+      </div>
+    );
+  },
+};
+
 export const Combined: Story = {
   args: {
     viewMode: 'combined',
-    timeUnit: 'day',
+    timeUnit: 'month',
     startDate: new Date(2020, 0, 1),
-    endDate: new Date(2020, 11, 31),
-    pointHandleIcon: <TriangleIcon size="xl" color="imos-grey" />,
-    rangeHandleIcon: <TriangleIcon size="xl" color="imos-grey" className="rotate-180" />,
-    wrapperClassName: 'mt-10',
+    endDate: new Date(2021, 11, 31),
+    pointHandleIcon: <TriangleIcon size="xxl" color="imos-grey" />,
+    rangeHandleIcon: <TriangleIcon size="xxl" color="imos-grey" className="rotate-180" />,
+    wrapperClassName: 'mt-10 mx-auto',
     onChange: v => console.log(v),
+    isFixedWidth: true,
+    fixedWidth: 500,
+    initialPoint: new Date(2020, 5, 10),
+    initialRange: {
+      start: new Date(2020, 2, 10),
+      end: new Date(2021, 4, 10),
+    },
   },
   render: args => {
     return (
@@ -156,7 +182,7 @@ export const Range: Story = {
     startDate: new Date(2020, 0, 1),
     endDate: new Date(2021, 11, 31),
     rangeHandleIcon: <TriangleIcon size="xl" color="imos-grey" className="rotate-180" />,
-    wrapperClassName: 'mt-10',
+    wrapperClassName: 'mt-10 mx-auto',
     onChange: v => console.log(v),
     initialRange: {
       start: new Date(2020, 0, 10),

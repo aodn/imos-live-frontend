@@ -8,6 +8,7 @@ import {
   LayersIcon,
   MapsIcon,
   MeasuresIcon,
+  DateSelectionBar,
 } from '@/components';
 import { useMapUIStore } from '@/store';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -28,6 +29,9 @@ export const Map = () => {
           <div className="h-full w-full relative">
             <MapComponent ref={mapRef} />
             <MapControlPanel ref={mapRef} className="absolute top-16 left-4 z-10" />
+            <div className="absolute bottom-8 w-full flex ">
+              <DateSelectionBar className="rounded-4xl" />
+            </div>
           </div>
 
           <FloatingPanel
@@ -42,7 +46,6 @@ export const Map = () => {
                 ]}
               />
             }
-            // children={<MenuComponent />}
             initialPosition={{ x: 10, y: 20 }}
           />
         </>

@@ -3,7 +3,6 @@ import { cn } from '@/lib/utils';
 import { SliderHandle } from './SliderHandle';
 import { SliderTrack } from './SliderTrack';
 import {
-  generateNewDateByAddingScaleUnit,
   calculateLabelPositions,
   formatDateForDisplay,
   generateScalesWithInfo,
@@ -23,6 +22,8 @@ export const DateSlider = ({
   initialRange,
   initialPoint,
   wrapperClassName,
+  trackActiveClassName,
+  trackBaseClassName,
   pointHandleIcon,
   rangeHandleIcon,
   sliderMovabale = true,
@@ -31,9 +32,15 @@ export const DateSlider = ({
   minGapScaleUnits = 3,
   onChange,
   parentContainerRef,
+  trackPaddingX = 24,
+  scaleUnitConfig = {
+    gap: 12,
+    width: { short: 1, medium: 2, long: 2 },
+    height: { short: 8, medium: 16, long: 64 },
+  },
 }: SliderProps) => {
   const sliderRef = useRef<HTMLDivElement>(null);
-  // const sliderParentRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
 
   const totalScaleUnits = getTotalTimeScales(startDate, endDate, timeUnit);
   const minGapPercent = (1 / totalScaleUnits) * 100 * minGapScaleUnits;
@@ -45,7 +52,7 @@ export const DateSlider = ({
   );
   const sliderWidth = isFixedWidth
     ? fixedWidth
-    : generateTrackWidth(totalScaleUnits, numberOfScales);
+    : generateTrackWidth(totalScaleUnits, numberOfScales, scaleUnitConfig);
 
   const timeLabels = calculateLabelPositions(
     startDate,
@@ -63,6 +70,16 @@ export const DateSlider = ({
   const [rangeEnd, setRangeEnd] = useState(() => getInitialRangeEnd());
   const [pointPosition, setPointPosition] = useState(() => getInitialPointPosition());
 
+  const rangeStartRef = useRef(rangeStart);
+  const rangeEndRef = useRef(rangeEnd);
+  const pointPositionRef = useRef(pointPosition);
+
+  useEffect(() => {
+    rangeStartRef.current = rangeStart;
+    rangeEndRef.current = rangeEnd;
+    pointPositionRef.current = pointPosition;
+  }, [rangeStart, rangeEnd, pointPosition]);
+
   useResizeObserver(parentContainerRef || { current: null }, updateDimensions);
 
   const { dragHandlers, isDragging: isContainerDragging } = useDrag({
@@ -70,7 +87,7 @@ export const DateSlider = ({
     initialPosition: { x: 0, y: 0 },
     constrainToAxis: 'x',
     bounds: {
-      left: dimensions.parent - dimensions.slider,
+      left: Math.min(0, dimensions.parent - dimensions.slider),
       right: 0,
     },
     onDragEnd: handleDragComplete,
@@ -112,10 +129,12 @@ export const DateSlider = ({
 
   const getDateFromPercent = useCallback(
     (percent: number): Date => {
-      const unitsFromStart = (percent / 100) * totalScaleUnits;
-      return generateNewDateByAddingScaleUnit(startDate, Math.round(unitsFromStart), timeUnit);
+      const startTime = startDate.getTime();
+      const endTime = endDate.getTime();
+      const targetTime = startTime + (percent / 100) * (endTime - startTime);
+      return new Date(targetTime);
     },
-    [startDate, totalScaleUnits, timeUnit],
+    [startDate, endDate],
   );
 
   function handleDragComplete() {
@@ -127,48 +146,56 @@ export const DateSlider = ({
 
   const getPercentageFromMouseEvent = useCallback(
     (e: MouseEvent | React.MouseEvent): number => {
-      if (!sliderRef.current) return 0;
-      const rect = sliderRef.current.getBoundingClientRect();
+      if (!trackRef.current) return 0;
+      const rect = trackRef.current.getBoundingClientRect();
       return clampPercent(((e.clientX - rect.left) / rect.width) * 100);
     },
-    [sliderRef],
+    [trackRef],
   );
 
-  const updateHandlePosition = useCallback(
+  // Optimized handle position update using refs for immediate response
+  const updateHandlePositionOptimized = useCallback(
     (handle: DragHandle, percentage: number) => {
-      switch (handle) {
-        case 'start':
-          setRangeStart(() => {
-            return clamp(percentage, 0, rangeEnd - minGapPercent);
-          });
-          break;
-        case 'end':
-          setRangeEnd(() => {
-            return clamp(percentage, rangeStart + minGapPercent, 100);
-          });
-          break;
-        case 'point':
-          setPointPosition(percentage);
-          break;
-      }
+      requestAnimationFrame(() => {
+        switch (handle) {
+          case 'start': {
+            const newStart = Math.max(0, Math.min(percentage, rangeEndRef.current - minGapPercent));
+            setRangeStart(newStart);
+            break;
+          }
+          case 'end': {
+            const newEnd = Math.min(
+              100,
+              Math.max(percentage, rangeStartRef.current + minGapPercent),
+            );
+            setRangeEnd(newEnd);
+            break;
+          }
+          case 'point': {
+            const newPoint = clampPercent(percentage);
+            setPointPosition(newPoint);
+            break;
+          }
+        }
+      });
     },
-    [minGapPercent, rangeStart, rangeEnd], // Include all dependencies
+    [minGapPercent],
   );
 
   function findClosestHandle(percentage: number): DragHandle {
     const distances = [
-      { type: 'start' as const, dist: Math.abs(percentage - rangeStart) },
-      { type: 'end' as const, dist: Math.abs(percentage - rangeEnd) },
-      { type: 'point' as const, dist: Math.abs(percentage - pointPosition) },
+      { type: 'start' as const, dist: Math.abs(percentage - rangeStartRef.current) },
+      { type: 'end' as const, dist: Math.abs(percentage - rangeEndRef.current) },
+      { type: 'point' as const, dist: Math.abs(percentage - pointPositionRef.current) },
     ];
     return distances.reduce((a, b) => (a.dist < b.dist ? a : b)).type;
   }
 
   function handleRangeClick(percentage: number) {
-    const distanceToStart = Math.abs(percentage - rangeStart);
-    const distanceToEnd = Math.abs(percentage - rangeEnd);
+    const distanceToStart = Math.abs(percentage - rangeStartRef.current);
+    const distanceToEnd = Math.abs(percentage - rangeEndRef.current);
     const closestHandle = distanceToStart < distanceToEnd ? 'start' : 'end';
-    updateHandlePosition(closestHandle, percentage);
+    updateHandlePositionOptimized(closestHandle, percentage);
   }
 
   const createSelectionResult = useCallback((): SelectionResult => {
@@ -200,24 +227,11 @@ export const DateSlider = ({
   const handleMouseMove = useCallback(
     (e: globalThis.MouseEvent) => {
       if (!isDragging) return;
-      const percentage = getPercentageFromMouseEvent(e);
 
-      // Update positions directly to avoid stale closure issues
-      if (isDragging === 'start') {
-        setRangeStart(currentStart => {
-          setRangeEnd(currentEnd => Math.max(currentStart, currentEnd));
-          return Math.min(percentage, rangeEnd - minGapPercent);
-        });
-      } else if (isDragging === 'end') {
-        setRangeEnd(currentEnd => {
-          setRangeStart(currentStart => Math.min(currentEnd, currentStart));
-          return Math.max(percentage, rangeStart + minGapPercent);
-        });
-      } else if (isDragging === 'point') {
-        setPointPosition(percentage);
-      }
+      const percentage = getPercentageFromMouseEvent(e);
+      updateHandlePositionOptimized(isDragging, percentage);
     },
-    [isDragging, getPercentageFromMouseEvent, rangeEnd, minGapPercent, rangeStart],
+    [isDragging, getPercentageFromMouseEvent, updateHandlePositionOptimized],
   );
 
   const handleMouseUp = useCallback(() => {
@@ -239,11 +253,11 @@ export const DateSlider = ({
         handleRangeClick(percentage);
         break;
       case 'point':
-        setPointPosition(percentage);
+        updateHandlePositionOptimized('point', percentage);
         break;
       case 'combined': {
         const closestHandle = findClosestHandle(percentage);
-        updateHandlePosition(closestHandle, percentage);
+        updateHandlePositionOptimized(closestHandle, percentage);
         break;
       }
     }
@@ -314,10 +328,7 @@ export const DateSlider = ({
 
   function renderTimeLabels(width: number) {
     return (
-      <div
-        className="relative text-sm text-gray-500  border-amber-900 border-4"
-        style={{ width: width }}
-      >
+      <div className="relative text-sm text-gray-500 " style={{ width: width }}>
         {timeLabels.map(({ date, position }, index) => (
           <span key={index} className="text-center shrink-0 absolute" style={{ left: position }}>
             {formatDateForDisplay(date, timeUnit)}
@@ -328,18 +339,28 @@ export const DateSlider = ({
   }
 
   return (
-    <div className={cn('relative w-fit', wrapperClassName)} ref={sliderRef} {...dragHandlers}>
-      <SliderTrack
-        mode={viewMode}
-        pointPosition={pointPosition}
-        rangeStart={rangeStart}
-        rangeEnd={rangeEnd}
-        onTrackClick={handleTrackClick}
-        scales={scales}
-        width={sliderWidth}
-      />
-      {renderHandles()}
-      {renderTimeLabels(sliderWidth)}
+    <div className={cn('w-fit', wrapperClassName)} ref={sliderRef} {...dragHandlers}>
+      <div style={{ paddingLeft: trackPaddingX, paddingRight: trackPaddingX }}>
+        <div className="relative">
+          <SliderTrack
+            mode={viewMode}
+            pointPosition={pointPosition}
+            rangeStart={rangeStart}
+            rangeEnd={rangeEnd}
+            onTrackClick={handleTrackClick}
+            scales={scales}
+            width={sliderWidth}
+            scaleUnitConfig={scaleUnitConfig}
+            baseTrackclassName={trackBaseClassName}
+            activeTrackClassName={trackActiveClassName}
+            trackRef={trackRef}
+          />
+          {renderHandles()}
+        </div>
+      </div>
+      <div style={{ paddingLeft: trackPaddingX, paddingRight: trackPaddingX }}>
+        {renderTimeLabels(sliderWidth)}
+      </div>
     </div>
   );
 };

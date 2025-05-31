@@ -19,6 +19,20 @@ export type CombinedSelection = RangeSelection & PointSelection;
 
 export type SelectionResult = RangeSelection | PointSelection | CombinedSelection;
 
+export type ScaleUnitConfig = {
+  gap: number;
+  width: {
+    short: number;
+    medium: number;
+    long: number;
+  };
+  height: {
+    short: number;
+    medium: number;
+    long: number;
+  };
+};
+
 export type SliderProps = {
   viewMode: ViewMode;
   startDate: Date;
@@ -27,6 +41,8 @@ export type SliderProps = {
   initialRange?: { start: Date; end: Date };
   initialPoint?: Date;
   wrapperClassName?: string;
+  trackBaseClassName?: string;
+  trackActiveClassName?: string;
   pointHandleIcon?: ReactNode;
   rangeHandleIcon?: ReactNode;
   onChange: (selection: SelectionResult) => void;
@@ -35,6 +51,8 @@ export type SliderProps = {
   fixedWidth?: number;
   minGapScaleUnits?: number;
   parentContainerRef?: RefObject<HTMLDivElement | null>;
+  scaleUnitConfig?: ScaleUnitConfig;
+  trackPaddingX?: number;
 };
 
 export type ScaleType = 'short' | 'medium' | 'long';
@@ -46,6 +64,8 @@ export type BaseSliderTrackProps = {
   baseTrackclassName?: string;
   scales: Scale[];
   width: number;
+  scaleUnitConfig: ScaleUnitConfig;
+  trackRef: RefObject<HTMLDivElement | null>;
 };
 
 export type PointModeProps = {

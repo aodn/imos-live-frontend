@@ -16,7 +16,7 @@ export const SliderHandle = ({
       size={'icon'}
       variant={'ghost'}
       className={cn(
-        'absolute z-20 transform  -translate-x-1/2 transition-all duration-200 hover:scale-110 hover:bg-transparent active:bg-transparent focus-visible:ring-0',
+        'absolute z-20 transform  -translate-x-1/2 transition-all duration-50 hover:scale-110 hover:bg-transparent active:bg-transparent focus-visible:ring-0',
         className,
         { 'scale-110': onDragging },
       )}

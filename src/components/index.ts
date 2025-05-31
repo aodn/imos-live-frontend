@@ -20,3 +20,4 @@ export * from './MapControlPanel';
 export * from './Input';
 export * from './MainSidebar';
 export * from './Image';
+export * from './DateSelectionBar';

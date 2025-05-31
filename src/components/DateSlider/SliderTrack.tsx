@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 import { cn } from '@/lib/utils';
-import { sliderUnitsConfig } from './config';
+
 import { SliderTrackProps, ScaltType } from './type';
 
 export const SliderTrack = ({
@@ -9,11 +9,13 @@ export const SliderTrack = ({
   baseTrackclassName,
   scales,
   width = 300,
+  scaleUnitConfig,
+  trackRef,
   ...props
 }: SliderTrackProps) => {
   const getSize = (type: ScaltType) => ({
-    width: sliderUnitsConfig.width[type] ?? 1,
-    height: sliderUnitsConfig.height[type] ?? 1,
+    width: scaleUnitConfig.width[type] ?? 1,
+    height: scaleUnitConfig.height[type] ?? 1,
   });
 
   const renderScales = () => (
@@ -31,6 +33,7 @@ export const SliderTrack = ({
   if (props.mode === 'point') {
     return (
       <div
+        ref={trackRef}
         style={{
           width: width,
         }}
@@ -41,6 +44,7 @@ export const SliderTrack = ({
         onClick={onTrackClick}
       >
         {renderScales()}
+        {}
         <div
           className={cn(
             'h-full bg-red-500 rounded-full transition-all duration-200 z-10',
@@ -54,6 +58,7 @@ export const SliderTrack = ({
   if (props.mode === 'range') {
     return (
       <div
+        ref={trackRef}
         style={{
           width: width,
         }}
@@ -82,6 +87,7 @@ export const SliderTrack = ({
   if (props.mode === 'combined') {
     return (
       <div
+        ref={trackRef}
         style={{
           width: width,
         }}

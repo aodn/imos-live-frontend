@@ -1,7 +1,7 @@
 import React, { forwardRef } from 'react';
 import clsx from 'clsx';
 
-type IconSize = 'xs' | 'sm' | 'base' | 'lg' | 'xl';
+type IconSize = 'xs' | 'sm' | 'base' | 'lg' | 'xl' | 'xxl';
 type Color = 'imos-white' | 'imos-black' | 'imos-red' | 'imos-grey';
 
 export interface IconProps extends React.SVGProps<SVGSVGElement> {
@@ -17,6 +17,7 @@ const SIZE_MAP: Record<IconSize, string> = {
   base: 'w-5 h-5',
   lg: 'w-6 h-6',
   xl: 'w-8 h-8',
+  xxl: 'w-10 h-10',
 };
 
 const COLOR_MAP: Record<Color, string> = {

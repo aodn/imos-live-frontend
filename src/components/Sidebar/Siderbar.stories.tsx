@@ -18,12 +18,12 @@ export const Primary: Story = {
   args: {
     width: 300,
     sidebarContent: (
-      <div>
+      <div className="h-screen">
         <p>Lorem ipsum dolor sit amet</p>
       </div>
     ),
     children: (
-      <div className="w-full h-full bg-gray-200">
+      <div className="w-full h-screen bg-gray-200">
         <h1 className="text-2xl font-bold mb-4 text-center">main area</h1>
         <div className="w-full flex items-center justify-center">
           Lorem ipsum dolor sit amet consectetur adipisicing elit. Ea sint cupiditate quos dicta

@@ -1,5 +1,10 @@
-import { sliderUnitsConfig } from '@/components/Slider/config';
-import { NumOfScales, Scale, ScaleType, TimeUnit } from '@/components/Slider/type';
+import {
+  NumOfScales,
+  Scale,
+  ScaleType,
+  ScaleUnitConfig,
+  TimeUnit,
+} from '@/components/DateSlider/type';
 
 // ----------------------------------
 // Date Arithmetic
@@ -64,7 +69,7 @@ export const formatDateForDisplay = (date: Date, unit: TimeUnit): string => {
         year: date.getFullYear() !== thisYear ? 'numeric' : undefined,
       });
     case 'month':
-      return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+      return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
     case 'year':
       return date.getFullYear().toString();
   }
@@ -118,12 +123,16 @@ export const generateTimeLabels = (start: Date, end: Date, unit: TimeUnit): Date
 // Slider/Track Measurements
 // ----------------------------------
 
-export const generateTrackWidth = (total: number, scales: NumOfScales): number => {
+export const generateTrackWidth = (
+  total: number,
+  scales: NumOfScales,
+  scaleUnitConfig: ScaleUnitConfig,
+): number => {
   return (
-    total * sliderUnitsConfig.gap +
-    scales.long * sliderUnitsConfig.width.long +
-    scales.medium * sliderUnitsConfig.width.medium +
-    scales.short * sliderUnitsConfig.width.short
+    total * scaleUnitConfig.gap +
+    scales.long * scaleUnitConfig.width.long +
+    scales.medium * scaleUnitConfig.width.medium +
+    scales.short * scaleUnitConfig.width.short
   );
 };
 
