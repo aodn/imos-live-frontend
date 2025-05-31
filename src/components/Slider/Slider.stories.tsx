@@ -8,6 +8,14 @@ const meta = {
   parameters: {
     layout: 'fullscreen',
   },
+  argTypes: {
+    startDate: {
+      control: 'date',
+    },
+    endDate: {
+      control: 'date',
+    },
+  },
   tags: ['autodocs'],
 } satisfies Meta<typeof Slider>;
 
@@ -26,7 +34,9 @@ export const Combined: Story = {
     onChange: v => console.log(v),
   },
   render: args => {
-    return <Slider {...args} />;
+    return (
+      <Slider {...args} startDate={new Date(args.startDate)} endDate={new Date(args.endDate)} />
+    );
   },
 };
 
@@ -35,13 +45,15 @@ export const Point: Story = {
     viewMode: 'point',
     timeUnit: 'day',
     startDate: new Date(2020, 0, 1),
-    endDate: new Date(2020, 1, 14),
+    endDate: new Date(2021, 2, 14),
     pointHandleIcon: <TriangleIcon size="xl" color="imos-grey" />,
     wrapperClassName: 'mt-10',
     onChange: v => console.log(v),
   },
   render: args => {
-    return <Slider {...args} />;
+    return (
+      <Slider {...args} startDate={new Date(args.startDate)} endDate={new Date(args.endDate)} />
+    );
   },
 };
 
@@ -56,6 +68,8 @@ export const Range: Story = {
     onChange: v => console.log(v),
   },
   render: args => {
-    return <Slider {...args} />;
+    return (
+      <Slider {...args} startDate={new Date(args.startDate)} endDate={new Date(args.endDate)} />
+    );
   },
 };

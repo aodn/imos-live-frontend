@@ -3,10 +3,13 @@ import { cn } from '@/lib/utils';
 import { SliderHandle } from './SliderHandle';
 import { SliderTrack } from './SliderTrack';
 import {
-  addTimeUnit,
+  generateNewDateByAddingScaleUnit,
+  calculateLabelPositions,
   formatDateForDisplay,
-  generateTimeSteps,
-  getTotalTimeUnitsByTimeMode,
+  generateScalesWithInfo,
+  generateTimeLabels,
+  getTotalTimeScales,
+  generateTrackWidth,
 } from '@/utils';
 import { useDrag } from '@/hooks';
 
@@ -34,21 +37,16 @@ export interface SliderProps {
   startDate: Date;
   endDate: Date;
   timeUnit: TimeUnit;
-  stepSize?: number;
   initialRange?: { start: Date; end: Date };
   initialPoint?: Date;
   wrapperClassName?: string;
   pointHandleIcon?: ReactNode;
   rangeHandleIcon?: ReactNode;
   onChange: (selection: SelectionResult) => void;
+  sliderMovabale?: boolean;
+  isFixedWidth?: boolean;
+  fixedWidth?: number;
 }
-
-// Constants
-const DEFAULT_STEP_SIZES = {
-  day: 1,
-  month: 1,
-  year: 5,
-} as const;
 
 const MIN_GAP_UNITS = 5;
 
@@ -57,12 +55,14 @@ export const Slider = ({
   startDate,
   endDate,
   timeUnit,
-  stepSize,
   initialRange,
   initialPoint,
   wrapperClassName,
   pointHandleIcon,
   rangeHandleIcon,
+  sliderMovabale = true,
+  isFixedWidth = false,
+  fixedWidth = 300,
   onChange,
 }: SliderProps) => {
   // Refs
@@ -70,10 +70,25 @@ export const Slider = ({
   const sliderParentRef = useRef<HTMLDivElement>(null);
 
   // Computed values
-  const effectiveStepSize = stepSize ?? DEFAULT_STEP_SIZES[timeUnit];
-  const timeSteps = generateTimeSteps(startDate, endDate, timeUnit, effectiveStepSize);
-  const totalTimeUnits = getTotalTimeUnitsByTimeMode(startDate, endDate, timeUnit);
-  const minGapPercent = (1 / totalTimeUnits) * 100 * MIN_GAP_UNITS;
+  const totalScaleUnits = getTotalTimeScales(startDate, endDate, timeUnit);
+  const minGapPercent = (1 / totalScaleUnits) * 100 * MIN_GAP_UNITS;
+  const { scales, numberOfScales } = generateScalesWithInfo(
+    startDate,
+    endDate,
+    timeUnit,
+    totalScaleUnits,
+  );
+  const sliderWidth = isFixedWidth
+    ? fixedWidth
+    : generateTrackWidth(totalScaleUnits, numberOfScales);
+
+  const timeLabels = calculateLabelPositions(
+    startDate,
+    generateTimeLabels(startDate, endDate, timeUnit),
+    timeUnit,
+    totalScaleUnits,
+    sliderWidth,
+  );
 
   // State
   const [dimensions, setDimensions] = useState({ parent: 0, slider: 0 });
@@ -91,12 +106,8 @@ export const Slider = ({
   }, []);
 
   // Drag hook
-  const {
-    // position,
-    dragHandlers,
-    isDragging: isContainerDragging,
-  } = useDrag({
-    targetRef: sliderRef,
+  const { dragHandlers, isDragging: isContainerDragging } = useDrag({
+    targetRef: sliderMovabale ? sliderRef : undefined,
     initialPosition: { x: 0, y: 0 },
     constrainToAxis: 'x',
     bounds: {
@@ -120,20 +131,20 @@ export const Slider = ({
 
   function getInitialRangeStart(): number {
     if (!initialRange?.start) return 0;
-    const diff = getTotalTimeUnitsByTimeMode(startDate, initialRange.start, timeUnit);
-    return clampPercent((diff / totalTimeUnits) * 100);
+    const diff = getTotalTimeScales(startDate, initialRange.start, timeUnit);
+    return clampPercent((diff / totalScaleUnits) * 100);
   }
 
   function getInitialRangeEnd(): number {
     if (!initialRange?.end) return 100;
-    const diff = getTotalTimeUnitsByTimeMode(startDate, initialRange.end, timeUnit);
-    return clampPercent((diff / totalTimeUnits) * 100);
+    const diff = getTotalTimeScales(startDate, initialRange.end, timeUnit);
+    return clampPercent((diff / totalScaleUnits) * 100);
   }
 
   function getInitialPointPosition(): number {
     if (!initialPoint) return 50;
-    const diff = getTotalTimeUnitsByTimeMode(startDate, initialPoint, timeUnit);
-    return clampPercent((diff / totalTimeUnits) * 100);
+    const diff = getTotalTimeScales(startDate, initialPoint, timeUnit);
+    return clampPercent((diff / totalScaleUnits) * 100);
   }
 
   function clampPercent(value: number): number {
@@ -142,10 +153,10 @@ export const Slider = ({
 
   const getDateFromPercent = useCallback(
     (percent: number): Date => {
-      const unitsFromStart = (percent / 100) * totalTimeUnits;
-      return addTimeUnit(startDate, Math.round(unitsFromStart), timeUnit);
+      const unitsFromStart = (percent / 100) * totalScaleUnits;
+      return generateNewDateByAddingScaleUnit(startDate, Math.round(unitsFromStart), timeUnit);
     },
-    [startDate, totalTimeUnits, timeUnit],
+    [startDate, totalScaleUnits, timeUnit],
   );
 
   function handleDragComplete() {
@@ -308,7 +319,7 @@ export const Slider = ({
         <SliderHandle
           key="start"
           className="top-0"
-          labelClassName="-top-6 bg-blue-600"
+          labelClassName="top-10 bg-red-600"
           icon={rangeHandleIcon}
           onDragging={isDragging === 'start'}
           position={rangeStart}
@@ -318,7 +329,7 @@ export const Slider = ({
         <SliderHandle
           key="end"
           className="top-0"
-          labelClassName="-top-6 bg-blue-600"
+          labelClassName="top-10 bg-red-600"
           icon={rangeHandleIcon}
           onDragging={isDragging === 'end'}
           position={rangeEnd}
@@ -332,7 +343,7 @@ export const Slider = ({
       handles.push(
         <SliderHandle
           key="point"
-          className="top-2"
+          className="top-0"
           labelClassName="top-10 bg-red-600"
           icon={pointHandleIcon}
           onDragging={isDragging === 'point'}
@@ -346,11 +357,15 @@ export const Slider = ({
     return handles;
   }
 
-  function renderTimeLabels() {
+  //its width should be same as slider track.
+  function renderTimeLabels(width: number) {
     return (
-      <div className="flex justify-between mt-4 text-sm text-gray-500">
-        {timeSteps.map((date, index) => (
-          <span key={index} className="text-center shrink-0">
+      <div
+        className="relative text-sm text-gray-500  border-amber-900 border-4"
+        style={{ width: width }}
+      >
+        {timeLabels.map(({ date, position }, index) => (
+          <span key={index} className="text-center shrink-0 absolute" style={{ left: position }}>
             {formatDateForDisplay(date, timeUnit)}
           </span>
         ))}
@@ -370,13 +385,11 @@ export const Slider = ({
           rangeStart={rangeStart}
           rangeEnd={rangeEnd}
           onTrackClick={handleTrackClick}
-          timeUnit={timeUnit}
-          startDate={startDate}
-          endDate={endDate}
-          totalUnits={totalTimeUnits}
+          scales={scales}
+          width={sliderWidth}
         />
         {renderHandles()}
-        {renderTimeLabels()}
+        {renderTimeLabels(sliderWidth)}
       </div>
     </div>
   );

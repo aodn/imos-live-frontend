@@ -1,7 +1,18 @@
 import { TimeUnit } from '@/components/Slider';
+import { sliderUnitsConfig } from '@/components/Slider/config';
+import { NumOfScales, Scale, ScaleType } from '@/components/Slider/SliderTrack';
 
-// Utility functions for date calculations
-export const addTimeUnit = (date: Date, amount: number, unit: TimeUnit): Date => {
+// ----------------------------------
+// Date Arithmetic
+// ----------------------------------
+
+//add a certain amount of scale unit to a date to get new date, when unit is day, it is to add some amount of days.
+//when unit is month, it is to add some amount of months. when unit is year, it is to add some amount of years.
+export const generateNewDateByAddingScaleUnit = (
+  date: Date,
+  amount: number,
+  unit: TimeUnit,
+): Date => {
   const newDate = new Date(date);
   switch (unit) {
     case 'day':
@@ -17,60 +28,162 @@ export const addTimeUnit = (date: Date, amount: number, unit: TimeUnit): Date =>
   return newDate;
 };
 
-export const getTotalTimeUnitsByTimeMode = (date1: Date, date2: Date, unit: TimeUnit): number => {
-  const diffMs = date2.getTime() - date1.getTime();
+export const getTotalTimeScales = (start: Date, end: Date, unit: TimeUnit): number => {
+  const msDiff = end.getTime() - start.getTime();
   switch (unit) {
     case 'day':
-      return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      return Math.floor(msDiff / (1000 * 60 * 60 * 24));
     case 'month':
-      return (
-        (date2.getFullYear() - date1.getFullYear()) * 12 + (date2.getMonth() - date1.getMonth())
-      );
+      return (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
     case 'year':
-      return date2.getFullYear() - date1.getFullYear();
+      return end.getFullYear() - start.getFullYear();
   }
 };
 
+export const getRepresentativeDate = (date: Date, unit: TimeUnit): Date => {
+  switch (unit) {
+    case 'day':
+      return new Date(date.getFullYear(), date.getMonth(), 1);
+    case 'month':
+      return new Date(date.getFullYear(), 0, 1);
+    case 'year':
+      return new Date(Math.floor(date.getFullYear() / 10) * 10, 0, 1);
+  }
+};
+
+// ----------------------------------
+// Display Formatting
+// ----------------------------------
+
 export const formatDateForDisplay = (date: Date, unit: TimeUnit): string => {
+  const thisYear = new Date().getFullYear();
   switch (unit) {
     case 'day':
       return date.toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',
-        year: date.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined,
+        year: date.getFullYear() !== thisYear ? 'numeric' : undefined,
       });
     case 'month':
-      return date.toLocaleDateString('en-US', {
-        month: 'short',
-        year: 'numeric',
-      });
+      return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
     case 'year':
       return date.getFullYear().toString();
   }
 };
 
-export const generateTimeSteps = (
-  startDate: Date,
-  endDate: Date,
-  unit: TimeUnit,
-  stepSize: number,
-): Date[] => {
-  const steps: Date[] = [];
-  const totalUnits = getTotalTimeUnitsByTimeMode(startDate, endDate, unit);
-  const numberOfSteps = Math.min(10, Math.max(3, Math.floor(totalUnits / stepSize)));
-  const actualStepSize = Math.floor(totalUnits / numberOfSteps);
+// ----------------------------------
+// Time Label Generation
+// ----------------------------------
 
-  for (let i = 0; i <= numberOfSteps; i++) {
-    const stepDate = addTimeUnit(startDate, i * actualStepSize, unit);
-    if (stepDate <= endDate) {
-      steps.push(stepDate);
+export const generateTimeLabels = (start: Date, end: Date, unit: TimeUnit): Date[] => {
+  const labels: Date[] = [];
+  const current = new Date(start);
+
+  while (current <= end) {
+    let label: Date | undefined;
+    switch (unit) {
+      case 'day':
+        label = new Date(current.getFullYear(), current.getMonth(), 1);
+        current.setMonth(current.getMonth() + 1);
+        break;
+      case 'month':
+        label = new Date(current.getFullYear(), 0, 1);
+        current.setFullYear(current.getFullYear() + 1);
+        break;
+      case 'year': {
+        const decade = Math.floor(current.getFullYear() / 10) * 10;
+        label = new Date(decade, 0, 1);
+        current.setFullYear(decade + 10);
+        break;
+      }
+    }
+
+    if (
+      label &&
+      label.getTime() <= end.getTime() &&
+      (labels.length === 0 || labels[labels.length - 1].getTime() !== label.getTime())
+    ) {
+      labels.push(label);
     }
   }
 
-  // Ensure end date is included
-  if (steps[steps.length - 1]?.getTime() !== endDate.getTime()) {
-    steps.push(endDate);
+  const endLabel = getRepresentativeDate(end, unit);
+  if (labels[labels.length - 1]?.getTime() !== endLabel.getTime()) {
+    labels.push(endLabel);
   }
 
-  return steps;
+  return labels;
+};
+
+// ----------------------------------
+// Slider/Track Measurements
+// ----------------------------------
+
+export const generateTrackWidth = (total: number, scales: NumOfScales): number => {
+  return (
+    total * sliderUnitsConfig.gap +
+    scales.long * sliderUnitsConfig.width.long +
+    scales.medium * sliderUnitsConfig.width.medium +
+    scales.short * sliderUnitsConfig.width.short
+  );
+};
+
+export const calculateLabelPositions = (
+  start: Date,
+  labels: Date[],
+  unit: TimeUnit,
+  totalScaleUnits: number,
+  trackWidth: number,
+): { date: Date; position: number }[] => {
+  const unitPixel = trackWidth / totalScaleUnits;
+
+  return labels.map(label => {
+    const offset = getTotalTimeScales(start, label, unit);
+    return { date: label, position: offset * unitPixel };
+  });
+};
+
+// ----------------------------------
+// Ruler Scale Generation
+// ----------------------------------
+
+//generate all the scales that each sacle owns date, position and type, and amount of each type scale.
+export const generateScalesWithInfo = (
+  start: Date,
+  end: Date,
+  unit: TimeUnit,
+  totalUnits: number,
+): { scales: Scale[]; numberOfScales: NumOfScales } => {
+  const scales: Scale[] = [];
+  const scaleCounts = { short: 0, medium: 0, long: 0 };
+
+  for (let i = 0; i <= totalUnits; i++) {
+    const current = generateNewDateByAddingScaleUnit(start, i, unit);
+    if (current > end) break;
+
+    let type: ScaleType = 'short';
+    switch (unit) {
+      case 'day':
+        type = current.getDate() === 1 ? 'long' : current.getDay() === 1 ? 'medium' : 'short';
+        break;
+      case 'month':
+        type =
+          current.getMonth() === 0 ? 'long' : current.getMonth() % 3 === 0 ? 'medium' : 'short';
+        break;
+      case 'year':
+        type =
+          current.getFullYear() % 10 === 0
+            ? 'long'
+            : current.getFullYear() % 5 === 0
+              ? 'medium'
+              : 'short';
+        break;
+    }
+
+    scaleCounts[type]++;
+    const position = (i / totalUnits) * 100;
+    scales.push({ date: current, position, type });
+  }
+
+  return { scales, numberOfScales: scaleCounts };
 };

@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { SliderTrack } from './SliderTrack';
+import { getTotalTimeScales, generateScalesWithInfo } from '@/utils';
 
 const meta: Meta<typeof SliderTrack> = {
   title: 'Components/Slider/SliderTrack',
@@ -34,6 +35,15 @@ export const PointMode: Story = {
     mode: 'point',
     pointPosition: 30,
   },
+  render: args => {
+    const start = new Date(2020, 0, 1);
+    const end = new Date(2020, 1, 1);
+    const timeUnit = 'day';
+    const totalScaleUnits = getTotalTimeScales(start, end, timeUnit);
+
+    const { scales } = generateScalesWithInfo(start, end, timeUnit, totalScaleUnits);
+    return <SliderTrack {...args} scales={scales} />;
+  },
 };
 
 // Range Mode
@@ -44,6 +54,15 @@ export const RangeMode: Story = {
     rangeEnd: 70,
     inactiveTrackClassName: '',
     activeTrackClassName: '',
+  },
+  render: args => {
+    const start = new Date(2020, 0, 1);
+    const end = new Date(2020, 1, 1);
+    const timeUnit = 'day';
+    const totalScaleUnits = getTotalTimeScales(start, end, timeUnit);
+
+    const { scales } = generateScalesWithInfo(start, end, timeUnit, totalScaleUnits);
+    return <SliderTrack {...args} scales={scales} />;
   },
 };
 
@@ -56,5 +75,14 @@ export const CombinedMode: Story = {
     pointPosition: 50,
     inactiveTrackClassName: '',
     activeTrackClassName: '',
+  },
+  render: args => {
+    const start = new Date(2020, 0, 1);
+    const end = new Date(2020, 1, 1);
+    const timeUnit = 'day';
+    const totalScaleUnits = getTotalTimeScales(start, end, timeUnit);
+
+    const { scales } = generateScalesWithInfo(start, end, timeUnit, totalScaleUnits);
+    return <SliderTrack {...args} scales={scales} />;
   },
 };
