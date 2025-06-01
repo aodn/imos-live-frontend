@@ -6,9 +6,7 @@ import {
   TimeUnit,
 } from '@/components/DateSlider/type';
 
-// ----------------------------------
 // Date Arithmetic
-// ----------------------------------
 
 //add a certain amount of scale unit to a date to get new date, when unit is day, it is to add some amount of days.
 //when unit is month, it is to add some amount of months. when unit is year, it is to add some amount of years.
@@ -55,29 +53,34 @@ export const getRepresentativeDate = (date: Date, unit: TimeUnit): Date => {
   }
 };
 
-// ----------------------------------
 // Display Formatting
-// ----------------------------------
 
-export const formatDateForDisplay = (date: Date, unit: TimeUnit): string => {
-  const thisYear = new Date().getFullYear();
+export const formatDateForDisplay = (
+  date: Date,
+  unit: TimeUnit,
+  isDayVisible: boolean = true,
+): string => {
   switch (unit) {
     case 'day':
       return date.toLocaleDateString('en-US', {
         month: 'short',
-        day: 'numeric',
-        year: date.getFullYear() !== thisYear ? 'numeric' : undefined,
+        day: isDayVisible ? 'numeric' : undefined,
+        year: 'numeric',
       });
+
     case 'month':
-      return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+      return date.toLocaleDateString('en-US', {
+        day: isDayVisible ? 'numeric' : undefined,
+        month: 'short',
+        year: 'numeric',
+      });
+
     case 'year':
       return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
   }
 };
 
-// ----------------------------------
 // Time Label Generation
-// ----------------------------------
 
 export const generateTimeLabels = (start: Date, end: Date, unit: TimeUnit): Date[] => {
   const labels: Date[] = [];
@@ -119,9 +122,7 @@ export const generateTimeLabels = (start: Date, end: Date, unit: TimeUnit): Date
   return labels;
 };
 
-// ----------------------------------
 // Slider/Track Measurements
-// ----------------------------------
 
 export const generateTrackWidth = (
   total: number,
@@ -151,9 +152,7 @@ export const calculateLabelPositions = (
   });
 };
 
-// ----------------------------------
 // Scale Generation
-// ----------------------------------
 export const generateScalesWithInfo = (
   start: Date,
   end: Date,

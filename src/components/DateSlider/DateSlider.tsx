@@ -337,15 +337,20 @@ export const DateSlider = ({
     return handles;
   }
 
-  function renderTimeLabels(width: number) {
+  function renderTimeLabels() {
+    const isFirstTimeLabelHidden = timeLabels[0].date.getTime() < scales[0].date.getTime();
     return (
-      <div className="relative text-sm text-gray-500 " style={{ width: width }}>
+      <>
         {timeLabels.map(({ date, position }, index) => (
-          <span key={index} className="text-center shrink-0 absolute" style={{ left: position }}>
-            {formatDateForDisplay(date, timeUnit)}
+          <span
+            key={index}
+            className="bottom-0 text-center  text-sm text-gray-700 absolute"
+            style={index === 0 && isFirstTimeLabelHidden ? { left: 0 } : { left: position }}
+          >
+            {formatDateForDisplay(date, timeUnit, false).toUpperCase()}
           </span>
         ))}
-      </div>
+      </>
     );
   }
 
@@ -367,10 +372,8 @@ export const DateSlider = ({
             trackRef={trackRef}
           />
           {renderHandles()}
+          {renderTimeLabels()}
         </div>
-      </div>
-      <div style={{ paddingLeft: trackPaddingX, paddingRight: trackPaddingX }}>
-        {renderTimeLabels(sliderWidth)}
       </div>
     </div>
   );

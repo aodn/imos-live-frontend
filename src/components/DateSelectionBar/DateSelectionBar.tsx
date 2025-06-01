@@ -26,8 +26,8 @@ export const DateSelectionBar = ({ className }: DateSelectionBarProps) => {
       <DateSlider
         viewMode="point"
         timeUnit="day"
-        // startDate={new Date(2020, 0, 1)}
-        // endDate={new Date(2021, 11, 31)}
+        // startDate={new Date(2020, 0, 20)}
+        // endDate={new Date(2021, 0, 1)}
         startDate={convertUTCToLocalDateTime(new Date(lastSevenDays[0]))}
         endDate={convertUTCToLocalDateTime(new Date(lastSevenDays.at(-1)!))}
         initialPoint={convertUTCToLocalDateTime(new Date(lastSevenDays[0]))}
@@ -38,7 +38,7 @@ export const DateSelectionBar = ({ className }: DateSelectionBarProps) => {
         parentContainerRef={sliderContainerRef}
         sliderMovabale={true}
         scaleUnitConfig={{
-          gap: 72,
+          gap: 36,
           width: { short: 1, medium: 2, long: 2 },
           height: { short: 16, medium: 32, long: 64 },
         }}
