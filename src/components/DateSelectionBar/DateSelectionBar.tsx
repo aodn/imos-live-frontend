@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import { TriangleIcon } from '..';
 import { DateSlider, PointSelection, SelectionResult } from '../DateSlider';
 import { cn } from '@/lib/utils';
-import { getLast7DatesEnding3DaysAgo, toShortDateFormat } from '@/utils';
+import { convertUTCToLocalDateTime, getLast7DatesEnding3DaysAgo, toShortDateFormat } from '@/utils';
 import { useMapUIStore } from '@/store';
 
 type DateSelectionBarProps = { className?: string };
@@ -14,9 +14,9 @@ export const DateSelectionBar = ({ className }: DateSelectionBarProps) => {
   const setDataset = useMapUIStore(s => s.setDataset);
 
   const handleSelect = (v: PointSelection) => {
+    //currently, gsla ocean current data is naming in yy-mm-dd pattern, so need to convert same fromat.
     setDataset(toShortDateFormat(v.point));
   };
-  //TODO 1. the date value in storybook point mode is accurate between two scale units, but in here it span two units.
 
   return (
     <div
@@ -26,8 +26,11 @@ export const DateSelectionBar = ({ className }: DateSelectionBarProps) => {
       <DateSlider
         viewMode="point"
         timeUnit="day"
-        startDate={new Date(lastSevenDays[0])}
-        endDate={new Date(lastSevenDays.at(-1)!)}
+        // startDate={new Date(2020, 0, 1)}
+        // endDate={new Date(2021, 11, 31)}
+        startDate={convertUTCToLocalDateTime(new Date(lastSevenDays[0]))}
+        endDate={convertUTCToLocalDateTime(new Date(lastSevenDays.at(-1)!))}
+        initialPoint={convertUTCToLocalDateTime(new Date(lastSevenDays[0]))}
         pointHandleIcon={<TriangleIcon size="xxl" color="imos-grey" />}
         wrapperClassName="my-6 bg-gray-300"
         trackActiveClassName="hidden"

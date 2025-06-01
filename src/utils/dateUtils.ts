@@ -45,6 +45,12 @@ export function getLast7DatesEnding3DaysAgo(
   return dates as FixedLengthArray<string, 7>;
 }
 
+/**
+ * Convert dateString to yy-mm-dd type, beacuse current GSLA data for ocean current particles are named in yy-mm-dd format, which should be changed
+ * in the future.
+ * @param dateString
+ * @returns
+ */
 export function toShortDateFormat(dateString: string | Date): string {
   const date = new Date(dateString);
   if (isNaN(date.getTime())) {
@@ -56,4 +62,18 @@ export function toShortDateFormat(dateString: string | Date): string {
   const dd = String(date.getDate()).padStart(2, '0');
 
   return `${yy}-${mm}-${dd}`;
+}
+
+/**
+ * Converts a UTC date string to local timezone
+ * @param dateString
+ * @returns Date object in local timezone
+ */
+export function convertUTCToLocalDateTime(input: string | Date): Date {
+  const utcDate = new Date(input);
+  if (isNaN(utcDate.getTime())) {
+    throw new Error(`Invalid UTC date: ${input}`);
+  }
+
+  return new Date(utcDate.getUTCFullYear(), utcDate.getUTCMonth(), utcDate.getUTCDate());
 }

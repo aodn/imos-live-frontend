@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { SliderTrack } from './SliderTrack';
-import { getTotalTimeScales, generateScalesWithInfo } from '@/utils';
+import { getPeriodTimeScales, generateScalesWithInfo } from '@/utils';
 
 const meta: Meta<typeof SliderTrack> = {
   title: 'Components/Slider/SliderTrack',
@@ -39,7 +39,7 @@ export const PointMode: Story = {
     const start = new Date(2020, 0, 1);
     const end = new Date(2020, 1, 1);
     const timeUnit = 'day';
-    const totalScaleUnits = getTotalTimeScales(start, end, timeUnit);
+    const totalScaleUnits = getPeriodTimeScales(start, end, timeUnit);
 
     const { scales } = generateScalesWithInfo(start, end, timeUnit, totalScaleUnits);
     return <SliderTrack {...args} scales={scales} />;
@@ -59,7 +59,7 @@ export const RangeMode: Story = {
     const start = new Date(2020, 0, 1);
     const end = new Date(2020, 1, 1);
     const timeUnit = 'day';
-    const totalScaleUnits = getTotalTimeScales(start, end, timeUnit);
+    const totalScaleUnits = getPeriodTimeScales(start, end, timeUnit);
 
     const { scales } = generateScalesWithInfo(start, end, timeUnit, totalScaleUnits);
     return <SliderTrack {...args} scales={scales} />;
@@ -80,7 +80,7 @@ export const CombinedMode: Story = {
     const start = new Date(2020, 0, 1);
     const end = new Date(2020, 1, 1);
     const timeUnit = 'day';
-    const totalScaleUnits = getTotalTimeScales(start, end, timeUnit);
+    const totalScaleUnits = getPeriodTimeScales(start, end, timeUnit);
 
     const { scales } = generateScalesWithInfo(start, end, timeUnit, totalScaleUnits);
     return <SliderTrack {...args} scales={scales} />;

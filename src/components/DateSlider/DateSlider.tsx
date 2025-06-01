@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { SliderHandle } from './SliderHandle';
 import { SliderTrack } from './SliderTrack';
@@ -7,12 +7,18 @@ import {
   formatDateForDisplay,
   generateScalesWithInfo,
   generateTimeLabels,
-  getTotalTimeScales,
+  getPeriodTimeScales,
   generateTrackWidth,
   clamp,
 } from '@/utils';
 import { useDrag, useResizeObserver } from '@/hooks';
 import { SliderProps, DragHandle, SelectionResult } from './type';
+
+const DEFAULT_SCALE_CONFIG = {
+  gap: 12,
+  width: { short: 1, medium: 2, long: 2 },
+  height: { short: 8, medium: 16, long: 64 },
+};
 
 export const DateSlider = ({
   viewMode,
@@ -33,33 +39,38 @@ export const DateSlider = ({
   onChange,
   parentContainerRef,
   trackPaddingX = 24,
-  scaleUnitConfig = {
-    gap: 12,
-    width: { short: 1, medium: 2, long: 2 },
-    height: { short: 8, medium: 16, long: 64 },
-  },
+  scaleUnitConfig = DEFAULT_SCALE_CONFIG,
 }: SliderProps) => {
   const sliderRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
 
-  const totalScaleUnits = getTotalTimeScales(startDate, endDate, timeUnit);
-  const minGapPercent = (1 / totalScaleUnits) * 100 * minGapScaleUnits;
-  const { scales, numberOfScales } = generateScalesWithInfo(
-    startDate,
-    endDate,
-    timeUnit,
-    totalScaleUnits,
+  const totalScaleUnits = useMemo(
+    () => getPeriodTimeScales(startDate, endDate, timeUnit),
+    [startDate, endDate, timeUnit],
   );
-  const sliderWidth = isFixedWidth
-    ? fixedWidth
-    : generateTrackWidth(totalScaleUnits, numberOfScales, scaleUnitConfig);
+  const minGapPercent = (1 / totalScaleUnits) * 100 * minGapScaleUnits;
+  const { scales, numberOfScales } = useMemo(
+    () => generateScalesWithInfo(startDate, endDate, timeUnit, totalScaleUnits),
+    [endDate, startDate, timeUnit, totalScaleUnits],
+  );
+  const sliderWidth = useMemo(
+    () =>
+      isFixedWidth
+        ? fixedWidth
+        : generateTrackWidth(totalScaleUnits, numberOfScales, scaleUnitConfig),
+    [fixedWidth, isFixedWidth, numberOfScales, scaleUnitConfig, totalScaleUnits],
+  );
 
-  const timeLabels = calculateLabelPositions(
-    startDate,
-    generateTimeLabels(startDate, endDate, timeUnit),
-    timeUnit,
-    totalScaleUnits,
-    sliderWidth,
+  const timeLabels = useMemo(
+    () =>
+      calculateLabelPositions(
+        startDate,
+        generateTimeLabels(startDate, endDate, timeUnit),
+        timeUnit,
+        totalScaleUnits,
+        sliderWidth,
+      ),
+    [endDate, sliderWidth, startDate, timeUnit, totalScaleUnits],
   );
 
   const [dimensions, setDimensions] = useState({ parent: 0, slider: 0 });
@@ -80,6 +91,14 @@ export const DateSlider = ({
     pointPositionRef.current = pointPosition;
   }, [rangeStart, rangeEnd, pointPosition]);
 
+  const updateDimensions = useCallback(() => {
+    if (parentContainerRef?.current && sliderRef.current) {
+      const parentWidth = parentContainerRef.current.getBoundingClientRect().width;
+      const sliderWidth = sliderRef.current.getBoundingClientRect().width;
+      setDimensions({ parent: parentWidth, slider: sliderWidth });
+    }
+  }, [parentContainerRef]);
+
   useResizeObserver(parentContainerRef || { current: null }, updateDimensions);
 
   const { dragHandlers, isDragging: isContainerDragging } = useDrag({
@@ -96,30 +115,21 @@ export const DateSlider = ({
     },
   });
 
-  function updateDimensions() {
-    if (parentContainerRef?.current && sliderRef.current) {
-      const parentWidth = parentContainerRef.current.getBoundingClientRect().width;
-      const sliderWidth = sliderRef.current.getBoundingClientRect().width;
-
-      setDimensions({ parent: parentWidth, slider: sliderWidth });
-    }
-  }
-
   function getInitialRangeStart(): number {
     if (!initialRange?.start) return 0;
-    const diff = getTotalTimeScales(startDate, initialRange.start, timeUnit);
+    const diff = getPeriodTimeScales(startDate, initialRange.start, timeUnit);
     return clampPercent((diff / totalScaleUnits) * 100);
   }
 
   function getInitialRangeEnd(): number {
     if (!initialRange?.end) return 100;
-    const diff = getTotalTimeScales(startDate, initialRange.end, timeUnit);
+    const diff = getPeriodTimeScales(startDate, initialRange.end, timeUnit);
     return clampPercent((diff / totalScaleUnits) * 100);
   }
 
   function getInitialPointPosition(): number {
     if (!initialPoint) return 50;
-    const diff = getTotalTimeScales(startDate, initialPoint, timeUnit);
+    const diff = getPeriodTimeScales(startDate, initialPoint, timeUnit);
     return clampPercent((diff / totalScaleUnits) * 100);
   }
 
@@ -229,6 +239,7 @@ export const DateSlider = ({
       if (!isDragging) return;
 
       const percentage = getPercentageFromMouseEvent(e);
+
       updateHandlePositionOptimized(isDragging, percentage);
     },
     [isDragging, getPercentageFromMouseEvent, updateHandlePositionOptimized],
@@ -266,7 +277,7 @@ export const DateSlider = ({
   useEffect(() => {
     const selection = createSelectionResult();
     onChange(selection);
-  }, [rangeStart, rangeEnd, pointPosition, viewMode, onChange, createSelectionResult]);
+  }, [onChange, createSelectionResult]);
 
   useEffect(() => {
     if (!isDragging) return;

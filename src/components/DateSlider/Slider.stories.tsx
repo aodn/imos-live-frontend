@@ -12,11 +12,13 @@ const meta = {
   argTypes: {
     startDate: {
       control: 'date',
-      description: 'The starting date of the slider range.',
+      description:
+        'The starting date of the slider range. ⚠️ Must be a local `Date` object, not a UTC string. Use `new Date(y, m, d)`',
     },
     endDate: {
       control: 'date',
-      description: 'The ending date of the slider range.',
+      description:
+        'The ending date of the slider range. ⚠️ Must be a local `Date` object, not a UTC string. Use `new Date(y, m, d)`',
     },
     viewMode: {
       control: 'radio',
@@ -34,7 +36,8 @@ const meta = {
     },
     initialPoint: {
       control: false,
-      description: 'Initial selected date (only applicable for point or combined modes).',
+      description:
+        'Initial selected date (only applicable for point or combined modes). ⚠️ Must be a local `Date` object, not a UTC string. Use `new Date(y, m, d)`',
     },
     pointHandleIcon: {
       control: false,

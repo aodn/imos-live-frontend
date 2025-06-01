@@ -70,7 +70,6 @@ export function getVelocityAtPixel(
 
   const u = decodeChannel(r, uRange);
   const v = decodeChannel(g, vRange);
-  // console.log(`position: x:${x} y:${y}, R:${r},G:${g}, value: u:${u} v:${v}`);
   return { u, v, visible };
 }
 

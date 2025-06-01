@@ -32,7 +32,7 @@ export const generateNewDateByAddingScaleUnit = (
   return newDate;
 };
 
-export const getTotalTimeScales = (start: Date, end: Date, unit: TimeUnit): number => {
+export const getPeriodTimeScales = (start: Date, end: Date, unit: TimeUnit): number => {
   const msDiff = end.getTime() - start.getTime();
   switch (unit) {
     case 'day':
@@ -71,7 +71,7 @@ export const formatDateForDisplay = (date: Date, unit: TimeUnit): string => {
     case 'month':
       return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
     case 'year':
-      return date.getFullYear().toString();
+      return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
   }
 };
 
@@ -146,16 +146,14 @@ export const calculateLabelPositions = (
   const unitPixel = trackWidth / totalScaleUnits;
 
   return labels.map(label => {
-    const offset = getTotalTimeScales(start, label, unit);
+    const offset = getPeriodTimeScales(start, label, unit);
     return { date: label, position: offset * unitPixel };
   });
 };
 
 // ----------------------------------
-// Ruler Scale Generation
+// Scale Generation
 // ----------------------------------
-
-//generate all the scales that each sacle owns date, position and type, and amount of each type scale.
 export const generateScalesWithInfo = (
   start: Date,
   end: Date,
@@ -165,9 +163,17 @@ export const generateScalesWithInfo = (
   const scales: Scale[] = [];
   const scaleCounts = { short: 0, medium: 0, long: 0 };
 
+  const startTime = start.getTime();
+  const endTime = end.getTime();
+  const totalTimeSpan = endTime - startTime;
+
   for (let i = 0; i <= totalUnits; i++) {
     const current = generateNewDateByAddingScaleUnit(start, i, unit);
     if (current > end) break;
+
+    // Calculate position based on actual time elapsed
+    const currentTime = current.getTime();
+    const position = totalTimeSpan === 0 ? 0 : ((currentTime - startTime) / totalTimeSpan) * 100;
 
     let type: ScaleType = 'short';
     switch (unit) {
@@ -189,8 +195,27 @@ export const generateScalesWithInfo = (
     }
 
     scaleCounts[type]++;
-    const position = (i / totalUnits) * 100;
     scales.push({ date: current, position, type });
+  }
+
+  // If we don't have a scale exactly at the end date, add one
+  if (scales.length > 0 && scales[scales.length - 1].date.getTime() !== endTime) {
+    let type: ScaleType = 'short';
+    switch (unit) {
+      case 'day':
+        type = end.getDate() === 1 ? 'long' : end.getDay() === 1 ? 'medium' : 'short';
+        break;
+      case 'month':
+        type = end.getMonth() === 0 ? 'long' : end.getMonth() % 3 === 0 ? 'medium' : 'short';
+        break;
+      case 'year':
+        type =
+          end.getFullYear() % 10 === 0 ? 'long' : end.getFullYear() % 5 === 0 ? 'medium' : 'short';
+        break;
+    }
+
+    scaleCounts[type]++;
+    scales.push({ date: end, position: 100, type });
   }
 
   return { scales, numberOfScales: scaleCounts };
