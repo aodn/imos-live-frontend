@@ -22,9 +22,9 @@ const DEFAULT_SCALE_CONFIG = {
   height: { short: 8, medium: 16, long: 64 },
 };
 
-const SLIDER_MIN_WIDTH = 260;
+const DATE_SLIDER_MIN_WIDTH = 260;
 
-export const Slider = ({
+export const DateSlider = ({
   viewMode,
   startDate,
   endDate,
@@ -72,10 +72,12 @@ export const Slider = ({
   );
 
   const safeSliderWidth = useMemo(() => {
-    if (trackWidth + trackPaddingX * 2 < (sliderWidth ?? SLIDER_MIN_WIDTH))
-      return trackWidth + trackPaddingX * 2;
-    return sliderWidth ?? SLIDER_MIN_WIDTH;
-  }, [sliderWidth, trackPaddingX, trackWidth]);
+    if (isTrackFixedWidth && !scrollable) {
+      //if track width is fixed and not scrollable, slider width must be at least equal to trackFixedWidth + trackPaddingX * 2, so that no track will be hidden.
+      return trackFixedWidth + trackPaddingX * 2;
+    }
+    return Math.min(trackWidth + trackPaddingX * 2, sliderWidth ?? DATE_SLIDER_MIN_WIDTH);
+  }, [isTrackFixedWidth, trackWidth, trackPaddingX, sliderWidth, trackFixedWidth, scrollable]);
 
   const timeLabels = useMemo(
     () =>
@@ -93,9 +95,9 @@ export const Slider = ({
   const [isDragging, setIsDragging] = useState<DragHandle>(null);
   const [dragStarted, setDragStarted] = useState(false);
 
-  const [rangeStart, setRangeStart] = useState(() => getInitialRangeStart());
-  const [rangeEnd, setRangeEnd] = useState(() => getInitialRangeEnd());
-  const [pointPosition, setPointPosition] = useState(() => getInitialPointPosition());
+  const [rangeStart, setRangeStart] = useState(() => getInitialPosition('rangeStart'));
+  const [rangeEnd, setRangeEnd] = useState(() => getInitialPosition('rangeEnd'));
+  const [pointPosition, setPointPosition] = useState(() => getInitialPosition('point'));
 
   const rangeStartRef = useRef(rangeStart);
   const rangeEndRef = useRef(rangeEnd);
@@ -141,21 +143,23 @@ export const Slider = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function getInitialRangeStart(): number {
-    if (!initialRange?.start) return 0;
-    const diff = getPeriodTimeScales(startDate, initialRange.start, timeUnit);
-    return clampPercent((diff / totalScaleUnits) * 100);
-  }
+  function getInitialPosition(type: 'rangeStart' | 'rangeEnd' | 'point') {
+    const valueMap = {
+      rangeStart: initialRange?.start,
+      rangeEnd: initialRange?.end,
+      point: initialPoint,
+    };
 
-  function getInitialRangeEnd(): number {
-    if (!initialRange?.end) return 100;
-    const diff = getPeriodTimeScales(startDate, initialRange.end, timeUnit);
-    return clampPercent((diff / totalScaleUnits) * 100);
-  }
+    const defaultMap = {
+      rangeStart: 0,
+      rangeEnd: 100,
+      point: 50,
+    };
 
-  function getInitialPointPosition(): number {
-    if (!initialPoint) return 50;
-    const diff = getPeriodTimeScales(startDate, initialPoint, timeUnit);
+    const targetDate = valueMap[type];
+    if (!targetDate) return defaultMap[type];
+
+    const diff = getPeriodTimeScales(startDate, targetDate, timeUnit);
     return clampPercent((diff / totalScaleUnits) * 100);
   }
 
@@ -190,7 +194,7 @@ export const Slider = ({
   );
 
   // Optimized handle position update using refs for immediate response
-  const updateHandlePositionOptimized = useCallback(
+  const updateHandlePosition = useCallback(
     (handle: DragHandle, percentage: number) => {
       requestAnimationFrame(() => {
         switch (handle) {
@@ -231,7 +235,7 @@ export const Slider = ({
     const distanceToStart = Math.abs(percentage - rangeStartRef.current);
     const distanceToEnd = Math.abs(percentage - rangeEndRef.current);
     const closestHandle = distanceToStart < distanceToEnd ? 'start' : 'end';
-    updateHandlePositionOptimized(closestHandle, percentage);
+    updateHandlePosition(closestHandle, percentage);
   }
 
   const createSelectionResult = useCallback((): SelectionResult => {
@@ -266,9 +270,9 @@ export const Slider = ({
 
       const percentage = getPercentageFromMouseEvent(e);
 
-      updateHandlePositionOptimized(isDragging, percentage);
+      updateHandlePosition(isDragging, percentage);
     },
-    [isDragging, getPercentageFromMouseEvent, updateHandlePositionOptimized],
+    [isDragging, getPercentageFromMouseEvent, updateHandlePosition],
   );
 
   const handleMouseUp = useCallback(() => {
@@ -290,11 +294,11 @@ export const Slider = ({
         handleRangeClick(percentage);
         break;
       case 'point':
-        updateHandlePositionOptimized('point', percentage);
+        updateHandlePosition('point', percentage);
         break;
       case 'combined': {
         const closestHandle = findClosestHandle(percentage);
-        updateHandlePositionOptimized(closestHandle, percentage);
+        updateHandlePosition(closestHandle, percentage);
         break;
       }
     }

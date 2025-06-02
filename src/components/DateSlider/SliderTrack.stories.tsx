@@ -3,11 +3,18 @@ import { SliderTrack } from './SliderTrack';
 import { getPeriodTimeScales, generateScalesWithInfo } from '@/utils';
 
 const meta: Meta<typeof SliderTrack> = {
-  title: 'Components/Slider/SliderTrack',
+  title: 'Components/DateSlider/SliderTrack',
   component: SliderTrack,
   parameters: {
-    layout: 'fullscreen',
+    layout: 'centered',
   },
+  decorators: [
+    Story => (
+      <div className="w-fit h-16">
+        <Story />
+      </div>
+    ),
+  ],
   tags: ['autodocs'],
   argTypes: {
     onTrackClick: { action: 'track clicked' },
@@ -29,31 +36,36 @@ const meta: Meta<typeof SliderTrack> = {
 export default meta;
 type Story = StoryObj<typeof SliderTrack>;
 
-// Point Mode
+const DEFAULT_SCALE_CONFIG = {
+  gap: 12,
+  width: { short: 1, medium: 2, long: 2 },
+  height: { short: 8, medium: 16, long: 64 },
+};
+
 export const PointMode: Story = {
   args: {
     mode: 'point',
     pointPosition: 30,
+    baseTrackclassName: 'bg-neutral-200',
   },
   render: args => {
     const start = new Date(2020, 0, 1);
     const end = new Date(2020, 1, 1);
     const timeUnit = 'day';
     const totalScaleUnits = getPeriodTimeScales(start, end, timeUnit);
-
     const { scales } = generateScalesWithInfo(start, end, timeUnit, totalScaleUnits);
-    return <SliderTrack {...args} scales={scales} />;
+    return <SliderTrack {...args} scales={scales} scaleUnitConfig={DEFAULT_SCALE_CONFIG} />;
   },
 };
 
-// Range Mode
 export const RangeMode: Story = {
   args: {
     mode: 'range',
     rangeStart: 20,
     rangeEnd: 70,
-    inactiveTrackClassName: '',
-    activeTrackClassName: '',
+    baseTrackclassName: 'bg-neutral-100 mx-auto',
+    inactiveTrackClassName: 'bg-blue-200',
+    activeTrackClassName: 'bg-rose-500/40',
   },
   render: args => {
     const start = new Date(2020, 0, 1);
@@ -62,27 +74,6 @@ export const RangeMode: Story = {
     const totalScaleUnits = getPeriodTimeScales(start, end, timeUnit);
 
     const { scales } = generateScalesWithInfo(start, end, timeUnit, totalScaleUnits);
-    return <SliderTrack {...args} scales={scales} />;
-  },
-};
-
-// Combined Mode
-export const CombinedMode: Story = {
-  args: {
-    mode: 'combined',
-    rangeStart: 10,
-    rangeEnd: 90,
-    pointPosition: 50,
-    inactiveTrackClassName: '',
-    activeTrackClassName: '',
-  },
-  render: args => {
-    const start = new Date(2020, 0, 1);
-    const end = new Date(2020, 1, 1);
-    const timeUnit = 'day';
-    const totalScaleUnits = getPeriodTimeScales(start, end, timeUnit);
-
-    const { scales } = generateScalesWithInfo(start, end, timeUnit, totalScaleUnits);
-    return <SliderTrack {...args} scales={scales} />;
+    return <SliderTrack {...args} scales={scales} scaleUnitConfig={DEFAULT_SCALE_CONFIG} />;
   },
 };

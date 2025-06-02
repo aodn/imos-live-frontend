@@ -41,10 +41,9 @@ export const SliderTrack = ({
         onClick={onTrackClick}
       >
         {renderScales()}
-        {}
         <div
           className={cn(
-            'h-full bg-red-500 rounded-full transition-all duration-200 z-10',
+            'h-full bg-red-300 rounded-full transition-all duration-200 z-10',
             props.activeTrackClassName,
           )}
           style={{ width: `${props.pointPosition}%` }}
@@ -52,7 +51,7 @@ export const SliderTrack = ({
       </div>
     );
   }
-  if (props.mode === 'range') {
+  if (props.mode === 'range' || props.mode === 'combined') {
     return (
       <div
         ref={trackRef}
@@ -64,31 +63,6 @@ export const SliderTrack = ({
       >
         {renderScales()}
 
-        <div
-          className={cn(
-            'absolute h-full bg-blue-500/30 transition-all duration-200 z-10',
-            props.activeTrackClassName,
-          )}
-          style={{
-            left: `${props.rangeStart}%`,
-            width: `${props.rangeEnd - props.rangeStart}%`,
-          }}
-        />
-      </div>
-    );
-  }
-
-  if (props.mode === 'combined') {
-    return (
-      <div
-        ref={trackRef}
-        style={{
-          width: width,
-        }}
-        className={cn('h-full relative overflow-visible cursor-pointer', baseTrackclassName)}
-        onClick={onTrackClick}
-      >
-        {renderScales()}
         <div
           className={cn(
             'absolute h-full bg-blue-500/30 transition-all duration-200 z-10',

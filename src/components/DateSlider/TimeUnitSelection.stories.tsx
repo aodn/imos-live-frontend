@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { TimeUnitSelection } from './TimeUnitSelection';
 const meta: Meta<typeof TimeUnitSelection> = {
-  title: 'Components/Slider/TimeUnitSelection',
+  title: 'Components/DateSlider/TimeUnitSelection',
   component: TimeUnitSelection,
   parameters: {
     layout: 'centered',

@@ -1,5 +1,5 @@
 import { TriangleIcon } from '..';
-import { Slider, PointSelection, SelectionResult } from '../DateSlider';
+import { DateSlider, PointSelection, SelectionResult } from '../DateSlider';
 import { convertUTCToLocalDateTime, getLast7DatesEnding3DaysAgo, toShortDateFormat } from '@/utils';
 import { useMapUIStore } from '@/store';
 import { cn } from '@/lib/utils';
@@ -17,8 +17,8 @@ export const DateSelectionBar = ({ className }: DateSelectionBarProps) => {
   };
 
   return (
-    <div className={cn('shadow-xl bg-amber-700/30 rounded-lg', className)}>
-      <Slider
+    <div className={cn('shadow-xl', className)}>
+      <DateSlider
         viewMode="point"
         initialTimeUnit="day"
         // startDate={new Date(2020, 0, 1)}
@@ -27,7 +27,7 @@ export const DateSelectionBar = ({ className }: DateSelectionBarProps) => {
         endDate={convertUTCToLocalDateTime(new Date(lastSevenDays.at(-1)!))}
         initialPoint={convertUTCToLocalDateTime(new Date(lastSevenDays[0]))}
         pointHandleIcon={<TriangleIcon size="xxl" color="imos-grey" />}
-        wrapperClassName="rounded-xl bg-gray-300"
+        wrapperClassName="rounded-xl bg-gray-300/70"
         trackActiveClassName="hidden"
         onChange={handleSelect as (v: SelectionResult) => void}
         scrollable={true}
