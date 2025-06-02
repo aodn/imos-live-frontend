@@ -18,17 +18,20 @@ export const SliderTrack = ({
     height: scaleUnitConfig.height[type] ?? 1,
   });
 
-  const renderScales = () => (
-    <div className="absolute inset-0 pointer-events-none">
-      {scales?.map((scale, index) => (
-        <div
-          key={index}
-          className={cn('absolute bg-gray-600 transform -translate-x-0.5 top-0')}
-          style={{ left: `${scale.position}%`, ...getSize(scale.type) }}
-        />
-      ))}
-    </div>
-  );
+  const renderScales = () => {
+    console.log(scales);
+    return (
+      <div className="absolute inset-0 pointer-events-none">
+        {scales?.map((scale, index) => (
+          <div
+            key={index}
+            className={cn('absolute bg-gray-600 transform -translate-x-0.5 top-0')}
+            style={{ left: `${scale.position}%`, ...getSize(scale.type) }}
+          />
+        ))}
+      </div>
+    );
+  };
 
   if (props.mode === 'point') {
     return (

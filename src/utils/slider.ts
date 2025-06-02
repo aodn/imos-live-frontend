@@ -199,19 +199,19 @@ export const generateScalesWithInfo = (
 
   // If we don't have a scale exactly at the end date, add one
   if (scales.length > 0 && scales[scales.length - 1].date.getTime() !== endTime) {
-    let type: ScaleType = 'short';
-    switch (unit) {
-      case 'day':
-        type = end.getDate() === 1 ? 'long' : end.getDay() === 1 ? 'medium' : 'short';
-        break;
-      case 'month':
-        type = end.getMonth() === 0 ? 'long' : end.getMonth() % 3 === 0 ? 'medium' : 'short';
-        break;
-      case 'year':
-        type =
-          end.getFullYear() % 10 === 0 ? 'long' : end.getFullYear() % 5 === 0 ? 'medium' : 'short';
-        break;
-    }
+    const type: ScaleType = 'short';
+    // switch (unit) {
+    //   case 'day':
+    //     type = end.getDate() === 1 ? 'long' : end.getDay() === 1 ? 'medium' : 'short';
+    //     break;
+    //   case 'month':
+    //     type = end.getMonth() === 0 ? 'long' : end.getMonth() % 3 === 0 ? 'medium' : 'short';
+    //     break;
+    //   case 'year':
+    //     type =
+    //       end.getFullYear() % 10 === 0 ? 'long' : end.getFullYear() % 5 === 0 ? 'medium' : 'short';
+    //     break;
+    // }
 
     scaleCounts[type]++;
     scales.push({ date: end, position: 100, type });

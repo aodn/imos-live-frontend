@@ -192,12 +192,12 @@ export const MonthTimeUnit: Story = {
 export const YearTimeUnit: Story = {
   args: {
     viewMode: 'range',
-    startDate: new Date('2020-01-01'),
-    endDate: new Date('2030-12-31'),
+    startDate: new Date('2020-02-01'),
+    endDate: new Date('2036-12-10'),
     initialTimeUnit: 'year',
     initialRange: {
       start: new Date('2022-01-01'),
-      end: new Date('2025-01-01'),
+      end: new Date('2025-07-02'),
     },
   },
   parameters: {
