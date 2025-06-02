@@ -37,10 +37,7 @@ export const SliderTrack = ({
         style={{
           width: width,
         }}
-        className={cn(
-          'h-16 bg-gray-300 relative overflow-visible cursor-pointer',
-          baseTrackclassName,
-        )}
+        className={cn('h-full relative overflow-visible cursor-pointer', baseTrackclassName)}
         onClick={onTrackClick}
       >
         {renderScales()}
@@ -62,10 +59,7 @@ export const SliderTrack = ({
         style={{
           width: width,
         }}
-        className={cn(
-          'h-16 bg-gray-300 relative overflow-visible cursor-pointer',
-          baseTrackclassName,
-        )}
+        className={cn('h-full relative overflow-visible cursor-pointer', baseTrackclassName)}
         onClick={onTrackClick}
       >
         {renderScales()}
@@ -91,10 +85,7 @@ export const SliderTrack = ({
         style={{
           width: width,
         }}
-        className={cn(
-          'h-16 bg-gray-300 relative overflow-visible cursor-pointer',
-          baseTrackclassName,
-        )}
+        className={cn('h-full relative overflow-visible cursor-pointer', baseTrackclassName)}
         onClick={onTrackClick}
       >
         {renderScales()}

@@ -29,9 +29,8 @@ export const Map = () => {
           <div className="h-full w-full relative">
             <MapComponent ref={mapRef} />
             <MapControlPanel ref={mapRef} className="absolute top-16 left-4 z-10" />
-            <div className="absolute bottom-8 w-full flex ">
-              <DateSelectionBar className="rounded-4xl" />
-            </div>
+
+            <DateSelectionBar className="absolute bottom-8 left-1/2 -translate-x-1/2 max-w-full" />
           </div>
 
           <FloatingPanel

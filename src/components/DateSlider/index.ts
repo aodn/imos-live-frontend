@@ -1,2 +1,2 @@
-export * from './DateSlider';
+export * from './Slider';
 export * from './type';

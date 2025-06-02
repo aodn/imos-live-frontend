@@ -10,9 +10,11 @@ import {
   getPeriodTimeScales,
   generateTrackWidth,
   clamp,
+  checkDateDuration,
 } from '@/utils';
 import { useDrag, useResizeObserver } from '@/hooks';
-import { SliderProps, DragHandle, SelectionResult } from './type';
+import { SliderProps, DragHandle, SelectionResult, TimeUnit } from './type';
+import { TimeUnitSelection } from './TimeUnitSelection';
 
 const DEFAULT_SCALE_CONFIG = {
   gap: 12,
@@ -20,11 +22,13 @@ const DEFAULT_SCALE_CONFIG = {
   height: { short: 8, medium: 16, long: 64 },
 };
 
-export const DateSlider = ({
+const SLIDER_MIN_WIDTH = 260;
+
+export const Slider = ({
   viewMode,
   startDate,
   endDate,
-  timeUnit,
+  initialTimeUnit,
   initialRange,
   initialPoint,
   wrapperClassName,
@@ -32,34 +36,46 @@ export const DateSlider = ({
   trackBaseClassName,
   pointHandleIcon,
   rangeHandleIcon,
-  sliderMovabale = true,
-  isFixedWidth = false,
-  fixedWidth = 300,
+  scrollable = true,
+  isTrackFixedWidth = false,
+  trackFixedWidth = 300,
   minGapScaleUnits = 3,
   onChange,
-  parentContainerRef,
-  trackPaddingX = 24,
+  trackPaddingX = 36,
   scaleUnitConfig = DEFAULT_SCALE_CONFIG,
+  sliderWidth,
+  sliderHeight,
 }: SliderProps) => {
   const sliderRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
+  const sliderContainerRef = useRef<HTMLDivElement>(null);
+  const [timeUnit, setTimeUnit] = useState<TimeUnit>(initialTimeUnit);
 
   const totalScaleUnits = useMemo(
     () => getPeriodTimeScales(startDate, endDate, timeUnit),
     [startDate, endDate, timeUnit],
   );
+
   const minGapPercent = (1 / totalScaleUnits) * 100 * minGapScaleUnits;
+
   const { scales, numberOfScales } = useMemo(
     () => generateScalesWithInfo(startDate, endDate, timeUnit, totalScaleUnits),
     [endDate, startDate, timeUnit, totalScaleUnits],
   );
-  const sliderWidth = useMemo(
+
+  const trackWidth = useMemo(
     () =>
-      isFixedWidth
-        ? fixedWidth
+      isTrackFixedWidth
+        ? trackFixedWidth
         : generateTrackWidth(totalScaleUnits, numberOfScales, scaleUnitConfig),
-    [fixedWidth, isFixedWidth, numberOfScales, scaleUnitConfig, totalScaleUnits],
+    [trackFixedWidth, isTrackFixedWidth, numberOfScales, scaleUnitConfig, totalScaleUnits],
   );
+
+  const safeSliderWidth = useMemo(() => {
+    if (trackWidth + trackPaddingX * 2 < (sliderWidth ?? SLIDER_MIN_WIDTH))
+      return trackWidth + trackPaddingX * 2;
+    return sliderWidth ?? SLIDER_MIN_WIDTH;
+  }, [sliderWidth, trackPaddingX, trackWidth]);
 
   const timeLabels = useMemo(
     () =>
@@ -68,9 +84,9 @@ export const DateSlider = ({
         generateTimeLabels(startDate, endDate, timeUnit),
         timeUnit,
         totalScaleUnits,
-        sliderWidth,
+        trackWidth,
       ),
-    [endDate, sliderWidth, startDate, timeUnit, totalScaleUnits],
+    [endDate, trackWidth, startDate, timeUnit, totalScaleUnits],
   );
 
   const [dimensions, setDimensions] = useState({ parent: 0, slider: 0 });
@@ -92,17 +108,21 @@ export const DateSlider = ({
   }, [rangeStart, rangeEnd, pointPosition]);
 
   const updateDimensions = useCallback(() => {
-    if (parentContainerRef?.current && sliderRef.current) {
-      const parentWidth = parentContainerRef.current.getBoundingClientRect().width;
-      const sliderWidth = sliderRef.current.getBoundingClientRect().width;
-      setDimensions({ parent: parentWidth, slider: sliderWidth });
+    if (sliderContainerRef?.current && sliderRef.current) {
+      const parentWidth = sliderContainerRef.current.getBoundingClientRect().width;
+      const trackWidth = sliderRef.current.getBoundingClientRect().width;
+      setDimensions({ parent: parentWidth, slider: trackWidth });
     }
-  }, [parentContainerRef]);
+  }, [sliderContainerRef]);
 
-  useResizeObserver(parentContainerRef || { current: null }, updateDimensions);
+  useResizeObserver(sliderRef || { current: null }, updateDimensions);
 
-  const { dragHandlers, isDragging: isContainerDragging } = useDrag({
-    targetRef: sliderMovabale ? sliderRef : undefined,
+  const {
+    dragHandlers,
+    isDragging: isContainerDragging,
+    resetPosition,
+  } = useDrag({
+    targetRef: scrollable ? sliderRef : undefined,
     initialPosition: { x: 0, y: 0 },
     constrainToAxis: 'x',
     bounds: {
@@ -114,6 +134,12 @@ export const DateSlider = ({
       setDragStarted(true);
     },
   });
+
+  const handleTimeUnitChange = useCallback((unit: TimeUnit) => {
+    setTimeUnit(unit);
+    resetPosition({ x: 0, y: 0 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function getInitialRangeStart(): number {
     if (!initialRange?.start) return 0;
@@ -353,28 +379,47 @@ export const DateSlider = ({
       </>
     );
   }
-
   return (
-    <div className={cn('w-fit', wrapperClassName)} ref={sliderRef} {...dragHandlers}>
-      <div style={{ paddingLeft: trackPaddingX, paddingRight: trackPaddingX }}>
-        <div className="relative">
-          <SliderTrack
-            mode={viewMode}
-            pointPosition={pointPosition}
-            rangeStart={rangeStart}
-            rangeEnd={rangeEnd}
-            onTrackClick={handleTrackClick}
-            scales={scales}
-            width={sliderWidth}
-            scaleUnitConfig={scaleUnitConfig}
-            baseTrackclassName={trackBaseClassName}
-            activeTrackClassName={trackActiveClassName}
-            trackRef={trackRef}
-          />
-          {renderHandles()}
-          {renderTimeLabels()}
+    <div
+      className={cn('w-fit flex border', wrapperClassName)}
+      style={{ height: sliderHeight ?? 96 }}
+    >
+      <div
+        ref={sliderContainerRef}
+        className="overflow-hidden h-full"
+        style={{ width: safeSliderWidth }}
+      >
+        <div className={cn('w-fit h-full')} ref={sliderRef} {...dragHandlers}>
+          <div
+            style={{ paddingLeft: trackPaddingX, paddingRight: trackPaddingX }}
+            className="h-full"
+          >
+            <div className="relative h-full">
+              <SliderTrack
+                mode={viewMode}
+                pointPosition={pointPosition}
+                rangeStart={rangeStart}
+                rangeEnd={rangeEnd}
+                onTrackClick={handleTrackClick}
+                scales={scales}
+                width={trackWidth}
+                scaleUnitConfig={scaleUnitConfig}
+                baseTrackclassName={trackBaseClassName}
+                activeTrackClassName={trackActiveClassName}
+                trackRef={trackRef}
+              />
+              {renderHandles()}
+              {renderTimeLabels()}
+            </div>
+          </div>
         </div>
       </div>
+      <TimeUnitSelection
+        isMonthValid={checkDateDuration(startDate, endDate).moreThanOneMonth}
+        isYearValid={checkDateDuration(startDate, endDate).moreThanOneYear}
+        onChange={handleTimeUnitChange}
+        initialTimeUnit={initialTimeUnit}
+      />
     </div>
   );
 };

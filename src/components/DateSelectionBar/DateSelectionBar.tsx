@@ -1,14 +1,12 @@
-import { useRef } from 'react';
 import { TriangleIcon } from '..';
-import { DateSlider, PointSelection, SelectionResult } from '../DateSlider';
-import { cn } from '@/lib/utils';
+import { Slider, PointSelection, SelectionResult } from '../DateSlider';
 import { convertUTCToLocalDateTime, getLast7DatesEnding3DaysAgo, toShortDateFormat } from '@/utils';
 import { useMapUIStore } from '@/store';
+import { cn } from '@/lib/utils';
 
 type DateSelectionBarProps = { className?: string };
 
 export const DateSelectionBar = ({ className }: DateSelectionBarProps) => {
-  const sliderContainerRef = useRef<HTMLDivElement>(null);
   const lastSevenDays = getLast7DatesEnding3DaysAgo('yyyy-mm-dd');
 
   const setDataset = useMapUIStore(s => s.setDataset);
@@ -19,28 +17,24 @@ export const DateSelectionBar = ({ className }: DateSelectionBarProps) => {
   };
 
   return (
-    <div
-      className={cn('border-2 mx-auto mt-20 px-4 overflow-hidden bg-red-400/30', className)}
-      ref={sliderContainerRef}
-    >
-      <DateSlider
+    <div className={cn('shadow-xl bg-amber-700/30 rounded-lg', className)}>
+      <Slider
         viewMode="point"
-        timeUnit="day"
-        // startDate={new Date(2020, 0, 20)}
+        initialTimeUnit="day"
+        // startDate={new Date(2020, 0, 1)}
         // endDate={new Date(2021, 0, 1)}
         startDate={convertUTCToLocalDateTime(new Date(lastSevenDays[0]))}
         endDate={convertUTCToLocalDateTime(new Date(lastSevenDays.at(-1)!))}
         initialPoint={convertUTCToLocalDateTime(new Date(lastSevenDays[0]))}
         pointHandleIcon={<TriangleIcon size="xxl" color="imos-grey" />}
-        wrapperClassName="my-6 bg-gray-300"
+        wrapperClassName="rounded-xl bg-gray-300"
         trackActiveClassName="hidden"
         onChange={handleSelect as (v: SelectionResult) => void}
-        parentContainerRef={sliderContainerRef}
-        sliderMovabale={true}
+        scrollable={true}
         scaleUnitConfig={{
           gap: 36,
           width: { short: 1, medium: 2, long: 2 },
-          height: { short: 16, medium: 32, long: 64 },
+          height: { short: 24, medium: 48, long: 108 },
         }}
       />
     </div>

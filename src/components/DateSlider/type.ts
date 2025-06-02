@@ -37,7 +37,7 @@ export type SliderProps = {
   viewMode: ViewMode;
   startDate: Date;
   endDate: Date;
-  timeUnit: TimeUnit;
+  initialTimeUnit: TimeUnit;
   initialRange?: { start: Date; end: Date };
   initialPoint?: Date;
   wrapperClassName?: string;
@@ -46,13 +46,14 @@ export type SliderProps = {
   pointHandleIcon?: ReactNode;
   rangeHandleIcon?: ReactNode;
   onChange: (selection: SelectionResult) => void;
-  sliderMovabale?: boolean;
-  isFixedWidth?: boolean;
-  fixedWidth?: number;
+  scrollable?: boolean;
+  isTrackFixedWidth?: boolean;
+  trackFixedWidth?: number;
   minGapScaleUnits?: number;
-  parentContainerRef?: RefObject<HTMLDivElement | null>;
   scaleUnitConfig?: ScaleUnitConfig;
   trackPaddingX?: number;
+  sliderWidth?: number;
+  sliderHeight?: number;
 };
 
 export type ScaleType = 'short' | 'medium' | 'long';
