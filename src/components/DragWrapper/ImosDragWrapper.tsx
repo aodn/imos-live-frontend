@@ -29,6 +29,7 @@ export const ImosDragWrapper = ({
   const dragTargetElementRef = useRef<HTMLDivElement>(null);
   const [parentDimesion, setParentDimesion] = useState({ width: 0, height: 0 });
   const [targetDimesion, setTargetDimesion] = useState({ width: 0, height: 0 });
+
   const updateDimesion = useCallback(() => {
     if (!dragTargetElementRef.current) return;
 

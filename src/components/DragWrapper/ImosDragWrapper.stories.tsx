@@ -56,7 +56,47 @@ const CollapsibleTrigger = ({
   );
 };
 
-export const Primary: Story = {
+export const WindowBoundary: Story = {
+  render: args => {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const { open, toggle } = useToggle(false);
+
+    return (
+      <ImosDragWrapper
+        {...args}
+        boundary="window"
+        dragHandleClassName="drag-me"
+        initialPosition={{ x: 10, y: 90 }}
+        disableDragging={false}
+      >
+        <CollapsibleComponent
+          maxHeight={600}
+          direction={'down'}
+          wrapperClassName="bg-imos-grey rounded-lg shadow-lg w-96"
+          open={open}
+          trigger={<CollapsibleTrigger open={open} onToggle={toggle} direction={'down'} />}
+        >
+          <div className="p-4 space-y-4">
+            <div className="text-imos-white">
+              <h4 className="font-medium mb-2">Expanded Content</h4>
+              <p className="text-sm leading-relaxed mb-4">
+                This is additional content that becomes visible when the collapsible is expanded.
+                You can include any type of content here.
+              </p>
+              <div className="bg-imos-white/10 rounded p-3">
+                <p className="text-xs text-imos-white/80">
+                  Status: <span className="text-green-400">Expanded</span>
+                </p>
+              </div>
+            </div>
+          </div>
+        </CollapsibleComponent>
+      </ImosDragWrapper>
+    );
+  },
+};
+
+export const ParentBoundary: Story = {
   render: args => {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const { open, toggle } = useToggle(false);

@@ -3,7 +3,7 @@ import { DragWrapper } from './DragWrapper';
 import { Button } from '../Button';
 
 const meta = {
-  title: 'components/DragWrapper',
+  title: 'components/DragWrapper/DragWrapper',
   component: DragWrapper,
   parameters: {
     layout: 'fullscreen',
