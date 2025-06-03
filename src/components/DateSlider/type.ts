@@ -95,8 +95,6 @@ export type RangeModeProps = {
 export type SliderTrackProps = BaseSliderTrackProps &
   (PointModeProps | RangeModeProps | CombinedModeProps);
 
-export type ScaltType = 'short' | 'medium' | 'long';
-
 export type SliderHandleProps = {
   className?: string;
   labelClassName?: string;

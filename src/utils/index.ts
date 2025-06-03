@@ -11,6 +11,7 @@ export * from './sleep';
 export * from './getScaledDimensions';
 export * from './normalizeLayerSets';
 export * from './generateYearsByStep';
-export * from './slider';
+export * from './dateSliderUtils';
 export * from './clamp';
 export * from './checkDateDuration';
+export * from './queryIncludingSelf';

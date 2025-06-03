@@ -8,6 +8,7 @@ const meta: Meta<typeof SliderHandle> = {
   parameters: {
     layout: 'centered',
   },
+  tags: ['autodocs'],
   decorators: [
     Story => (
       <div className="w-96 h-24 bg-gray-100 relative border rounded">

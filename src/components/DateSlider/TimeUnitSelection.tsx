@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { Button, TriangleIcon } from '..';
+import { Button, TriangleIcon } from '../';
 import { TimeUnit } from './type';
 import { useState, useRef, useEffect } from 'react';
 
@@ -21,16 +21,15 @@ export const TimeUnitSelection = ({
   onChange,
 }: TimeUnitSelectionProps) => {
   const [timeUnit, setTimeUnit] = useState<TimeUnit>(initialTimeUnit);
-
   const timeUnitSelectionIndexRef = useRef(0);
 
   const isPrevBtnDisabled = () => {
     return timeUnitSelectionIndexRef.current === 0;
   };
+
   const isNextBtnDisabled = () => {
     const isLastTimeUnit = timeUnitSelectionIndexRef.current === TIME_UNITS.length - 1;
     const isMonthSelected = TIME_UNITS[timeUnitSelectionIndexRef.current] === 'month';
-
     return isLastTimeUnit || !isMonthValid || (isMonthSelected && !isYearValid);
   };
 
@@ -41,7 +40,6 @@ export const TimeUnitSelection = ({
   const handleTimeUnitNextSelect = () => {
     if (timeUnitSelectionIndexRef.current < 2) timeUnitSelectionIndexRef.current++;
     if (timeUnitSelectionIndexRef.current > 2) timeUnitSelectionIndexRef.current = 0;
-
     setTimeUnit(TIME_UNITS[timeUnitSelectionIndexRef.current]);
   };
 
@@ -50,7 +48,6 @@ export const TimeUnitSelection = ({
     if (timeUnitSelectionIndexRef.current < 0) timeUnitSelectionIndexRef.current = 2;
     setTimeUnit(TIME_UNITS[timeUnitSelectionIndexRef.current]);
   };
-  //TODO check if can select month or year unit, see if there are more than one month or one year.
 
   return (
     <div
@@ -59,9 +56,10 @@ export const TimeUnitSelection = ({
         className,
       )}
     >
-      <p className="text-center text-base">{timeUnit.toUpperCase()}</p>
+      <p className="text-center text-base font-bold">{timeUnit.toUpperCase()}</p>
       <div className="flex flex-col">
         <Button
+          aria-label="previous time unit"
           size={'icon'}
           variant={'ghost'}
           onClick={handleTimeUnitPreviousSelect}
@@ -70,6 +68,7 @@ export const TimeUnitSelection = ({
           <TriangleIcon size="lg" color="imos-grey" />
         </Button>
         <Button
+          aria-label="next time unit"
           size={'icon'}
           variant={'ghost'}
           className="rotate-180"

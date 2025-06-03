@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { SliderHandle } from './SliderHandle';
 import { SliderTrack } from './SliderTrack';
@@ -9,8 +9,8 @@ import {
   generateTimeLabels,
   getPeriodTimeScales,
   generateTrackWidth,
-  clamp,
   checkDateDuration,
+  clampPercent,
 } from '@/utils';
 import { useDrag, useResizeObserver } from '@/hooks';
 import { SliderProps, DragHandle, SelectionResult, TimeUnit } from './type';
@@ -46,17 +46,31 @@ export const DateSlider = ({
   sliderWidth,
   sliderHeight,
 }: SliderProps) => {
-  const sliderRef = useRef<HTMLDivElement>(null);
-  const trackRef = useRef<HTMLDivElement>(null);
-  const sliderContainerRef = useRef<HTMLDivElement>(null);
+  const [dimensions, setDimensions] = useState({ parent: 0, slider: 0 });
+  const [isDragging, setIsDragging] = useState<DragHandle>(null);
+  const [dragStarted, setDragStarted] = useState(false);
   const [timeUnit, setTimeUnit] = useState<TimeUnit>(initialTimeUnit);
-
+  //totalScaleUnits is used inside getInitialPosition function, so it is put in front.
   const totalScaleUnits = useMemo(
     () => getPeriodTimeScales(startDate, endDate, timeUnit),
     [startDate, endDate, timeUnit],
   );
 
-  const minGapPercent = (1 / totalScaleUnits) * 100 * minGapScaleUnits;
+  const [rangeStart, setRangeStart] = useState(() => getInitialPosition('rangeStart'));
+  const [rangeEnd, setRangeEnd] = useState(() => getInitialPosition('rangeEnd'));
+  const [pointPosition, setPointPosition] = useState(() => getInitialPosition('point'));
+
+  const sliderRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const sliderContainerRef = useRef<HTMLDivElement>(null);
+  const rangeStartRef = useRef(rangeStart);
+  const rangeEndRef = useRef(rangeEnd);
+  const pointPositionRef = useRef(pointPosition);
+
+  const minGapPercent = useMemo(
+    () => (1 / totalScaleUnits) * 100 * minGapScaleUnits,
+    [minGapScaleUnits, totalScaleUnits],
+  );
 
   const { scales, numberOfScales } = useMemo(
     () => generateScalesWithInfo(startDate, endDate, timeUnit, totalScaleUnits),
@@ -90,18 +104,6 @@ export const DateSlider = ({
       ),
     [endDate, trackWidth, startDate, timeUnit, totalScaleUnits],
   );
-
-  const [dimensions, setDimensions] = useState({ parent: 0, slider: 0 });
-  const [isDragging, setIsDragging] = useState<DragHandle>(null);
-  const [dragStarted, setDragStarted] = useState(false);
-
-  const [rangeStart, setRangeStart] = useState(() => getInitialPosition('rangeStart'));
-  const [rangeEnd, setRangeEnd] = useState(() => getInitialPosition('rangeEnd'));
-  const [pointPosition, setPointPosition] = useState(() => getInitialPosition('point'));
-
-  const rangeStartRef = useRef(rangeStart);
-  const rangeEndRef = useRef(rangeEnd);
-  const pointPositionRef = useRef(pointPosition);
 
   useEffect(() => {
     rangeStartRef.current = rangeStart;
@@ -137,12 +139,6 @@ export const DateSlider = ({
     },
   });
 
-  const handleTimeUnitChange = useCallback((unit: TimeUnit) => {
-    setTimeUnit(unit);
-    resetPosition({ x: 0, y: 0 });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   function getInitialPosition(type: 'rangeStart' | 'rangeEnd' | 'point') {
     const valueMap = {
       rangeStart: initialRange?.start,
@@ -163,9 +159,11 @@ export const DateSlider = ({
     return clampPercent((diff / totalScaleUnits) * 100);
   }
 
-  function clampPercent(value: number): number {
-    return clamp(value, 0, 100);
-  }
+  const handleTimeUnitChange = useCallback((unit: TimeUnit) => {
+    setTimeUnit(unit);
+    resetPosition({ x: 0, y: 0 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const getDateFromPercent = useCallback(
     (percent: number): Date => {
@@ -193,7 +191,6 @@ export const DateSlider = ({
     [trackRef],
   );
 
-  // Optimized handle position update using refs for immediate response
   const updateHandlePosition = useCallback(
     (handle: DragHandle, percentage: number) => {
       requestAnimationFrame(() => {
@@ -305,11 +302,6 @@ export const DateSlider = ({
   };
 
   useEffect(() => {
-    const selection = createSelectionResult();
-    onChange(selection);
-  }, [onChange, createSelectionResult]);
-
-  useEffect(() => {
     if (!isDragging) return;
 
     document.addEventListener('mousemove', handleMouseMove);
@@ -320,6 +312,11 @@ export const DateSlider = ({
       document.removeEventListener('mouseup', handleMouseUp);
     };
   }, [isDragging, handleMouseMove, handleMouseUp]);
+
+  useEffect(() => {
+    const selection = createSelectionResult();
+    onChange(selection);
+  }, [onChange, createSelectionResult]);
 
   function renderHandles() {
     const handles = [];

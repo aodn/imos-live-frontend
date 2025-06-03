@@ -4,62 +4,12 @@ import { useDrawerStore } from '@/store';
 import { useShallow } from 'zustand/shallow';
 import { Button } from '../Button';
 
-const meta = {
+const meta: Meta<typeof Drawer> = {
   title: 'components/Drawer',
   component: Drawer,
-  parameters: {
-    layout: 'fullscreen',
-    controls: { disable: true },
-  },
   tags: ['autodocs'],
-} satisfies Meta<typeof Drawer>;
-
-export default meta;
-type Story = StoryObj<typeof meta>;
-
-const DrawerContent = () => {
-  return (
-    <div>
-      <h2 className="text-lg font-bold mb-2">Drawer Content</h2>
-      <p>Everything goes here.</p>
-    </div>
-  );
-};
-
-const DrawerDemo = ({ snapPoints, snapMode, direction, className, onClose }: DrawerProps) => {
-  const { openDrawer, content } = useDrawerStore(
-    useShallow(s => ({
-      openDrawer: s.openDrawer,
-      content: s.content,
-    })),
-  );
-  return (
-    <>
-      <Button variant="default" onClick={() => openDrawer(<DrawerContent />)}>
-        open drawer
-      </Button>
-      <Drawer
-        className={className}
-        snapMode={snapMode}
-        direction={direction}
-        snapPoints={snapPoints}
-        onClose={onClose}
-        children={content}
-      />
-    </>
-  );
-};
-
-export const Demo: Story = {
-  render: args => <DrawerDemo {...args} />,
-  args: {
-    snapMode: 'snap',
-    direction: 'bottom',
-    snapPoints: ['30%', '50%', '70%'],
-    className: '',
-    onClose: () => console.log('Drawer closed'),
-  },
   parameters: {
+    layout: 'centered',
     controls: { disable: true },
     docs: {
       description: {
@@ -68,4 +18,43 @@ export const Demo: Story = {
       },
     },
   },
+};
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+const DrawerContent = () => (
+  <div>
+    <h2 className="text-lg font-bold mb-2">Drawer Content</h2>
+    <p>Everything goes here.</p>
+  </div>
+);
+
+const DrawerDemo = (props: DrawerProps) => {
+  const { openDrawer, content } = useDrawerStore(
+    useShallow(state => ({
+      openDrawer: state.openDrawer,
+      content: state.content,
+    })),
+  );
+
+  return (
+    <>
+      <Button variant="default" onClick={() => openDrawer(<DrawerContent />)}>
+        Open Drawer
+      </Button>
+      <Drawer {...props} children={content} />
+    </>
+  );
+};
+
+export const Demo: Story = {
+  args: {
+    snapMode: 'snap',
+    direction: 'bottom',
+    snapPoints: ['30%', '50%', '70%'],
+    className: '',
+    onClose: () => console.log('Drawer closed'),
+  },
+  render: args => <DrawerDemo {...args} />,
 };

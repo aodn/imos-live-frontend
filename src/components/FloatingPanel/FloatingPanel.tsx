@@ -45,5 +45,30 @@ export const FloatingPanel = ({
       )}
       {!collapsible && <div className={cn(wrapperClassName, dragHandleClass)}>{children}</div>}
     </DragWrapper>
+
+    // <ImosDragWrapper
+    //   boundary={bounds}
+    //   dragHandleClassName={dragHandleClass}
+    //   initialPosition={initialPosition}
+    //   className="absolute left-0 top-0"
+    // >
+    //   {collapsible && (
+    //     <CollapsibleComponent
+    //       maxHeight={maxHeight}
+    //       wrapperClassName={wrapperClassName}
+    //       open={open}
+    //       trigger={
+    //         <CollapsibleTrigger
+    //           clasName="rounded-t-xl"
+    //           open={open}
+    //           toggle={toggle}
+    //           dragHandleClass={dragHandleClass}
+    //         />
+    //       }
+    //       children={children}
+    //     />
+    //   )}
+    //   {!collapsible && <div className={cn(wrapperClassName, dragHandleClass)}>{children}</div>}
+    // </ImosDragWrapper>
   );
 };

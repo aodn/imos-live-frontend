@@ -2,7 +2,7 @@
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 import { cn } from '@/lib/utils';
 
-import { SliderTrackProps, ScaltType } from './type';
+import { SliderTrackProps, ScaleType } from './type';
 
 export const SliderTrack = ({
   onTrackClick,
@@ -13,13 +13,12 @@ export const SliderTrack = ({
   trackRef,
   ...props
 }: SliderTrackProps) => {
-  const getSize = (type: ScaltType) => ({
+  const getSize = (type: ScaleType) => ({
     width: scaleUnitConfig.width[type] ?? 1,
     height: scaleUnitConfig.height[type] ?? 1,
   });
 
   const renderScales = () => {
-    console.log(scales);
     return (
       <div className="absolute inset-0 pointer-events-none">
         {scales?.map((scale, index) => (
