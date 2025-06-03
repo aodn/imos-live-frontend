@@ -249,27 +249,6 @@ export const NonScrollable: Story = {
   },
 };
 
-export const CompactSize: Story = {
-  args: {
-    viewMode: 'combined',
-    sliderWidth: 400,
-    sliderHeight: 64,
-    trackPaddingX: 20,
-    initialRange: {
-      start: new Date('2023-05-01'),
-      end: new Date('2023-07-01'),
-    },
-    initialPoint: new Date('2023-06-01'),
-  },
-  parameters: {
-    docs: {
-      description: {
-        story: 'Compact version of the date slider with reduced height and padding.',
-      },
-    },
-  },
-};
-
 export const LargeSize: Story = {
   args: {
     viewMode: 'range',
@@ -330,46 +309,6 @@ export const LooseGapConstraint: Story = {
   },
 };
 
-// Custom Styling Stories
-export const CustomStyling: Story = {
-  args: {
-    viewMode: 'combined',
-    wrapperClassName: 'border-2 border-blue-500 rounded-lg shadow-lg',
-    trackBaseClassName: 'bg-gray-200',
-    trackActiveClassName: 'bg-gradient-to-r from-blue-400 to-purple-500',
-    initialRange: {
-      start: new Date('2023-04-01'),
-      end: new Date('2023-08-01'),
-    },
-    initialPoint: new Date('2023-06-01'),
-  },
-  parameters: {
-    docs: {
-      description: {
-        story: 'Date slider with custom styling classes applied.',
-      },
-    },
-  },
-};
-
-// Edge Cases
-export const ShortDateRange: Story = {
-  args: {
-    viewMode: 'point',
-    startDate: new Date('2023-07-01'),
-    endDate: new Date('2023-07-07'),
-    initialTimeUnit: 'day',
-    initialPoint: new Date('2023-07-04'),
-  },
-  parameters: {
-    docs: {
-      description: {
-        story: 'Date slider with a very short date range (one week).',
-      },
-    },
-  },
-};
-
 export const LongDateRange: Story = {
   args: {
     viewMode: 'range',
@@ -408,26 +347,6 @@ export const WithCustomScaleConfig: Story = {
     docs: {
       description: {
         story: 'Date slider with custom scale configuration for different visual appearance.',
-      },
-    },
-  },
-};
-
-// Playground Story for interactive testing
-export const Playground: Story = {
-  args: {
-    viewMode: 'combined',
-    initialRange: {
-      start: new Date('2023-04-01'),
-      end: new Date('2023-08-01'),
-    },
-    initialPoint: new Date('2023-06-01'),
-  },
-  parameters: {
-    docs: {
-      description: {
-        story:
-          'Interactive playground to test different configurations of the DateSlider component.',
       },
     },
   },

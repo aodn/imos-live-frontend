@@ -19,6 +19,8 @@ import Radar from './radar.svg?react';
 import Satellite from './satellite.svg?react';
 import Widgets from './widgets.svg?react';
 import Triangle from './triangle.svg?react';
+import ImageError from './image_error.svg?react';
+import { ImageIcon } from 'lucide-react';
 
 export const CloseIcon = withIcon(Close);
 export const MenuIcon = withIcon(Menu);
@@ -40,6 +42,7 @@ export const RadarIcon = withIcon(Radar);
 export const SatelliteIcon = withIcon(Satellite);
 export const WidgetsIcon = withIcon(Widgets);
 export const TriangleIcon = withIcon(Triangle);
+export const ImageErrorIcon = withIcon(ImageError);
 
 export const icons = {
   CloseIcon,
@@ -62,6 +65,7 @@ export const icons = {
   SatelliteIcon,
   WidgetsIcon,
   TriangleIcon,
+  ImageIcon,
 };
 
 export * from './withIcon';
