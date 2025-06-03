@@ -1,5 +1,5 @@
 import React, { forwardRef } from 'react';
-import clsx from 'clsx';
+import { cn } from '@/lib/utils';
 
 type IconSize = 'xs' | 'sm' | 'base' | 'lg' | 'xl' | 'xxl';
 type Color = 'imos-white' | 'imos-black' | 'imos-red' | 'imos-grey';
@@ -40,7 +40,7 @@ export function withIcon(
       return (
         <IconComponent
           ref={ref}
-          className={clsx(defaultClass, sizeClass, colorClass, className)}
+          className={cn(defaultClass, sizeClass, colorClass, className)}
           {...rest}
         />
       );

@@ -3,10 +3,16 @@ import { cn } from '@/lib/utils';
 import { queryIncludingSelf } from '@/utils';
 import { ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
+/**
+ when in parent bounday its parent container needs to have position: relative
+ */
+
 type PositionType = {
   x: number;
   y: number;
 };
+type RelativeType = 'topLeft' | 'topRight';
+
 type Props = {
   boundary?: 'window' | 'parent';
   dragHandleClassName?: string;
@@ -15,6 +21,7 @@ type Props = {
   disableDragging?: boolean;
   isPositionReset?: boolean;
   className?: string;
+  relative?: RelativeType;
 };
 
 export const ImosDragWrapper = ({
@@ -25,10 +32,25 @@ export const ImosDragWrapper = ({
   disableDragging,
   isPositionReset,
   className,
+  relative = 'topLeft',
 }: Props) => {
   const dragTargetElementRef = useRef<HTMLDivElement>(null);
   const [parentDimesion, setParentDimesion] = useState({ width: 0, height: 0 });
   const [targetDimesion, setTargetDimesion] = useState({ width: 0, height: 0 });
+  const [isDimensionsReady, setIsDimensionsReady] = useState(false);
+
+  const preocessInitialPosition = useCallback(
+    (relative: RelativeType, initialPosition?: PositionType): PositionType => {
+      if (!initialPosition) initialPosition = { x: 0, y: 0 };
+      if (relative === 'topRight') {
+        const x = parentDimesion.width - targetDimesion.width - initialPosition.x;
+        const y = initialPosition.y;
+        return { x, y };
+      }
+      return initialPosition;
+    },
+    [parentDimesion.width, targetDimesion.width],
+  );
 
   const updateDimesion = useCallback(() => {
     if (!dragTargetElementRef.current) return;
@@ -52,7 +74,12 @@ export const ImosDragWrapper = ({
 
     setParentDimesion({ width: parentWidth, height: parentHeight });
     setTargetDimesion({ width: targetWidth, height: targetHeight });
-  }, [boundary]);
+
+    // Set dimensions ready when both parent and target have valid dimensions
+    if (parentWidth > 0 && targetWidth > 0 && !isDimensionsReady) {
+      setIsDimensionsReady(true);
+    }
+  }, [boundary, isDimensionsReady]);
 
   useResizeObserver(dragTargetElementRef, updateDimesion);
   useResizeObserver(
@@ -64,26 +91,39 @@ export const ImosDragWrapper = ({
     updateDimesion();
   }, [updateDimesion]);
 
-  const { dragHandlers, resetPosition } = useDrag({
-    targetRef: dragTargetElementRef,
-    initialPosition: initialPosition,
-    constrainToAxis: 'both',
-    bounds: {
-      left: 0,
-      right: parentDimesion.width - targetDimesion.width,
-      top: 0,
-      bottom: parentDimesion.height - targetDimesion.height,
-    },
-    onDragEnd: () => console.log('drag end'),
-    onDragStarted: () => console.log('drag started'),
-  });
+  // Only initialize useDrag when dimensions are ready
+  const dragConfig = isDimensionsReady
+    ? {
+        targetRef: dragTargetElementRef,
+        initialPosition: preocessInitialPosition(relative, initialPosition),
+        constrainToAxis: 'both' as const,
+        bounds: {
+          left: 0,
+          right: parentDimesion.width - targetDimesion.width,
+          top: 0,
+          bottom: parentDimesion.height - targetDimesion.height,
+        },
+        onDragEnd: () => console.log('drag end'),
+        onDragStarted: () => console.log('drag started'),
+      }
+    : {
+        targetRef: dragTargetElementRef,
+        initialPosition: { x: 0, y: 0 },
+        constrainToAxis: 'both' as const,
+        bounds: { left: 0, right: 0, top: 0, bottom: 0 },
+        disabled: true, // Disable dragging until dimensions are ready
+      };
+
+  const { dragHandlers, resetPosition } = useDrag(dragConfig);
 
   useDidMountEffect(() => {
-    resetPosition();
-  }, [isPositionReset]);
+    if (isDimensionsReady) {
+      resetPosition();
+    }
+  }, [isPositionReset, isDimensionsReady]);
 
   useEffect(() => {
-    if (!dragTargetElementRef.current || disableDragging) return;
+    if (!dragTargetElementRef.current || disableDragging || !isDimensionsReady) return;
 
     const container = dragTargetElementRef.current;
     if (!container) return;
@@ -101,14 +141,12 @@ export const ImosDragWrapper = ({
       return { eventName, handler: handler as unknown as EventListener };
     });
 
-    // Add event listeners to each handle element
     handleElements.forEach(element => {
       eventHandlers.forEach(({ eventName, handler }) => {
         element.addEventListener(eventName, handler);
       });
     });
 
-    // Cleanup function
     return () => {
       handleElements.forEach(element => {
         eventHandlers.forEach(({ eventName, handler }) => {
@@ -116,10 +154,20 @@ export const ImosDragWrapper = ({
         });
       });
     };
-  }, [dragHandlers, dragHandleClassName, disableDragging]);
+  }, [dragHandlers, dragHandleClassName, disableDragging, isDimensionsReady]);
 
   return (
-    <div ref={dragTargetElementRef} className={cn('w-fit h-fit ', className)}>
+    <div
+      ref={dragTargetElementRef}
+      className={cn(
+        'w-fit h-fit',
+        {
+          'absolute top-0 left-0': boundary == 'parent',
+          'fixed top-0 left-0': boundary == 'window',
+        },
+        className,
+      )}
+    >
       {children}
     </div>
   );
