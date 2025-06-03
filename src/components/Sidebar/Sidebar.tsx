@@ -80,7 +80,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </Button>
       )}
 
-      <div className="flex-1 h-full">{children}</div>
+      <div className="flex-1 h-full relative">{children}</div>
     </div>
   );
 };

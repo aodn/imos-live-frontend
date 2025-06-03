@@ -1,4 +1,9 @@
-import { CollapsibleComponent, CollapsibleComponentProps, DragWrapper, DragWrapperProps } from '..';
+import {
+  CollapsibleComponent,
+  CollapsibleComponentProps,
+  DragWrapperProps,
+  ImosDragWrapper,
+} from '..';
 import { useToggle } from '@/hooks';
 import { useId } from 'react';
 import { cn } from '@/lib/utils';
@@ -22,35 +27,10 @@ export const FloatingPanel = ({
   const dragHandleClass = `panel-drag-handle-${dragHandleId}`;
 
   return (
-    <DragWrapper
-      bounds={bounds}
-      dragHandleClassName={dragHandleClass}
-      initialPosition={initialPosition}
-    >
-      {collapsible && (
-        <CollapsibleComponent
-          maxHeight={maxHeight}
-          wrapperClassName={wrapperClassName}
-          open={open}
-          trigger={
-            <CollapsibleTrigger
-              clasName="rounded-t-xl"
-              open={open}
-              toggle={toggle}
-              dragHandleClass={dragHandleClass}
-            />
-          }
-          children={children}
-        />
-      )}
-      {!collapsible && <div className={cn(wrapperClassName, dragHandleClass)}>{children}</div>}
-    </DragWrapper>
-
-    // <ImosDragWrapper
-    //   boundary={bounds}
+    // <DragWrapper
+    //   bounds={bounds}
     //   dragHandleClassName={dragHandleClass}
     //   initialPosition={initialPosition}
-    //   className="absolute left-0 top-0"
     // >
     //   {collapsible && (
     //     <CollapsibleComponent
@@ -69,6 +49,31 @@ export const FloatingPanel = ({
     //     />
     //   )}
     //   {!collapsible && <div className={cn(wrapperClassName, dragHandleClass)}>{children}</div>}
-    // </ImosDragWrapper>
+    // </DragWrapper>
+
+    <ImosDragWrapper
+      boundary={bounds}
+      dragHandleClassName={dragHandleClass}
+      initialPosition={initialPosition}
+      relative="topRight"
+    >
+      {collapsible && (
+        <CollapsibleComponent
+          maxHeight={maxHeight}
+          wrapperClassName={wrapperClassName}
+          open={open}
+          trigger={
+            <CollapsibleTrigger
+              clasName="rounded-t-xl"
+              open={open}
+              toggle={toggle}
+              dragHandleClass={dragHandleClass}
+            />
+          }
+          children={children}
+        />
+      )}
+      {!collapsible && <div className={cn(wrapperClassName, dragHandleClass)}>{children}</div>}
+    </ImosDragWrapper>
   );
 };

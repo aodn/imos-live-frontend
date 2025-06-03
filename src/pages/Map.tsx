@@ -29,12 +29,11 @@ export const Map = () => {
           <div className="h-full w-full relative">
             <MapComponent ref={mapRef} />
             <MapControlPanel ref={mapRef} className="absolute top-16 left-4 z-10" />
-
             <DateSelectionBar className="absolute bottom-8 left-1/2 -translate-x-1/2 max-w-full" />
           </div>
 
           <FloatingPanel
-            bounds="parent"
+            bounds="window"
             collapsible
             children={
               <FeaturesMenu

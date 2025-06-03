@@ -1,17 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { DateSlider } from './DateSlider';
 import { SelectionResult, TimeUnit } from './type';
+import { TriangleIcon } from '../Icons';
 
-// Mock icons - replace with your actual icons
 const RangeIcon = () => (
   <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
     <rect x="2" y="2" width="8" height="8" rx="1" />
-  </svg>
-);
-
-const PointIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
-    <circle cx="6" cy="6" r="4" />
   </svg>
 );
 
@@ -87,10 +81,40 @@ const meta: Meta<typeof DateSlider> = {
     trackPaddingX: 36,
     sliderHeight: 96,
     rangeHandleIcon: <RangeIcon />,
-    pointHandleIcon: <PointIcon />,
+    pointHandleIcon: <TriangleIcon color="imos-grey" />,
     onChange: (selection: SelectionResult) => {
       console.log('Selection changed:', selection);
     },
+    wrapperClassName: 'shadow-xl',
+    sliderWidth: 300,
+  },
+  // Add this render function to handle date conversion
+  render: args => {
+    // Convert date controls to Date objects if they're not already
+    const processedArgs = {
+      ...args,
+      startDate: args.startDate instanceof Date ? args.startDate : new Date(args.startDate),
+      endDate: args.endDate instanceof Date ? args.endDate : new Date(args.endDate),
+      // Also handle initial range and point dates if they exist
+      ...(args.initialRange && {
+        initialRange: {
+          start:
+            args.initialRange.start instanceof Date
+              ? args.initialRange.start
+              : new Date(args.initialRange.start),
+          end:
+            args.initialRange.end instanceof Date
+              ? args.initialRange.end
+              : new Date(args.initialRange.end),
+        },
+      }),
+      ...(args.initialPoint && {
+        initialPoint:
+          args.initialPoint instanceof Date ? args.initialPoint : new Date(args.initialPoint),
+      }),
+    };
+
+    return <DateSlider {...processedArgs} />;
   },
 };
 
@@ -319,6 +343,7 @@ export const LongDateRange: Story = {
       start: new Date('2020-01-01'),
       end: new Date('2030-01-01'),
     },
+    sliderWidth: 600,
   },
   parameters: {
     docs: {
