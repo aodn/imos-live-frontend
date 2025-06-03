@@ -21,7 +21,7 @@ export const TimeUnitSelection = ({
   onChange,
 }: TimeUnitSelectionProps) => {
   const [timeUnit, setTimeUnit] = useState<TimeUnit>(initialTimeUnit);
-  const timeUnitSelectionIndexRef = useRef(0);
+  const timeUnitSelectionIndexRef = useRef(TIME_UNITS.indexOf(timeUnit) ?? 0);
 
   const isPrevBtnDisabled = () => {
     return timeUnitSelectionIndexRef.current === 0;
