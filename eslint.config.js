@@ -7,7 +7,7 @@ import prettier from 'eslint-config-prettier';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
 
 export default tseslint.config(
-  { ignores: ['dist'] },
+  { ignores: ['node_modules/', 'dist/', 'storybook-static/', 'src/legacy/'] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended, prettier],
     files: ['**/*.{ts,tsx}'],
