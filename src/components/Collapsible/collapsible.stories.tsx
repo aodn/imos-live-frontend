@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { CollapsibleComponent } from '../Collapsible';
-import { useToggle } from '@/hooks/useToggle';
 import { Button } from '../Button';
 import { ArrowDownIcon } from '../Icons';
 import clsx from 'clsx';
@@ -70,32 +69,55 @@ export const Interactive: Story = {
     maxHeight: 600,
     direction: 'down',
     wrapperClassName: 'bg-imos-grey rounded-lg shadow-lg w-96',
-  },
-  render: args => {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const { open, toggle } = useToggle(args.open);
-
-    return (
-      <CollapsibleComponent
-        {...args}
-        open={open}
-        trigger={<CollapsibleTrigger open={open} onToggle={toggle} direction={args.direction} />}
-      >
-        <div className="p-4 space-y-4">
-          <div className="text-imos-white">
-            <h4 className="font-medium mb-2">Expanded Content</h4>
-            <p className="text-sm leading-relaxed mb-4">
-              This is additional content that becomes visible when the collapsible is expanded. You
-              can include any type of content here.
+    trigger: ({
+      toggle,
+      open,
+      direction,
+    }: {
+      toggle: () => void;
+      open: boolean;
+      direction: 'up' | 'down';
+    }) => <CollapsibleTrigger open={open} onToggle={toggle} direction={direction} />,
+    children: (
+      <div className="p-4 space-y-4">
+        <div className="text-imos-white">
+          <h4 className="font-medium mb-2">Expanded Content</h4>
+          <p className="text-sm leading-relaxed mb-4">
+            This is additional content that becomes visible when the collapsible is expanded. You
+            can include any type of content here.
+          </p>
+          <div className="bg-imos-white/10 rounded p-3">
+            <p className="text-xs text-imos-white/80">
+              Status: <span className="text-green-400">Expanded</span>
             </p>
-            <div className="bg-imos-white/10 rounded p-3">
-              <p className="text-xs text-imos-white/80">
-                Status: <span className="text-green-400">Expanded</span>
-              </p>
-            </div>
           </div>
         </div>
-      </CollapsibleComponent>
-    );
+      </div>
+    ),
   },
+  // render: args => {
+  //   return (
+  //     <CollapsibleComponent
+  //       {...args}
+  //       trigger={({ toggle, open }) => (
+  //         <CollapsibleTrigger open={open} onToggle={toggle} direction={args.direction} />
+  //       )}
+  //     >
+  //       <div className="p-4 space-y-4">
+  //         <div className="text-imos-white">
+  //           <h4 className="font-medium mb-2">Expanded Content</h4>
+  //           <p className="text-sm leading-relaxed mb-4">
+  //             This is additional content that becomes visible when the collapsible is expanded. You
+  //             can include any type of content here.
+  //           </p>
+  //           <div className="bg-imos-white/10 rounded p-3">
+  //             <p className="text-xs text-imos-white/80">
+  //               Status: <span className="text-green-400">Expanded</span>
+  //             </p>
+  //           </div>
+  //         </div>
+  //       </div>
+  //     </CollapsibleComponent>
+  //   );
+  // },
 };

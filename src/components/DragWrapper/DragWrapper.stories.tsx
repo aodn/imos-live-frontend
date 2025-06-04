@@ -2,7 +2,6 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { DragWrapper } from './DragWrapper';
 import { cn } from '@/lib/utils';
 import { CollapsibleComponent } from '../Collapsible';
-import { useToggle } from '@/hooks';
 import { Button } from '../Button';
 import { ArrowDownIcon } from '../Icons';
 import { useState } from 'react';
@@ -157,25 +156,21 @@ export const WindowBoundary: Story = {
     relative: 'topLeft',
   },
   render: args => {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const { open, toggle } = useToggle(false);
-
     return (
       <DragWrapper {...args}>
         <CollapsibleComponent
           maxHeight={600}
           direction={'down'}
           wrapperClassName="bg-imos-grey rounded-lg shadow-lg w-96"
-          open={open}
-          trigger={
+          trigger={({ open, toggle, direction }) => (
             <CollapsibleTrigger
               open={open}
               onToggle={toggle}
-              direction={'down'}
+              direction={direction}
               title="Window Boundary Demo"
               subtitle="Constrained to window boundaries"
             />
-          }
+          )}
         >
           <div className="p-4 space-y-4">
             <div className="text-imos-white">
@@ -209,9 +204,6 @@ export const ParentBoundary: Story = {
     relative: 'topRight',
   },
   render: args => {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const { open, toggle } = useToggle(false);
-
     return (
       <div className="w-[700px] h-[600px] border-2 border-dashed border-imos-red/30 bg-imos-white/5 rounded-lg  relative">
         <div className="absolute top-2 left-2 text-imos-white/60 text-xs font-medium">
@@ -222,16 +214,15 @@ export const ParentBoundary: Story = {
             maxHeight={600}
             direction={'down'}
             wrapperClassName="bg-imos-grey rounded-lg shadow-lg w-96 border border-imos-red/20"
-            open={open}
-            trigger={
+            trigger={({ open, toggle, direction }) => (
               <CollapsibleTrigger
                 open={open}
                 onToggle={toggle}
-                direction={'down'}
+                direction={direction}
                 title="Parent Boundary Demo"
                 subtitle="Positioned from top-right, constrained to parent"
               />
-            }
+            )}
           >
             <div className="p-4 space-y-4">
               <div className="text-imos-white">

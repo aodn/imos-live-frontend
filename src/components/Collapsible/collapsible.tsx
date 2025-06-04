@@ -1,23 +1,25 @@
+import { useToggle } from '@/hooks';
 import { ReactNode } from 'react';
 
 export type CollapsibleComponentProps = {
   maxHeight?: number;
-  open: boolean;
-  trigger: ReactNode;
+  trigger: (props: { toggle: () => void; open: boolean; direction: 'up' | 'down' }) => ReactNode;
   children: ReactNode;
   wrapperClassName?: string;
   direction?: 'down' | 'up';
+  defaultOpen?: boolean;
 };
 
 export const CollapsibleComponent = ({
   maxHeight = 800,
-  open,
   trigger,
   children,
   wrapperClassName = '',
   direction = 'down',
+  defaultOpen = false,
 }: CollapsibleComponentProps) => {
   const isUpward = direction === 'up';
+  const { open, toggle } = useToggle(defaultOpen);
 
   return (
     <div className={wrapperClassName}>
@@ -34,7 +36,7 @@ export const CollapsibleComponent = ({
         </div>
       )}
 
-      <div>{trigger}</div>
+      <div>{trigger({ toggle, open, direction })}</div>
 
       {!isUpward && (
         <div
