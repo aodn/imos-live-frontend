@@ -1,201 +1,224 @@
-import { ReactNode, useEffect, useRef, useState } from 'react';
-import { Rnd } from 'react-rnd';
-import { useResizeObserver } from '@/hooks';
-import { clamp } from '@/utils';
+import { useDidMountEffect, useDrag, useResizeObserver } from '@/hooks';
+import { cn } from '@/lib/utils';
+import { clamp, queryIncludingSelf } from '@/utils';
+import { ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
-type SizeType = {
-  width: number;
-  height: number;
-};
+/**
+ when in parent bounday its parent container needs to have position: relative
+ */
 
 type PositionType = {
   x: number;
   y: number;
 };
+type RelativeType = 'topLeft' | 'topRight';
 
 export type DragWrapperProps = {
-  children: ReactNode;
+  boundary?: 'window' | 'parent';
   dragHandleClassName?: string;
-  bounds?: 'window' | 'parent';
+  children: ReactNode;
   initialPosition?: PositionType;
   disableDragging?: boolean;
+  isPositionReset?: boolean;
+  className?: string;
+  relative?: RelativeType;
 };
 
 export const DragWrapper = ({
-  children,
+  boundary,
   dragHandleClassName,
-  bounds = 'parent',
-  initialPosition = { x: 10, y: 10 },
-  disableDragging = false,
+  children,
+  initialPosition,
+  disableDragging,
+  isPositionReset,
+  className,
+  relative = 'topLeft',
 }: DragWrapperProps) => {
-  const [size, setSize] = useState<SizeType>();
-  const [position, setPosition] = useState<PositionType>({ x: 0, y: 0 });
-  const [key, setKey] = useState(0); // Force re-render of Rnd component
-  const tempWrapperRef = useRef<HTMLDivElement>(null);
-  const ref = useRef<HTMLDivElement>(null);
-  const parentSizeRef = useRef<{ width: number; height: number }>({ width: 0, height: 0 });
-  const inititalPositionMeasured = useRef(false);
+  const dragTargetElementRef = useRef<HTMLDivElement>(null);
+  const [parentDimesion, setParentDimesion] = useState({ width: 0, height: 0 });
+  const [targetDimesion, setTargetDimesion] = useState({ width: 0, height: 0 });
+  const [isDimensionsReady, setIsDimensionsReady] = useState(false);
+  const previousBoundsRef = useRef({ width: 0, height: 0 });
 
-  // Helper function to get container dimensions
-  const getContainerDimensions = () => {
-    if (bounds === 'window') {
-      return { width: window.innerWidth, height: window.innerHeight };
-    } else if (bounds === 'parent' && ref.current?.parentElement) {
-      const parentElement = ref.current.parentElement.parentElement;
+  //convert initial position of the draggable element relative to topRight or topLeft.
+  const preocessInitialPosition = useCallback(
+    (relative: RelativeType, initialPosition?: PositionType): PositionType => {
+      if (!initialPosition) initialPosition = { x: 0, y: 0 };
+      if (relative === 'topRight') {
+        const x = parentDimesion.width - targetDimesion.width - initialPosition.x;
+        const y = initialPosition.y;
+        return { x, y };
+      }
+      return initialPosition;
+    },
+    [parentDimesion.width, targetDimesion.width],
+  );
 
-      const parentRect = parentElement?.getBoundingClientRect();
-      return { width: parentRect?.width ?? 0, height: parentRect?.height ?? 0 };
-    }
-    return { width: 0, height: 0 };
-  };
-
-  // Helper function to adjust position to keep element within bounds
-  const adjustPositionToBounds = (currentPos: PositionType, currentSize: SizeType) => {
-    const container = getContainerDimensions();
-    if (container.width === 0 || container.height === 0) return currentPos;
-
-    const maxX = container.width - currentSize.width;
-    const maxY = container.height - currentSize.height;
-
+  // Calculate bounds for the draggable element, the starting position is left:0 and top:0 when implement translateX and translateY.
+  const calculateBounds = useCallback(() => {
     return {
-      x: clamp(currentPos.x, 0, maxX),
-      y: clamp(currentPos.y, 0, maxY),
+      left: 0,
+      right: Math.max(0, parentDimesion.width - targetDimesion.width),
+      top: 0,
+      bottom: Math.max(0, parentDimesion.height - targetDimesion.height),
     };
-  };
+  }, [parentDimesion.width, parentDimesion.height, targetDimesion.width, targetDimesion.height]);
 
-  // Get the size of the draggable element
-  useEffect(() => {
-    if (!tempWrapperRef.current) return;
-    const { width, height } = tempWrapperRef.current.getBoundingClientRect();
-    setSize({ width, height });
-  }, []);
+  const updateDimesion = useCallback(() => {
+    if (!dragTargetElementRef.current) return;
 
-  // Update element size when it changes (like collapsible toggle)
-  useResizeObserver(ref, entry => {
-    const { width, height } = entry.contentRect;
-    const newSize = { width, height };
+    let parentWidth = 0;
+    let parentHeight = 0;
 
-    // Only update if size actually changed
-    if (size?.width !== width || size?.height !== height) {
-      setSize(newSize);
-
-      // Adjust position if size changed and element is positioned
-      if (size && inititalPositionMeasured.current) {
-        const adjustedPosition = adjustPositionToBounds(position, newSize);
-
-        // Only update position if it needs adjustment
-        if (adjustedPosition.x !== position.x || adjustedPosition.y !== position.y) {
-          setPosition(adjustedPosition);
-          setKey(k => k + 1); // Force re-render to apply new position
-        }
-      }
+    if (boundary === 'parent') {
+      const parentElement = dragTargetElementRef.current.parentElement;
+      if (!parentElement) return;
+      const rect = parentElement.getBoundingClientRect();
+      parentWidth = rect.width;
+      parentHeight = rect.height;
+    } else {
+      parentWidth = window.innerWidth;
+      parentHeight = window.innerHeight;
     }
-  });
 
-  // Watch parent size changes and adjust position
-  useEffect(() => {
-    if (
-      bounds !== 'parent' ||
-      !ref.current?.parentElement ||
-      !size ||
-      !inititalPositionMeasured.current
-    )
-      return;
+    const { width: targetWidth, height: targetHeight } =
+      dragTargetElementRef.current.getBoundingClientRect();
 
-    const parentElement = ref.current.parentElement.parentElement;
-    if (!parentElement) return;
+    // Store previous dimensions to detect changes
+    const previousBounds = previousBoundsRef.current;
+    const dimensionsChanged =
+      previousBounds.width !== parentWidth || previousBounds.height !== parentHeight;
 
-    const handleParentResize = () => {
-      const parentRect = parentElement.getBoundingClientRect();
-      const newParentWidth = parentRect.width;
-      const newParentHeight = parentRect.height;
-      const oldParentWidth = parentSizeRef.current.width;
-      const oldParentHeight = parentSizeRef.current.height;
+    setParentDimesion({ width: parentWidth, height: parentHeight });
+    setTargetDimesion({ width: targetWidth, height: targetHeight });
 
-      if (
-        oldParentWidth > 0 &&
-        (newParentWidth !== oldParentWidth || newParentHeight !== oldParentHeight)
-      ) {
-        // Calculate distance from right and top edges
-        const distanceFromRight = oldParentWidth - (position.x + size.width);
-        const distanceFromTop = position.y;
+    // Update previous bounds reference
+    previousBoundsRef.current = { width: parentWidth, height: parentHeight };
 
-        // Calculate new position to maintain same distance from right and top
-        const newX = newParentWidth - size.width - distanceFromRight;
-        const newY = distanceFromTop;
+    // Set dimensions ready when both parent and target have valid dimensions
+    if (parentWidth > 0 && targetWidth > 0 && !isDimensionsReady) {
+      setIsDimensionsReady(true);
+    }
 
-        // Ensure within bounds
-        const clampedX = clamp(newX, 0, newParentWidth - size.width);
-        const clampedY = clamp(newY, 0, newParentHeight - size.height);
+    // Return whether dimensions changed for use in effect
+    return { dimensionsChanged, parentWidth, parentHeight, targetWidth, targetHeight };
+  }, [boundary, isDimensionsReady]);
 
-        // Update position and force Rnd to re-render with new position
-        setPosition({
-          x: clampedX,
-          y: clampedY,
-        });
+  useResizeObserver(dragTargetElementRef, updateDimesion);
+  useResizeObserver(
+    boundary === 'parent' ? (dragTargetElementRef.current?.parentElement ?? null) : 'window',
+    updateDimesion,
+  );
 
-        // Force Rnd component to re-render with new position
-        setKey(k => k + 1);
+  useLayoutEffect(() => {
+    updateDimesion();
+  }, [updateDimesion]);
+
+  // Only initialize useDrag when dimensions are ready
+  const dragConfig = isDimensionsReady
+    ? {
+        targetRef: dragTargetElementRef,
+        initialPosition: preocessInitialPosition(relative, initialPosition),
+        constrainToAxis: 'both' as const,
+        bounds: calculateBounds(),
       }
+    : {
+        targetRef: dragTargetElementRef,
+        initialPosition: { x: 0, y: 0 },
+        constrainToAxis: 'both' as const,
+        bounds: { left: 0, right: 0, top: 0, bottom: 0 },
+        disabled: true, // Disable dragging until dimensions are ready
+      };
 
-      parentSizeRef.current = { width: newParentWidth, height: newParentHeight };
-    };
+  const { dragHandlers, resetPosition, position: currentPosition } = useDrag(dragConfig);
 
-    // Set initial parent size
-    const parentRect = parentElement.getBoundingClientRect();
-    parentSizeRef.current = { width: parentRect.width, height: parentRect.height };
+  // Handle dimension changes and reposition element if needed
+  useEffect(() => {
+    if (!isDimensionsReady) return;
 
-    // Listen for parent size changes
-    const resizeObserver = new ResizeObserver(handleParentResize);
-    resizeObserver.observe(parentElement);
+    const bounds = calculateBounds();
+
+    // Check if current position is outside new bounds
+    const isOutOfBounds =
+      currentPosition.x > bounds.right ||
+      currentPosition.y > bounds.bottom ||
+      currentPosition.x < bounds.left ||
+      currentPosition.y < bounds.top;
+
+    if (isOutOfBounds) {
+      // Constrain current position to new bounds
+      const constrainedPosition = {
+        x: clamp(currentPosition.x, bounds.left, bounds.right),
+        y: clamp(currentPosition.y, bounds.top, bounds.bottom),
+      };
+
+      resetPosition(constrainedPosition);
+    }
+  }, [
+    parentDimesion.width,
+    parentDimesion.height,
+    targetDimesion.width,
+    targetDimesion.height,
+    isDimensionsReady,
+    calculateBounds,
+    currentPosition,
+    resetPosition,
+  ]);
+
+  useDidMountEffect(() => {
+    if (isDimensionsReady) {
+      resetPosition();
+    }
+  }, [isPositionReset, isDimensionsReady]);
+
+  //add dragHandlers to element with dragHandleClassName
+  useEffect(() => {
+    if (!dragTargetElementRef.current || disableDragging || !isDimensionsReady) return;
+
+    const container = dragTargetElementRef.current;
+    if (!container) return;
+    let handleElements: Element[] = [container];
+
+    if (
+      dragHandleClassName &&
+      queryIncludingSelf(container, `.${dragHandleClassName}`).length !== 0
+    ) {
+      handleElements = queryIncludingSelf(container, `.${dragHandleClassName}`);
+    }
+
+    const eventHandlers = Object.entries(dragHandlers).map(([key, handler]) => {
+      const eventName = key.toLowerCase().replace('on', '');
+      return { eventName, handler: handler as unknown as EventListener };
+    });
+
+    handleElements.forEach(element => {
+      eventHandlers.forEach(({ eventName, handler }) => {
+        element.addEventListener(eventName, handler);
+      });
+    });
 
     return () => {
-      resizeObserver.disconnect();
+      handleElements.forEach(element => {
+        eventHandlers.forEach(({ eventName, handler }) => {
+          element.removeEventListener(eventName, handler);
+        });
+      });
     };
-  }, [bounds, size, position.x, position.y]);
-
-  // Set element's initial position
-  useEffect(() => {
-    if (!size || inititalPositionMeasured.current) return;
-
-    const container = getContainerDimensions();
-    if (container.width === 0 || container.height === 0) return;
-
-    const initialPos = {
-      x: container.width - size.width - initialPosition.x,
-      y: initialPosition.y,
-    };
-
-    // Ensure initial position is within bounds
-    const adjustedPos = adjustPositionToBounds(initialPos, size);
-    setPosition(adjustedPos);
-
-    parentSizeRef.current = { width: container.width, height: container.height };
-    inititalPositionMeasured.current = true;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [size, bounds, initialPosition.x, initialPosition.y]);
-
-  if (!size) {
-    return (
-      <div ref={tempWrapperRef} className="absolute -left-9999 -top-9999">
-        {children}
-      </div>
-    );
-  }
+  }, [dragHandlers, dragHandleClassName, disableDragging, isDimensionsReady]);
 
   return (
-    <Rnd
-      disableDragging={disableDragging}
-      key={key}
-      dragHandleClassName={dragHandleClassName}
-      size={{ width: size.width, height: size.height }}
-      position={position}
-      onDragStop={(_e, d) => {
-        setPosition({ x: d.x, y: d.y });
-      }}
-      bounds={bounds}
+    <div
+      ref={dragTargetElementRef}
+      className={cn(
+        'w-fit h-fit',
+        {
+          'absolute top-0 left-0': boundary == 'parent',
+          'fixed top-0 left-0': boundary == 'window',
+        },
+        className,
+      )}
     >
-      <div ref={ref}>{children}</div>
-    </Rnd>
+      {children}
+    </div>
   );
 };

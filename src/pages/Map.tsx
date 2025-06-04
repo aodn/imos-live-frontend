@@ -33,7 +33,7 @@ export const Map = () => {
           </div>
 
           <FloatingPanel
-            bounds="parent"
+            boundary="parent"
             collapsible
             children={
               <FeaturesMenu

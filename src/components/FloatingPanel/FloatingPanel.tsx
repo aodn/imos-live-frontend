@@ -1,9 +1,4 @@
-import {
-  CollapsibleComponent,
-  CollapsibleComponentProps,
-  DragWrapperProps,
-  ImosDragWrapper,
-} from '..';
+import { CollapsibleComponent, CollapsibleComponentProps, DragWrapperProps, DragWrapper } from '..';
 import { useToggle } from '@/hooks';
 import { useId } from 'react';
 import { cn } from '@/lib/utils';
@@ -18,7 +13,7 @@ export const FloatingPanel = ({
   maxHeight,
   children,
   wrapperClassName = '',
-  bounds,
+  boundary,
   initialPosition,
   collapsible = false,
 }: FloatingPanelProps) => {
@@ -27,32 +22,8 @@ export const FloatingPanel = ({
   const dragHandleClass = `panel-drag-handle-${dragHandleId}`;
 
   return (
-    // <DragWrapper
-    //   bounds={bounds}
-    //   dragHandleClassName={dragHandleClass}
-    //   initialPosition={initialPosition}
-    // >
-    //   {collapsible && (
-    //     <CollapsibleComponent
-    //       maxHeight={maxHeight}
-    //       wrapperClassName={wrapperClassName}
-    //       open={open}
-    //       trigger={
-    //         <CollapsibleTrigger
-    //           clasName="rounded-t-xl"
-    //           open={open}
-    //           toggle={toggle}
-    //           dragHandleClass={dragHandleClass}
-    //         />
-    //       }
-    //       children={children}
-    //     />
-    //   )}
-    //   {!collapsible && <div className={cn(wrapperClassName, dragHandleClass)}>{children}</div>}
-    // </DragWrapper>
-
-    <ImosDragWrapper
-      boundary={bounds}
+    <DragWrapper
+      boundary={boundary}
       dragHandleClassName={dragHandleClass}
       initialPosition={initialPosition}
       relative="topRight"
@@ -74,6 +45,6 @@ export const FloatingPanel = ({
         />
       )}
       {!collapsible && <div className={cn(wrapperClassName, dragHandleClass)}>{children}</div>}
-    </ImosDragWrapper>
+    </DragWrapper>
   );
 };
