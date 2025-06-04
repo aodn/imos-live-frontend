@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { Button } from './Button';
-import { MenuIcon } from '../Icons';
-import { Loader2 } from 'lucide-react';
+import { Loader2Icon, MenuIcon } from '../Icons';
 import { action } from '@storybook/addon-actions';
 
 const meta = {
@@ -94,7 +93,7 @@ export const Loading: Story = {
     className: 'cursor-pointer',
     children: (
       <div className="flex items-center gap-x-2">
-        <Loader2 className="animate-spin" />
+        <Loader2Icon className="animate-spin" color="imos-white" />
         <span>Loading</span>
       </div>
     ),

@@ -11,6 +11,7 @@ type PositionType = {
   x: number;
   y: number;
 };
+
 type RelativeType = 'topLeft' | 'topRight';
 
 export type DragWrapperProps = {
