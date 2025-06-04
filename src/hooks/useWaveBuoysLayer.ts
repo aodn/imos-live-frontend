@@ -1,4 +1,4 @@
-import { circleLayer } from '@/layers/circleLayer';
+import { circleLayer } from '@/layers/circleLayer.ts';
 import { GSLA_META_NAME, WAVE_BUOYS_LAYER_ID, WAVE_BUOYS_SOURCE_ID } from '@/constants';
 import { addLayerInOrder, addOrUpdateGeoJsonSource } from '@/helpers';
 import { buildDatasetUrl, buildOgcBuoysUrl, loadMetaDataFromUrl } from '@/utils';
