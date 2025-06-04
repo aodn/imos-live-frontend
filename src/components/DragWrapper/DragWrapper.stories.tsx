@@ -58,7 +58,7 @@ const CollapsibleTrigger = ({
 }) => {
   const shouldRotate = direction === 'down' ? open : !open;
   return (
-    <div className=" border-b border-imos-white/20 drag-me cursor-move">
+    <div className=" border-b border-imos-red/20 drag-me cursor-move">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-imos-white font-semibold">{title}</h3>
@@ -86,7 +86,7 @@ const CollapsibleTrigger = ({
 };
 
 const DragHandle = ({ children }: { children: React.ReactNode }) => (
-  <div className="drag-me cursor-move bg-imos-grey/50 p-2 rounded-t border-b border-imos-white/10">
+  <div className="drag-me cursor-move bg-imos-grey/50 p-2 rounded-t border-b border-imos-red/10">
     <div className="flex items-center gap-2">
       <div className="flex gap-1">
         <div className="w-1 h-1 bg-imos-white/40 rounded-full"></div>
@@ -113,7 +113,7 @@ const SimpleCard = ({
   width?: string;
 }) => {
   const variants = {
-    default: 'bg-imos-grey border-imos-white/20',
+    default: 'bg-imos-grey border-imos-red/20',
     success: 'bg-green-900/20 border-green-500/30',
     warning: 'bg-yellow-900/20 border-yellow-500/30',
     error: 'bg-red-900/20 border-red-500/30',
@@ -213,7 +213,7 @@ export const ParentBoundary: Story = {
     const { open, toggle } = useToggle(false);
 
     return (
-      <div className="w-[700px] h-[600px] border-2 border-dashed border-imos-white/30 bg-imos-white/5 rounded-lg  relative">
+      <div className="w-[700px] h-[600px] border-2 border-dashed border-imos-red/30 bg-imos-white/5 rounded-lg  relative">
         <div className="absolute top-2 left-2 text-imos-white/60 text-xs font-medium">
           Parent Container (700×600px)
         </div>
@@ -221,7 +221,7 @@ export const ParentBoundary: Story = {
           <CollapsibleComponent
             maxHeight={600}
             direction={'down'}
-            wrapperClassName="bg-imos-grey rounded-lg shadow-lg w-96 border border-imos-white/20"
+            wrapperClassName="bg-imos-grey rounded-lg shadow-lg w-96 border border-imos-red/20"
             open={open}
             trigger={
               <CollapsibleTrigger
@@ -325,7 +325,7 @@ export const PositionReset: Story = {
         </div>
 
         <DragWrapper {...args} isPositionReset={isReset}>
-          <div className="bg-imos-grey rounded-lg shadow-lg w-80 border border-imos-white/20">
+          <div className="bg-imos-grey rounded-lg shadow-lg w-80 border border-imos-red/20">
             <DragHandle>Position Reset Demo</DragHandle>
             <div className="p-4">
               <h3 className="text-imos-white font-semibold mb-2">Position Reset Demo</h3>
@@ -356,8 +356,8 @@ export const DisabledDragging: Story = {
   },
   render: args => (
     <DragWrapper {...args}>
-      <div className="bg-imos-grey/50 rounded-lg shadow-lg w-80 border border-imos-white/10 opacity-75">
-        <div className="drag-me cursor-not-allowed bg-imos-grey/30 p-2 rounded-t border-b border-imos-white/5">
+      <div className="bg-imos-grey/50 rounded-lg shadow-lg w-80 border border-imos-red/10 opacity-75">
+        <div className="drag-me cursor-not-allowed bg-imos-grey/30 p-2 rounded-t border-b border-imos-red/5">
           <div className="flex items-center gap-2">
             <div className="flex gap-1 opacity-50">
               <div className="w-1 h-1 bg-imos-white/20 rounded-full"></div>
@@ -388,7 +388,7 @@ export const TopRightPositioning: Story = {
     relative: 'topRight',
   },
   render: args => (
-    <div className="w-[800px] h-[500px] border-2 border-dashed border-imos-white/30 bg-imos-white/5 rounded-lg  relative">
+    <div className="w-[800px] h-[500px] border-2 border-dashed border-imos-red/30 bg-imos-white/5 rounded-lg  relative">
       <div className="absolute top-2 left-2 text-imos-white/60 text-xs font-medium">
         Parent Container (800×500px)
       </div>
@@ -466,7 +466,7 @@ export const ResponsiveBehavior: Story = {
 
         <div
           className={cn(
-            'border-2 border-dashed border-imos-white/30 bg-imos-white/5 rounded-lg  relative transition-all duration-300',
+            'border-2 border-dashed border-imos-red/30 bg-imos-white/5 rounded-lg  relative transition-all duration-300',
             sizes[containerSize],
           )}
         >
@@ -475,7 +475,7 @@ export const ResponsiveBehavior: Story = {
           </div>
 
           <DragWrapper {...args}>
-            <div className="bg-imos-grey rounded-lg shadow-lg w-72 border border-imos-white/20">
+            <div className="bg-imos-grey rounded-lg shadow-lg w-72 border border-imos-red/20">
               <DragHandle>Responsive Demo</DragHandle>
               <div className="p-4">
                 <h3 className="text-imos-white font-semibold mb-2">Responsive Behavior</h3>
