@@ -15,6 +15,9 @@ export default defineConfig(({ mode }) => {
       },
       extensions: ['.ts', '.tsx', '.js', '.jsx'],
     },
+    esbuild: {
+      target: 'es2020',
+    },
     //create a proxy for the api to avoid CORS issues
     //this is only for development. /api/aodn will be replaced with target.
     server: {

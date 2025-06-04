@@ -13,14 +13,29 @@ const config: StorybookConfig = {
     name: '@storybook/react-vite',
     options: {},
   },
+  typescript: {
+    check: false,
+    reactDocgen: 'react-docgen-typescript',
+    reactDocgenTypescriptOptions: {
+      shouldExtractLiteralValuesFromEnum: true,
+      propFilter: prop => (prop.parent ? !/node_modules/.test(prop.parent.fileName) : true),
+    },
+  },
   viteFinal: async config => {
-    if (config.resolve) {
-      config.resolve.alias = {
-        ...config.resolve.alias,
-        '@': resolve(__dirname, '../src'),
-      };
-      config.resolve.extensions = ['.ts', '.tsx', '.js', '.jsx'];
-    }
+    // Ensure proper module resolution
+    config.resolve = config.resolve || {};
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': resolve(__dirname, '../src'),
+    };
+    config.resolve.extensions = ['.ts', '.tsx', '.js', '.jsx', '.mjs'];
+
+    // Fix for TypeScript module resolution in build
+    config.esbuild = {
+      ...config.esbuild,
+      target: 'es2020',
+    };
+
     return config;
   },
 };
