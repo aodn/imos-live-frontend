@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { FloatingPanel } from './FloatingPanel';
-import { MenuComponent } from '../MenuComponent';
+import { FeaturesMenu, LayersIcon, MapsIcon, MeasuresIcon } from '..';
 const meta = {
   title: 'components/FloatingPanel',
   component: FloatingPanel,
@@ -15,17 +15,23 @@ type Story = StoryObj<typeof meta>;
 
 export const Primary: Story = {
   args: {
-    children: <MenuComponent />,
-    initialPosition: {
-      x: 0,
-      y: 0,
-    },
+    children: (
+      <FeaturesMenu
+        features={[
+          { icon: LayersIcon, label: 'Layers' },
+          { icon: MapsIcon, label: 'Maps' },
+          { icon: MeasuresIcon, label: 'Measurement' },
+        ]}
+      />
+    ),
+    initialPosition: { x: 10, y: 20 },
+    collapsible: true,
   },
   render: args => {
     return (
-      <div className="relative border-2 border-imos-red w-[800px] h-[800px] overflow-hidden">
-        <FloatingPanel {...args} />
-      </div>
+      // <div className="relative border-2 border-imos-red w-[800px] h-[800px] overflow-hidden">
+      <FloatingPanel {...args} />
+      // </div>
     );
   },
 };
