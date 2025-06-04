@@ -1,4 +1,4 @@
-export { lineLayer } from './lineLayer';
-export { imageLayer } from './imageLayer';
-export { vectorLayer } from './vectorLayer';
-export { circleLayer } from './circleLayer';
+export * from './lineLayer';
+export * from './imageLayer';
+export * from './vectorLayer';
+export * from './circleLayer';

@@ -1,4 +1,4 @@
-import { VectoryLayerInterface } from '@/layers';
+import { VectoryLayerInterface } from '@/layers/vectorLayer';
 import { useEffect } from 'react';
 
 export function useParticleLayerVisibility(

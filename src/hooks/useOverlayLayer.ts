@@ -5,7 +5,7 @@ import {
   OVERLAY_SOURCE_ID,
 } from '@/constants';
 import { addLayerInOrder, addOrUpdateImageSource } from '@/helpers';
-import { imageLayer } from '@/layers';
+import { imageLayer } from '@/layers/imageLayer';
 import { loadMetaDataFromUrl, buildDatasetUrl } from '@/utils';
 import { useDidMountEffect } from './useDidMountEffect';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
