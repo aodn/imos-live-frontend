@@ -1,4 +1,4 @@
-import { VectoryLayerInterface } from '@/layers/vectorLayer.ts';
+import { VectoryLayerInterface } from '../layers/vectorLayer.ts';
 import { Layer } from 'mapbox-gl';
 
 //ensure layers are in correct order.
