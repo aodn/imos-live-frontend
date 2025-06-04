@@ -13,13 +13,6 @@ export default defineConfig(({ mode }) => {
       alias: {
         '@': path.resolve(__dirname, './src'),
       },
-      extensions: ['.ts', '.tsx', '.js', '.jsx'],
-    },
-    esbuild: {
-      target: 'es2020',
-    },
-    optimizeDeps: {
-      include: ['react', 'react-dom'],
     },
     //create a proxy for the api to avoid CORS issues
     //this is only for development. /api/aodn will be replaced with target.
