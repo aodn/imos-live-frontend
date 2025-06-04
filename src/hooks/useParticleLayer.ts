@@ -6,7 +6,7 @@ import {
   PARTICLE_SOURCE_ID,
 } from '@/constants';
 import { addLayerInOrder, addOrUpdateImageSource } from '@/helpers';
-import { vectorLayer } from '../layers/vectorLayer.ts';
+import { vectorLayer } from '@/layers';
 import { loadMetaDataFromUrl, buildDatasetUrl } from '@/utils';
 import { useEffect } from 'react';
 import { useDidMountEffect } from './useDidMountEffect';

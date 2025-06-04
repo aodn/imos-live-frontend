@@ -5,8 +5,7 @@ import {
   MEASURE_POINTS_LAYER_ID,
   MEASURE_POINTS_SOURCE_ID,
 } from '@/constants';
-import { circleLayer } from '../layers/circleLayer.ts';
-import { lineLayer } from '../layers/lineLayer.ts';
+import { circleLayer, lineLayer } from '@/layers';
 import { layersOrder, measureLinesConfig, measurePointsConfig } from '@/config';
 import { addLayerInOrder, addOrUpdateGeoJsonSource } from '@/helpers';
 import { sleep } from '@/utils';

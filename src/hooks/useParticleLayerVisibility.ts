@@ -1,4 +1,4 @@
-import { VectoryLayerInterface } from '../layers/vectorLayer.ts';
+import { VectoryLayerInterface } from '@/layers';
 import { useEffect } from 'react';
 
 export function useParticleLayerVisibility(
