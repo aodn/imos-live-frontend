@@ -1,6 +1,6 @@
 import { useDidMountEffect, useDrag, useResizeObserver } from '@/hooks';
 import { cn } from '@/lib/utils';
-import { queryIncludingSelf } from '@/utils';
+import { clamp, queryIncludingSelf } from '@/utils';
 import { ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 /**
@@ -38,7 +38,9 @@ export const ImosDragWrapper = ({
   const [parentDimesion, setParentDimesion] = useState({ width: 0, height: 0 });
   const [targetDimesion, setTargetDimesion] = useState({ width: 0, height: 0 });
   const [isDimensionsReady, setIsDimensionsReady] = useState(false);
+  const previousBoundsRef = useRef({ width: 0, height: 0 });
 
+  //convert initial position of the draggable element relative to topRight or topLeft.
   const preocessInitialPosition = useCallback(
     (relative: RelativeType, initialPosition?: PositionType): PositionType => {
       if (!initialPosition) initialPosition = { x: 0, y: 0 };
@@ -51,6 +53,16 @@ export const ImosDragWrapper = ({
     },
     [parentDimesion.width, targetDimesion.width],
   );
+
+  // Calculate bounds for the draggable element, the starting position is left:0 and top:0 when implement translateX and translateY.
+  const calculateBounds = useCallback(() => {
+    return {
+      left: 0,
+      right: Math.max(0, parentDimesion.width - targetDimesion.width),
+      top: 0,
+      bottom: Math.max(0, parentDimesion.height - targetDimesion.height),
+    };
+  }, [parentDimesion.width, parentDimesion.height, targetDimesion.width, targetDimesion.height]);
 
   const updateDimesion = useCallback(() => {
     if (!dragTargetElementRef.current) return;
@@ -72,13 +84,24 @@ export const ImosDragWrapper = ({
     const { width: targetWidth, height: targetHeight } =
       dragTargetElementRef.current.getBoundingClientRect();
 
+    // Store previous dimensions to detect changes
+    const previousBounds = previousBoundsRef.current;
+    const dimensionsChanged =
+      previousBounds.width !== parentWidth || previousBounds.height !== parentHeight;
+
     setParentDimesion({ width: parentWidth, height: parentHeight });
     setTargetDimesion({ width: targetWidth, height: targetHeight });
+
+    // Update previous bounds reference
+    previousBoundsRef.current = { width: parentWidth, height: parentHeight };
 
     // Set dimensions ready when both parent and target have valid dimensions
     if (parentWidth > 0 && targetWidth > 0 && !isDimensionsReady) {
       setIsDimensionsReady(true);
     }
+
+    // Return whether dimensions changed for use in effect
+    return { dimensionsChanged, parentWidth, parentHeight, targetWidth, targetHeight };
   }, [boundary, isDimensionsReady]);
 
   useResizeObserver(dragTargetElementRef, updateDimesion);
@@ -97,14 +120,7 @@ export const ImosDragWrapper = ({
         targetRef: dragTargetElementRef,
         initialPosition: preocessInitialPosition(relative, initialPosition),
         constrainToAxis: 'both' as const,
-        bounds: {
-          left: 0,
-          right: parentDimesion.width - targetDimesion.width,
-          top: 0,
-          bottom: parentDimesion.height - targetDimesion.height,
-        },
-        onDragEnd: () => console.log('drag end'),
-        onDragStarted: () => console.log('drag started'),
+        bounds: calculateBounds(),
       }
     : {
         targetRef: dragTargetElementRef,
@@ -114,7 +130,40 @@ export const ImosDragWrapper = ({
         disabled: true, // Disable dragging until dimensions are ready
       };
 
-  const { dragHandlers, resetPosition } = useDrag(dragConfig);
+  const { dragHandlers, resetPosition, position: currentPosition } = useDrag(dragConfig);
+
+  // Handle dimension changes and reposition element if needed
+  useEffect(() => {
+    if (!isDimensionsReady) return;
+
+    const bounds = calculateBounds();
+
+    // Check if current position is outside new bounds
+    const isOutOfBounds =
+      currentPosition.x > bounds.right ||
+      currentPosition.y > bounds.bottom ||
+      currentPosition.x < bounds.left ||
+      currentPosition.y < bounds.top;
+
+    if (isOutOfBounds) {
+      // Constrain current position to new bounds
+      const constrainedPosition = {
+        x: clamp(currentPosition.x, bounds.left, bounds.right),
+        y: clamp(currentPosition.y, bounds.top, bounds.bottom),
+      };
+
+      resetPosition(constrainedPosition);
+    }
+  }, [
+    parentDimesion.width,
+    parentDimesion.height,
+    targetDimesion.width,
+    targetDimesion.height,
+    isDimensionsReady,
+    calculateBounds,
+    currentPosition,
+    resetPosition,
+  ]);
 
   useDidMountEffect(() => {
     if (isDimensionsReady) {
@@ -122,6 +171,7 @@ export const ImosDragWrapper = ({
     }
   }, [isPositionReset, isDimensionsReady]);
 
+  //add dragHandlers to element with dragHandleClassName
   useEffect(() => {
     if (!dragTargetElementRef.current || disableDragging || !isDimensionsReady) return;
 
