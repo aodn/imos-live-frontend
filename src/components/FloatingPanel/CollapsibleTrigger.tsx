@@ -8,6 +8,7 @@ export type CollapsibleTriggerProps = {
   clasName?: string;
   FirstIcon?: React.FC<IconProps>;
   SecondIcon?: React.FC<IconProps>;
+  toggleIconHidden?: boolean;
 };
 
 export const CollapsibleTrigger = ({
@@ -17,28 +18,32 @@ export const CollapsibleTrigger = ({
   clasName,
   FirstIcon,
   SecondIcon,
+  toggleIconHidden = false,
 }: CollapsibleTriggerProps) => {
   return (
     <div
       className={cn(
-        'w-full flex items-center relative cursor-grab bg-[rgba(35,55,75,1)] active:bg-[rgba(35,55,75,0.9)] ',
+        'w-full min-h-10 flex items-center relative cursor-grab bg-[rgba(35,55,75,1)] active:bg-[rgba(35,55,75,0.9)] ',
         dragHandleClass,
         clasName,
       )}
     >
-      <Button variant="ghost" size="icon" className="hover:bg-transparent " onClick={toggle}>
-        {FirstIcon ? (
-          <FirstIcon
-            color="imos-white"
-            className={cn('transition-transform duration-300', open && 'rotate-180')}
-          />
-        ) : (
-          <ArrowDownIcon
-            color="imos-white"
-            className={cn('transition-transform duration-300', open && 'rotate-180')}
-          />
-        )}
-      </Button>
+      {/* TODO hiden togggle icon based on toggleIconHidden*/}
+      {!toggleIconHidden && (
+        <Button variant="ghost" size="icon" className="hover:bg-transparent " onClick={toggle}>
+          {FirstIcon ? (
+            <FirstIcon
+              color="imos-white"
+              className={cn('transition-transform duration-300', open && 'rotate-180')}
+            />
+          ) : (
+            <ArrowDownIcon
+              color="imos-white"
+              className={cn('transition-transform duration-300', open && 'rotate-180')}
+            />
+          )}
+        </Button>
+      )}
       <Button
         variant="ghost"
         size="icon"

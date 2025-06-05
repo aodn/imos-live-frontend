@@ -13,7 +13,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Primary: Story = {
+export const Collapsible: Story = {
   args: {
     children: (
       <FeaturesMenu
@@ -28,10 +28,24 @@ export const Primary: Story = {
     collapsible: true,
   },
   render: args => {
-    return (
-      // <div className="relative border-2 border-imos-red w-[800px] h-[800px] overflow-hidden">
-      <FloatingPanel {...args} />
-      // </div>
-    );
+    return <FloatingPanel {...args} />;
+  },
+};
+
+export const Uncollapsible: Story = {
+  args: {
+    children: (
+      <FeaturesMenu
+        features={[
+          { icon: LayersIcon, label: 'Layers' },
+          { icon: MapsIcon, label: 'Maps' },
+          { icon: MeasuresIcon, label: 'Measurement' },
+        ]}
+      />
+    ),
+    initialPosition: { x: 10, y: 20 },
+  },
+  render: args => {
+    return <FloatingPanel {...args} />;
   },
 };

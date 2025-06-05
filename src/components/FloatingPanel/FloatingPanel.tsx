@@ -1,6 +1,5 @@
 import { CollapsibleComponent, CollapsibleComponentProps, DragWrapperProps, DragWrapper } from '..';
 import { useId } from 'react';
-import { cn } from '@/lib/utils';
 import { CollapsibleTrigger } from './CollapsibleTrigger';
 
 type FloatingPanelProps = Omit<CollapsibleComponentProps, 'open' | 'toggle' | 'trigger'> &
@@ -26,22 +25,23 @@ export const FloatingPanel = ({
       initialPosition={initialPosition}
       relative="topRight"
     >
-      {collapsible && (
-        <CollapsibleComponent
-          maxHeight={maxHeight}
-          wrapperClassName={wrapperClassName}
-          trigger={({ open, toggle }) => (
-            <CollapsibleTrigger
-              clasName="rounded-t-xl"
-              open={open}
-              toggle={toggle}
-              dragHandleClass={dragHandleClass}
-            />
-          )}
-          children={children}
-        />
-      )}
-      {!collapsible && <div className={cn(wrapperClassName, dragHandleClass)}>{children}</div>}
+      <CollapsibleComponent
+        disable={!collapsible}
+        toggleIconHidden={!collapsible}
+        defaultOpen={!collapsible}
+        maxHeight={maxHeight}
+        wrapperClassName={wrapperClassName}
+        trigger={({ open, toggle, toggleIconHidden }) => (
+          <CollapsibleTrigger
+            toggleIconHidden={toggleIconHidden}
+            clasName="rounded-t-xl"
+            open={open}
+            toggle={toggle}
+            dragHandleClass={dragHandleClass}
+          />
+        )}
+        children={children}
+      />
     </DragWrapper>
   );
 };
