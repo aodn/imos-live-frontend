@@ -34,24 +34,23 @@ type MainSidebarProps = {
 };
 
 export const MainSidebarContent: React.FC<MainSidebarProps> = ({ className = '' }) => {
-  const { overlay, particles, circle, displayOverlay, displayCircle, displayParticles } =
-    useMapUIStore(
-      useShallow(s => ({
-        overlay: s.overlay,
-        particles: s.particles,
-        circle: s.circle,
-        displayOverlay: s.setOverlay,
-        displayCircle: s.setCircle,
-        displayParticles: s.setParticles,
-      })),
-    );
+  const { overlay, particles, circle, setOverlay, setCircle, setParticles } = useMapUIStore(
+    useShallow(s => ({
+      overlay: s.overlay,
+      particles: s.particles,
+      circle: s.circle,
+      setOverlay: s.setOverlay,
+      setCircle: s.setCircle,
+      setParticles: s.setParticles,
+    })),
+  );
   const normalizedLayerSets = useMemo(() => {
     return normalizeLayerSets(
       featuredDatasetMock.map(item => ({ ...item })),
       {
-        displayCircle,
-        displayOverlay,
-        displayParticles,
+        setCircle,
+        setOverlay,
+        setParticles,
       },
       {
         particles,
@@ -59,7 +58,7 @@ export const MainSidebarContent: React.FC<MainSidebarProps> = ({ className = '' 
         circle,
       },
     );
-  }, [displayCircle, displayOverlay, displayParticles, particles, overlay, circle]);
+  }, [setCircle, setOverlay, setParticles, particles, overlay, circle]);
   return (
     <div className={cn('h-full', className)}>
       <Header image={headderDataMock.image} title={headderDataMock.title} />

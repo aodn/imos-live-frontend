@@ -29,14 +29,16 @@ export const useMapUIStore = create<MapUIState>(set => ({
   numParticles: 10000,
   distanceMeasurement: false,
   datasets: getLast7DatesEnding3DaysAgo(),
-  dataset: getLast7DatesEnding3DaysAgo().at(-1)!,
+  dataset: getLast7DatesEnding3DaysAgo().at(2)!,
   setStyle: style => set({ style }),
   setOverlay: overlay => set({ overlay }),
   setCircle: circle => set({ circle }),
   setParticles: particles => set({ particles }),
   setNumParticles: numParticles => set({ numParticles }),
   setDistanceMeasurement: distanceMeasurement => set({ distanceMeasurement }),
-  setDataset: dataset => set({ dataset }),
+  setDataset: dataset => {
+    set({ dataset });
+  },
   refreshDatasets: () => {
     const newDatasets = getLast7DatesEnding3DaysAgo();
     set({ datasets: newDatasets, dataset: newDatasets.at(-1)! });

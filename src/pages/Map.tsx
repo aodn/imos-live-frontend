@@ -13,10 +13,56 @@ import {
 import { useMapUIStore } from '@/store';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useEffect, useRef } from 'react';
+import { useZustandUrlSync } from '@/hooks';
+import { useShallow } from 'zustand/shallow';
 
 export const Map = () => {
   const refreshDatasets = useMapUIStore(s => s.refreshDatasets);
   const mapRef = useRef<mapboxgl.Map | null>(null);
+  const { overlay, particles, circle, dataset, setOverlay, setCircle, setParticles, setDataset } =
+    useMapUIStore(
+      useShallow(s => ({
+        overlay: s.overlay,
+        particles: s.particles,
+        circle: s.circle,
+        dataset: s.dataset,
+        setOverlay: s.setOverlay,
+        setCircle: s.setCircle,
+        setParticles: s.setParticles,
+        setDataset: s.setDataset,
+      })),
+    );
+
+  useZustandUrlSync({
+    keys: ['overlay', 'particles', 'circle', 'dataset'],
+    getState: () => ({
+      overlay: overlay,
+      particles: particles,
+      circle: circle,
+      dataset: dataset,
+    }),
+    setState: (key, value) => {
+      switch (key) {
+        case 'overlay':
+          setOverlay(value);
+          break;
+        case 'particles':
+          setParticles(value);
+          break;
+        case 'circle':
+          setCircle(value);
+          break;
+        case 'dataset':
+          {
+            console.log(value, 'from map');
+            setDataset(value);
+          }
+          break;
+        default:
+          break;
+      }
+    },
+  });
 
   useEffect(() => {
     refreshDatasets();
@@ -34,7 +80,7 @@ export const Map = () => {
 
           <FloatingPanel
             boundary="parent"
-            collapsible={false}
+            collapsible
             children={
               <FeaturesMenu
                 features={[

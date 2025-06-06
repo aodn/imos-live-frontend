@@ -65,6 +65,25 @@ export function toShortDateFormat(dateString: string | Date): string {
 }
 
 /**
+ * Convert data from yy-mm-dd to UTC.
+ * @param yyMmDd
+ * @returns
+ */
+export function shortDateFormatToUTC(dateString: string): Date {
+  const [yy, mm, dd] = dateString.split('-').map(Number);
+
+  if ([yy, mm, dd].some(isNaN)) {
+    throw new Error(`Invalid date string: ${dateString}`);
+  }
+
+  // Assume 2000–2099 for 2-digit year
+  const fullYear = yy + 2000;
+
+  // Date.UTC expects month in 0–11 range
+  return new Date(Date.UTC(fullYear, mm - 1, dd));
+}
+
+/**
  * Converts a UTC date string to local timezone
  * @param dateString
  * @returns Date object in local timezone

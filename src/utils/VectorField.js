@@ -494,6 +494,11 @@ function VectorField(map, gl) {
    * Clears all textures and resets particles.
    */
   function clear() {
+    // Add check to ensure textures are initialized
+    if (!textures || !framebuffer) {
+      return; // Skip clearing if not initialized
+    }
+
     gl.clearColor(0.0, 0.0, 0.0, 0.0);
 
     //clear framebuffer textures
