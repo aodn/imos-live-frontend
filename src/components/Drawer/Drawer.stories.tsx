@@ -1,5 +1,7 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import type { Meta, StoryObj } from '@storybook/react';
-import { Drawer, DrawerProps } from './Drawer';
+import { Drawer } from './Drawer';
+import type { DrawerProps } from './Drawer';
 import { useDrawerStore } from '@/store';
 import { useShallow } from 'zustand/shallow';
 import { Button } from '../Button';
@@ -21,7 +23,7 @@ const meta: Meta<typeof Drawer> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof meta>;
+type Story = StoryObj<typeof Drawer>;
 
 const DrawerContent = () => (
   <div>
@@ -29,24 +31,6 @@ const DrawerContent = () => (
     <p>Everything goes here.</p>
   </div>
 );
-
-const DrawerDemo = (props: DrawerProps) => {
-  const { openDrawer, content } = useDrawerStore(
-    useShallow(state => ({
-      openDrawer: state.openDrawer,
-      content: state.content,
-    })),
-  );
-
-  return (
-    <>
-      <Button variant="default" onClick={() => openDrawer(<DrawerContent />)}>
-        Open Drawer
-      </Button>
-      <Drawer {...props} children={content} />
-    </>
-  );
-};
 
 export const Demo: Story = {
   args: {
@@ -56,5 +40,21 @@ export const Demo: Story = {
     className: '',
     onClose: () => console.log('Drawer closed'),
   },
-  render: args => <DrawerDemo {...args} />,
+  render: (args: DrawerProps) => {
+    const { openDrawer, content } = useDrawerStore(
+      useShallow(state => ({
+        openDrawer: state.openDrawer,
+        content: state.content,
+      })),
+    );
+
+    return (
+      <>
+        <Button variant="default" onClick={() => openDrawer(<DrawerContent />)}>
+          Open Drawer
+        </Button>
+        <Drawer {...args}>{content}</Drawer>
+      </>
+    );
+  },
 };

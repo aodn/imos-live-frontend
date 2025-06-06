@@ -23,7 +23,7 @@ const meta: Meta<typeof CollapsibleComponent> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof meta>;
+type Story = StoryObj<typeof CollapsibleComponent>;
 
 const CollapsibleTrigger = ({
   open,
@@ -62,7 +62,7 @@ const CollapsibleTrigger = ({
   );
 };
 
-const TriggerContent = () => (
+const CollapsibleContent = () => (
   <div className="p-4 space-y-4">
     <div className="text-imos-white">
       <h4 className="font-medium mb-2">Expanded Content</h4>
@@ -81,7 +81,6 @@ const TriggerContent = () => (
 
 export const Collapsible: Story = {
   args: {
-    open: false,
     maxHeight: 600,
     direction: 'down',
     wrapperClassName: 'bg-imos-grey rounded-lg shadow-lg w-96',
@@ -96,13 +95,12 @@ export const Collapsible: Story = {
         toggleIconHidden={toggleIconHidden}
       />
     ),
-    children: <TriggerContent />,
+    children: <CollapsibleContent />,
   },
 };
 
 export const Uncollapsible: Story = {
   args: {
-    open: false,
     maxHeight: 600,
     direction: 'down',
     wrapperClassName: 'bg-imos-grey rounded-lg shadow-lg w-96',
@@ -117,6 +115,6 @@ export const Uncollapsible: Story = {
         toggleIconHidden={toggleIconHidden}
       />
     ),
-    children: <TriggerContent />,
+    children: <CollapsibleContent />,
   },
 };

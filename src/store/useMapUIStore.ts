@@ -39,7 +39,7 @@ export const useMapUIStore = create<MapUIState>(set => ({
   setDataset: dataset => set({ dataset }),
   refreshDatasets: () => {
     const newDatasets = getLast7DatesEnding3DaysAgo();
-    set({ datasets: newDatasets, dataset: newDatasets.at(0)! });
+    set(prev => ({ ...prev, datasets: newDatasets }));
   },
 }));
 

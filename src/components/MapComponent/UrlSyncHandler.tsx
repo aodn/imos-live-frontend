@@ -3,7 +3,7 @@ import { useMapUIStore } from '@/store';
 import { useShallow } from 'zustand/shallow';
 
 // responsible for sync query paramenters with zustand store states and when states update also
-// update corresponding query parameters.
+// update corresponding query parameters. If want to sync other states, just update keys, getState and setState as you wish.
 export const UrlSyncHandler = () => {
   const { overlay, particles, circle, dataset, setOverlay, setCircle, setParticles, setDataset } =
     useMapUIStore(

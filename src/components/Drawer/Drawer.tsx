@@ -90,6 +90,7 @@ export const Drawer: React.FC<DrawerProps> = ({
       closeDrawer: s.closeDrawer,
     })),
   );
+  //TODO better not to use zustand store to handle toggle, find a way to do it within this component itself.
 
   const isHorizontal = direction === 'left' || direction === 'right';
 
