@@ -54,6 +54,9 @@ export type SliderProps = {
   trackPaddingX?: number;
   sliderWidth?: number;
   sliderHeight?: number;
+  onSliderReady?: (
+    setDateTime: (date: Date, target?: 'point' | 'rangeStart' | 'rangeEnd') => void,
+  ) => void;
 };
 
 export type ScaleType = 'short' | 'medium' | 'long';

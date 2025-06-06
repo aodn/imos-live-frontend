@@ -8,12 +8,11 @@ type SyncConfig<T> = {
   debounceMs?: number;
 };
 
-// Default type converters
 const serialize = (value: any): string => {
   if (value === null || value === undefined) return '';
   if (typeof value === 'string') return value;
   if (typeof value === 'number' || typeof value === 'boolean') return String(value);
-  // Handle objects/arrays
+
   try {
     return btoa(JSON.stringify(value));
   } catch {
@@ -53,7 +52,6 @@ export function useZustandUrlSync<T extends Record<string, any>>({
   const isInitialLoad = useRef(true);
   const debounceTimeout = useRef<NodeJS.Timeout>(null);
 
-  // Get current state values for the keys we care about
   const getCurrentStateSlice = useCallback(() => {
     const state = getState();
     return keys.reduce((slice, key) => {
@@ -69,9 +67,7 @@ export function useZustandUrlSync<T extends Record<string, any>>({
     keys.forEach(key => {
       const urlValue = searchParams.get(key as string);
       if (urlValue !== null) {
-        // Use custom deserializer if provided
         const deserializedValue = deserialize(urlValue, currentState[key]);
-
         setState(key, deserializedValue);
       }
     });
@@ -85,12 +81,10 @@ export function useZustandUrlSync<T extends Record<string, any>>({
   useEffect(() => {
     if (isInitialLoad.current) return;
 
-    // Clear existing timeout
     if (debounceTimeout.current) {
       clearTimeout(debounceTimeout.current);
     }
 
-    // Debounced URL update
     debounceTimeout.current = setTimeout(() => {
       const newParams = new URLSearchParams(searchParams);
       let changed = false;

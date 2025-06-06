@@ -11,6 +11,7 @@ import {
   generateTrackWidth,
   checkDateDuration,
   clampPercent,
+  clamp,
 } from '@/utils';
 import { useDrag, useResizeObserver } from '@/hooks';
 import { SliderProps, DragHandle, SelectionResult, TimeUnit } from './type';
@@ -45,6 +46,7 @@ export const DateSlider = ({
   scaleUnitConfig = DEFAULT_SCALE_CONFIG,
   sliderWidth,
   sliderHeight,
+  onSliderReady, //return a function to set slider to a certain datetime.
 }: SliderProps) => {
   const [dimensions, setDimensions] = useState({ parent: 0, slider: 0 });
   const [isDragging, setIsDragging] = useState<DragHandle>(null);
@@ -174,6 +176,73 @@ export const DateSlider = ({
     },
     [startDate, endDate],
   );
+
+  const getPercentFromDate = useCallback(
+    (date: Date): number => {
+      const startTime = startDate.getTime();
+      const endTime = endDate.getTime();
+      const targetTime = date.getTime();
+
+      // Clamp the date within the slider range
+      const clampedTime = Math.max(startTime, Math.min(endTime, targetTime));
+      const percent = ((clampedTime - startTime) / (endTime - startTime)) * 100;
+
+      return clampPercent(percent);
+    },
+    [startDate, endDate],
+  );
+
+  const setDateTime = useCallback(
+    (date: Date, target?: 'point' | 'rangeStart' | 'rangeEnd') => {
+      const percentage = getPercentFromDate(date);
+
+      // Determine target based on viewMode if not specified
+      let actualTarget = target;
+      if (!actualTarget) {
+        switch (viewMode) {
+          case 'point':
+            actualTarget = 'point';
+            break;
+          case 'range': {
+            // Default to the closest handle for range mode
+            const distanceToStart = Math.abs(percentage - rangeStartRef.current);
+            const distanceToEnd = Math.abs(percentage - rangeEndRef.current);
+            actualTarget = distanceToStart < distanceToEnd ? 'rangeStart' : 'rangeEnd';
+            break;
+          }
+          case 'combined':
+            // Default to point for combined mode, but allow override
+            actualTarget = 'point';
+            break;
+        }
+      }
+
+      // Update the appropriate handle
+      switch (actualTarget) {
+        case 'rangeStart': {
+          const newStart = clamp(percentage, 0, rangeEndRef.current - minGapPercent);
+          setRangeStart(newStart);
+          break;
+        }
+        case 'rangeEnd': {
+          const newEnd = clamp(percentage, 100, rangeStartRef.current + minGapPercent);
+          setRangeEnd(newEnd);
+          break;
+        }
+        case 'point': {
+          setPointPosition(percentage);
+          break;
+        }
+      }
+    },
+    [getPercentFromDate, viewMode, minGapPercent],
+  );
+
+  useEffect(() => {
+    if (onSliderReady) {
+      onSliderReady(setDateTime);
+    }
+  }, [onSliderReady, setDateTime]);
 
   function handleDragComplete() {
     // Add a small delay before resetting dragStarted to ensure track clicks are properly blocked

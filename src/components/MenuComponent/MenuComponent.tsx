@@ -3,6 +3,7 @@ import { Tabs } from '../Tab/Tabs';
 import { NavSelect } from '../NavSelect';
 import { styles } from '../../styles';
 import { useMapUIStore } from '@/store';
+import { useShallow } from 'zustand/shallow';
 
 export const MenuComponent = () => {
   const {
@@ -15,7 +16,19 @@ export const MenuComponent = () => {
     setNumParticles,
     setDistanceMeasurement,
     setDataset,
-  } = useMapUIStore();
+  } = useMapUIStore(
+    useShallow(s => ({
+      style: s.style,
+      numParticles: s.numParticles,
+      distanceMeasurement: s.distanceMeasurement,
+      dataset: s.dataset,
+      datasets: s.datasets,
+      setStyle: s.setStyle,
+      setNumParticles: s.setNumParticles,
+      setDistanceMeasurement: s.setDistanceMeasurement,
+      setDataset: s.setDataset,
+    })),
+  );
 
   return (
     <div className="bg-[rgba(35,55,75,1)]">
