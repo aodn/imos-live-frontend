@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
+import { useState, useRef, useCallback, useEffect, useMemo, useImperativeHandle } from 'react';
 import { cn } from '@/lib/utils';
 import { SliderHandle } from './SliderHandle';
 import { SliderTrack } from './SliderTrack';
@@ -46,7 +46,7 @@ export const DateSlider = ({
   scaleUnitConfig = DEFAULT_SCALE_CONFIG,
   sliderWidth,
   sliderHeight,
-  onSliderReady, //return a function to set slider to a certain datetime.
+  imperativeHandleRef,
 }: SliderProps) => {
   const [dimensions, setDimensions] = useState({ parent: 0, slider: 0 });
   const [isDragging, setIsDragging] = useState<DragHandle>(null);
@@ -238,11 +238,9 @@ export const DateSlider = ({
     [getPercentFromDate, viewMode, minGapPercent],
   );
 
-  useEffect(() => {
-    if (onSliderReady) {
-      onSliderReady(setDateTime);
-    }
-  }, [onSliderReady, setDateTime]);
+  useImperativeHandle(imperativeHandleRef, () => ({
+    setDateTime: setDateTime,
+  }));
 
   function handleDragComplete() {
     // Add a small delay before resetting dragStarted to ensure track clicks are properly blocked

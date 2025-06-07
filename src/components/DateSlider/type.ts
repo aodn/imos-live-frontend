@@ -33,6 +33,10 @@ export type ScaleUnitConfig = {
   };
 };
 
+export type SliderExposedMethod = {
+  setDateTime: (date: Date, target?: 'point' | 'rangeStart' | 'rangeEnd') => void;
+};
+
 export type SliderProps = {
   viewMode: ViewMode;
   startDate: Date;
@@ -54,9 +58,7 @@ export type SliderProps = {
   trackPaddingX?: number;
   sliderWidth?: number;
   sliderHeight?: number;
-  onSliderReady?: (
-    setDateTime: (date: Date, target?: 'point' | 'rangeStart' | 'rangeEnd') => void,
-  ) => void;
+  imperativeHandleRef?: React.Ref<SliderExposedMethod>;
 };
 
 export type ScaleType = 'short' | 'medium' | 'long';
