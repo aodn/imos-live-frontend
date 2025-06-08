@@ -11,3 +11,8 @@ export const customStyles = [{ title: 'Terrain', source: terrain }];
 export const styles = mapboxStyles.concat(customStyles);
 
 export type StyleTitle = 'Dark' | 'Streets' | 'Satellite' | 'Terrain';
+export type StyleSource =
+  | 'mapbox://styles/mapbox/dark-v11'
+  | 'mapbox://styles/mapbox/streets-v12'
+  | 'mapbox://styles/mapbox/satellite-v9'
+  | typeof terrain;

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '../Button';
 import { CloseIcon, MenuIcon } from '../Icons';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils';
 
 type SidebarProps = {
   width?: number;

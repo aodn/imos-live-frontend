@@ -1,9 +1,4 @@
 export * from './MapComponent';
-export * from './Menu/Menu';
-export * from './MenuComponent';
-export * from './MenuPane';
-export * from './NavSelect';
-export * from './Tab/Tabs';
 export * from './PopupContent';
 export * from './Layout';
 export * from './CircleDetails';
@@ -21,3 +16,6 @@ export * from './Input';
 export * from './MainSidebar';
 export * from './Image';
 export * from './DateSelectionBar';
+export * from './UrlSyncHandler';
+export * from './Dropdown';
+export * from './Switch';

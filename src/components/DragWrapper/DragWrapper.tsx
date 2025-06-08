@@ -1,6 +1,5 @@
 import { useDidMountEffect, useDrag, useResizeObserver } from '@/hooks';
-import { cn } from '@/lib/utils';
-import { clamp, queryIncludingSelf } from '@/utils';
+import { cn, clamp, queryIncludingSelf } from '@/utils';
 import { ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 /**

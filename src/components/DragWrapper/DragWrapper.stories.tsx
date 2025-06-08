@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { DragWrapper } from './DragWrapper';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils';
 import { CollapsibleComponent } from '../Collapsible';
 import { Button } from '../Button';
 import { ArrowDownIcon } from '../Icons';

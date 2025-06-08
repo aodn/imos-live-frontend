@@ -1,6 +1,6 @@
 import { Button } from '@/components';
 import { AddCircleIcon, MinusCircleIcon, HandIcon } from '../Icons';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils';
 
 export const MapControlPanel = ({
   ref: mapRef,

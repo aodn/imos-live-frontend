@@ -1,6 +1,6 @@
 import { Button } from '../Button';
 import { ArrowDownIcon, WidgetsIcon } from '../Icons';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils';
 
 export const LayerProductsCollapsibleTrigger = ({
   open,

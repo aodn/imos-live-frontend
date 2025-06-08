@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '../Button';
 import { ConfigIcon, SearchIcon } from '../Icons';
 import { Input } from '../Input';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils';
 
 type SearchProps = {
   className?: string;

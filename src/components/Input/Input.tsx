@@ -1,5 +1,5 @@
 import { ChangeEvent, forwardRef, ReactNode } from 'react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils';
 import style from './style.module.css';
 
 export type InputProps = {

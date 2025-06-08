@@ -2,12 +2,14 @@ import { create } from 'zustand';
 import { StyleTitle } from '@/styles';
 import { getLast7DatesEnding3DaysAgo } from '@/utils';
 
+export type NumParticles = 1000 | 10000 | 100000;
+
 export interface MapUIState {
   style: StyleTitle;
   overlay: boolean;
   circle: boolean;
   particles: boolean;
-  numParticles: number;
+  numParticles: NumParticles;
   distanceMeasurement: boolean;
   dataset: string;
   datasets: string[];
@@ -15,7 +17,7 @@ export interface MapUIState {
   setOverlay: (v: boolean) => void;
   setCircle: (v: boolean) => void;
   setParticles: (v: boolean) => void;
-  setNumParticles: (n: number) => void;
+  setNumParticles: (n: NumParticles) => void;
   setDistanceMeasurement: (v: boolean) => void;
   setDataset: (d: string) => void;
   refreshDatasets: () => void;

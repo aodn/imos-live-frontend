@@ -7,7 +7,7 @@ import {
   toShortDateFormat,
 } from '@/utils';
 import { useMapUIStore } from '@/store';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils';
 import { useEffect, useMemo, useRef } from 'react';
 import { useShallow } from 'zustand/shallow';
 

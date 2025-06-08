@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils';
 
 import { SliderTrackProps, ScaleType } from './type';
 

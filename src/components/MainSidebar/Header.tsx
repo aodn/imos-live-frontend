@@ -1,5 +1,5 @@
 import { getScaledDimensions } from '@/utils';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils';
 import { HeaderData } from './MainSidebarContent';
 import { Image } from '../Image';
 

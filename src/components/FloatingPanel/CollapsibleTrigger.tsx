@@ -1,4 +1,4 @@
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils';
 import { ArrowDownIcon, Button, DragIndicatorIcon, IconProps } from '..';
 
 export type CollapsibleTriggerProps = {
@@ -28,7 +28,6 @@ export const CollapsibleTrigger = ({
         clasName,
       )}
     >
-      {/* TODO hiden togggle icon based on toggleIconHidden*/}
       {!toggleIconHidden && (
         <Button variant="ghost" size="icon" className="hover:bg-transparent " onClick={toggle}>
           {FirstIcon ? (

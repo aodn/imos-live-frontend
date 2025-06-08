@@ -1,4 +1,4 @@
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils';
 import { Button, TriangleIcon } from '../';
 import { TimeUnit } from './type';
 import { useState, useRef, useEffect } from 'react';

@@ -2,13 +2,12 @@ import { Search } from './Search';
 import { Header } from './Header';
 import { ImageType } from '@/types';
 import { LayerProducts } from './LayerProducts';
-import { cn } from '@/lib/utils';
 import { LayerSets } from './LayerSets';
 import { headderDataMock, layerProductsMock, featuredDatasetMock } from './mock';
 import { useMapUIStore } from '@/store';
 import { useShallow } from 'zustand/shallow';
 import { useMemo } from 'react';
-import { normalizeLayerSets } from '@/utils';
+import { cn, normalizeLayerSets } from '@/utils';
 
 export type HeaderData = {
   image: ImageType;

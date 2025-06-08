@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils';
 import { Skeleton } from '../Skeleton';
 import { ImageErrorIcon } from '../Icons';
 

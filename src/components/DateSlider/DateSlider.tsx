@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect, useMemo, useImperativeHandle } from 'react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils';
 import { SliderHandle } from './SliderHandle';
 import { SliderTrack } from './SliderTrack';
 import {

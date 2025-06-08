@@ -1,5 +1,5 @@
 import { Button } from '../Button';
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils';
 import { LayerProducts as LayerProductsType } from './MainSidebarContent';
 
 export type LayerProductsContentProps = {
