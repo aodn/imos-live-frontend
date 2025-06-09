@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronDown, X } from 'lucide-react';
+import { ArrowDownIcon, CloseIcon } from '../Icons';
 import { cn } from '@/utils';
 import { useDropdownOutsideClick, useDropdownPosition } from '@/hooks';
 import { DropdownProps, DropdownOption } from './type';
@@ -181,14 +181,12 @@ export const Dropdown = ({
             <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-blue-600" />
           )}
           {clearable && hasValue && !disabled && (
-            <X
-              size={16}
+            <CloseIcon
               className="text-gray-400 hover:text-gray-600 cursor-pointer"
               onClick={handleClear}
             />
           )}
-          <ChevronDown
-            size={16}
+          <ArrowDownIcon
             className={cn('text-gray-400 transition-transform duration-200', {
               'rotate-180': isOpen,
             })}

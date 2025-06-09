@@ -50,7 +50,6 @@ export const MapComponent = memo(({ ref }: { ref: React.RefObject<mapboxgl.Map |
     waveBuoysLayerClicked,
   } = useWaveBuoysLayerClickHandler(map, circle, distanceMeasurement);
 
-  //the reason open drawer in useEffect is because hook is only good for logics without rendering components.
   useEffect(() => {
     if (waveBuoysLayerClickedPointData) {
       openDrawer(<CircleDetails {...waveBuoysLayerClickedPointData} />);

@@ -15,6 +15,11 @@ export type PointSelection = {
   point: Date;
 };
 
+export type TimeLabel = {
+  date: Date;
+  position: number;
+};
+
 export type CombinedSelection = RangeSelection & PointSelection;
 
 export type SelectionResult = RangeSelection | PointSelection | CombinedSelection;
@@ -108,4 +113,12 @@ export type SliderHandleProps = {
   label: string;
   icon: ReactNode;
   onMouseDown: (e: React.MouseEvent) => void;
+};
+
+export type TimeUnitSelectionProps = {
+  initialTimeUnit: TimeUnit;
+  isMonthValid: boolean;
+  isYearValid: boolean;
+  onChange: (timeUnit: TimeUnit) => void;
+  className?: string;
 };

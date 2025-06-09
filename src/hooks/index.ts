@@ -1,5 +1,4 @@
 export * from './useDidMountEffect';
-export * from './useStableCallback';
 export * from './useMapInitialization';
 export * from './useMapResize';
 export * from './useMapStyle';

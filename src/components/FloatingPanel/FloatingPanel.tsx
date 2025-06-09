@@ -34,7 +34,6 @@ export const FloatingPanel = ({
         trigger={({ open, toggle, toggleIconHidden }) => (
           <CollapsibleTrigger
             toggleIconHidden={toggleIconHidden}
-            clasName="rounded-t-xl"
             open={open}
             toggle={toggle}
             dragHandleClass={dragHandleClass}

@@ -1,4 +1,5 @@
 import { useToggle } from '@/hooks';
+import { cn } from '@/utils';
 import { ReactNode } from 'react';
 
 export type TriggerArgs = {
@@ -33,7 +34,7 @@ export const CollapsibleComponent = ({
   const { open, toggle } = useToggle(defaultOpen);
 
   return (
-    <div className={wrapperClassName}>
+    <div className={cn('bg-[rgba(35,55,75,1)] rounded-xl overflow-hidden', wrapperClassName)}>
       {isUpward && (
         <div
           className="overflow-hidden transition-all duration-300 ease-in-out"

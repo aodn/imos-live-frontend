@@ -3,37 +3,77 @@ import { useMapUIStore } from '@/store';
 import { useShallow } from 'zustand/shallow';
 
 // responsible for sync query paramenters with zustand store states and when states update also
-// update corresponding query parameters. If want to sync other states, just update keys, getState and setState as you wish.
+// update corresponding query parameters.
 export const UrlSyncHandler = () => {
-  const { overlay, particles, circle, dataset, setOverlay, setCircle, setParticles, setDataset } =
-    useMapUIStore(
-      useShallow(s => ({
-        overlay: s.overlay,
-        particles: s.particles,
-        circle: s.circle,
-        dataset: s.dataset,
-        setOverlay: s.setOverlay,
-        setCircle: s.setCircle,
-        setParticles: s.setParticles,
-        setDataset: s.setDataset,
-      })),
-    );
+  const {
+    style,
+    overlay,
+    particles,
+    numParticles,
+    distanceMeasurement,
+    circle,
+    dataset,
+    setStyle,
+    setOverlay,
+    setCircle,
+    setParticles,
+    setNumParticles,
+    setDistanceMeasurement,
+    setDataset,
+  } = useMapUIStore(
+    useShallow(s => ({
+      style: s.style,
+      overlay: s.overlay,
+      particles: s.particles,
+      numParticles: s.numParticles,
+      distanceMeasurement: s.distanceMeasurement,
+      circle: s.circle,
+      dataset: s.dataset,
+      setStyle: s.setStyle,
+      setOverlay: s.setOverlay,
+      setCircle: s.setCircle,
+      setParticles: s.setParticles,
+      setNumParticles: s.setNumParticles,
+      setDistanceMeasurement: s.setDistanceMeasurement,
+      setDataset: s.setDataset,
+    })),
+  );
 
   useZustandUrlSync({
-    keys: ['overlay', 'particles', 'circle', 'dataset'],
+    keys: [
+      'style',
+      'overlay',
+      'particles',
+      'numParticles',
+      'distanceMeasurement',
+      'circle',
+      'dataset',
+    ],
     getState: () => ({
+      style: style,
       overlay: overlay,
       particles: particles,
+      numParticles: numParticles,
+      distanceMeasurement: distanceMeasurement,
       circle: circle,
       dataset: dataset,
     }),
     setState: (key, value) => {
       switch (key) {
+        case 'style':
+          setStyle(value);
+          break;
         case 'overlay':
           setOverlay(value);
           break;
         case 'particles':
           setParticles(value);
+          break;
+        case 'numParticles':
+          setNumParticles(value);
+          break;
+        case 'distanceMeasurement':
+          setDistanceMeasurement(value);
           break;
         case 'circle':
           setCircle(value);
@@ -46,5 +86,6 @@ export const UrlSyncHandler = () => {
       }
     },
   });
+
   return null;
 };

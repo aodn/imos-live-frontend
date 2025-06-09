@@ -114,35 +114,6 @@ export const Large: Story = {
   },
 };
 
-// Color Variants
-export const Success: Story = {
-  args: {
-    initialValue: true,
-    variant: 'success',
-  },
-};
-
-export const Warning: Story = {
-  args: {
-    initialValue: true,
-    variant: 'warning',
-  },
-};
-
-export const Danger: Story = {
-  args: {
-    initialValue: true,
-    variant: 'danger',
-  },
-};
-
-export const Info: Story = {
-  args: {
-    initialValue: true,
-    variant: 'info',
-  },
-};
-
 // With Labels
 export const WithLabel: Story = {
   args: {
@@ -198,15 +169,5 @@ export const FeatureToggle: Story = {
     variant: 'warning',
     size: 'lg',
     showIcons: true,
-  },
-};
-
-export const PrivacySettings: Story = {
-  args: {
-    initialValue: true,
-    label: 'Make Profile Public',
-    description: 'Allow others to see your profile information',
-    variant: 'success',
-    labelPosition: 'left',
   },
 };

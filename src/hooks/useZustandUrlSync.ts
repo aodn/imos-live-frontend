@@ -60,7 +60,7 @@ export function useZustandUrlSync<T extends Record<string, any>>({
     }, {} as Partial<T>);
   }, [getState, keys]);
 
-  // On initial load: sync URL → Zustand
+  // On initial load: sync URL -> Zustand
   useEffect(() => {
     if (!isInitialLoad.current) return;
     const currentState = getState();
@@ -75,7 +75,7 @@ export function useZustandUrlSync<T extends Record<string, any>>({
     isInitialLoad.current = false;
   }, [searchParams, keys, getState, setState]);
 
-  // On Zustand change: Zustand → URL (with proper dependencies)
+  // On Zustand change: Zustand -> URL
   const stateSlice = getCurrentStateSlice();
 
   useEffect(() => {

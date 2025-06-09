@@ -1,14 +1,11 @@
 import { cn } from '@/utils';
-import { Search, Check } from 'lucide-react';
 import { DropdownContentProps, OptionItemProps, OptionsListProps, SearchInputProps } from './type';
+import { SearchIcon, CheckIcon } from '../Icons';
 
 const SearchInput = ({ value, onChange, placeholder = 'Search options...' }: SearchInputProps) => (
   <div className="p-2 border-b border-gray-200 bg-white sticky top-0 z-10">
     <div className="relative">
-      <Search
-        size={16}
-        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-      />
+      <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
       <input
         type="text"
         placeholder={placeholder}
@@ -54,7 +51,7 @@ export const OptionItem = ({
         </div>
       </div>
     )}
-    {isSelected && <Check size={16} className="text-blue-600 flex-shrink-0 ml-2" />}
+    {isSelected && <CheckIcon className="text-blue-600 flex-shrink-0 ml-2" />}
   </button>
 );
 

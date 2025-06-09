@@ -1,15 +1,7 @@
 import { cn } from '@/utils';
 import { Button, TriangleIcon } from '../';
-import { TimeUnit } from './type';
+import { TimeUnit, TimeUnitSelectionProps } from './type';
 import { useState, useRef, useEffect } from 'react';
-
-type TimeUnitSelectionProps = {
-  initialTimeUnit: TimeUnit;
-  isMonthValid: boolean;
-  isYearValid: boolean;
-  onChange: (timeUnit: TimeUnit) => void;
-  className?: string;
-};
 
 const TIME_UNITS: Array<TimeUnit> = ['day', 'month', 'year'];
 

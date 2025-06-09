@@ -14,7 +14,7 @@ import {
   clamp,
 } from '@/utils';
 import { useDrag, useResizeObserver } from '@/hooks';
-import { SliderProps, DragHandle, SelectionResult, TimeUnit } from './type';
+import { SliderProps, DragHandle, SelectionResult, TimeUnit, TimeLabel } from './type';
 import { TimeUnitSelection } from './TimeUnitSelection';
 
 const DEFAULT_SCALE_CONFIG = {
@@ -433,13 +433,30 @@ export const DateSlider = ({
 
   function renderTimeLabels() {
     const isFirstTimeLabelHidden = timeLabels[0].date.getTime() < scales[0].date.getTime();
+    const minDistance = 80; // Minimum pixels between labels to avoid overlap
+
+    const visibleLabels: TimeLabel[] = [];
+    let lastVisiblePosition = -Infinity;
+
+    timeLabels.forEach((label, index) => {
+      const currentPosition = index === 0 && isFirstTimeLabelHidden ? 0 : label.position;
+
+      if (currentPosition - lastVisiblePosition >= minDistance) {
+        visibleLabels.push({ ...label, position: currentPosition });
+        lastVisiblePosition = currentPosition;
+      } else {
+        visibleLabels.pop();
+        visibleLabels.push({ ...label, position: currentPosition });
+        lastVisiblePosition = currentPosition;
+      }
+    });
     return (
       <>
-        {timeLabels.map(({ date, position }, index) => (
+        {visibleLabels.map(({ date, position }, index) => (
           <span
             key={index}
-            className="bottom-0 text-center  text-sm text-gray-700 absolute"
-            style={index === 0 && isFirstTimeLabelHidden ? { left: 0 } : { left: position }}
+            className="bottom-0 text-center text-sm text-gray-700 absolute"
+            style={{ left: position }}
           >
             {formatDateForDisplay(date, timeUnit, false).toUpperCase()}
           </span>
@@ -447,6 +464,7 @@ export const DateSlider = ({
       </>
     );
   }
+
   return (
     <div
       className={cn('w-fit flex border', wrapperClassName)}
