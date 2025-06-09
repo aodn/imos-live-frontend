@@ -20,28 +20,41 @@ export const DateSelectionBar = ({ className }: DateSelectionBarProps) => {
       setDataset: s.setDataset,
     })),
   );
-  const dataSliderMethodRef = useRef<SliderExposedMethod>(null);
-  const isUpdatingFromUrlRef = useRef(false);
+  const dataSliderMethod = useRef<SliderExposedMethod>(null);
+  const isUpdatingFromUrl = useRef(false);
+  const lastProcessedDataset = useRef<string>(null);
+  const updateAttempts = useRef(0);
 
   const lastSevenDays = useMemo(() => getLast7DatesEnding3DaysAgo('yyyy-mm-dd'), []);
 
   const handleSelect = (v: PointSelection) => {
     //currently, gsla ocean current data is naming in yy-mm-dd pattern, so need to convert same fromat.
-    if (isUpdatingFromUrlRef.current) return;
+    if (isUpdatingFromUrl.current) return;
     setDataset(toShortDateFormat(v.point));
   };
 
   useEffect(() => {
-    if (dataSliderMethodRef.current && dataset) {
-      const dateFromDataset = convertUTCToLocalDateTime(shortDateFormatToUTC(dataset));
+    if (!dataSliderMethod.current || !dataset) return;
 
-      isUpdatingFromUrlRef.current = true;
-      dataSliderMethodRef.current.setDateTime(dateFromDataset, 'point');
+    const hasDatasetChanged = lastProcessedDataset.current !== dataset;
 
-      setTimeout(() => {
-        isUpdatingFromUrlRef.current = false;
-      }, 10);
+    if (hasDatasetChanged) {
+      updateAttempts.current++;
+      lastProcessedDataset.current = dataset;
     }
+
+    if (updateAttempts.current > 2) return;
+
+    const dateTime = convertUTCToLocalDateTime(shortDateFormatToUTC(dataset));
+
+    isUpdatingFromUrl.current = true;
+    dataSliderMethod.current.setDateTime(dateTime, 'point');
+
+    const timeoutId = setTimeout(() => {
+      isUpdatingFromUrl.current = false;
+    }, 10);
+
+    return () => clearTimeout(timeoutId);
   }, [dataset]);
 
   return (
@@ -62,7 +75,7 @@ export const DateSelectionBar = ({ className }: DateSelectionBarProps) => {
           width: { short: 1, medium: 2, long: 2 },
           height: { short: 24, medium: 48, long: 108 },
         }}
-        imperativeHandleRef={dataSliderMethodRef}
+        imperativeHandleRef={dataSliderMethod}
       />
     </div>
   );
