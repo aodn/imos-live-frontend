@@ -11,7 +11,8 @@ import { useDidMountEffect } from './useDidMountEffect';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
 import { useMapboxLayerRef } from './useMapboxLayerRef';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
-import { layersOrder, overlayLayerConfig } from '@/config';
+import { overlayLayerConfig } from '@/config';
+import { useToast } from '@/components';
 
 export function useOverlayLayer(
   map: React.RefObject<mapboxgl.Map | null>,
@@ -19,19 +20,31 @@ export function useOverlayLayer(
   style: string,
   dataset: string,
 ) {
-  const setDataByDataset = async () => {
-    const { maxBounds, lonRange, latRange } = await loadMetaDataFromUrl(
-      buildDatasetUrl(dataset, GSLA_META_NAME),
-    );
-    map.current!.setMaxBounds(maxBounds);
+  const { showToast } = useToast();
 
-    addOrUpdateImageSource(
-      map.current!,
-      OVERLAY_SOURCE_ID,
-      buildDatasetUrl(dataset, GSLA_SEA_LEVEL_NAME),
-      lonRange,
-      latRange,
-    );
+  const setDataByDataset = async () => {
+    try {
+      const { maxBounds, lonRange, latRange } = await loadMetaDataFromUrl(
+        buildDatasetUrl(dataset, GSLA_META_NAME),
+      );
+      map.current!.setMaxBounds(maxBounds);
+
+      addOrUpdateImageSource(
+        map.current!,
+        OVERLAY_SOURCE_ID,
+        buildDatasetUrl(dataset, GSLA_SEA_LEVEL_NAME),
+        lonRange,
+        latRange,
+      );
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      showToast({
+        type: 'error',
+        title: 'Error occurred',
+        message: 'Failed to get GSLA anamly sea level data of this date',
+        duration: 6000,
+      });
+    }
   };
 
   const setupLayer = async () => {
@@ -39,7 +52,7 @@ export function useOverlayLayer(
     await setDataByDataset();
 
     if (!map.current?.getLayer(OVERLAY_LAYER_ID)) {
-      addLayerInOrder(map, layersOrder, overlayLayer.current, OVERLAY_LAYER_ID);
+      addLayerInOrder(map, overlayLayer.current, OVERLAY_LAYER_ID);
     }
   };
 

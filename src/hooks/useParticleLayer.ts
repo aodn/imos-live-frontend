@@ -13,7 +13,7 @@ import { useDidMountEffect } from './useDidMountEffect';
 import { useParticleLayerVisibility } from './useParticleLayerVisibility';
 import { useParticleLayerRef } from './useParticleLayerRef';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
-import { layersOrder } from '@/config';
+import { useToast } from '@/components';
 
 export function useParticleLayer(
   map: React.RefObject<mapboxgl.Map | null>,
@@ -22,31 +22,43 @@ export function useParticleLayer(
   dataset: string,
   numParticles: number,
 ) {
+  const { showToast } = useToast();
+
   const setDataByDataset = async () => {
-    const { maxBounds, bounds, lonRange, latRange, uRange, vRange } = await loadMetaDataFromUrl(
-      buildDatasetUrl(dataset, GSLA_META_NAME),
-    );
+    try {
+      const { maxBounds, bounds, lonRange, latRange, uRange, vRange } = await loadMetaDataFromUrl(
+        buildDatasetUrl(dataset, GSLA_META_NAME),
+      );
 
-    map.current!.setMaxBounds(maxBounds);
-    particleLayer.current!.metadata = {
-      bounds,
-      range: [uRange, vRange],
-    };
+      map.current!.setMaxBounds(maxBounds);
+      particleLayer.current!.metadata = {
+        bounds,
+        range: [uRange, vRange],
+      };
 
-    addOrUpdateImageSource(
-      map.current!,
-      PARTICLE_SOURCE_ID,
-      buildDatasetUrl(dataset, GSLA_PARTICLE_NAME),
-      lonRange,
-      latRange,
-    );
+      addOrUpdateImageSource(
+        map.current!,
+        PARTICLE_SOURCE_ID,
+        buildDatasetUrl(dataset, GSLA_PARTICLE_NAME),
+        lonRange,
+        latRange,
+      );
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      showToast({
+        type: 'error',
+        title: 'Error occurred',
+        message: 'Failed to get GSLA ocean current data of this date',
+        duration: 6000,
+      });
+    }
   };
 
   const setupLayer = async () => {
     if (!particleLayer.current) return;
     await setDataByDataset();
     if (!map.current!.getLayer(PARTICLE_LAYER_ID)) {
-      addLayerInOrder(map, layersOrder, particleLayer.current, PARTICLE_LAYER_ID);
+      addLayerInOrder(map, particleLayer.current, PARTICLE_LAYER_ID);
     }
   };
 

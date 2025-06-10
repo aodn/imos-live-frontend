@@ -19,3 +19,4 @@ export * from './DateSelectionBar';
 export * from './UrlSyncHandler';
 export * from './Dropdown';
 export * from './Switch';
+export * from './Toast';

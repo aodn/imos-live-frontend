@@ -1,12 +1,10 @@
 /** @type {import('tailwindcss').Config} */
-
 //this has been deprecrated by v4, but by adding @config "../tailwind.config.js"; in index.css,
 //this config still works.
 export default {
   content: [
     './src/**/*.{js,ts,jsx,tsx,html}', // adjust as needed for your project
     './components/**/*.{js,ts,jsx,tsx,html}', // if you have a /components folder
-    // add other folders where you use Tailwind classes
   ],
   theme: {
     extend: {
@@ -18,6 +16,6 @@ export default {
       },
     },
   },
-
+  darkMode: 'class',
   plugins: [],
 };

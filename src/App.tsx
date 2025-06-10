@@ -1,15 +1,17 @@
 import { Route, Routes } from 'react-router-dom';
 import { Map as MapPage, Landing as LandingPage } from '@/pages';
-import { Layout } from '@/components';
+import { Layout, ToastProvider } from '@/components';
 
 function App() {
   return (
-    <Routes>
-      <Route element={<Layout />}>
-        <Route path="/" element={<MapPage />} />
-        <Route path="/landing" element={<LandingPage />} />
-      </Route>
-    </Routes>
+    <ToastProvider>
+      <Routes>
+        <Route element={<Layout />}>
+          <Route path="/" element={<MapPage />} />
+          <Route path="/landing" element={<LandingPage />} />
+        </Route>
+      </Routes>
+    </ToastProvider>
   );
 }
 export default App;

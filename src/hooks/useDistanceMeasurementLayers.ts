@@ -6,7 +6,7 @@ import {
   MEASURE_POINTS_SOURCE_ID,
 } from '@/constants';
 import { circleLayer, lineLayer } from '@/layers';
-import { layersOrder, measureLinesConfig, measurePointsConfig } from '@/config';
+import { measureLinesConfig, measurePointsConfig } from '@/config';
 import { addLayerInOrder, addOrUpdateGeoJsonSource } from '@/helpers';
 import { sleep } from '@/utils';
 import { FeatureCollection, GeoJsonProperties, Geometry } from 'geojson';
@@ -33,11 +33,11 @@ export function useDistanceMeasurementLayers(
     if (measurePointsLayer.current) {
       addOrUpdateGeoJsonSource(map.current!, MEASURE_POINTS_SOURCE_ID, measurePointsGeojson);
       if (!map.current?.getLayer(MEASURE_POINTS_LAYER_ID))
-        addLayerInOrder(map, layersOrder, measurePointsLayer.current, MEASURE_POINTS_LAYER_ID);
+        addLayerInOrder(map, measurePointsLayer.current, MEASURE_POINTS_LAYER_ID);
     }
     if (measureLineLayer.current) {
       if (!map.current?.getLayer(MEASURE_LINES_LAYER_ID))
-        addLayerInOrder(map, layersOrder, measureLineLayer.current, MEASURE_LINES_LAYER_ID);
+        addLayerInOrder(map, measureLineLayer.current, MEASURE_LINES_LAYER_ID);
     }
   };
 
