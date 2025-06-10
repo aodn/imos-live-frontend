@@ -7,8 +7,8 @@ import {
 } from '@/constants';
 import { addLayerInOrder, addOrUpdateImageSource } from '@/helpers';
 import { vectorLayer } from '@/layers';
-import { loadMetaDataFromUrl, buildDatasetUrl } from '@/utils';
-import { useEffect } from 'react';
+import { processMetaData, buildDatasetUrl, tryCatch } from '@/utils';
+import { useEffect, useState } from 'react';
 import { useDidMountEffect } from './useDidMountEffect';
 import { useParticleLayerVisibility } from './useParticleLayerVisibility';
 import { useParticleLayerRef } from './useParticleLayerRef';
@@ -23,35 +23,38 @@ export function useParticleLayer(
   numParticles: number,
 ) {
   const { showToast } = useToast();
+  const [isError, setIsError] = useState(false);
 
   const setDataByDataset = async () => {
-    try {
-      const { maxBounds, bounds, lonRange, latRange, uRange, vRange } = await loadMetaDataFromUrl(
-        buildDatasetUrl(dataset, GSLA_META_NAME),
-      );
-
-      map.current!.setMaxBounds(maxBounds);
-      particleLayer.current!.metadata = {
-        bounds,
-        range: [uRange, vRange],
-      };
-
-      addOrUpdateImageSource(
-        map.current!,
-        PARTICLE_SOURCE_ID,
-        buildDatasetUrl(dataset, GSLA_PARTICLE_NAME),
-        lonRange,
-        latRange,
-      );
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
+    const meta = await tryCatch(processMetaData(buildDatasetUrl(dataset, GSLA_META_NAME)), () => {
       showToast({
         type: 'error',
         title: 'Error occurred',
         message: 'Failed to get GSLA ocean current data of this date',
         duration: 6000,
       });
-    }
+      setIsError(true);
+    });
+
+    if (!meta) return;
+
+    const { maxBounds, bounds, lonRange, latRange, uRange, vRange } = meta;
+
+    map.current!.setMaxBounds(maxBounds);
+
+    setIsError(false); //added
+    particleLayer.current!.metadata = {
+      bounds,
+      range: [uRange, vRange],
+    };
+
+    addOrUpdateImageSource(
+      map.current!,
+      PARTICLE_SOURCE_ID,
+      buildDatasetUrl(dataset, GSLA_PARTICLE_NAME),
+      lonRange,
+      latRange,
+    );
   };
 
   const setupLayer = async () => {
@@ -69,7 +72,7 @@ export function useParticleLayer(
 
   const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [style, dataset]);
 
-  useParticleLayerVisibility(map, loadComplete, particleLayer, particles);
+  useParticleLayerVisibility(map, loadComplete, particleLayer, particles && !isError);
 
   useEffect(() => {
     if (!map || !loadComplete || !particleLayer.current) return;

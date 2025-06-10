@@ -6,13 +6,14 @@ import {
 } from '@/constants';
 import { addLayerInOrder, addOrUpdateImageSource } from '@/helpers';
 import { imageLayer } from '@/layers';
-import { loadMetaDataFromUrl, buildDatasetUrl } from '@/utils';
+import { processMetaData, buildDatasetUrl, tryCatch } from '@/utils';
 import { useDidMountEffect } from './useDidMountEffect';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
 import { useMapboxLayerRef } from './useMapboxLayerRef';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { overlayLayerConfig } from '@/config';
 import { useToast } from '@/components';
+import { useState } from 'react';
 
 export function useOverlayLayer(
   map: React.RefObject<mapboxgl.Map | null>,
@@ -21,30 +22,29 @@ export function useOverlayLayer(
   dataset: string,
 ) {
   const { showToast } = useToast();
+  const [isError, setIsError] = useState(false);
 
   const setDataByDataset = async () => {
-    try {
-      const { maxBounds, lonRange, latRange } = await loadMetaDataFromUrl(
-        buildDatasetUrl(dataset, GSLA_META_NAME),
-      );
-      map.current!.setMaxBounds(maxBounds);
-
-      addOrUpdateImageSource(
-        map.current!,
-        OVERLAY_SOURCE_ID,
-        buildDatasetUrl(dataset, GSLA_SEA_LEVEL_NAME),
-        lonRange,
-        latRange,
-      );
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
+    const meta = await tryCatch(processMetaData(buildDatasetUrl(dataset, GSLA_META_NAME)), () => {
       showToast({
         type: 'error',
         title: 'Error occurred',
         message: 'Failed to get GSLA anamly sea level data of this date',
         duration: 6000,
       });
-    }
+      setIsError(true);
+    });
+    if (!meta) return;
+    const { maxBounds, lonRange, latRange } = meta;
+    map.current!.setMaxBounds(maxBounds);
+
+    addOrUpdateImageSource(
+      map.current!,
+      OVERLAY_SOURCE_ID,
+      buildDatasetUrl(dataset, GSLA_SEA_LEVEL_NAME),
+      lonRange,
+      latRange,
+    );
   };
 
   const setupLayer = async () => {
@@ -67,7 +67,7 @@ export function useOverlayLayer(
 
   const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [style, dataset]);
 
-  useMapboxLayerVisibility(map, loadComplete, overlayLayer, overlay);
+  useMapboxLayerVisibility(map, loadComplete, overlayLayer, overlay && !isError);
 
   useDidMountEffect(() => {
     if (!map.current || !loadComplete) return;

@@ -1,7 +1,8 @@
 import { useEffect, RefObject } from 'react';
 import { getOceanCurrentDetails } from '@/api';
 import { showPopup } from '@/helpers';
-import { debounce } from '@/utils';
+import { debounce, tryCatch } from '@/utils';
+import { useToast } from '@/components';
 
 type UseMapClickHandlersOptions = {
   map: RefObject<mapboxgl.Map | null>;
@@ -21,6 +22,8 @@ export function useParticleOverlayLayersClickHandlers({
   waveBuoysLayerClicked,
   distanceMeasurement,
 }: UseMapClickHandlersOptions) {
+  const { showToast } = useToast();
+
   useEffect(() => {
     if (!map.current || (!particles && !overlay) || distanceMeasurement) return;
     const mapInstance = map.current;
@@ -32,11 +35,19 @@ export function useParticleOverlayLayersClickHandlers({
       }
 
       const { lng, lat } = e.lngLat;
-      const { gsla, alpha, speed, degree, direction } = await getOceanCurrentDetails(
-        dataset,
-        lat,
-        lng,
+
+      const oceanCurrentDetails = await tryCatch(getOceanCurrentDetails(dataset, lat, lng), () =>
+        showToast({
+          type: 'error',
+          title: 'Error occurred',
+          message: 'Failed to get ocean current details',
+          duration: 6000,
+        }),
       );
+
+      if (!oceanCurrentDetails) return;
+
+      const { gsla, alpha, speed, degree, direction } = oceanCurrentDetails;
 
       if (!alpha) return;
 
@@ -54,5 +65,5 @@ export function useParticleOverlayLayersClickHandlers({
     return () => {
       mapInstance.off('click', debounceClick);
     };
-  }, [dataset, overlay, particles, distanceMeasurement, map, waveBuoysLayerClicked]);
+  }, [dataset, overlay, particles, distanceMeasurement, map, waveBuoysLayerClicked, showToast]);
 }

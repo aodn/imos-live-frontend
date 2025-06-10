@@ -1,24 +1,16 @@
-type RangeType = [number, number];
+import { getMetaData, MetaType, RangeType } from '@/api';
 
 type MaxBoundsType = [range: RangeType, range: RangeType];
 
 type BoundsType = [number, number, number, number];
-
-type MetaType = {
-  latRange: RangeType;
-  lonRange: RangeType;
-  uRange: RangeType;
-  vRange: RangeType;
-};
 
 export type ProcessedMetaType = MetaType & {
   bounds: BoundsType;
   maxBounds: MaxBoundsType;
 };
 
-export async function loadMetaDataFromUrl(url: string): Promise<ProcessedMetaType> {
-  const response = await fetch(url);
-  const meta: MetaType = await response.json();
+export async function processMetaData(url: string): Promise<ProcessedMetaType> {
+  const meta: MetaType = await getMetaData(url);
   const { lonRange, latRange, uRange, vRange } = meta;
 
   //fours lines shape a rectangle, lon x, lat y.
