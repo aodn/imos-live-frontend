@@ -42,7 +42,8 @@ export function useParticleLayer(
 
     map.current!.setMaxBounds(maxBounds);
 
-    setIsError(false); //added
+    setIsError(false);
+
     particleLayer.current!.metadata = {
       bounds,
       range: [uRange, vRange],

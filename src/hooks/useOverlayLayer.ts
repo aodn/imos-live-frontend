@@ -35,7 +35,11 @@ export function useOverlayLayer(
       setIsError(true);
     });
     if (!meta) return;
+
     const { maxBounds, lonRange, latRange } = meta;
+
+    setIsError(false);
+
     map.current!.setMaxBounds(maxBounds);
 
     addOrUpdateImageSource(
@@ -50,7 +54,6 @@ export function useOverlayLayer(
   const setupLayer = async () => {
     if (!overlayLayer.current) return;
     await setDataByDataset();
-
     if (!map.current?.getLayer(OVERLAY_LAYER_ID)) {
       addLayerInOrder(map, overlayLayer.current, OVERLAY_LAYER_ID);
     }
