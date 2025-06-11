@@ -10,6 +10,7 @@ import { useMapUIStore } from '@/store';
 import { cn } from '@/utils';
 import { useEffect, useMemo, useRef } from 'react';
 import { useShallow } from 'zustand/shallow';
+import { useElementSize } from '@/hooks';
 
 type DateSelectionBarProps = { className?: string };
 
@@ -20,6 +21,8 @@ export const DateSelectionBar = ({ className }: DateSelectionBarProps) => {
       setDataset: s.setDataset,
     })),
   );
+  const { ref, size } = useElementSize<HTMLDivElement>();
+
   const dataSliderMethod = useRef<SliderExposedMethod>(null);
   const isUpdatingFromUrl = useRef(false);
   const lastProcessedDataset = useRef<string>(null);
@@ -58,7 +61,7 @@ export const DateSelectionBar = ({ className }: DateSelectionBarProps) => {
   }, [dataset]);
 
   return (
-    <div className={cn('shadow-xl', className)}>
+    <div ref={ref} className={cn('shadow-xl', className)}>
       <DateSlider
         viewMode="point"
         initialTimeUnit="day"
@@ -66,15 +69,17 @@ export const DateSelectionBar = ({ className }: DateSelectionBarProps) => {
         endDate={convertUTCToLocalDateTime(new Date(lastSevenDays.at(-1)!))}
         initialPoint={convertUTCToLocalDateTime(shortDateFormatToUTC(dataset))}
         pointHandleIcon={<TriangleIcon size="xxl" color="imos-grey" />}
-        wrapperClassName="rounded-xl bg-gray-300/70"
+        wrapperClassName="bg-gray-300/70 w-full"
         trackActiveClassName="hidden"
         onChange={handleSelect as (v: SelectionResult) => void}
         scrollable={true}
         scaleUnitConfig={{
-          gap: 36,
+          gap: size.width / 6,
           width: { short: 1, medium: 2, long: 2 },
-          height: { short: 24, medium: 48, long: 108 },
+          height: { short: 12, medium: 24, long: 48 },
         }}
+        sliderHeight={48}
+        sliderWidth={size.width}
         imperativeHandleRef={dataSliderMethod}
       />
     </div>

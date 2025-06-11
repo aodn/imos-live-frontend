@@ -129,6 +129,7 @@ export const RangeMode: Story = {
       start: new Date('2023-06-01'),
       end: new Date('2023-09-01'),
     },
+    sliderHeight: 48,
   },
   parameters: {
     docs: {

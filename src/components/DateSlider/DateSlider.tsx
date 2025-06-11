@@ -418,7 +418,7 @@ export const DateSlider = ({
         <SliderHandle
           key="point"
           className="top-0"
-          labelClassName="top-10 bg-red-600"
+          labelClassName="-top-4 bg-red-600"
           icon={pointHandleIcon}
           onDragging={isDragging === 'point'}
           position={pointPosition}
