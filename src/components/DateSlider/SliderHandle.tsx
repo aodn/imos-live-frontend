@@ -1,7 +1,7 @@
 import { cn } from '@/utils';
 import { Button } from '../Button';
 import { SliderHandleProps } from './type';
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState, useCallback, useMemo, memo } from 'react';
 import { createPortal } from 'react-dom';
 
 export const SliderHandle = ({
@@ -14,82 +14,107 @@ export const SliderHandle = ({
   labelClassName,
   trackRef,
 }: SliderHandleProps) => {
-  const [portalContent, setPortalContent] = useState<React.ReactNode>(null);
+  const [portalStyle, setPortalStyle] = useState<React.CSSProperties>({});
   const handleRef = useRef<HTMLButtonElement>(null);
+  const rafRef = useRef<number>(0);
+  const handleWidthRef = useRef<number>(40);
+
+  const updatePosition = useCallback(() => {
+    if (!trackRef.current) return;
+
+    // Measure handle width only when needed and cache it
+    if (handleRef.current && handleRef.current.offsetWidth > 0) {
+      handleWidthRef.current = handleRef.current.offsetWidth;
+    }
+
+    const containerRect = trackRef.current.getBoundingClientRect();
+    const actualLeft =
+      containerRect.left + (containerRect.width * position) / 100 - handleWidthRef.current / 2;
+    const top = containerRect.top;
+
+    setPortalStyle({
+      position: 'fixed',
+      left: actualLeft,
+      top: top,
+      zIndex: 999,
+    });
+  }, [position, trackRef]);
+
+  const throttledUpdate = useCallback(() => {
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+    }
+    rafRef.current = requestAnimationFrame(updatePosition);
+  }, [updatePosition]);
 
   useLayoutEffect(() => {
-    const updatePosition = () => {
-      if (!trackRef.current) {
-        setPortalContent(null);
-        return;
-      }
-
-      const containerRect = trackRef.current.getBoundingClientRect();
-      const handleWidth = handleRef.current?.offsetWidth || 40;
-
-      // Calculate the actual position based on the container and percentage
-      const actualLeft =
-        containerRect.left + (containerRect.width * position) / 100 - handleWidth / 2;
-      const top = containerRect.top;
-
-      setPortalContent(
-        <Button
-          ref={handleRef}
-          size={'icon'}
-          variant={'ghost'}
-          className={cn(
-            'absolute z-20 transform transition-all duration-50 hover:scale-110 hover:bg-transparent active:bg-transparent focus-visible:ring-0',
-            className,
-            { 'scale-110': onDragging },
-          )}
-          style={{
-            position: 'fixed',
-            left: actualLeft,
-            top: top,
-            zIndex: 999,
-          }}
-          onMouseDown={onMouseDown}
-        >
-          <HandleLabel label={label} labelClassName={labelClassName} isDragging={onDragging} />
-          {icon}
-        </Button>,
-      );
-    };
-
     updatePosition();
 
-    // Update position on scroll/resize
-    const handleUpdate = () => requestAnimationFrame(updatePosition);
-    window.addEventListener('scroll', handleUpdate);
-    window.addEventListener('resize', handleUpdate);
+    window.addEventListener('scroll', throttledUpdate, { passive: true });
+    window.addEventListener('resize', throttledUpdate, { passive: true });
 
     return () => {
-      window.removeEventListener('scroll', handleUpdate);
-      window.removeEventListener('resize', handleUpdate);
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+      window.removeEventListener('scroll', throttledUpdate);
+      window.removeEventListener('resize', throttledUpdate);
     };
-  }, [position, label, labelClassName, trackRef, onDragging, onMouseDown, className, icon]);
+  }, [updatePosition, throttledUpdate]);
 
-  return portalContent ? createPortal(portalContent, document.body) : null;
-};
-
-const HandleLabel = ({
-  labelClassName,
-  label,
-  isDragging,
-}: {
-  labelClassName?: string;
-  label: string;
-  isDragging?: boolean;
-}) => {
-  return (
-    <div
-      className={cn(
-        'absolute transform  -translate-y-full mb-2 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap pointer-events-none transition-opacity duration-200',
-        { 'invisible opacity-0': !isDragging },
-        labelClassName,
-      )}
-    >
-      {label}
-    </div>
+  // Memoize button className to prevent recalculation
+  const buttonClassName = useMemo(
+    () =>
+      cn(
+        'absolute z-20 transform transition-all duration-50 hover:scale-110 hover:bg-transparent active:bg-transparent focus-visible:ring-0',
+        className,
+        { 'scale-110': onDragging },
+      ),
+    [className, onDragging],
   );
+
+  // Memoize portal content
+  const portalContent = useMemo(
+    () => (
+      <Button
+        ref={handleRef}
+        size={'icon'}
+        variant={'ghost'}
+        className={buttonClassName}
+        style={portalStyle}
+        onMouseDown={onMouseDown}
+      >
+        <HandleLabel label={label} labelClassName={labelClassName} isDragging={onDragging} />
+        {icon}
+      </Button>
+    ),
+    [buttonClassName, portalStyle, onMouseDown, label, labelClassName, onDragging, icon],
+  );
+
+  return trackRef.current ? createPortal(portalContent, document.body) : null;
 };
+
+// Memoize HandleLabel to prevent unnecessary re-renders
+const HandleLabel = memo(
+  ({
+    labelClassName,
+    label,
+    isDragging,
+  }: {
+    labelClassName?: string;
+    label: string;
+    isDragging?: boolean;
+  }) => {
+    const labelClass = useMemo(
+      () =>
+        cn(
+          'absolute transform -translate-y-full mb-2 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap pointer-events-none transition-opacity duration-200',
+          { 'invisible opacity-0': !isDragging },
+          labelClassName,
+        ),
+      [isDragging, labelClassName],
+    );
+
+    return <div className={labelClass}>{label}</div>;
+  },
+);

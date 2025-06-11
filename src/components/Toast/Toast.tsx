@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from 'lucide-react';
 import clsx from 'clsx';
 import { useToast } from './useToast';
@@ -34,23 +34,25 @@ export interface ToastData {
 
 const Toast: React.FC<{ toast: ToastData }> = ({ toast }) => {
   const { hideToast } = useToast();
-  const [progress, setProgress] = useState(100);
   const [isPaused, setIsPaused] = useState(false);
 
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const progressBarRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const remainingTimeRef = useRef<number>(0);
+  const animationStartTimeRef = useRef<number>(0);
+  const animationFrameRef = useRef(0);
+  const wasPausedRef = useRef(false);
+
+  // Memoize duration to safely use it in dependency arrays
+  const duration = useMemo(() => toast.duration || 5000, [toast.duration]);
 
   const handleClose = useCallback(() => {
-    if (toast.onClose) {
-      toast.onClose();
-    }
+    toast.onClose?.();
     hideToast(toast.id);
   }, [toast, hideToast]);
 
   const handleClick = useCallback(() => {
-    if (toast.onClick) {
-      toast.onClick();
-    }
+    toast.onClick?.();
   }, [toast]);
 
   const handleMouseEnter = useCallback(() => {
@@ -65,52 +67,56 @@ const Toast: React.FC<{ toast: ToastData }> = ({ toast }) => {
     }
   }, [toast.pauseOnHover]);
 
-  // Progress bar and auto-hide logic
   useEffect(() => {
-    if (toast.persistent || toast.duration === 0) {
+    if (toast.persistent || duration === 0 || toast.showProgressBar === false) {
       return;
     }
 
-    const duration = toast.duration || 5000;
-    const updateInterval = 16; // ~60fps
-    let startTime = Date.now();
-    let remainingTime = duration;
+    const progressBar = progressBarRef.current;
+    if (!progressBar) return;
 
-    const updateProgress = () => {
-      if (isPaused) {
-        startTime = Date.now() - (duration - remainingTime);
-        return;
+    // --- PAUSE LOGIC ---
+    if (isPaused) {
+      wasPausedRef.current = true;
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      cancelAnimationFrame(animationFrameRef.current);
+
+      const elapsed = Date.now() - animationStartTimeRef.current;
+      remainingTimeRef.current = Math.max(0, remainingTimeRef.current - elapsed);
+
+      const remainingPercent = (remainingTimeRef.current / duration) * 100;
+      progressBar.style.transition = 'none';
+      progressBar.style.width = `${remainingPercent}%`;
+    }
+    // --- START / RESUME LOGIC ---
+    else {
+      // If NOT resuming from a pause, it's a fresh start or a duration change. Reset the timer.
+      if (!wasPausedRef.current) {
+        remainingTimeRef.current = duration;
+        progressBar.style.transition = 'none';
+        progressBar.style.width = '100%';
       }
 
-      const elapsed = Date.now() - startTime;
-      remainingTime = Math.max(0, duration - elapsed);
-      const progressPercent = (remainingTime / duration) * 100;
+      animationStartTimeRef.current = Date.now();
+      timeoutRef.current = setTimeout(handleClose, remainingTimeRef.current);
 
-      setProgress(progressPercent);
+      // We need a layout repaint before the transition starts to avoid the animation bug
+      animationFrameRef.current = requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          progressBar.style.transition = `width ${remainingTimeRef.current}ms linear`;
+          progressBar.style.width = '0%';
+        });
+      });
 
-      if (remainingTime <= 0) {
-        handleClose();
-      }
-    };
-
-    // Initial setup
-    setProgress(100);
-
-    // Start the progress interval
-    intervalRef.current = setInterval(updateProgress, updateInterval);
+      wasPausedRef.current = false;
+    }
 
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-      if (timeoutRef.current) {
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        clearTimeout(timeoutRef.current);
-      }
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      cancelAnimationFrame(animationFrameRef.current);
     };
-  }, [toast.duration, toast.persistent, isPaused, handleClose]);
+  }, [isPaused, duration, toast.persistent, toast.showProgressBar, handleClose]);
 
-  // Default icons
   const getDefaultIcon = () => {
     switch (toast.type) {
       case 'success':
@@ -126,7 +132,6 @@ const Toast: React.FC<{ toast: ToastData }> = ({ toast }) => {
     }
   };
 
-  // Theme classes
   const getTypeClasses = () => {
     switch (toast.type) {
       case 'success':
@@ -157,19 +162,18 @@ const Toast: React.FC<{ toast: ToastData }> = ({ toast }) => {
     }
   };
 
-  // Progress bar color based on toast type
   const getProgressBarColor = () => {
     switch (toast.type) {
       case 'success':
-        return 'bg-green-500/10';
+        return 'bg-green-500/50';
       case 'error':
-        return 'bg-red-500/10';
+        return 'bg-red-500/50';
       case 'warning':
-        return 'bg-yellow-500/10';
+        return 'bg-yellow-500/50';
       case 'info':
-        return 'bg-blue-500/10';
+        return 'bg-blue-500/50';
       default:
-        return 'bg-gray-500/10';
+        return 'bg-gray-500/50';
     }
   };
 
@@ -200,29 +204,30 @@ const Toast: React.FC<{ toast: ToastData }> = ({ toast }) => {
       }
       aria-pressed={toast.onClick ? 'false' : undefined}
     >
-      {/* Progress Bar */}
-      {toast.showProgressBar !== false && !toast.persistent && toast.duration !== 0 && (
-        <div className="absolute inset-0 h-full bg-black/10 pointer-events-none" aria-hidden="true">
+      {toast.showProgressBar !== false && !toast.persistent && duration !== 0 && (
+        <div
+          className="absolute inset-0 h-full bg-black/10 pointer-events-none overflow-hidden"
+          aria-hidden="true"
+        >
           <div
+            ref={progressBarRef}
             className={clsx(
-              'h-full transition-all duration-75 ease-linear',
+              'h-full will-change-transform',
               getProgressBarColor(),
               toast.progressBarClassName,
             )}
             style={{
-              width: `${progress}%`,
-              transition: isPaused ? 'none' : undefined,
+              width: '100%',
+              transformOrigin: 'left center',
             }}
           />
         </div>
       )}
 
-      {/* Icon */}
       <div className={clsx('flex-shrink-0 mt-0.5', getIconColorClass(), toast.iconClassName)}>
         {toast.renderIcon ? toast.renderIcon() : getDefaultIcon()}
       </div>
 
-      {/* Content */}
       <div className="flex-1 min-w-0">
         {toast.title && (
           <h4 className={clsx('font-semibold text-sm mb-1', toast.titleClassName)}>
@@ -232,7 +237,6 @@ const Toast: React.FC<{ toast: ToastData }> = ({ toast }) => {
         <p className={clsx('text-xs leading-relaxed', toast.messageClassName)}>{toast.message}</p>
       </div>
 
-      {/* Close Button */}
       {toast.closable !== false && (
         <button
           onClick={e => {
@@ -254,9 +258,8 @@ const Toast: React.FC<{ toast: ToastData }> = ({ toast }) => {
   );
 };
 
-// Toast Container
+// --- ToastContainer remains the same ---
 export const ToastContainer: React.FC<{ toasts: ToastData[] }> = ({ toasts }) => {
-  // Group toasts by position
   const groupedToasts = toasts.reduce(
     (acc, toast) => {
       const position = toast.position || 'top-right';

@@ -29,7 +29,7 @@ export const Map = () => {
           <div className="h-full w-full relative">
             <MapComponent ref={mapRef} />
             <MapControlPanel ref={mapRef} className="absolute top-16 left-4 z-10" />
-            <DateSelectionBar className="absolute bottom-4 left-1/2 -translate-x-1/2 w-full" />
+            <DateSelectionBar className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full" />
           </div>
 
           <FloatingPanel

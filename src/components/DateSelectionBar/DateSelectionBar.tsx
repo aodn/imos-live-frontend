@@ -76,9 +76,9 @@ export const DateSelectionBar = ({ className }: DateSelectionBarProps) => {
         scaleUnitConfig={{
           gap: size.width / 7,
           width: { short: 1, medium: 2, long: 2 },
-          height: { short: 12, medium: 24, long: 42 },
+          height: { short: 12, medium: 24, long: 60 },
         }}
-        sliderHeight={42}
+        sliderHeight={60}
         sliderWidth={size.width}
         imperativeHandleRef={dataSliderMethod}
       />
