@@ -74,11 +74,11 @@ export const DateSelectionBar = ({ className }: DateSelectionBarProps) => {
         onChange={handleSelect as (v: SelectionResult) => void}
         scrollable={true}
         scaleUnitConfig={{
-          gap: size.width / 6,
+          gap: size.width / 7,
           width: { short: 1, medium: 2, long: 2 },
-          height: { short: 12, medium: 24, long: 48 },
+          height: { short: 12, medium: 24, long: 42 },
         }}
-        sliderHeight={48}
+        sliderHeight={42}
         sliderWidth={size.width}
         imperativeHandleRef={dataSliderMethod}
       />

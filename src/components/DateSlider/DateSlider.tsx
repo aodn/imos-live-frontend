@@ -391,6 +391,7 @@ export const DateSlider = ({
     if (viewMode === 'range' || viewMode === 'combined') {
       handles.push(
         <SliderHandle
+          trackRef={trackRef}
           key="start"
           className="top-0"
           labelClassName="top-10 bg-red-600"
@@ -401,6 +402,7 @@ export const DateSlider = ({
           onMouseDown={handleMouseDown('start')}
         />,
         <SliderHandle
+          trackRef={trackRef}
           key="end"
           className="top-0"
           labelClassName="top-10 bg-red-600"
@@ -416,6 +418,7 @@ export const DateSlider = ({
     if (viewMode === 'point' || viewMode === 'combined') {
       handles.push(
         <SliderHandle
+          trackRef={trackRef}
           key="point"
           className="top-0"
           labelClassName="-top-4 bg-red-600"
@@ -494,12 +497,12 @@ export const DateSlider = ({
                 activeTrackClassName={trackActiveClassName}
                 trackRef={trackRef}
               />
-              {renderHandles()}
               {renderTimeLabels()}
             </div>
           </div>
         </div>
       </div>
+      {renderHandles()}
       <TimeUnitSelection
         isMonthValid={checkDateDuration(startDate, endDate).moreThanOneMonth}
         isYearValid={checkDateDuration(startDate, endDate).moreThanOneYear}

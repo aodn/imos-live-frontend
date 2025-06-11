@@ -1,7 +1,7 @@
 import { cn } from '@/utils';
 import { Button } from '../Button';
 import { SliderHandleProps } from './type';
-import { RefObject, useLayoutEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 export const SliderHandle = ({
@@ -12,90 +12,84 @@ export const SliderHandle = ({
   onMouseDown,
   className,
   labelClassName,
+  trackRef,
 }: SliderHandleProps) => {
-  const ref = useRef<HTMLButtonElement>(null);
+  const [portalContent, setPortalContent] = useState<React.ReactNode>(null);
+  const handleRef = useRef<HTMLButtonElement>(null);
 
-  return (
-    <Button
-      ref={ref}
-      size={'icon'}
-      variant={'ghost'}
-      className={cn(
-        'absolute z-20 transform  -translate-x-1/2 transition-all duration-50 hover:scale-110 hover:bg-transparent active:bg-transparent focus-visible:ring-0',
-        className,
-        { 'scale-110': onDragging },
-      )}
-      style={{ left: `${position}%` }}
-      onMouseDown={onMouseDown}
-    >
-      <HandleLabel
-        ref={ref}
-        label={label}
-        labelClassName={labelClassName}
-        position={position}
-        isDragging={onDragging}
-      />
-      {icon}
-    </Button>
-  );
+  useLayoutEffect(() => {
+    const updatePosition = () => {
+      if (!trackRef.current) {
+        setPortalContent(null);
+        return;
+      }
+
+      const containerRect = trackRef.current.getBoundingClientRect();
+      const handleWidth = handleRef.current?.offsetWidth || 40;
+
+      // Calculate the actual position based on the container and percentage
+      const actualLeft =
+        containerRect.left + (containerRect.width * position) / 100 - handleWidth / 2;
+      const top = containerRect.top;
+
+      setPortalContent(
+        <Button
+          ref={handleRef}
+          size={'icon'}
+          variant={'ghost'}
+          className={cn(
+            'absolute z-20 transform transition-all duration-50 hover:scale-110 hover:bg-transparent active:bg-transparent focus-visible:ring-0',
+            className,
+            { 'scale-110': onDragging },
+          )}
+          style={{
+            position: 'fixed',
+            left: actualLeft,
+            top: top,
+            zIndex: 999,
+          }}
+          onMouseDown={onMouseDown}
+        >
+          <HandleLabel label={label} labelClassName={labelClassName} isDragging={onDragging} />
+          {icon}
+        </Button>,
+      );
+    };
+
+    updatePosition();
+
+    // Update position on scroll/resize
+    const handleUpdate = () => requestAnimationFrame(updatePosition);
+    window.addEventListener('scroll', handleUpdate);
+    window.addEventListener('resize', handleUpdate);
+
+    return () => {
+      window.removeEventListener('scroll', handleUpdate);
+      window.removeEventListener('resize', handleUpdate);
+    };
+  }, [position, label, labelClassName, trackRef, onDragging, onMouseDown, className, icon]);
+
+  return portalContent ? createPortal(portalContent, document.body) : null;
 };
 
 const HandleLabel = ({
   labelClassName,
   label,
-  ref,
-  position,
   isDragging,
 }: {
   labelClassName?: string;
   label: string;
-  ref: RefObject<HTMLButtonElement | null>;
-  position: number;
   isDragging?: boolean;
 }) => {
-  const [portalContent, setPortalContent] = useState<React.ReactNode>(null);
-
-  useLayoutEffect(() => {
-    const updatePosition = () => {
-      if (!ref.current) {
-        setPortalContent(null);
-        return;
-      }
-
-      const parent = ref.current.offsetParent;
-      if (!parent) return;
-
-      const parentRect = parent.getBoundingClientRect();
-      const handleWidth = ref.current.offsetWidth;
-
-      const actualLeft = parentRect.left + (parentRect.width * position) / 100 - handleWidth / 2;
-      const top = parentRect.top;
-
-      setPortalContent(
-        <div
-          className={cn(
-            'transform -translate-x-1/4 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap pointer-events-none',
-            { 'invisible opacity-0': !isDragging },
-            labelClassName,
-          )}
-          style={{
-            position: 'fixed',
-            top: top - 40,
-            left: actualLeft,
-            zIndex: 999,
-          }}
-        >
-          {label}
-        </div>,
-      );
-    };
-
-    if (isDragging) {
-      updatePosition();
-    } else {
-      requestAnimationFrame(updatePosition);
-    }
-  }, [position, label, labelClassName, ref, isDragging]);
-
-  return portalContent ? createPortal(portalContent, document.body) : null;
+  return (
+    <div
+      className={cn(
+        'absolute transform  -translate-y-full mb-2 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap pointer-events-none transition-opacity duration-200',
+        { 'invisible opacity-0': !isDragging },
+        labelClassName,
+      )}
+    >
+      {label}
+    </div>
+  );
 };

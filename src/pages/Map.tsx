@@ -52,7 +52,3 @@ export const Map = () => {
     </div>
   );
 };
-//TODO:  2. change the name pattern of dataset in Date format.
-// 3. get valid dataset from server instead of generating last 7 days dataset locally.
-// 4. update the serverside endpoint getlast7days to getdays that accept a query parameter deciding the number of days' dataset.
-// 5. add error handling when one day's dataset is invalid.

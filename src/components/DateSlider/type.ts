@@ -113,6 +113,7 @@ export type SliderHandleProps = {
   label: string;
   icon: ReactNode;
   onMouseDown: (e: React.MouseEvent) => void;
+  trackRef: RefObject<HTMLDivElement | null>;
 };
 
 export type TimeUnitSelectionProps = {
