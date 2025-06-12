@@ -1,436 +1,145 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import { useRef, useState } from 'react';
 import { DateSlider } from './DateSlider';
-import { SelectionResult, TimeUnit } from './type';
-import { TriangleIcon } from '../Icons';
-import { useRef } from 'react';
-import { convertUTCToLocalDateTime } from '@/utils';
+import type { SliderProps, TimeUnit, SelectionResult } from './type';
+import { FaDotCircle, FaArrowsAltH } from 'react-icons/fa';
+import { Button } from '../Button';
 
-const RangeIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
-    <rect x="2" y="2" width="8" height="8" rx="1" />
-  </svg>
-);
-
-const meta: Meta<typeof DateSlider> = {
-  title: 'Components/DateSlider/DateSlider',
+export default {
+  title: 'Components/DateSlider',
   component: DateSlider,
-  tags: ['autodocs'],
-  parameters: {
-    layout: 'centered',
-    docs: {
-      description: {
-        component:
-          'A customizable date slider component that supports range selection, point selection, or both combined.',
-      },
-    },
-  },
   argTypes: {
     viewMode: {
-      control: 'select',
+      control: { type: 'select' },
       options: ['range', 'point', 'combined'],
-      description: 'Selection mode for the slider',
     },
     initialTimeUnit: {
-      control: 'select',
-      options: ['day', 'month', 'year'],
-      description: 'Initial time unit for the slider scale',
-    },
-    startDate: {
-      control: 'date',
-      description: 'Start date of the slider range',
-    },
-    endDate: {
-      control: 'date',
-      description: 'End date of the slider range',
-    },
-    scrollable: {
-      control: 'boolean',
-      description: 'Whether the slider track is scrollable',
-    },
-    isTrackFixedWidth: {
-      control: 'boolean',
-      description: 'Whether the track has a fixed width',
-    },
-    minGapScaleUnits: {
-      control: 'number',
-      description: 'Minimum gap between range handles in scale units',
-    },
-    trackPaddingX: {
-      control: 'number',
-      description: 'Horizontal padding for the track',
-    },
-    sliderWidth: {
       control: { type: 'select' },
-      options: ['fill', 300, 400, 500, 600, 800],
-      description: 'Width of the slider container ("fill" or number in pixels)',
+      options: ['day', 'month', 'year'],
     },
-    sliderHeight: {
-      control: 'number',
-      description: 'Height of the slider container',
-    },
-  },
-  args: {
-    startDate: convertUTCToLocalDateTime(new Date('2023-01-01')),
-    endDate: convertUTCToLocalDateTime(new Date('2024-12-31')),
-    initialTimeUnit: 'month' as TimeUnit,
-    scrollable: true,
-    isTrackFixedWidth: false,
-    minGapScaleUnits: 3,
-    trackPaddingX: 36,
-    sliderHeight: 96,
-    rangeHandleIcon: <RangeIcon />,
-    pointHandleIcon: <TriangleIcon color="imos-grey" />,
-    onChange: (selection: SelectionResult) => {
-      console.log('Selection changed:', selection);
-    },
-    wrapperClassName: 'shadow-xl',
-    sliderWidth: 300,
-  },
-  // Add this render function to handle date conversion
-  render: args => {
-    // Convert date controls to Date objects if they're not already
-    const processedArgs = {
-      ...args,
-      startDate: args.startDate instanceof Date ? args.startDate : new Date(args.startDate),
-      endDate: args.endDate instanceof Date ? args.endDate : new Date(args.endDate),
-      // Also handle initial range and point dates if they exist
-      ...(args.initialRange && {
-        initialRange: {
-          start:
-            args.initialRange.start instanceof Date
-              ? args.initialRange.start
-              : new Date(args.initialRange.start),
-          end:
-            args.initialRange.end instanceof Date
-              ? args.initialRange.end
-              : new Date(args.initialRange.end),
-        },
-      }),
-      ...(args.initialPoint && {
-        initialPoint:
-          args.initialPoint instanceof Date ? args.initialPoint : new Date(args.initialPoint),
-      }),
-    };
-
-    return <DateSlider {...processedArgs} />;
+    isTrackFixedWidth: { control: 'boolean' },
+    scrollable: { control: 'boolean' },
+    sliderWidth: { control: 'text' },
+    sliderHeight: { control: 'number' },
+    minGapScaleUnits: { control: 'number' },
   },
 };
 
-export default meta;
-type Story = StoryObj<typeof meta>;
+const Template = (args: Partial<SliderProps>) => {
+  const [selection, setSelection] = useState<SelectionResult>();
+  const sliderRef = useRef<any>(null);
 
-// Basic Stories
-export const RangeMode: Story = {
-  args: {
-    viewMode: 'range',
-    initialRange: {
-      start: convertUTCToLocalDateTime(new Date('2023-06-01')),
-      end: convertUTCToLocalDateTime(new Date('2023-09-01')),
-    },
-    sliderHeight: 48,
-  },
-  parameters: {
-    docs: {
-      description: {
-        story:
-          'Range selection mode allows users to select a date range with start and end handles.',
-      },
-    },
-  },
-};
-
-export const PointMode: Story = {
-  args: {
-    viewMode: 'point',
-    initialPoint: new Date('2023-07-15'),
-    initialTimeUnit: 'day',
-    scaleUnitConfig: {
-      gap: 62,
-      width: { short: 1, medium: 2, long: 2 },
-      height: { short: 8, medium: 16, long: 64 },
-    },
-  },
-  parameters: {
-    docs: {
-      description: {
-        story: 'Point selection mode allows users to select a single date point.',
-      },
-    },
-  },
-};
-
-export const CombinedMode: Story = {
-  args: {
-    viewMode: 'combined',
-    initialRange: {
-      start: convertUTCToLocalDateTime(new Date('2023-04-01')),
-      end: convertUTCToLocalDateTime(new Date('2023-08-01')),
-    },
-    initialPoint: new Date('2023-06-01'),
-  },
-  parameters: {
-    docs: {
-      description: {
-        story: 'Combined mode allows users to select both a date range and a single point.',
-      },
-    },
-  },
-};
-
-// Time Unit Stories
-export const DayTimeUnit: Story = {
-  args: {
-    viewMode: 'range',
-    startDate: convertUTCToLocalDateTime(new Date('2023-07-01')),
-    endDate: convertUTCToLocalDateTime(new Date('2023-07-31')),
-    initialTimeUnit: 'day',
-    initialRange: {
-      start: new Date('2023-07-10'),
-      end: new Date('2023-07-20'),
-    },
-  },
-  parameters: {
-    docs: {
-      description: {
-        story: 'Date slider with day-based time units for fine-grained date selection.',
-      },
-    },
-  },
-};
-
-export const MonthTimeUnit: Story = {
-  args: {
-    viewMode: 'range',
-    startDate: convertUTCToLocalDateTime(new Date('2022-01-01')),
-    endDate: convertUTCToLocalDateTime(new Date('2024-12-31')),
-    initialTimeUnit: 'month',
-    initialRange: {
-      start: new Date('2023-03-01'),
-      end: new Date('2023-09-01'),
-    },
-  },
-  parameters: {
-    docs: {
-      description: {
-        story: 'Date slider with month-based time units for medium-term date selection.',
-      },
-    },
-  },
-};
-
-export const YearTimeUnit: Story = {
-  args: {
-    viewMode: 'range',
-    startDate: convertUTCToLocalDateTime(new Date('2020-02-01')),
-    endDate: convertUTCToLocalDateTime(new Date('2036-12-10')),
-    initialTimeUnit: 'year',
-    initialRange: {
-      start: convertUTCToLocalDateTime(new Date('2022-01-01')),
-      end: convertUTCToLocalDateTime(new Date('2025-07-02')),
-    },
-  },
-  parameters: {
-    docs: {
-      description: {
-        story: 'Date slider with year-based time units for long-term date selection.',
-      },
-    },
-  },
-};
-
-// Layout and Sizing Stories
-export const FixedWidthTrack: Story = {
-  args: {
-    viewMode: 'range',
-    isTrackFixedWidth: true,
-    scrollable: true,
-    initialRange: {
-      start: convertUTCToLocalDateTime(new Date('2023-03-01')),
-      end: convertUTCToLocalDateTime(new Date('2023-09-01')),
-    },
-    sliderWidth: 400, // Use sliderWidth instead of trackFixedWidth
-  },
-  parameters: {
-    docs: {
-      description: {
-        story: 'Date slider with a fixed-width track that allows scrolling.',
-      },
-    },
-  },
-};
-
-export const NonScrollable: Story = {
-  args: {
-    viewMode: 'range',
-    scrollable: false,
-    sliderWidth: 600,
-    initialRange: {
-      start: convertUTCToLocalDateTime(new Date('2023-04-01')),
-      end: convertUTCToLocalDateTime(new Date('2023-08-01')),
-    },
-  },
-  parameters: {
-    docs: {
-      description: {
-        story: 'Date slider with scrolling disabled and a specific width.',
-      },
-    },
-  },
-};
-
-export const FillWidth: Story = {
-  args: {
-    viewMode: 'range',
-    sliderWidth: 'fill', // New 'fill' option
-    sliderHeight: 96,
-    trackPaddingX: 60,
-    initialRange: {
-      start: convertUTCToLocalDateTime(new Date('2023-02-01')),
-      end: convertUTCToLocalDateTime(new Date('2023-10-01')),
-    },
-  },
-  parameters: {
-    docs: {
-      description: {
-        story: 'Date slider that fills the width of its parent container.',
-      },
-    },
-  },
-};
-
-export const LongDateRange: Story = {
-  args: {
-    viewMode: 'range',
-    startDate: convertUTCToLocalDateTime(new Date('2000-01-01')),
-    endDate: convertUTCToLocalDateTime(new Date('2050-12-31')),
-    initialTimeUnit: 'year',
-    initialRange: {
-      start: new Date('2020-01-01'),
-      end: new Date('2030-01-01'),
-    },
-    sliderWidth: 600,
-  },
-  parameters: {
-    docs: {
-      description: {
-        story: 'Date slider with a very long date range (50 years).',
-      },
-    },
-  },
-};
-
-// Interactive Examples
-export const WithCustomScaleConfig: Story = {
-  args: {
-    viewMode: 'range',
-    scaleUnitConfig: {
-      gap: 8,
-      width: { short: 1, medium: 3, long: 4 },
-      height: { short: 6, medium: 12, long: 48 },
-    },
-    initialRange: {
-      start: new Date('2023-03-01'),
-      end: new Date('2023-09-01'),
-    },
-  },
-  parameters: {
-    docs: {
-      description: {
-        story: 'Date slider with custom scale configuration for different visual appearance.',
-      },
-    },
-  },
-};
-
-// New stories to showcase updated features
-export const WithCustomClassNames: Story = {
-  args: {
-    viewMode: 'range',
-    wrapperClassName: 'border-2 border-blue-500 rounded-lg shadow-lg',
-    trackBaseClassName: 'bg-gray-100',
-    trackActiveClassName: 'bg-blue-500',
-    initialRange: {
-      start: new Date('2023-04-01'),
-      end: new Date('2023-08-01'),
-    },
-  },
-  parameters: {
-    docs: {
-      description: {
-        story: 'Date slider with custom CSS classes for styling the wrapper and track.',
-      },
-    },
-  },
-};
-
-export const WithImperativeControl: Story = {
-  args: {
-    viewMode: 'combined',
-    initialRange: {
-      start: new Date('2023-04-01'),
-      end: new Date('2023-08-01'),
-    },
-    initialPoint: new Date('2023-06-01'),
-  },
-  parameters: {
-    docs: {
-      description: {
-        story:
-          'Date slider that can be controlled imperatively via ref methods. Check the component implementation for setDateTime usage.',
-      },
-    },
-  },
-  render: args => {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const sliderRef = useRef(null);
-
-    const processedArgs = {
-      ...args,
-      startDate: args.startDate instanceof Date ? args.startDate : new Date(args.startDate),
-      endDate: args.endDate instanceof Date ? args.endDate : new Date(args.endDate),
-      imperativeHandleRef: sliderRef,
-      ...(args.initialRange && {
-        initialRange: {
-          start:
-            args.initialRange.start instanceof Date
-              ? args.initialRange.start
-              : new Date(args.initialRange.start),
-          end:
-            args.initialRange.end instanceof Date
-              ? args.initialRange.end
-              : new Date(args.initialRange.end),
-        },
-      }),
-      ...(args.initialPoint && {
-        initialPoint:
-          args.initialPoint instanceof Date ? args.initialPoint : new Date(args.initialPoint),
-      }),
-    };
-
-    return (
-      <div>
-        <div className="mb-4 space-x-2">
-          <button
-            className="px-3 py-1 bg-blue-500 text-white rounded"
-            onClick={() => sliderRef.current?.setDateTime(new Date('2023-05-15'), 'point')}
-          >
-            Set Point to May 15
-          </button>
-          <button
-            className="px-3 py-1 bg-green-500 text-white rounded"
-            onClick={() => sliderRef.current?.setDateTime(new Date('2023-03-01'), 'rangeStart')}
-          >
-            Set Range Start to March 1
-          </button>
-          <button
-            className="px-3 py-1 bg-red-500 text-white rounded"
-            onClick={() => sliderRef.current?.setDateTime(new Date('2023-10-01'), 'rangeEnd')}
-          >
-            Set Range End to October 1
-          </button>
-        </div>
-        <DateSlider {...processedArgs} />
+  return (
+    <div style={{ padding: 32, background: '#f5f5f5', minHeight: 400 }}>
+      <DateSlider
+        {...args}
+        onChange={setSelection}
+        imperativeHandleRef={sliderRef}
+        pointHandleIcon={<FaDotCircle />}
+        rangeHandleIcon={<FaArrowsAltH />}
+      />
+      <div style={{ marginTop: 24, fontFamily: 'monospace' }}>
+        <strong>Selection Output:</strong>
+        <pre>{JSON.stringify(selection, null, 2)}</pre>
       </div>
-    );
+      <div style={{ marginTop: 8 }}>
+        <Button
+          onClick={() => sliderRef.current?.setDateTime(new Date(Date.UTC(2022, 0, 1)), 'point')}
+        >
+          Set Point to 2022-01-01
+        </Button>
+        <Button style={{ marginLeft: 8 }} onClick={() => sliderRef.current?.focusHandle('point')}>
+          Focus Point Handle
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+export const RangeMode = Template.bind({});
+RangeMode.args = {
+  viewMode: 'range',
+  startDate: new Date('2020-01-01'),
+  endDate: new Date('2025-03-15'),
+  initialTimeUnit: 'month' as TimeUnit,
+  initialRange: { start: new Date(Date.UTC(2021, 2, 1)), end: new Date(Date.UTC(2021, 5, 1)) },
+  sliderWidth: 800,
+  sliderHeight: 120,
+  trackActiveClassName: 'bg-blue-400/20',
+  trackBaseClassName: 'bg-gray-200/20',
+};
+
+export const PointMode = Template.bind({});
+PointMode.args = {
+  viewMode: 'point',
+  startDate: new Date('2019-01-01'),
+  endDate: new Date('2020-03-15'),
+  initialTimeUnit: 'day' as TimeUnit,
+  initialPoint: new Date('2020-01-20'),
+  sliderWidth: 600,
+  sliderHeight: 90,
+  trackActiveClassName: 'bg-green-400/20',
+  trackBaseClassName: 'bg-gray-100/20',
+};
+
+export const CombinedMode = Template.bind({});
+CombinedMode.args = {
+  viewMode: 'combined',
+  startDate: new Date('2020-10-05'),
+  endDate: new Date('2022-11-11'),
+  initialTimeUnit: 'day' as TimeUnit,
+  initialRange: { start: new Date(Date.UTC(2021, 2, 1)), end: new Date(Date.UTC(2021, 5, 1)) },
+  initialPoint: new Date(Date.UTC(2022, 7, 1)),
+  sliderWidth: 900,
+  sliderHeight: 140,
+  trackActiveClassName: 'bg-yellow-400/20',
+  trackBaseClassName: 'bg-gray-300/20',
+};
+
+export const FixedWidthTrack = Template.bind({});
+FixedWidthTrack.args = {
+  viewMode: 'range',
+  startDate: new Date('2020-10-05'),
+  endDate: new Date('2022-11-11'),
+  initialTimeUnit: 'month' as TimeUnit,
+  initialRange: {
+    startDate: new Date('2020-11-05'),
+    endDate: new Date('2020-12-05'),
   },
+  sliderWidth: 'fill',
+  isTrackFixedWidth: true,
+};
+
+export const ScrollableSlider = Template.bind({});
+ScrollableSlider.args = {
+  viewMode: 'range',
+  startDate: new Date('2020-10-05'),
+  endDate: new Date('2021-11-11'),
+  initialTimeUnit: 'day' as TimeUnit,
+  initialRange: {
+    startDate: new Date('2020-11-05'),
+    endDate: new Date('2020-12-05'),
+  },
+  sliderWidth: 'fill',
+  scrollable: true,
+  minGapScaleUnits: 10,
+};
+
+export const CustomStyles = Template.bind({});
+CustomStyles.args = {
+  viewMode: 'combined',
+  startDate: new Date('2020-10-05'),
+  endDate: new Date('2022-11-11'),
+  initialTimeUnit: 'month' as TimeUnit,
+  initialRange: {
+    startDate: new Date('2020-11-05'),
+    endDate: new Date('2020-12-05'),
+  },
+  initialPoint: new Date('2022-10-10'),
+  sliderWidth: 700,
+  sliderHeight: 110,
+  wrapperClassName: 'rounded-xl shadow-lg bg-white',
+  sliderClassName: 'rounded-md border border-gray-400',
+  trackActiveClassName: 'bg-indigo-400/20',
+  trackBaseClassName: 'bg-gray-50',
+  timeUnitSlectionClassName: 'bg-gray-50 p-2 rounded',
 };

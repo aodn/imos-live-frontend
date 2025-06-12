@@ -10,9 +10,16 @@ export const SliderHandle = ({
   onMouseDown,
   className,
   labelClassName,
+  ref,
+  min,
+  max,
+  value,
+  handleType,
+  onKeyDown,
 }: SliderHandleProps) => {
   return (
     <Button
+      ref={ref}
       size={'icon'}
       variant={'ghost'}
       className={cn(
@@ -22,6 +29,15 @@ export const SliderHandle = ({
       )}
       style={{ left: `${position}%` }}
       onMouseDown={onMouseDown}
+      role="slider"
+      aria-orientation="horizontal"
+      aria-valuemin={min}
+      aria-valuemax={max}
+      aria-valuenow={value}
+      aria-valuetext={label}
+      aria-label={`${handleType} handle`}
+      tabIndex={0}
+      onKeyDown={onKeyDown}
     >
       {onDragging && (
         <div

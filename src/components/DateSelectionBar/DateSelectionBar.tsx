@@ -64,9 +64,9 @@ export const DateSelectionBar = ({ className }: DateSelectionBarProps) => {
       <DateSlider
         viewMode="point"
         initialTimeUnit="day"
-        startDate={convertUTCToLocalDateTime(new Date(lastSevenDays[0]))}
-        endDate={convertUTCToLocalDateTime(new Date(lastSevenDays.at(-1)!))}
-        initialPoint={convertUTCToLocalDateTime(shortDateFormatToUTC(dataset))}
+        startDate={new Date(lastSevenDays[0])}
+        endDate={new Date(lastSevenDays.at(-1)!)}
+        initialPoint={shortDateFormatToUTC(dataset)}
         pointHandleIcon={<TriangleIcon size="xxl" color="imos-grey" />}
         sliderClassName={styles.frosted}
         timeUnitSlectionClassName={styles.frosted}

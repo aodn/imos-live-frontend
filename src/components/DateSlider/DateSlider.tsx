@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect, useMemo, useImperativeHandle } from 'react';
-import { cn } from '@/utils';
+import { cn, debounce } from '@/utils';
 import { SliderHandle } from './SliderHandle';
 import { SliderTrack } from './SliderTrack';
 import {
@@ -12,6 +12,7 @@ import {
   checkDateDuration,
   clampPercent,
   clamp,
+  convertUTCToLocalDateTime,
 } from '@/utils';
 import { useDrag, useElementSize, useResizeObserver } from '@/hooks';
 import { SliderProps, DragHandle, SelectionResult, TimeUnit, TimeLabel } from './type';
@@ -25,8 +26,8 @@ const DEFAULT_SCALE_CONFIG = {
 
 export const DateSlider = ({
   viewMode,
-  startDate,
-  endDate,
+  startDate: propStartDate,
+  endDate: propEndDate,
   initialTimeUnit,
   initialRange,
   initialPoint,
@@ -51,7 +52,8 @@ export const DateSlider = ({
   const [isDragging, setIsDragging] = useState<DragHandle>(null);
   const [dragStarted, setDragStarted] = useState(false);
   const [timeUnit, setTimeUnit] = useState<TimeUnit>(initialTimeUnit);
-  //totalScaleUnits is used inside getInitialPosition function, so it is put in front.
+  const startDate = useMemo(() => convertUTCToLocalDateTime(propStartDate), [propStartDate]);
+  const endDate = useMemo(() => convertUTCToLocalDateTime(propEndDate), [propEndDate]);
   const totalScaleUnits = useMemo(
     () => getPeriodTimeScales(startDate, endDate, timeUnit),
     [startDate, endDate, timeUnit],
@@ -61,11 +63,16 @@ export const DateSlider = ({
   const [rangeEnd, setRangeEnd] = useState(() => getInitialPosition('rangeEnd'));
   const [pointPosition, setPointPosition] = useState(() => getInitialPosition('point'));
 
-  const sliderRef = useRef<HTMLDivElement>(null); //draggable slider
-  const trackRef = useRef<HTMLDivElement>(null); //slider track, its length should be identical to sliderRef.
+  const sliderRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
   const rangeStartRef = useRef(rangeStart);
   const rangeEndRef = useRef(rangeEnd);
   const pointPositionRef = useRef(pointPosition);
+
+  // Refs for handles for programmatic focusing
+  const startHandleRef = useRef<HTMLButtonElement>(null);
+  const endHandleRef = useRef<HTMLButtonElement>(null);
+  const pointHandleRef = useRef<HTMLButtonElement>(null);
 
   const minGapPercent = useMemo(
     () => (1 / totalScaleUnits) * 100 * minGapScaleUnits,
@@ -116,6 +123,27 @@ export const DateSlider = ({
       setDimensions({ parent: parentWidth, slider: trackWidth });
     }
   }, [sliderContainerRef]);
+
+  // New function to focus a specific handle
+  const focusHandle = useCallback((handleType: DragHandle) => {
+    if (handleType === 'start' && startHandleRef.current) {
+      startHandleRef.current.focus();
+    } else if (handleType === 'end' && endHandleRef.current) {
+      endHandleRef.current.focus();
+    } else if (handleType === 'point' && pointHandleRef.current) {
+      pointHandleRef.current.focus();
+    }
+  }, []);
+
+  const handleDragComplete = useCallback(() => {
+    setTimeout(() => {
+      setDragStarted(false);
+    }, 50);
+
+    if (isDragging) {
+      focusHandle(isDragging);
+    }
+  }, [isDragging, focusHandle]);
 
   useResizeObserver(sliderRef || { current: null }, updateDimensions);
 
@@ -180,7 +208,6 @@ export const DateSlider = ({
       const endTime = endDate.getTime();
       const targetTime = date.getTime();
 
-      // Clamp the date within the slider range
       const clampedTime = Math.max(startTime, Math.min(endTime, targetTime));
       const percent = ((clampedTime - startTime) / (endTime - startTime)) * 100;
 
@@ -193,7 +220,6 @@ export const DateSlider = ({
     (date: Date, target?: 'point' | 'rangeStart' | 'rangeEnd') => {
       const percentage = getPercentFromDate(date);
 
-      // Determine target based on viewMode if not specified
       let actualTarget = target;
       if (!actualTarget) {
         switch (viewMode) {
@@ -201,14 +227,12 @@ export const DateSlider = ({
             actualTarget = 'point';
             break;
           case 'range': {
-            // Default to the closest handle for range mode
             const distanceToStart = Math.abs(percentage - rangeStartRef.current);
             const distanceToEnd = Math.abs(percentage - rangeEndRef.current);
             actualTarget = distanceToStart < distanceToEnd ? 'rangeStart' : 'rangeEnd';
             break;
           }
           case 'combined':
-            // Default to point for combined mode, but allow override
             actualTarget = 'point';
             break;
         }
@@ -237,14 +261,8 @@ export const DateSlider = ({
 
   useImperativeHandle(imperativeHandleRef, () => ({
     setDateTime: setDateTime,
+    focusHandle: focusHandle, // Expose the new focus method
   }));
-
-  function handleDragComplete() {
-    // Add a small delay before resetting dragStarted to ensure track clicks are properly blocked
-    setTimeout(() => {
-      setDragStarted(false);
-    }, 50);
-  }
 
   const getPercentageFromMouseEvent = useCallback(
     (e: MouseEvent | React.MouseEvent): number => {
@@ -289,7 +307,17 @@ export const DateSlider = ({
       { type: 'end' as const, dist: Math.abs(percentage - rangeEndRef.current) },
       { type: 'point' as const, dist: Math.abs(percentage - pointPositionRef.current) },
     ];
-    return distances.reduce((a, b) => (a.dist < b.dist ? a : b)).type;
+    const availableHandles = distances.filter(d => {
+      if (viewMode === 'point' && d.type !== 'point') return false;
+      if (viewMode === 'range' && d.type === 'point') return false;
+      return true;
+    });
+
+    if (availableHandles.length === 0) {
+      return 'point';
+    }
+
+    return availableHandles.reduce((a, b) => (a.dist < b.dist ? a : b)).type;
   }
 
   function handleRangeClick(percentage: number) {
@@ -297,6 +325,8 @@ export const DateSlider = ({
     const distanceToEnd = Math.abs(percentage - rangeEndRef.current);
     const closestHandle = distanceToStart < distanceToEnd ? 'start' : 'end';
     updateHandlePosition(closestHandle, percentage);
+    // *Crucial*: After clicking on track, focus the moved handle
+    focusHandle(closestHandle);
   }
 
   const createSelectionResult = useCallback((): SelectionResult => {
@@ -317,12 +347,13 @@ export const DateSlider = ({
     }
   }, [rangeStart, rangeEnd, pointPosition, viewMode, getDateFromPercent]);
 
-  // Event handlers
   const handleMouseDown = (handle: DragHandle) => (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(handle);
     setDragStarted(false);
+    // *Crucial*: Focus the handle immediately on mousedown
+    focusHandle(handle);
   };
 
   const handleMouseMove = useCallback(
@@ -338,10 +369,10 @@ export const DateSlider = ({
 
   const handleMouseUp = useCallback(() => {
     if (isDragging) {
-      handleDragComplete();
+      handleDragComplete(); // Calls focusHandle internally
     }
     setIsDragging(null);
-  }, [isDragging]);
+  }, [isDragging, handleDragComplete]); // Add handleDragComplete to deps
 
   const handleTrackClick = (e: React.MouseEvent) => {
     if (isDragging || dragStarted || isContainerDragging || !sliderRef.current) {
@@ -352,18 +383,58 @@ export const DateSlider = ({
 
     switch (viewMode) {
       case 'range':
-        handleRangeClick(percentage);
+        handleRangeClick(percentage); // Calls focusHandle internally
         break;
       case 'point':
         updateHandlePosition('point', percentage);
+        focusHandle('point'); // *Crucial*: Focus the point handle
         break;
       case 'combined': {
         const closestHandle = findClosestHandle(percentage);
         updateHandlePosition(closestHandle, percentage);
+        focusHandle(closestHandle); // *Crucial*: Focus the closest handle
         break;
       }
     }
   };
+
+  // Keyboard navigation handler for handles (already good, but now it will receive focus)
+  const handleHandleKeyDown = useCallback(
+    (handle: DragHandle) => (e: React.KeyboardEvent) => {
+      const step = (1 / totalScaleUnits) * 100;
+      let newPercentage: number | undefined;
+
+      switch (e.key) {
+        case 'ArrowLeft':
+        case 'ArrowDown':
+          e.preventDefault();
+          if (handle === 'start') newPercentage = rangeStartRef.current - step;
+          else if (handle === 'end') newPercentage = rangeEndRef.current - step;
+          else if (handle === 'point') newPercentage = pointPositionRef.current - step;
+          break;
+        case 'ArrowRight':
+        case 'ArrowUp':
+          e.preventDefault();
+          if (handle === 'start') newPercentage = rangeStartRef.current + step;
+          else if (handle === 'end') newPercentage = rangeEndRef.current + step;
+          else if (handle === 'point') newPercentage = pointPositionRef.current + step;
+          break;
+        case 'Home':
+          e.preventDefault();
+          newPercentage = 0;
+          break;
+        case 'End':
+          e.preventDefault();
+          newPercentage = 100;
+          break;
+      }
+
+      if (newPercentage !== undefined) {
+        updateHandlePosition(handle, newPercentage);
+      }
+    },
+    [totalScaleUnits, updateHandlePosition],
+  );
 
   useEffect(() => {
     if (!isDragging) return;
@@ -377,10 +448,15 @@ export const DateSlider = ({
     };
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
+  const debouncedOnChange = useMemo(
+    () => debounce((selection: SelectionResult) => onChange(selection), 100),
+    [onChange],
+  );
+
   useEffect(() => {
     const selection = createSelectionResult();
-    onChange(selection);
-  }, [onChange, createSelectionResult]);
+    debouncedOnChange(selection);
+  }, [createSelectionResult, debouncedOnChange]);
 
   function renderHandles() {
     const handles = [];
@@ -389,6 +465,7 @@ export const DateSlider = ({
       handles.push(
         <SliderHandle
           key="start"
+          ref={startHandleRef}
           className="top-0"
           labelClassName="-top-8 bg-red-600"
           icon={rangeHandleIcon}
@@ -396,9 +473,15 @@ export const DateSlider = ({
           position={rangeStart}
           label={formatDateForDisplay(getDateFromPercent(rangeStart), timeUnit)}
           onMouseDown={handleMouseDown('start')}
+          min={0}
+          max={100}
+          value={rangeStart}
+          handleType={'range start'}
+          onKeyDown={handleHandleKeyDown('start')}
         />,
         <SliderHandle
           key="end"
+          ref={endHandleRef}
           className="top-0"
           labelClassName="-top-8 bg-red-600"
           icon={rangeHandleIcon}
@@ -406,6 +489,11 @@ export const DateSlider = ({
           position={rangeEnd}
           label={formatDateForDisplay(getDateFromPercent(rangeEnd), timeUnit)}
           onMouseDown={handleMouseDown('end')}
+          min={0}
+          max={100}
+          value={rangeEnd}
+          handleType={'range end'}
+          onKeyDown={handleHandleKeyDown('end')}
         />,
       );
     }
@@ -414,6 +502,7 @@ export const DateSlider = ({
       handles.push(
         <SliderHandle
           key="point"
+          ref={pointHandleRef}
           className="top-0"
           labelClassName="-top-8 bg-red-600"
           icon={pointHandleIcon}
@@ -421,6 +510,11 @@ export const DateSlider = ({
           position={pointPosition}
           label={formatDateForDisplay(getDateFromPercent(pointPosition), timeUnit)}
           onMouseDown={handleMouseDown('point')}
+          min={0}
+          max={100}
+          value={pointPosition}
+          handleType={'point'}
+          onKeyDown={handleHandleKeyDown('point')}
         />,
       );
     }
@@ -430,7 +524,7 @@ export const DateSlider = ({
 
   function renderTimeLabels() {
     const isFirstTimeLabelHidden = timeLabels[0].date.getTime() < scales[0].date.getTime();
-    const minDistance = 80; // Minimum pixels between labels to avoid overlap
+    const minDistance = 80;
 
     const visibleLabels: TimeLabel[] = [];
     let lastVisiblePosition = -Infinity;
@@ -464,7 +558,7 @@ export const DateSlider = ({
 
   return (
     <div
-      className={cn('flex  min-w-40', wrapperClassName, {
+      className={cn('flex min-w-40', wrapperClassName, {
         'w-full': sliderWidth === 'fill',
       })}
       style={
@@ -472,6 +566,7 @@ export const DateSlider = ({
           ? { height: sliderHeight ?? 96, width: sliderWidth }
           : { height: sliderHeight ?? 96 }
       }
+      aria-label="Date and Time Slider"
     >
       <div ref={sliderContainerRef} className="overflow-hidden h-full flex-1 flex flex-col">
         <Spacer />
@@ -497,6 +592,7 @@ export const DateSlider = ({
                 baseTrackclassName={trackBaseClassName}
                 activeTrackClassName={trackActiveClassName}
                 trackRef={trackRef}
+                aria-label="Date slider track"
               />
               {renderTimeLabels()}
               {renderHandles()}
@@ -532,6 +628,7 @@ const Spacer = ({
     <div
       style={{ width: width, height: height }}
       className={cn('h-10 pointer-events-none ', className)}
+      aria-hidden="true"
     ></div>
   );
 };
