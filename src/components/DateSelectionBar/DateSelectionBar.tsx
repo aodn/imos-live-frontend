@@ -67,15 +67,16 @@ export const DateSelectionBar = ({ className }: DateSelectionBarProps) => {
         endDate={convertUTCToLocalDateTime(new Date(lastSevenDays.at(-1)!))}
         initialPoint={convertUTCToLocalDateTime(shortDateFormatToUTC(dataset))}
         pointHandleIcon={<TriangleIcon size="xxl" color="imos-grey" />}
-        wrapperClassName="bg-gray-300/70 w-full"
+        wrapperClassName=" w-full"
         trackActiveClassName="hidden"
         onChange={handleSelect as (v: SelectionResult) => void}
         scrollable={true}
         scaleUnitConfig={{
+          gap: 40,
           width: { short: 1, medium: 2, long: 2 },
           height: { short: 18, medium: 36, long: 60 },
         }}
-        sliderHeight={60}
+        sliderHeight={110}
         sliderWidth={'fill'}
         imperativeHandleRef={dataSliderMethod}
       />

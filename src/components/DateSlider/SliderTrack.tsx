@@ -19,7 +19,7 @@ export const SliderTrack = ({
 
   const renderScales = () => {
     return (
-      <div className="absolute inset-0 pointer-events-none">
+      <div className="absolute inset-0">
         {scales?.map((scale, index) => (
           <div
             key={index}
@@ -35,18 +35,21 @@ export const SliderTrack = ({
     return (
       <div
         ref={trackRef}
-        className={cn('h-full w-full relative overflow-visible cursor-pointer', baseTrackclassName)}
         onClick={onTrackClick}
+        className={cn('h-full w-full relative overflow-visible cursor-pointer', baseTrackclassName)}
       >
+        {/* <div onClick={onTrackClick} className="cursor-pointer w-full flex-1 relative "> */}
         {renderScales()}
+
         <div
           className={cn(
-            'h-full bg-red-300 rounded-full transition-all duration-200 z-10',
+            'absolute h-full bg-red-300 rounded-full transition-all duration-200 z-10',
             props.activeTrackClassName,
           )}
           style={{ width: `${props.pointPosition}%` }}
         />
       </div>
+      // </div>
     );
   }
   if (props.mode === 'range' || props.mode === 'combined') {

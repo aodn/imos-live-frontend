@@ -44,8 +44,8 @@ export type SliderExposedMethod = {
 
 export type SliderProps = {
   viewMode: ViewMode;
-  startDate: Date;
-  endDate: Date;
+  startDate: Date; //this should be loca date time
+  endDate: Date; //this should be loca date time
   initialTimeUnit: TimeUnit;
   initialRange?: { start: Date; end: Date };
   initialPoint?: Date;
@@ -111,7 +111,7 @@ export type SliderHandleProps = {
   label: string;
   icon: ReactNode;
   onMouseDown: (e: React.MouseEvent) => void;
-  trackRef: RefObject<HTMLDivElement | null>;
+  // trackRef: RefObject<HTMLDivElement | null>;
 };
 
 export type TimeUnitSelectionProps = {

@@ -80,13 +80,14 @@ export const DateSlider = ({
   } = useElementSize<HTMLDivElement>();
 
   const trackWidth = useMemo(() => {
-    const safeGap = (sliderContainerWidth - trackPaddingX * 2) / totalScaleUnits - 1;
+    const safeGap = sliderContainerWidth / totalScaleUnits;
+
     const safeScaleUnitConfig = {
       ...scaleUnitConfig,
       gap: Math.max(safeGap, scaleUnitConfig.gap ?? 0),
     };
     return generateTrackWidth(totalScaleUnits, numberOfScales, safeScaleUnitConfig);
-  }, [numberOfScales, scaleUnitConfig, sliderContainerWidth, totalScaleUnits, trackPaddingX]);
+  }, [numberOfScales, scaleUnitConfig, sliderContainerWidth, totalScaleUnits]);
 
   const timeLabels = useMemo(
     () =>
@@ -165,6 +166,7 @@ export const DateSlider = ({
       const startTime = startDate.getTime();
       const endTime = endDate.getTime();
       const targetTime = startTime + (percent / 100) * (endTime - startTime);
+
       return new Date(targetTime);
     },
     [startDate, endDate],
@@ -384,10 +386,9 @@ export const DateSlider = ({
     if (viewMode === 'range' || viewMode === 'combined') {
       handles.push(
         <SliderHandle
-          trackRef={trackRef}
           key="start"
           className="top-0"
-          labelClassName="top-10 bg-red-600"
+          labelClassName="-top-8 bg-red-600"
           icon={rangeHandleIcon}
           onDragging={isDragging === 'start'}
           position={rangeStart}
@@ -395,10 +396,9 @@ export const DateSlider = ({
           onMouseDown={handleMouseDown('start')}
         />,
         <SliderHandle
-          trackRef={trackRef}
           key="end"
           className="top-0"
-          labelClassName="top-10 bg-red-600"
+          labelClassName="-top-8 bg-red-600"
           icon={rangeHandleIcon}
           onDragging={isDragging === 'end'}
           position={rangeEnd}
@@ -411,10 +411,9 @@ export const DateSlider = ({
     if (viewMode === 'point' || viewMode === 'combined') {
       handles.push(
         <SliderHandle
-          trackRef={trackRef}
           key="point"
-          className="top-10"
-          labelClassName="-top-4 bg-red-600"
+          className="top-0"
+          labelClassName="-top-8 bg-red-600"
           icon={pointHandleIcon}
           onDragging={isDragging === 'point'}
           position={pointPosition}
@@ -451,7 +450,7 @@ export const DateSlider = ({
         {visibleLabels.map(({ date, position }, index) => (
           <span
             key={index}
-            className="bottom-0 text-center text-sm text-gray-700 absolute"
+            className="bottom-0 text-center text-sm text-gray-700 absolute thisistest"
             style={{ left: position }}
           >
             {formatDateForDisplay(date, timeUnit, false).toUpperCase()}
@@ -463,7 +462,7 @@ export const DateSlider = ({
 
   return (
     <div
-      className={cn('flex border min-w-40', wrapperClassName, {
+      className={cn('flex  min-w-40', wrapperClassName, {
         'w-full': sliderWidth === 'fill',
       })}
       style={
@@ -472,16 +471,17 @@ export const DateSlider = ({
           : { height: sliderHeight ?? 96 }
       }
     >
-      <div ref={sliderContainerRef} className="overflow-hidden h-full flex-1">
+      <div ref={sliderContainerRef} className="overflow-hidden h-full flex-1 flex flex-col">
+        <SpaceOccupy />
         <div
-          className={'h-full'}
+          className="flex-1"
           style={isTrackFixedWidth ? { width: '100%' } : { width: trackWidth }}
           ref={sliderRef}
           {...dragHandlers}
         >
           <div
             style={{ paddingLeft: trackPaddingX, paddingRight: trackPaddingX }}
-            className={cn('h-full w-full')}
+            className={cn('h-full w-full bg-gray-300/70 pointer-events-auto')}
           >
             <div className={cn('relative h-full w-full')}>
               <SliderTrack
@@ -503,12 +503,33 @@ export const DateSlider = ({
         </div>
       </div>
 
-      <TimeUnitSelection
-        isMonthValid={checkDateDuration(startDate, endDate).moreThanOneMonth}
-        isYearValid={checkDateDuration(startDate, endDate).moreThanOneYear}
-        onChange={handleTimeUnitChange}
-        initialTimeUnit={initialTimeUnit}
-      />
+      <div className="flex flex-col">
+        <SpaceOccupy />
+        <TimeUnitSelection
+          className="bg-gray-300/70 pointer-events-auto flex-1"
+          isMonthValid={checkDateDuration(startDate, endDate).moreThanOneMonth}
+          isYearValid={checkDateDuration(startDate, endDate).moreThanOneYear}
+          onChange={handleTimeUnitChange}
+          initialTimeUnit={initialTimeUnit}
+        />
+      </div>
     </div>
+  );
+};
+
+const SpaceOccupy = ({
+  height,
+  width,
+  className,
+}: {
+  height?: number;
+  width?: number;
+  className?: string;
+}) => {
+  return (
+    <div
+      style={{ width: width, height: height }}
+      className={cn('h-10 pointer-events-none ', className)}
+    ></div>
   );
 };
