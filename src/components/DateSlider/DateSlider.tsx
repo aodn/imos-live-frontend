@@ -33,6 +33,8 @@ export const DateSlider = ({
   wrapperClassName,
   trackActiveClassName,
   trackBaseClassName,
+  sliderClassName,
+  timeUnitSlectionClassName,
   pointHandleIcon,
   rangeHandleIcon,
   scrollable = true,
@@ -472,7 +474,7 @@ export const DateSlider = ({
       }
     >
       <div ref={sliderContainerRef} className="overflow-hidden h-full flex-1 flex flex-col">
-        <SpaceOccupy />
+        <Spacer />
         <div
           className="flex-1"
           style={isTrackFixedWidth ? { width: '100%' } : { width: trackWidth }}
@@ -481,7 +483,7 @@ export const DateSlider = ({
         >
           <div
             style={{ paddingLeft: trackPaddingX, paddingRight: trackPaddingX }}
-            className={cn('h-full w-full bg-gray-300/70 pointer-events-auto')}
+            className={cn('h-full w-full pointer-events-auto', sliderClassName)}
           >
             <div className={cn('relative h-full w-full')}>
               <SliderTrack
@@ -504,9 +506,9 @@ export const DateSlider = ({
       </div>
 
       <div className="flex flex-col">
-        <SpaceOccupy />
+        <Spacer />
         <TimeUnitSelection
-          className="bg-gray-300/70 pointer-events-auto flex-1"
+          className={cn('pointer-events-auto flex-1', timeUnitSlectionClassName)}
           isMonthValid={checkDateDuration(startDate, endDate).moreThanOneMonth}
           isYearValid={checkDateDuration(startDate, endDate).moreThanOneYear}
           onChange={handleTimeUnitChange}
@@ -517,7 +519,7 @@ export const DateSlider = ({
   );
 };
 
-const SpaceOccupy = ({
+const Spacer = ({
   height,
   width,
   className,

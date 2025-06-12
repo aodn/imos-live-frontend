@@ -10,6 +10,7 @@ import { useMapUIStore } from '@/store';
 import { cn } from '@/utils';
 import { useEffect, useMemo, useRef } from 'react';
 import { useShallow } from 'zustand/shallow';
+import styles from '../DateSlider/DateSlider.module.css';
 
 type DateSelectionBarProps = { className?: string };
 
@@ -67,7 +68,8 @@ export const DateSelectionBar = ({ className }: DateSelectionBarProps) => {
         endDate={convertUTCToLocalDateTime(new Date(lastSevenDays.at(-1)!))}
         initialPoint={convertUTCToLocalDateTime(shortDateFormatToUTC(dataset))}
         pointHandleIcon={<TriangleIcon size="xxl" color="imos-grey" />}
-        wrapperClassName=" w-full"
+        sliderClassName={styles.frosted}
+        timeUnitSlectionClassName={styles.frosted}
         trackActiveClassName="hidden"
         onChange={handleSelect as (v: SelectionResult) => void}
         scrollable={true}

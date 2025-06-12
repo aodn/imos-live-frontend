@@ -38,7 +38,6 @@ export const SliderTrack = ({
         onClick={onTrackClick}
         className={cn('h-full w-full relative overflow-visible cursor-pointer', baseTrackclassName)}
       >
-        {/* <div onClick={onTrackClick} className="cursor-pointer w-full flex-1 relative "> */}
         {renderScales()}
 
         <div
@@ -49,7 +48,6 @@ export const SliderTrack = ({
           style={{ width: `${props.pointPosition}%` }}
         />
       </div>
-      // </div>
     );
   }
   if (props.mode === 'range' || props.mode === 'combined') {

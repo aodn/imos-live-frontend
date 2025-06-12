@@ -50,6 +50,8 @@ export type SliderProps = {
   initialRange?: { start: Date; end: Date };
   initialPoint?: Date;
   wrapperClassName?: string;
+  sliderClassName?: string;
+  timeUnitSlectionClassName?: string;
   trackBaseClassName?: string;
   trackActiveClassName?: string;
   pointHandleIcon?: ReactNode;
