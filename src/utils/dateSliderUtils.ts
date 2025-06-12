@@ -127,7 +127,7 @@ export const generateTimeLabels = (start: Date, end: Date, unit: TimeUnit): Date
 export const generateTrackWidth = (
   total: number,
   scales: NumOfScales,
-  scaleUnitConfig: ScaleUnitConfig,
+  scaleUnitConfig: Omit<ScaleUnitConfig, 'gap'> & { gap: number },
 ): number => {
   return (
     total * scaleUnitConfig.gap +

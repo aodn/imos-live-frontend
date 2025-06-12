@@ -25,7 +25,7 @@ export type CombinedSelection = RangeSelection & PointSelection;
 export type SelectionResult = RangeSelection | PointSelection | CombinedSelection;
 
 export type ScaleUnitConfig = {
-  gap: number;
+  gap?: number;
   width: {
     short: number;
     medium: number;
@@ -57,11 +57,10 @@ export type SliderProps = {
   onChange: (selection: SelectionResult) => void;
   scrollable?: boolean;
   isTrackFixedWidth?: boolean;
-  trackFixedWidth?: number;
   minGapScaleUnits?: number;
   scaleUnitConfig?: ScaleUnitConfig;
   trackPaddingX?: number;
-  sliderWidth?: number;
+  sliderWidth?: 'fill' | number; //fill means its width will fill parent.
   sliderHeight?: number;
   imperativeHandleRef?: React.Ref<SliderExposedMethod>;
 };
@@ -74,7 +73,6 @@ export type BaseSliderTrackProps = {
   onTrackClick: (e: React.MouseEvent) => void;
   baseTrackclassName?: string;
   scales: Scale[];
-  width: number;
   scaleUnitConfig: ScaleUnitConfig;
   trackRef: RefObject<HTMLDivElement | null>;
 };

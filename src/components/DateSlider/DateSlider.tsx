@@ -13,7 +13,7 @@ import {
   clampPercent,
   clamp,
 } from '@/utils';
-import { useDrag, useResizeObserver } from '@/hooks';
+import { useDrag, useElementSize, useResizeObserver } from '@/hooks';
 import { SliderProps, DragHandle, SelectionResult, TimeUnit, TimeLabel } from './type';
 import { TimeUnitSelection } from './TimeUnitSelection';
 
@@ -22,8 +22,6 @@ const DEFAULT_SCALE_CONFIG = {
   width: { short: 1, medium: 2, long: 2 },
   height: { short: 8, medium: 16, long: 64 },
 };
-
-const DATE_SLIDER_MIN_WIDTH = 260;
 
 export const DateSlider = ({
   viewMode,
@@ -39,7 +37,6 @@ export const DateSlider = ({
   rangeHandleIcon,
   scrollable = true,
   isTrackFixedWidth = false,
-  trackFixedWidth = 300,
   minGapScaleUnits = 3,
   onChange,
   trackPaddingX = 36,
@@ -62,9 +59,8 @@ export const DateSlider = ({
   const [rangeEnd, setRangeEnd] = useState(() => getInitialPosition('rangeEnd'));
   const [pointPosition, setPointPosition] = useState(() => getInitialPosition('point'));
 
-  const sliderRef = useRef<HTMLDivElement>(null);
-  const trackRef = useRef<HTMLDivElement>(null);
-  const sliderContainerRef = useRef<HTMLDivElement>(null);
+  const sliderRef = useRef<HTMLDivElement>(null); //draggable slider
+  const trackRef = useRef<HTMLDivElement>(null); //slider track, its length should be identical to sliderRef.
   const rangeStartRef = useRef(rangeStart);
   const rangeEndRef = useRef(rangeEnd);
   const pointPositionRef = useRef(pointPosition);
@@ -78,22 +74,19 @@ export const DateSlider = ({
     () => generateScalesWithInfo(startDate, endDate, timeUnit, totalScaleUnits),
     [endDate, startDate, timeUnit, totalScaleUnits],
   );
+  const {
+    ref: sliderContainerRef,
+    size: { width: sliderContainerWidth },
+  } = useElementSize<HTMLDivElement>();
 
-  const trackWidth = useMemo(
-    () =>
-      isTrackFixedWidth
-        ? trackFixedWidth
-        : generateTrackWidth(totalScaleUnits, numberOfScales, scaleUnitConfig),
-    [trackFixedWidth, isTrackFixedWidth, numberOfScales, scaleUnitConfig, totalScaleUnits],
-  );
-
-  const safeSliderWidth = useMemo(() => {
-    if (isTrackFixedWidth && !scrollable) {
-      //if track width is fixed and not scrollable, slider width must be at least equal to trackFixedWidth + trackPaddingX * 2, so that no track will be hidden.
-      return trackFixedWidth + trackPaddingX * 2;
-    }
-    return Math.min(trackWidth + trackPaddingX * 2, sliderWidth ?? DATE_SLIDER_MIN_WIDTH);
-  }, [isTrackFixedWidth, trackWidth, trackPaddingX, sliderWidth, trackFixedWidth, scrollable]);
+  const trackWidth = useMemo(() => {
+    const safeGap = (sliderContainerWidth - trackPaddingX * 2) / totalScaleUnits - 1;
+    const safeScaleUnitConfig = {
+      ...scaleUnitConfig,
+      gap: Math.max(safeGap, scaleUnitConfig.gap ?? 0),
+    };
+    return generateTrackWidth(totalScaleUnits, numberOfScales, safeScaleUnitConfig);
+  }, [numberOfScales, scaleUnitConfig, sliderContainerWidth, totalScaleUnits, trackPaddingX]);
 
   const timeLabels = useMemo(
     () =>
@@ -420,7 +413,7 @@ export const DateSlider = ({
         <SliderHandle
           trackRef={trackRef}
           key="point"
-          className="top-0"
+          className="top-10"
           labelClassName="-top-4 bg-red-600"
           icon={pointHandleIcon}
           onDragging={isDragging === 'point'}
@@ -470,20 +463,27 @@ export const DateSlider = ({
 
   return (
     <div
-      className={cn('w-fit flex border', wrapperClassName)}
-      style={{ height: sliderHeight ?? 96 }}
+      className={cn('flex border min-w-40', wrapperClassName, {
+        'w-full': sliderWidth === 'fill',
+      })}
+      style={
+        sliderWidth !== 'fill'
+          ? { height: sliderHeight ?? 96, width: sliderWidth }
+          : { height: sliderHeight ?? 96 }
+      }
     >
-      <div
-        ref={sliderContainerRef}
-        className="overflow-hidden h-full"
-        style={{ width: safeSliderWidth }}
-      >
-        <div className={cn('w-fit h-full')} ref={sliderRef} {...dragHandlers}>
+      <div ref={sliderContainerRef} className="overflow-hidden h-full flex-1">
+        <div
+          className={'h-full'}
+          style={isTrackFixedWidth ? { width: '100%' } : { width: trackWidth }}
+          ref={sliderRef}
+          {...dragHandlers}
+        >
           <div
             style={{ paddingLeft: trackPaddingX, paddingRight: trackPaddingX }}
-            className="h-full"
+            className={cn('h-full w-full')}
           >
-            <div className="relative h-full">
+            <div className={cn('relative h-full w-full')}>
               <SliderTrack
                 mode={viewMode}
                 pointPosition={pointPosition}
@@ -491,18 +491,18 @@ export const DateSlider = ({
                 rangeEnd={rangeEnd}
                 onTrackClick={handleTrackClick}
                 scales={scales}
-                width={trackWidth}
                 scaleUnitConfig={scaleUnitConfig}
                 baseTrackclassName={trackBaseClassName}
                 activeTrackClassName={trackActiveClassName}
                 trackRef={trackRef}
               />
               {renderTimeLabels()}
+              {renderHandles()}
             </div>
           </div>
         </div>
       </div>
-      {renderHandles()}
+
       <TimeUnitSelection
         isMonthValid={checkDateDuration(startDate, endDate).moreThanOneMonth}
         isYearValid={checkDateDuration(startDate, endDate).moreThanOneYear}

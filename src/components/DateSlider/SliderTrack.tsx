@@ -8,7 +8,6 @@ export const SliderTrack = ({
   onTrackClick,
   baseTrackclassName,
   scales,
-  width = 300,
   scaleUnitConfig,
   trackRef,
   ...props
@@ -36,10 +35,7 @@ export const SliderTrack = ({
     return (
       <div
         ref={trackRef}
-        style={{
-          width: width,
-        }}
-        className={cn('h-full relative overflow-visible cursor-pointer', baseTrackclassName)}
+        className={cn('h-full w-full relative overflow-visible cursor-pointer', baseTrackclassName)}
         onClick={onTrackClick}
       >
         {renderScales()}
@@ -57,10 +53,7 @@ export const SliderTrack = ({
     return (
       <div
         ref={trackRef}
-        style={{
-          width: width,
-        }}
-        className={cn('h-full relative overflow-visible cursor-pointer', baseTrackclassName)}
+        className={cn('h-full w-full relative overflow-visible cursor-pointer', baseTrackclassName)}
         onClick={onTrackClick}
       >
         {renderScales()}

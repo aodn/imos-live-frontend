@@ -18,6 +18,7 @@ export const TimeUnitSelection = ({
   const { ref, heightBreakpoint } = useElementSize<HTMLDivElement>({
     debounceMs: 100,
     heightBreakpoints: {
+      xs: 48,
       sm: 64,
       md: 96,
       xl: Infinity,
@@ -25,7 +26,8 @@ export const TimeUnitSelection = ({
   });
 
   const getIconSize = (heightBreakpoint?: string) => {
-    if (heightBreakpoint === 'sm') return 'xs';
+    if (heightBreakpoint === 'xs') return 'xs';
+    if (heightBreakpoint === 'sm') return 'sm';
     if (heightBreakpoint === 'md') return 'base';
     if (heightBreakpoint === 'xl') return 'lg';
     return 'base';
@@ -58,16 +60,17 @@ export const TimeUnitSelection = ({
   };
 
   return (
-    <div className={cn('flex-1  border-l', className)}>
+    <div className={cn('border-l', className)}>
       <div
         ref={ref}
-        className={cn(
-          'flex flex-col grow-0 shrink-0 justify-between items-center h-full w-16 mx-auto',
-        )}
+        className={cn('flex flex-col grow-0 shrink-0 items-center h-full w-16 mx-auto', {
+          'justify-between': heightBreakpoint === 'lg' || heightBreakpoint === 'base',
+          'gap-y-1': heightBreakpoint === 'sm' || heightBreakpoint === 'xs',
+        })}
       >
         <p
           className={cn('text-center text-base font-bold', {
-            'text-xs': heightBreakpoint === 'sm' || heightBreakpoint === 'md',
+            'text-xs': heightBreakpoint === 'sm' || heightBreakpoint === 'xs',
           })}
         >
           {timeUnit.toUpperCase()}
