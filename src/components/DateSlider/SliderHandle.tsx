@@ -16,6 +16,7 @@ export const SliderHandle = ({
   value,
   handleType,
   onKeyDown,
+  onFocus,
 }: SliderHandleProps) => {
   return (
     <Button
@@ -38,6 +39,7 @@ export const SliderHandle = ({
       aria-label={`${handleType} handle`}
       tabIndex={0}
       onKeyDown={onKeyDown}
+      onFocus={onFocus}
     >
       {onDragging && (
         <div

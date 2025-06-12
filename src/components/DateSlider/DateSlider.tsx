@@ -52,6 +52,11 @@ export const DateSlider = ({
   const [isDragging, setIsDragging] = useState<DragHandle>(null);
   const [dragStarted, setDragStarted] = useState(false);
   const [timeUnit, setTimeUnit] = useState<TimeUnit>(initialTimeUnit);
+
+  // Track which handle should receive focus after next render
+  const [pendingFocus, setPendingFocus] = useState<DragHandle>(null);
+  const [lastInteractionType, setLastInteractionType] = useState<'mouse' | 'keyboard' | null>(null);
+
   const startDate = useMemo(() => convertUTCToLocalDateTime(propStartDate), [propStartDate]);
   const endDate = useMemo(() => convertUTCToLocalDateTime(propEndDate), [propEndDate]);
   const totalScaleUnits = useMemo(
@@ -83,6 +88,7 @@ export const DateSlider = ({
     () => generateScalesWithInfo(startDate, endDate, timeUnit, totalScaleUnits),
     [endDate, startDate, timeUnit, totalScaleUnits],
   );
+
   const {
     ref: sliderContainerRef,
     size: { width: sliderContainerWidth },
@@ -90,7 +96,6 @@ export const DateSlider = ({
 
   const trackWidth = useMemo(() => {
     const safeGap = sliderContainerWidth / totalScaleUnits;
-
     const safeScaleUnitConfig = {
       ...scaleUnitConfig,
       gap: Math.max(safeGap, scaleUnitConfig.gap ?? 0),
@@ -110,6 +115,25 @@ export const DateSlider = ({
     [endDate, trackWidth, startDate, timeUnit, totalScaleUnits],
   );
 
+  // Handle focus management after renders
+  useEffect(() => {
+    if (pendingFocus && lastInteractionType !== 'mouse') {
+      const focusTarget =
+        pendingFocus === 'start'
+          ? startHandleRef.current
+          : pendingFocus === 'end'
+            ? endHandleRef.current
+            : pendingFocus === 'point'
+              ? pointHandleRef.current
+              : null;
+
+      if (focusTarget && document.activeElement !== focusTarget) {
+        focusTarget.focus();
+      }
+      setPendingFocus(null);
+    }
+  }, [pendingFocus, lastInteractionType, rangeStart, rangeEnd, pointPosition]);
+
   useEffect(() => {
     rangeStartRef.current = rangeStart;
     rangeEndRef.current = rangeEnd;
@@ -124,26 +148,22 @@ export const DateSlider = ({
     }
   }, [sliderContainerRef]);
 
-  // New function to focus a specific handle
-  const focusHandle = useCallback((handleType: DragHandle) => {
-    if (handleType === 'start' && startHandleRef.current) {
-      startHandleRef.current.focus();
-    } else if (handleType === 'end' && endHandleRef.current) {
-      endHandleRef.current.focus();
-    } else if (handleType === 'point' && pointHandleRef.current) {
-      pointHandleRef.current.focus();
-    }
-  }, []);
+  // Improved focus management function
+  const requestHandleFocus = useCallback(
+    (handleType: DragHandle, interactionType: 'mouse' | 'keyboard' = 'keyboard') => {
+      setLastInteractionType(interactionType);
+      setPendingFocus(handleType);
+    },
+    [],
+  );
 
   const handleDragComplete = useCallback(() => {
     setTimeout(() => {
       setDragStarted(false);
     }, 50);
-
-    if (isDragging) {
-      focusHandle(isDragging);
-    }
-  }, [isDragging, focusHandle]);
+    // Don't auto-focus after drag completion for better UX
+    setLastInteractionType(null);
+  }, []);
 
   useResizeObserver(sliderRef || { current: null }, updateDimensions);
 
@@ -185,10 +205,12 @@ export const DateSlider = ({
     return clampPercent((diff / totalScaleUnits) * 100);
   }
 
+  const resetPositionRef = useRef(resetPosition);
+  resetPositionRef.current = resetPosition;
+
   const handleTimeUnitChange = useCallback((unit: TimeUnit) => {
     setTimeUnit(unit);
-    resetPosition({ x: 0, y: 0 });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    resetPositionRef.current({ x: 0, y: 0 });
   }, []);
 
   const getDateFromPercent = useCallback(
@@ -196,7 +218,6 @@ export const DateSlider = ({
       const startTime = startDate.getTime();
       const endTime = endDate.getTime();
       const targetTime = startTime + (percent / 100) * (endTime - startTime);
-
       return new Date(targetTime);
     },
     [startDate, endDate],
@@ -207,10 +228,8 @@ export const DateSlider = ({
       const startTime = startDate.getTime();
       const endTime = endDate.getTime();
       const targetTime = date.getTime();
-
       const clampedTime = Math.max(startTime, Math.min(endTime, targetTime));
       const percent = ((clampedTime - startTime) / (endTime - startTime)) * 100;
-
       return clampPercent(percent);
     },
     [startDate, endDate],
@@ -261,7 +280,7 @@ export const DateSlider = ({
 
   useImperativeHandle(imperativeHandleRef, () => ({
     setDateTime: setDateTime,
-    focusHandle: focusHandle, // Expose the new focus method
+    focusHandle: (handleType: DragHandle) => requestHandleFocus(handleType, 'keyboard'),
   }));
 
   const getPercentageFromMouseEvent = useCallback(
@@ -275,28 +294,23 @@ export const DateSlider = ({
 
   const updateHandlePosition = useCallback(
     (handle: DragHandle, percentage: number) => {
-      requestAnimationFrame(() => {
-        switch (handle) {
-          case 'start': {
-            const newStart = Math.max(0, Math.min(percentage, rangeEndRef.current - minGapPercent));
-            setRangeStart(newStart);
-            break;
-          }
-          case 'end': {
-            const newEnd = Math.min(
-              100,
-              Math.max(percentage, rangeStartRef.current + minGapPercent),
-            );
-            setRangeEnd(newEnd);
-            break;
-          }
-          case 'point': {
-            const newPoint = clampPercent(percentage);
-            setPointPosition(newPoint);
-            break;
-          }
+      switch (handle) {
+        case 'start': {
+          const newStart = Math.max(0, Math.min(percentage, rangeEndRef.current - minGapPercent));
+          setRangeStart(newStart);
+          break;
         }
-      });
+        case 'end': {
+          const newEnd = Math.min(100, Math.max(percentage, rangeStartRef.current + minGapPercent));
+          setRangeEnd(newEnd);
+          break;
+        }
+        case 'point': {
+          const newPoint = clampPercent(percentage);
+          setPointPosition(newPoint);
+          break;
+        }
+      }
     },
     [minGapPercent],
   );
@@ -325,8 +339,7 @@ export const DateSlider = ({
     const distanceToEnd = Math.abs(percentage - rangeEndRef.current);
     const closestHandle = distanceToStart < distanceToEnd ? 'start' : 'end';
     updateHandlePosition(closestHandle, percentage);
-    // *Crucial*: After clicking on track, focus the moved handle
-    focusHandle(closestHandle);
+    requestHandleFocus(closestHandle, 'mouse');
   }
 
   const createSelectionResult = useCallback((): SelectionResult => {
@@ -352,16 +365,13 @@ export const DateSlider = ({
     e.stopPropagation();
     setIsDragging(handle);
     setDragStarted(false);
-    // *Crucial*: Focus the handle immediately on mousedown
-    focusHandle(handle);
+    setLastInteractionType('mouse');
   };
 
   const handleMouseMove = useCallback(
     (e: globalThis.MouseEvent) => {
       if (!isDragging) return;
-
       const percentage = getPercentageFromMouseEvent(e);
-
       updateHandlePosition(isDragging, percentage);
     },
     [isDragging, getPercentageFromMouseEvent, updateHandlePosition],
@@ -369,10 +379,10 @@ export const DateSlider = ({
 
   const handleMouseUp = useCallback(() => {
     if (isDragging) {
-      handleDragComplete(); // Calls focusHandle internally
+      handleDragComplete();
     }
     setIsDragging(null);
-  }, [isDragging, handleDragComplete]); // Add handleDragComplete to deps
+  }, [isDragging, handleDragComplete]);
 
   const handleTrackClick = (e: React.MouseEvent) => {
     if (isDragging || dragStarted || isContainerDragging || !sliderRef.current) {
@@ -383,25 +393,29 @@ export const DateSlider = ({
 
     switch (viewMode) {
       case 'range':
-        handleRangeClick(percentage); // Calls focusHandle internally
+        handleRangeClick(percentage);
         break;
       case 'point':
         updateHandlePosition('point', percentage);
-        focusHandle('point'); // *Crucial*: Focus the point handle
+        requestHandleFocus('point', 'mouse');
+        // Don't force focus on track clicks for better UX
         break;
       case 'combined': {
         const closestHandle = findClosestHandle(percentage);
         updateHandlePosition(closestHandle, percentage);
-        focusHandle(closestHandle); // *Crucial*: Focus the closest handle
+        requestHandleFocus(closestHandle, 'mouse');
         break;
       }
     }
   };
 
-  // Keyboard navigation handler for handles (already good, but now it will receive focus)
+  const updateHandlePositionRef = useRef(updateHandlePosition);
+  updateHandlePositionRef.current = updateHandlePosition;
+  // Enhanced keyboard navigation
   const handleHandleKeyDown = useCallback(
     (handle: DragHandle) => (e: React.KeyboardEvent) => {
       const step = (1 / totalScaleUnits) * 100;
+      const largeStep = step * 5; // For Page Up/Down
       let newPercentage: number | undefined;
 
       switch (e.key) {
@@ -419,6 +433,18 @@ export const DateSlider = ({
           else if (handle === 'end') newPercentage = rangeEndRef.current + step;
           else if (handle === 'point') newPercentage = pointPositionRef.current + step;
           break;
+        case 'PageDown':
+          e.preventDefault();
+          if (handle === 'start') newPercentage = rangeStartRef.current - largeStep;
+          else if (handle === 'end') newPercentage = rangeEndRef.current - largeStep;
+          else if (handle === 'point') newPercentage = pointPositionRef.current - largeStep;
+          break;
+        case 'PageUp':
+          e.preventDefault();
+          if (handle === 'start') newPercentage = rangeStartRef.current + largeStep;
+          else if (handle === 'end') newPercentage = rangeEndRef.current + largeStep;
+          else if (handle === 'point') newPercentage = pointPositionRef.current + largeStep;
+          break;
         case 'Home':
           e.preventDefault();
           newPercentage = 0;
@@ -430,11 +456,20 @@ export const DateSlider = ({
       }
 
       if (newPercentage !== undefined) {
-        updateHandlePosition(handle, newPercentage);
+        setLastInteractionType('keyboard');
+        updateHandlePositionRef.current(handle, newPercentage); // Use ref
       }
     },
-    [totalScaleUnits, updateHandlePosition],
+    [totalScaleUnits],
   );
+
+  // Handle focus events to track interaction type
+  const handleHandleFocus = useCallback(() => {
+    // Only set pending focus if this wasn't triggered by our own focus management
+    if (lastInteractionType !== 'keyboard') {
+      setLastInteractionType('keyboard');
+    }
+  }, [lastInteractionType]);
 
   useEffect(() => {
     if (!isDragging) return;
@@ -473,6 +508,7 @@ export const DateSlider = ({
           position={rangeStart}
           label={formatDateForDisplay(getDateFromPercent(rangeStart), timeUnit)}
           onMouseDown={handleMouseDown('start')}
+          onFocus={handleHandleFocus}
           min={0}
           max={100}
           value={rangeStart}
@@ -489,6 +525,7 @@ export const DateSlider = ({
           position={rangeEnd}
           label={formatDateForDisplay(getDateFromPercent(rangeEnd), timeUnit)}
           onMouseDown={handleMouseDown('end')}
+          onFocus={handleHandleFocus}
           min={0}
           max={100}
           value={rangeEnd}
@@ -510,6 +547,7 @@ export const DateSlider = ({
           position={pointPosition}
           label={formatDateForDisplay(getDateFromPercent(pointPosition), timeUnit)}
           onMouseDown={handleMouseDown('point')}
+          onFocus={handleHandleFocus}
           min={0}
           max={100}
           value={pointPosition}
@@ -541,13 +579,15 @@ export const DateSlider = ({
         lastVisiblePosition = currentPosition;
       }
     });
+
     return (
       <>
         {visibleLabels.map(({ date, position }, index) => (
           <span
             key={index}
-            className="bottom-0 text-center text-sm text-gray-700 absolute thisistest"
+            className="bottom-0 text-center text-sm text-gray-700 absolute"
             style={{ left: position }}
+            aria-hidden="true"
           >
             {formatDateForDisplay(date, timeUnit, false).toUpperCase()}
           </span>
@@ -566,6 +606,7 @@ export const DateSlider = ({
           ? { height: sliderHeight ?? 96, width: sliderWidth }
           : { height: sliderHeight ?? 96 }
       }
+      role="group"
       aria-label="Date and Time Slider"
     >
       <div ref={sliderContainerRef} className="overflow-hidden h-full flex-1 flex flex-col">
@@ -627,8 +668,8 @@ const Spacer = ({
   return (
     <div
       style={{ width: width, height: height }}
-      className={cn('h-10 pointer-events-none ', className)}
+      className={cn('h-10 pointer-events-none', className)}
       aria-hidden="true"
-    ></div>
+    />
   );
 };

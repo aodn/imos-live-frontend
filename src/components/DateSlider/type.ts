@@ -119,6 +119,7 @@ export type SliderHandleProps = {
   value?: number;
   handleType: string;
   onKeyDown: (e: React.KeyboardEvent) => void;
+  onFocus: (event: React.FocusEvent<HTMLButtonElement>) => void;
 };
 
 export type TimeUnitSelectionProps = {
