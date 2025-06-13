@@ -77,6 +77,10 @@ export type BaseSliderTrackProps = {
   scales: Scale[];
   scaleUnitConfig: ScaleUnitConfig;
   trackRef: RefObject<HTMLDivElement | null>;
+  timeUnit: TimeUnit;
+  startDate: Date;
+  endDate: Date;
+  onDragging: boolean;
 };
 
 export type PointModeProps = {

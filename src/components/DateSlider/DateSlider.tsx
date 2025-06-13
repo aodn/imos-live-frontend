@@ -23,6 +23,8 @@ import {
   generateTrackWidth,
   generateTimeLabelsWithPositions,
   formatDateForDisplay,
+  getPercentageFromMouseEvent,
+  getDateFromPercent,
 } from './dateSliderUtils';
 
 const DEFAULT_SCALE_CONFIG = {
@@ -172,17 +174,6 @@ export const DateSlider = memo(
       resetPositionRef.current({ x: 0, y: 0 });
     }, []);
 
-    // Memoize date conversion functions
-    const getDateFromPercent = useCallback(
-      (percent: number): Date => {
-        const startTime = startDate.getTime();
-        const endTime = endDate.getTime();
-        const targetTime = startTime + (percent / 100) * (endTime - startTime);
-        return new Date(targetTime);
-      },
-      [startDate, endDate],
-    );
-
     const getPercentFromDate = useCallback(
       (date: Date): number => {
         const startTime = startDate.getTime();
@@ -256,12 +247,6 @@ export const DateSlider = memo(
       [setDateTime, requestHandleFocus],
     );
 
-    const getPercentageFromMouseEvent = useCallback((e: MouseEvent | React.MouseEvent): number => {
-      if (!trackRef.current) return 0;
-      const rect = trackRef.current.getBoundingClientRect();
-      return clampPercent(((e.clientX - rect.left) / rect.width) * 100);
-    }, []);
-
     const updateHandlePosition = useCallback(
       (handle: DragHandle, percentage: number) => {
         switch (handle) {
@@ -320,9 +305,9 @@ export const DateSlider = memo(
     );
 
     const createSelectionResult = useCallback((): SelectionResult => {
-      const startLabel = getDateFromPercent(rangeStart);
-      const endLabel = getDateFromPercent(rangeEnd);
-      const pointLabel = getDateFromPercent(pointPosition);
+      const startLabel = getDateFromPercent(rangeStart, startDate, endDate);
+      const endLabel = getDateFromPercent(rangeEnd, startDate, endDate);
+      const pointLabel = getDateFromPercent(pointPosition, startDate, endDate);
 
       switch (viewMode) {
         case 'range':
@@ -335,7 +320,7 @@ export const DateSlider = memo(
             point: pointLabel,
           };
       }
-    }, [rangeStart, rangeEnd, pointPosition, viewMode, getDateFromPercent]);
+    }, [rangeStart, startDate, endDate, rangeEnd, pointPosition, viewMode]);
 
     // Event handlers
     const handleMouseDown = useCallback(
@@ -352,10 +337,10 @@ export const DateSlider = memo(
     const handleMouseMove = useCallback(
       (e: globalThis.MouseEvent) => {
         if (!isDragging) return;
-        const percentage = getPercentageFromMouseEvent(e);
+        const percentage = getPercentageFromMouseEvent(e, trackRef);
         updateHandlePosition(isDragging, percentage);
       },
-      [isDragging, getPercentageFromMouseEvent, updateHandlePosition],
+      [isDragging, updateHandlePosition],
     );
 
     const handleMouseUp = useCallback(() => {
@@ -370,7 +355,7 @@ export const DateSlider = memo(
           return;
         }
 
-        const percentage = getPercentageFromMouseEvent(e);
+        const percentage = getPercentageFromMouseEvent(e, trackRef);
 
         switch (viewMode) {
           case 'range':
@@ -392,7 +377,6 @@ export const DateSlider = memo(
         isDragging,
         dragStarted,
         isContainerDragging,
-        getPercentageFromMouseEvent,
         viewMode,
         handleRangeClick,
         updateHandlePosition,
@@ -502,7 +486,10 @@ export const DateSlider = memo(
             icon={rangeHandleIcon}
             onDragging={isDragging === 'start'}
             position={rangeStart}
-            label={formatDateForDisplay(getDateFromPercent(rangeStart), timeUnit)}
+            label={formatDateForDisplay(
+              getDateFromPercent(rangeStart, startDate, endDate),
+              timeUnit,
+            )}
             onMouseDown={handleMouseDown('start')}
             value={rangeStart}
             handleType="range start"
@@ -515,7 +502,7 @@ export const DateSlider = memo(
             icon={rangeHandleIcon}
             onDragging={isDragging === 'end'}
             position={rangeEnd}
-            label={formatDateForDisplay(getDateFromPercent(rangeEnd), timeUnit)}
+            label={formatDateForDisplay(getDateFromPercent(rangeEnd, startDate, endDate), timeUnit)}
             onMouseDown={handleMouseDown('end')}
             value={rangeEnd}
             handleType="range end"
@@ -533,7 +520,10 @@ export const DateSlider = memo(
             icon={pointHandleIcon}
             onDragging={isDragging === 'point'}
             position={pointPosition}
-            label={formatDateForDisplay(getDateFromPercent(pointPosition), timeUnit)}
+            label={formatDateForDisplay(
+              getDateFromPercent(pointPosition, startDate, endDate),
+              timeUnit,
+            )}
             onMouseDown={handleMouseDown('point')}
             value={pointPosition}
             handleType="point"
@@ -550,7 +540,8 @@ export const DateSlider = memo(
       rangeHandleIcon,
       isDragging,
       rangeStart,
-      getDateFromPercent,
+      startDate,
+      endDate,
       timeUnit,
       handleMouseDown,
       handleHandleKeyDown,
@@ -607,7 +598,7 @@ export const DateSlider = memo(
         aria-label="Date and Time Slider"
       >
         <div ref={sliderContainerRef} className="overflow-hidden h-full flex-1 flex flex-col">
-          <Spacer />
+          <Spacer height={40} />
           <div
             className="flex-1"
             style={isTrackFixedWidth ? { width: '100%' } : { width: trackWidth }}
@@ -631,6 +622,10 @@ export const DateSlider = memo(
                   activeTrackClassName={trackActiveClassName}
                   trackRef={trackRef}
                   aria-label="Date slider track"
+                  timeUnit={timeUnit}
+                  startDate={startDate}
+                  endDate={endDate}
+                  onDragging={!!isDragging}
                 />
                 {renderTimeLabels()}
                 {renderHandles()}
@@ -640,7 +635,7 @@ export const DateSlider = memo(
         </div>
 
         <div className="flex flex-col">
-          <Spacer />
+          <Spacer height={40} />
           <MemoizedTimeUnitSelection
             className={cn('pointer-events-auto flex-1', timeUnitSlectionClassName)}
             isMonthValid={checkDateDuration(startDate, endDate).moreThanOneMonth}
@@ -668,4 +663,4 @@ const Spacer = memo(
   },
 );
 
-Spacer.displayName = 'Spacer';
+Spacer.displayName = 'DateSliderSpacer';

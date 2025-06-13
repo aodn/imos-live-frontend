@@ -6,6 +6,7 @@ import {
   TimeLabel,
   TimeUnit,
 } from '@/components/DateSlider/type';
+import { clampPercent } from '@/utils';
 
 // Date Arithmetic
 
@@ -204,4 +205,20 @@ export const generateTimeLabelsWithPositions = (
   }
 
   return labels;
+};
+
+export const getPercentageFromMouseEvent = (
+  e: React.MouseEvent<Element, MouseEvent> | MouseEvent,
+  trackRef: React.RefObject<HTMLDivElement | null>,
+): number => {
+  if (!trackRef.current) return 0;
+  const rect = trackRef.current.getBoundingClientRect();
+  return clampPercent(((e.clientX - rect.left) / rect.width) * 100);
+};
+
+export const getDateFromPercent = (percent: number, startDate: Date, endDate: Date): Date => {
+  const startTime = startDate.getTime();
+  const endTime = endDate.getTime();
+  const targetTime = startTime + (percent / 100) * (endTime - startTime);
+  return new Date(targetTime);
 };
