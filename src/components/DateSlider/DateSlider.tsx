@@ -1,12 +1,10 @@
 import { useState, useRef, useCallback, useEffect, useMemo, useImperativeHandle } from 'react';
-import { cn, debounce } from '@/utils';
+import { cn, debounce, generateTimeLabelsWithPositions } from '@/utils';
 import { SliderHandle } from './SliderHandle';
 import { SliderTrack } from './SliderTrack';
 import {
-  calculateLabelPositions,
   formatDateForDisplay,
   generateScalesWithInfo,
-  generateTimeLabels,
   getPeriodTimeScales,
   generateTrackWidth,
   checkDateDuration,
@@ -19,7 +17,7 @@ import { SliderProps, DragHandle, SelectionResult, TimeUnit, TimeLabel } from '.
 import { TimeUnitSelection } from './TimeUnitSelection';
 
 const DEFAULT_SCALE_CONFIG = {
-  gap: 12,
+  gap: 36,
   width: { short: 1, medium: 2, long: 2 },
   height: { short: 8, medium: 16, long: 64 },
 };
@@ -95,7 +93,12 @@ export const DateSlider = ({
   } = useElementSize<HTMLDivElement>();
 
   const trackWidth = useMemo(() => {
-    const safeGap = sliderContainerWidth / totalScaleUnits;
+    const safeGap =
+      (sliderContainerWidth -
+        (numberOfScales.long * scaleUnitConfig.width.long +
+          numberOfScales.medium * scaleUnitConfig.width.medium +
+          numberOfScales.short * scaleUnitConfig.width.short)) /
+      totalScaleUnits;
     const safeScaleUnitConfig = {
       ...scaleUnitConfig,
       gap: Math.max(safeGap, scaleUnitConfig.gap ?? 0),
@@ -104,15 +107,8 @@ export const DateSlider = ({
   }, [numberOfScales, scaleUnitConfig, sliderContainerWidth, totalScaleUnits]);
 
   const timeLabels = useMemo(
-    () =>
-      calculateLabelPositions(
-        startDate,
-        generateTimeLabels(startDate, endDate, timeUnit),
-        timeUnit,
-        totalScaleUnits,
-        trackWidth,
-      ),
-    [endDate, trackWidth, startDate, timeUnit, totalScaleUnits],
+    () => generateTimeLabelsWithPositions(startDate, endDate, timeUnit),
+    [endDate, startDate, timeUnit],
   );
 
   // Handle focus management after renders
@@ -562,7 +558,7 @@ export const DateSlider = ({
 
   function renderTimeLabels() {
     const isFirstTimeLabelHidden = timeLabels[0].date.getTime() < scales[0].date.getTime();
-    const minDistance = 80;
+    const minDistance = 40;
 
     const visibleLabels: TimeLabel[] = [];
     let lastVisiblePosition = -Infinity;
@@ -570,7 +566,7 @@ export const DateSlider = ({
     timeLabels.forEach((label, index) => {
       const currentPosition = index === 0 && isFirstTimeLabelHidden ? 0 : label.position;
 
-      if (currentPosition - lastVisiblePosition >= minDistance) {
+      if ((currentPosition - lastVisiblePosition) * trackWidth >= minDistance) {
         visibleLabels.push({ ...label, position: currentPosition });
         lastVisiblePosition = currentPosition;
       } else {
@@ -586,7 +582,7 @@ export const DateSlider = ({
           <span
             key={index}
             className="bottom-0 text-center text-sm text-gray-700 absolute"
-            style={{ left: position }}
+            style={{ left: `${position}%` }}
             aria-hidden="true"
           >
             {formatDateForDisplay(date, timeUnit, false).toUpperCase()}

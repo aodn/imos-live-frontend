@@ -3,6 +3,7 @@ import {
   Scale,
   ScaleType,
   ScaleUnitConfig,
+  TimeLabel,
   TimeUnit,
 } from '@/components/DateSlider/type';
 
@@ -80,50 +81,7 @@ export const formatDateForDisplay = (
   }
 };
 
-// Time Label Generation
-
-export const generateTimeLabels = (start: Date, end: Date, unit: TimeUnit): Date[] => {
-  const labels: Date[] = [];
-  const current = new Date(start);
-
-  while (current <= end) {
-    let label: Date | undefined;
-    switch (unit) {
-      case 'day':
-        label = new Date(current.getFullYear(), current.getMonth(), 1);
-        current.setMonth(current.getMonth() + 1);
-        break;
-      case 'month':
-        label = new Date(current.getFullYear(), 0, 1);
-        current.setFullYear(current.getFullYear() + 1);
-        break;
-      case 'year': {
-        const decade = Math.floor(current.getFullYear() / 10) * 10;
-        label = new Date(decade, 0, 1);
-        current.setFullYear(decade + 10);
-        break;
-      }
-    }
-
-    if (
-      label &&
-      label.getTime() <= end.getTime() &&
-      (labels.length === 0 || labels[labels.length - 1].getTime() !== label.getTime())
-    ) {
-      labels.push(label);
-    }
-  }
-
-  const endLabel = getRepresentativeDate(end, unit);
-  if (labels[labels.length - 1]?.getTime() !== endLabel.getTime()) {
-    labels.push(endLabel);
-  }
-
-  return labels;
-};
-
 // Slider/Track Measurements
-
 export const generateTrackWidth = (
   total: number,
   scales: NumOfScales,
@@ -135,21 +93,6 @@ export const generateTrackWidth = (
     scales.medium * scaleUnitConfig.width.medium +
     scales.short * scaleUnitConfig.width.short
   );
-};
-
-export const calculateLabelPositions = (
-  start: Date,
-  labels: Date[],
-  unit: TimeUnit,
-  totalScaleUnits: number,
-  trackWidth: number,
-): { date: Date; position: number }[] => {
-  const unitPixel = trackWidth / totalScaleUnits;
-
-  return labels.map(label => {
-    const offset = getPeriodTimeScales(start, label, unit);
-    return { date: label, position: offset * unitPixel };
-  });
 };
 
 // Scale Generation
@@ -200,22 +143,65 @@ export const generateScalesWithInfo = (
   // If we don't have a scale exactly at the end date, add one
   if (scales.length > 0 && scales[scales.length - 1].date.getTime() !== endTime) {
     const type: ScaleType = 'short';
-    // switch (unit) {
-    //   case 'day':
-    //     type = end.getDate() === 1 ? 'long' : end.getDay() === 1 ? 'medium' : 'short';
-    //     break;
-    //   case 'month':
-    //     type = end.getMonth() === 0 ? 'long' : end.getMonth() % 3 === 0 ? 'medium' : 'short';
-    //     break;
-    //   case 'year':
-    //     type =
-    //       end.getFullYear() % 10 === 0 ? 'long' : end.getFullYear() % 5 === 0 ? 'medium' : 'short';
-    //     break;
-    // }
-
     scaleCounts[type]++;
     scales.push({ date: end, position: 100, type });
   }
 
   return { scales, numberOfScales: scaleCounts };
+};
+
+export const generateTimeLabelsWithPositions = (
+  start: Date,
+  end: Date,
+  unit: TimeUnit,
+): TimeLabel[] => {
+  const labels: TimeLabel[] = [];
+  const current = new Date(start);
+
+  const startTime = start.getTime();
+  const endTime = end.getTime();
+  const totalTimeSpan = endTime - startTime;
+
+  while (current <= end) {
+    let labelDate: Date | undefined;
+    switch (unit) {
+      case 'day':
+        labelDate = new Date(current.getFullYear(), current.getMonth(), 1);
+        current.setMonth(current.getMonth() + 1);
+        break;
+      case 'month':
+        labelDate = new Date(current.getFullYear(), 0, 1);
+        current.setFullYear(current.getFullYear() + 1);
+        break;
+      case 'year': {
+        const decade = Math.floor(current.getFullYear() / 10) * 10;
+        labelDate = new Date(decade, 0, 1);
+        current.setFullYear(decade + 10);
+        break;
+      }
+    }
+
+    if (
+      labelDate &&
+      labelDate.getTime() <= end.getTime() &&
+      (labels.length === 0 || labels[labels.length - 1].date.getTime() !== labelDate.getTime())
+    ) {
+      // Calculate position using the same method as scales
+      const labelTime = labelDate.getTime();
+      const percentage = totalTimeSpan === 0 ? 0 : ((labelTime - startTime) / totalTimeSpan) * 100;
+
+      labels.push({ date: labelDate, position: percentage });
+    }
+  }
+
+  // Add end label if needed
+  const endLabel = getRepresentativeDate(end, unit);
+  if (labels.length === 0 || labels[labels.length - 1].date.getTime() !== endLabel.getTime()) {
+    const labelTime = endLabel.getTime();
+    const percentage = totalTimeSpan === 0 ? 0 : ((labelTime - startTime) / totalTimeSpan) * 100;
+
+    labels.push({ date: endLabel, position: percentage });
+  }
+
+  return labels;
 };
