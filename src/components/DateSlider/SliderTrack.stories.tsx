@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { SliderTrack } from './SliderTrack';
-import { getPeriodTimeScales, generateScalesWithInfo } from '@/utils';
+import { getPeriodTimeScales, generateScalesWithInfo } from './dateSliderUtils';
 
 const meta: Meta<typeof SliderTrack> = {
   title: 'Components/DateSlider/SliderTrack',
