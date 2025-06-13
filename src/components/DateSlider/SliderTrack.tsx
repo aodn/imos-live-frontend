@@ -24,7 +24,7 @@ const DateLabel = memo(
       <div
         style={{ left: `${position}%` }}
         className={cn(
-          'absolute top-0 left-1/2 transform -translate-x-1/2 bg-red-600 text-white text-xs px-2 py-1 rounded whitespace-nowrap',
+          'absolute top-0 left-1/2 transform -translate-x-1/2 bg-red-600 text-white text-xs px-2 py-1 rounded whitespace-nowrap pointer-events-none',
           labelClassName,
         )}
         role="tooltip"
@@ -32,6 +32,31 @@ const DateLabel = memo(
       >
         {label}
       </div>
+    );
+  },
+);
+
+const CursorLine = memo(
+  ({
+    position,
+    isVisible,
+    className,
+  }: {
+    position?: number;
+    isVisible: boolean;
+    className?: string;
+  }) => {
+    if (!isVisible || position === undefined) return null;
+
+    return (
+      <div
+        style={{ left: `${position}%` }}
+        className={cn(
+          'absolute top-0 h-full w-[1px] bg-red-500/70 transform -translate-x-0.5 pointer-events-none z-20 transition-opacity duration-150',
+          className,
+        )}
+        aria-hidden="true"
+      />
     );
   },
 );
@@ -88,6 +113,7 @@ export const SliderTrack = memo(
 
     const handleMouseLeave = useCallback(() => {
       setIsHover(false);
+      setMouseHoverPosition(undefined);
     }, []);
 
     const handleMouseMove = useCallback(
@@ -109,6 +135,9 @@ export const SliderTrack = memo(
       [baseTrackclassName],
     );
 
+    // Show cursor line when hovering and not dragging
+    const showCursorLine = isHover && !onDragging;
+
     if (props.mode === 'point') {
       return (
         <div
@@ -120,9 +149,16 @@ export const SliderTrack = memo(
           aria-hidden="true"
         >
           <Scales scales={scales} scaleUnitConfig={scaleUnitConfig} />
-          {isHover && !onDragging && (
+
+          {/* Cursor line */}
+          <CursorLine position={mouseHoverPosition} isVisible={showCursorLine} />
+
+          {/* Date label */}
+          {showCursorLine && (
             <DateLabel label={dateLabel} position={mouseHoverPosition} labelClassName="-top-8" />
           )}
+
+          {/* Active track */}
           <div
             className={cn(
               'absolute h-full bg-red-300 rounded-full transition-all duration-200 z-10',
@@ -145,9 +181,16 @@ export const SliderTrack = memo(
           aria-hidden="true"
         >
           <Scales scales={scales} scaleUnitConfig={scaleUnitConfig} />
-          {isHover && !onDragging && (
+
+          {/* Cursor line */}
+          <CursorLine position={mouseHoverPosition} isVisible={showCursorLine} />
+
+          {/* Date label */}
+          {showCursorLine && (
             <DateLabel label={dateLabel} position={mouseHoverPosition} labelClassName="-top-8" />
           )}
+
+          {/* Active track */}
           <div
             className={cn(
               'absolute h-full bg-blue-500/30 transition-all duration-200 z-10',
