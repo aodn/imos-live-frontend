@@ -3,8 +3,10 @@ import {
   Scale,
   ScaleType,
   ScaleUnitConfig,
+  SelectionResult,
   TimeLabel,
   TimeUnit,
+  ViewMode,
 } from '@/components/DateSlider/type';
 import { clampPercent } from '@/utils';
 
@@ -221,4 +223,38 @@ export const getDateFromPercent = (percent: number, startDate: Date, endDate: Da
   const endTime = endDate.getTime();
   const targetTime = startTime + (percent / 100) * (endTime - startTime);
   return new Date(targetTime);
+};
+
+export const getPercentFromDate = (date: Date, startDate: Date, endDate: Date): number => {
+  const startTime = startDate.getTime();
+  const endTime = endDate.getTime();
+  const targetTime = date.getTime();
+  const clampedTime = Math.max(startTime, Math.min(endTime, targetTime));
+  const percent = ((clampedTime - startTime) / (endTime - startTime)) * 100;
+  return clampPercent(percent);
+};
+
+export const createSelectionResult = (
+  rangeStart: number,
+  startDate: Date,
+  endDate: Date,
+  rangeEnd: number,
+  pointPosition: number,
+  viewMode: ViewMode,
+): SelectionResult => {
+  const startLabel = getDateFromPercent(rangeStart, startDate, endDate);
+  const endLabel = getDateFromPercent(rangeEnd, startDate, endDate);
+  const pointLabel = getDateFromPercent(pointPosition, startDate, endDate);
+
+  switch (viewMode) {
+    case 'range':
+      return { range: { start: startLabel, end: endLabel } };
+    case 'point':
+      return { point: pointLabel };
+    case 'combined':
+      return {
+        range: { start: startLabel, end: endLabel },
+        point: pointLabel,
+      };
+  }
 };

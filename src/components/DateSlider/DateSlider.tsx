@@ -23,7 +23,8 @@ import {
   generateTrackWidth,
   generateTimeLabelsWithPositions,
   getPercentageFromMouseEvent,
-  getDateFromPercent,
+  getPercentFromDate,
+  createSelectionResult,
 } from './dateSliderUtils';
 import { TimeLabels } from './TimeLabels';
 import { Spacer } from '../Spacer';
@@ -63,7 +64,6 @@ export const DateSlider = memo(
     const [dimensions, setDimensions] = useState({ parent: 0, slider: 0 });
     const [timeUnit, setTimeUnit] = useState<TimeUnit>(initialTimeUnit);
 
-    // Memoize date conversions
     const startDate = useMemo(() => convertUTCToLocalDateTime(propStartDate), [propStartDate]);
     const endDate = useMemo(() => convertUTCToLocalDateTime(propEndDate), [propEndDate]);
 
@@ -77,7 +77,6 @@ export const DateSlider = memo(
       [minGapScaleUnits, totalScaleUnits],
     );
 
-    // Use custom hooks
     const {
       rangeStart,
       rangeEnd,
@@ -105,7 +104,6 @@ export const DateSlider = memo(
     const sliderRef = useRef<HTMLDivElement>(null);
     const trackRef = useRef<HTMLDivElement>(null);
 
-    // Memoize expensive calculations
     const { scales, numberOfScales } = useMemo(
       () => generateScalesWithInfo(startDate, endDate, timeUnit, totalScaleUnits),
       [endDate, startDate, timeUnit, totalScaleUnits],
@@ -176,21 +174,9 @@ export const DateSlider = memo(
       resetPositionRef.current({ x: 0, y: 0 });
     }, []);
 
-    const getPercentFromDate = useCallback(
-      (date: Date): number => {
-        const startTime = startDate.getTime();
-        const endTime = endDate.getTime();
-        const targetTime = date.getTime();
-        const clampedTime = Math.max(startTime, Math.min(endTime, targetTime));
-        const percent = ((clampedTime - startTime) / (endTime - startTime)) * 100;
-        return clampPercent(percent);
-      },
-      [startDate, endDate],
-    );
-
     const setDateTime = useCallback(
       (date: Date, target?: 'point' | 'rangeStart' | 'rangeEnd') => {
-        const percentage = getPercentFromDate(date);
+        const percentage = getPercentFromDate(date, startDate, endDate);
 
         let actualTarget = target;
         if (!actualTarget) {
@@ -210,7 +196,6 @@ export const DateSlider = memo(
           }
         }
 
-        // Update the appropriate handle
         switch (actualTarget) {
           case 'rangeStart': {
             const newStart = clamp(percentage, 0, rangeEndRef.current - minGapPercent);
@@ -229,7 +214,8 @@ export const DateSlider = memo(
         }
       },
       [
-        getPercentFromDate,
+        startDate,
+        endDate,
         viewMode,
         rangeStartRef,
         rangeEndRef,
@@ -306,24 +292,6 @@ export const DateSlider = memo(
       [rangeStartRef, rangeEndRef, updateHandlePosition, requestHandleFocus],
     );
 
-    const createSelectionResult = useCallback((): SelectionResult => {
-      const startLabel = getDateFromPercent(rangeStart, startDate, endDate);
-      const endLabel = getDateFromPercent(rangeEnd, startDate, endDate);
-      const pointLabel = getDateFromPercent(pointPosition, startDate, endDate);
-
-      switch (viewMode) {
-        case 'range':
-          return { range: { start: startLabel, end: endLabel } };
-        case 'point':
-          return { point: pointLabel };
-        case 'combined':
-          return {
-            range: { start: startLabel, end: endLabel },
-            point: pointLabel,
-          };
-      }
-    }, [rangeStart, startDate, endDate, rangeEnd, pointPosition, viewMode]);
-
     // Event handlers
     const handleMouseDown = useCallback(
       (handle: DragHandle) => (e: React.MouseEvent) => {
@@ -388,7 +356,6 @@ export const DateSlider = memo(
       ],
     );
 
-    // Keyboard navigation
     const handleHandleKeyDown = useCallback(
       (handle: DragHandle) => (e: React.KeyboardEvent) => {
         const step = (1 / totalScaleUnits) * 100;
@@ -446,7 +413,6 @@ export const DateSlider = memo(
       ],
     );
 
-    // Mouse event listeners
     useEffect(() => {
       if (!isDragging) return;
 
@@ -465,9 +431,16 @@ export const DateSlider = memo(
     );
 
     useEffect(() => {
-      const selection = createSelectionResult();
+      const selection = createSelectionResult(
+        rangeStart,
+        startDate,
+        endDate,
+        rangeEnd,
+        pointPosition,
+        viewMode,
+      );
       debouncedOnChange(selection);
-    }, [createSelectionResult, debouncedOnChange]);
+    }, [debouncedOnChange, endDate, pointPosition, rangeEnd, rangeStart, startDate, viewMode]);
 
     return (
       <div
