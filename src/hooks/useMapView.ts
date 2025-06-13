@@ -16,7 +16,8 @@ export function useMapView(
     const handleZoomEnd = () => {
       const currentZoom = mapInstance?.getZoom();
       if (typeof currentZoom === 'number') {
-        setZoom(currentZoom);
+        const roundedZoom = parseFloat(currentZoom.toFixed(4));
+        setZoom(roundedZoom);
       }
     };
 

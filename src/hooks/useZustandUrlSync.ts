@@ -11,7 +11,8 @@ type SyncConfig<T> = {
 const serialize = (value: any): string => {
   if (value === null || value === undefined) return '';
   if (typeof value === 'string') return value;
-  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  if (typeof value === 'boolean') return value ? '1' : '0';
+  if (typeof value === 'number') return String(value);
 
   try {
     return btoa(JSON.stringify(value));
@@ -19,10 +20,9 @@ const serialize = (value: any): string => {
     return String(value);
   }
 };
-
 const deserialize = (value: string, originalValue: any): any => {
   if (!value) return originalValue;
-  if (typeof originalValue === 'boolean') return value === 'true';
+  if (typeof originalValue === 'boolean') return value === '1';
   if (typeof originalValue === 'number') {
     const num = Number(value);
     return isNaN(num) ? originalValue : num;
