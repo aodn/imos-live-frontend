@@ -5,6 +5,7 @@ import { getLast7DatesEnding3DaysAgo } from '@/utils';
 export type NumParticles = 1000 | 10000 | 100000;
 
 export interface MapUIState {
+  zoom: number;
   style: StyleTitle;
   overlay: boolean;
   circle: boolean;
@@ -13,6 +14,7 @@ export interface MapUIState {
   distanceMeasurement: boolean;
   dataset: string;
   datasets: string[];
+  setZoom: (zoom: number) => void;
   setStyle: (style: StyleTitle) => void;
   setOverlay: (v: boolean) => void;
   setCircle: (v: boolean) => void;
@@ -24,6 +26,7 @@ export interface MapUIState {
 }
 
 export const useMapUIStore = create<MapUIState>(set => ({
+  zoom: 3,
   style: 'Dark',
   overlay: false,
   circle: false,
@@ -32,6 +35,7 @@ export const useMapUIStore = create<MapUIState>(set => ({
   distanceMeasurement: false,
   datasets: getLast7DatesEnding3DaysAgo(),
   dataset: getLast7DatesEnding3DaysAgo().at(0)!,
+  setZoom: zoom => set({ zoom }),
   setStyle: style => set({ style }),
   setOverlay: overlay => set({ overlay }),
   setCircle: circle => set({ circle }),
@@ -46,6 +50,7 @@ export const useMapUIStore = create<MapUIState>(set => ({
 }));
 
 export const selectAllStates = (s: MapUIState) => ({
+  zoom: s.zoom,
   style: s.style,
   overlay: s.overlay,
   circle: s.circle,

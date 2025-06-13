@@ -1,22 +1,27 @@
 import { useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 
-export function useMapInitialization(style: string, map: React.RefObject<mapboxgl.Map | null>) {
+export function useMapInitialization(
+  style: string,
+  zoom: number,
+  map: React.RefObject<mapboxgl.Map | null>,
+) {
   const mapContainer = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (map.current) return;
-
     map.current = new mapboxgl.Map({
       container: mapContainer.current as HTMLElement,
       style,
-      zoom: 3,
+      zoom: zoom,
+      minZoom: 1,
+      maxZoom: 12,
       antialias: true,
       projection: 'mercator',
       touchPitch: false,
-      touchZoomRotate: false,
+      pitchWithRotate: false,
     });
-  }, [map, style]);
+  }, [map, style, zoom]);
 
   return { map, mapContainer };
 }

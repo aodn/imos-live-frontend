@@ -6,6 +6,7 @@ import { useShallow } from 'zustand/shallow';
 // update corresponding query parameters.
 export const UrlSyncHandler = () => {
   const {
+    zoom,
     style,
     overlay,
     particles,
@@ -13,6 +14,7 @@ export const UrlSyncHandler = () => {
     distanceMeasurement,
     circle,
     dataset,
+    setZoom,
     setStyle,
     setOverlay,
     setCircle,
@@ -22,6 +24,7 @@ export const UrlSyncHandler = () => {
     setDataset,
   } = useMapUIStore(
     useShallow(s => ({
+      zoom: s.zoom,
       style: s.style,
       overlay: s.overlay,
       particles: s.particles,
@@ -29,6 +32,7 @@ export const UrlSyncHandler = () => {
       distanceMeasurement: s.distanceMeasurement,
       circle: s.circle,
       dataset: s.dataset,
+      setZoom: s.setZoom,
       setStyle: s.setStyle,
       setOverlay: s.setOverlay,
       setCircle: s.setCircle,
@@ -41,6 +45,7 @@ export const UrlSyncHandler = () => {
 
   useZustandUrlSync({
     keys: [
+      'zoom',
       'style',
       'overlay',
       'particles',
@@ -50,6 +55,7 @@ export const UrlSyncHandler = () => {
       'dataset',
     ],
     getState: () => ({
+      zoom: zoom,
       style: style,
       overlay: overlay,
       particles: particles,
@@ -60,6 +66,9 @@ export const UrlSyncHandler = () => {
     }),
     setState: (key, value) => {
       switch (key) {
+        case 'zoom':
+          setZoom(value);
+          break;
         case 'style':
           setStyle(value);
           break;
