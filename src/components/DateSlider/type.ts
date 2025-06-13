@@ -126,10 +126,38 @@ export type SliderHandleProps = {
   onFocus: (event: React.FocusEvent<HTMLButtonElement>) => void;
 };
 
+export type RenderSliderHandleProps = {
+  viewMode: 'point' | 'range' | 'combined';
+  rangeStart: number;
+  rangeEnd: number;
+  pointPosition: number;
+  startDate: Date;
+  endDate: Date;
+  timeUnit: TimeUnit;
+  isDragging: DragHandle | false;
+  rangeHandleIcon?: React.ReactNode;
+  pointHandleIcon?: React.ReactNode;
+  startHandleRef: React.RefObject<HTMLButtonElement | null>;
+  endHandleRef: React.RefObject<HTMLButtonElement | null>;
+  pointHandleRef: React.RefObject<HTMLButtonElement | null>;
+  onHandleFocus: (event: React.FocusEvent<HTMLButtonElement>) => void;
+  onMouseDown: (handle: DragHandle) => (e: React.MouseEvent) => void;
+  onKeyDown: (handle: DragHandle) => (e: React.KeyboardEvent) => void;
+};
+
 export type TimeUnitSelectionProps = {
   initialTimeUnit: TimeUnit;
   isMonthValid: boolean;
   isYearValid: boolean;
   onChange: (timeUnit: TimeUnit) => void;
+  className?: string;
+};
+
+export type TimeLabelsProps = {
+  timeLabels: TimeLabel[];
+  scales: Scale[];
+  trackWidth: number;
+  timeUnit: TimeUnit;
+  minDistance?: number;
   className?: string;
 };

@@ -8,11 +8,11 @@ import {
   memo,
 } from 'react';
 import { cn, debounce } from '@/utils';
-import { SliderHandle } from './SliderHandle';
+import { RenderSliderHandle } from './SliderHandle';
 import { SliderTrack } from './SliderTrack';
 import { checkDateDuration, clampPercent, clamp, convertUTCToLocalDateTime } from '@/utils';
 import { useDrag, useElementSize, useResizeObserver } from '@/hooks';
-import { SliderProps, DragHandle, SelectionResult, TimeUnit, TimeLabel } from './type';
+import { SliderProps, DragHandle, SelectionResult, TimeUnit } from './type';
 import { TimeUnitSelection } from './TimeUnitSelection';
 import { useDragState } from './useDragState';
 import { useFocusManagement } from './useFocusManagement';
@@ -22,23 +22,18 @@ import {
   generateScalesWithInfo,
   generateTrackWidth,
   generateTimeLabelsWithPositions,
-  formatDateForDisplay,
   getPercentageFromMouseEvent,
   getDateFromPercent,
 } from './dateSliderUtils';
+import { TimeLabels } from './TimeLabels';
+import { Spacer } from '../Spacer';
+import { useRAFDFn } from '../../hooks/useRAFDFn';
 
 const DEFAULT_SCALE_CONFIG = {
   gap: 36,
   width: { short: 1, medium: 2, long: 2 },
   height: { short: 8, medium: 16, long: 64 },
 } as const;
-
-// Memoized subcomponents
-const MemoizedSliderHandle = memo(SliderHandle);
-const MemoizedSliderTrack = memo(SliderTrack);
-const MemoizedTimeUnitSelection = memo(TimeUnitSelection);
-
-// Custom hooks for better separation of concerns
 
 export const DateSlider = memo(
   ({
@@ -148,7 +143,17 @@ export const DateSlider = memo(
       }
     }, [sliderContainerRef]);
 
-    useResizeObserver(sliderRef || { current: null }, updateDimensions);
+    const scheduleUpdateDimensions = useRAFDFn(updateDimensions);
+
+    useResizeObserver(sliderRef || { current: null }, scheduleUpdateDimensions);
+
+    const dragBounds = useMemo(
+      () => ({
+        left: Math.min(0, dimensions.parent - dimensions.slider),
+        right: 0,
+      }),
+      [dimensions.parent, dimensions.slider],
+    );
 
     const {
       dragHandlers,
@@ -158,10 +163,7 @@ export const DateSlider = memo(
       targetRef: scrollable ? sliderRef : undefined,
       initialPosition: { x: 0, y: 0 },
       constrainToAxis: 'x',
-      bounds: {
-        left: Math.min(0, dimensions.parent - dimensions.slider),
-        right: 0,
-      },
+      bounds: dragBounds,
       onDragEnd: handleDragComplete,
       onDragStarted: () => setDragStarted(true),
     });
@@ -325,7 +327,6 @@ export const DateSlider = memo(
     // Event handlers
     const handleMouseDown = useCallback(
       (handle: DragHandle) => (e: React.MouseEvent) => {
-        e.preventDefault();
         e.stopPropagation();
         setIsDragging(handle);
         setDragStarted(false);
@@ -337,8 +338,10 @@ export const DateSlider = memo(
     const handleMouseMove = useCallback(
       (e: globalThis.MouseEvent) => {
         if (!isDragging) return;
-        const percentage = getPercentageFromMouseEvent(e, trackRef);
-        updateHandlePosition(isDragging, percentage);
+        requestAnimationFrame(() => {
+          const percentage = getPercentageFromMouseEvent(e, trackRef);
+          updateHandlePosition(isDragging, percentage);
+        });
       },
       [isDragging, updateHandlePosition],
     );
@@ -456,7 +459,6 @@ export const DateSlider = memo(
       };
     }, [isDragging, handleMouseMove, handleMouseUp]);
 
-    // Debounced onChange
     const debouncedOnChange = useMemo(
       () => debounce((selection: SelectionResult) => onChange(selection), 100),
       [onChange],
@@ -466,123 +468,6 @@ export const DateSlider = memo(
       const selection = createSelectionResult();
       debouncedOnChange(selection);
     }, [createSelectionResult, debouncedOnChange]);
-
-    const renderHandles = useCallback(() => {
-      const handles = [];
-      const commonProps = {
-        className: 'top-0',
-        labelClassName: '-top-8 bg-red-600',
-        onFocus: handleHandleFocus,
-        min: 0,
-        max: 100,
-      };
-
-      if (viewMode === 'range' || viewMode === 'combined') {
-        handles.push(
-          <MemoizedSliderHandle
-            key="start"
-            ref={startHandleRef}
-            {...commonProps}
-            icon={rangeHandleIcon}
-            onDragging={isDragging === 'start'}
-            position={rangeStart}
-            label={formatDateForDisplay(
-              getDateFromPercent(rangeStart, startDate, endDate),
-              timeUnit,
-            )}
-            onMouseDown={handleMouseDown('start')}
-            value={rangeStart}
-            handleType="range start"
-            onKeyDown={handleHandleKeyDown('start')}
-          />,
-          <MemoizedSliderHandle
-            key="end"
-            ref={endHandleRef}
-            {...commonProps}
-            icon={rangeHandleIcon}
-            onDragging={isDragging === 'end'}
-            position={rangeEnd}
-            label={formatDateForDisplay(getDateFromPercent(rangeEnd, startDate, endDate), timeUnit)}
-            onMouseDown={handleMouseDown('end')}
-            value={rangeEnd}
-            handleType="range end"
-            onKeyDown={handleHandleKeyDown('end')}
-          />,
-        );
-      }
-
-      if (viewMode === 'point' || viewMode === 'combined') {
-        handles.push(
-          <MemoizedSliderHandle
-            key="point"
-            ref={pointHandleRef}
-            {...commonProps}
-            icon={pointHandleIcon}
-            onDragging={isDragging === 'point'}
-            position={pointPosition}
-            label={formatDateForDisplay(
-              getDateFromPercent(pointPosition, startDate, endDate),
-              timeUnit,
-            )}
-            onMouseDown={handleMouseDown('point')}
-            value={pointPosition}
-            handleType="point"
-            onKeyDown={handleHandleKeyDown('point')}
-          />,
-        );
-      }
-
-      return handles;
-    }, [
-      handleHandleFocus,
-      viewMode,
-      startHandleRef,
-      rangeHandleIcon,
-      isDragging,
-      rangeStart,
-      startDate,
-      endDate,
-      timeUnit,
-      handleMouseDown,
-      handleHandleKeyDown,
-      endHandleRef,
-      rangeEnd,
-      pointHandleRef,
-      pointHandleIcon,
-      pointPosition,
-    ]);
-
-    const renderTimeLabels = useCallback(() => {
-      const isFirstTimeLabelHidden = timeLabels[0]?.date.getTime() < scales[0]?.date.getTime();
-      const minDistance = 40;
-
-      const visibleLabels: TimeLabel[] = [];
-      let lastVisiblePosition = -Infinity;
-
-      timeLabels.forEach((label, index) => {
-        const currentPosition = index === 0 && isFirstTimeLabelHidden ? 0 : label.position;
-
-        if ((currentPosition - lastVisiblePosition) * trackWidth >= minDistance) {
-          visibleLabels.push({ ...label, position: currentPosition });
-          lastVisiblePosition = currentPosition;
-        } else if (visibleLabels.length > 0) {
-          visibleLabels.pop();
-          visibleLabels.push({ ...label, position: currentPosition });
-          lastVisiblePosition = currentPosition;
-        }
-      });
-
-      return visibleLabels.map(({ date, position }, index) => (
-        <span
-          key={`${date.getTime()}-${index}`}
-          className="bottom-0 text-center text-sm text-gray-700 absolute"
-          style={{ left: `${position}%` }}
-          aria-hidden="true"
-        >
-          {formatDateForDisplay(date, timeUnit, false).toUpperCase()}
-        </span>
-      ));
-    }, [timeLabels, scales, trackWidth, timeUnit]);
 
     return (
       <div
@@ -610,7 +495,7 @@ export const DateSlider = memo(
               className={cn('h-full w-full pointer-events-auto', sliderClassName)}
             >
               <div className="relative h-full w-full">
-                <MemoizedSliderTrack
+                <SliderTrack
                   mode={viewMode}
                   pointPosition={pointPosition}
                   rangeStart={rangeStart}
@@ -627,8 +512,30 @@ export const DateSlider = memo(
                   endDate={endDate}
                   onDragging={!!isDragging}
                 />
-                {renderTimeLabels()}
-                {renderHandles()}
+                <TimeLabels
+                  timeLabels={timeLabels}
+                  scales={scales}
+                  trackWidth={trackWidth}
+                  timeUnit={timeUnit}
+                />
+                <RenderSliderHandle
+                  viewMode={viewMode}
+                  rangeStart={rangeStart}
+                  rangeEnd={rangeEnd}
+                  pointPosition={pointPosition}
+                  startDate={startDate}
+                  endDate={endDate}
+                  timeUnit={timeUnit}
+                  isDragging={isDragging}
+                  rangeHandleIcon={rangeHandleIcon}
+                  pointHandleIcon={pointHandleIcon}
+                  startHandleRef={startHandleRef}
+                  endHandleRef={endHandleRef}
+                  pointHandleRef={pointHandleRef}
+                  onHandleFocus={handleHandleFocus}
+                  onMouseDown={handleMouseDown}
+                  onKeyDown={handleHandleKeyDown}
+                />
               </div>
             </div>
           </div>
@@ -636,7 +543,7 @@ export const DateSlider = memo(
 
         <div className="flex flex-col">
           <Spacer height={40} />
-          <MemoizedTimeUnitSelection
+          <TimeUnitSelection
             className={cn('pointer-events-auto flex-1', timeUnitSlectionClassName)}
             isMonthValid={checkDateDuration(startDate, endDate).moreThanOneMonth}
             isYearValid={checkDateDuration(startDate, endDate).moreThanOneYear}
@@ -650,17 +557,3 @@ export const DateSlider = memo(
 );
 
 DateSlider.displayName = 'DateSlider';
-
-const Spacer = memo(
-  ({ height, width, className }: { height?: number; width?: number; className?: string }) => {
-    return (
-      <div
-        style={{ width, height }}
-        className={cn('h-10 pointer-events-none', className)}
-        aria-hidden="true"
-      />
-    );
-  },
-);
-
-Spacer.displayName = 'DateSliderSpacer';

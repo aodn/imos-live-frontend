@@ -20,3 +20,4 @@ export * from './UrlSyncHandler';
 export * from './Dropdown';
 export * from './Switch';
 export * from './Toast';
+export * from './Spacer';

@@ -1,6 +1,8 @@
 import { cn } from '@/utils';
 import { Button } from '../Button';
-import { SliderHandleProps } from './type';
+import { RenderSliderHandleProps, SliderHandleProps } from './type';
+import { memo } from 'react';
+import { formatDateForDisplay, getDateFromPercent } from './dateSliderUtils';
 
 export const SliderHandle = ({
   onDragging,
@@ -65,3 +67,89 @@ export const SliderHandle = ({
     </Button>
   );
 };
+
+export const RenderSliderHandle = memo<RenderSliderHandleProps>(
+  ({
+    viewMode,
+    rangeStart,
+    rangeEnd,
+    pointPosition,
+    startDate,
+    endDate,
+    timeUnit,
+    isDragging,
+    rangeHandleIcon,
+    pointHandleIcon,
+    startHandleRef,
+    endHandleRef,
+    pointHandleRef,
+    onHandleFocus,
+    onMouseDown,
+    onKeyDown,
+  }) => {
+    const commonProps = {
+      className: 'top-0',
+      labelClassName: '-top-8 bg-red-600',
+      onFocus: onHandleFocus,
+      min: 0,
+      max: 100,
+    };
+
+    return (
+      <>
+        {(viewMode === 'range' || viewMode === 'combined') && (
+          <>
+            <SliderHandle
+              ref={startHandleRef}
+              {...commonProps}
+              icon={rangeHandleIcon}
+              onDragging={isDragging === 'start'}
+              position={rangeStart}
+              label={formatDateForDisplay(
+                getDateFromPercent(rangeStart, startDate, endDate),
+                timeUnit,
+              )}
+              onMouseDown={onMouseDown('start')}
+              value={rangeStart}
+              handleType="range start"
+              onKeyDown={onKeyDown('start')}
+            />
+            <SliderHandle
+              ref={endHandleRef}
+              {...commonProps}
+              icon={rangeHandleIcon}
+              onDragging={isDragging === 'end'}
+              position={rangeEnd}
+              label={formatDateForDisplay(
+                getDateFromPercent(rangeEnd, startDate, endDate),
+                timeUnit,
+              )}
+              onMouseDown={onMouseDown('end')}
+              value={rangeEnd}
+              handleType="range end"
+              onKeyDown={onKeyDown('end')}
+            />
+          </>
+        )}
+
+        {(viewMode === 'point' || viewMode === 'combined') && (
+          <SliderHandle
+            ref={pointHandleRef}
+            {...commonProps}
+            icon={pointHandleIcon}
+            onDragging={isDragging === 'point'}
+            position={pointPosition}
+            label={formatDateForDisplay(
+              getDateFromPercent(pointPosition, startDate, endDate),
+              timeUnit,
+            )}
+            onMouseDown={onMouseDown('point')}
+            value={pointPosition}
+            handleType="point"
+            onKeyDown={onKeyDown('point')}
+          />
+        )}
+      </>
+    );
+  },
+);
