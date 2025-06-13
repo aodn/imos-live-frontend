@@ -23,12 +23,22 @@ mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_KEY;
 
 export const MapComponent = memo(
   ({ ref, className }: { ref: React.RefObject<mapboxgl.Map | null>; className?: string }) => {
-    const { zoom, style, overlay, circle, particles, distanceMeasurement, numParticles, dataset } =
-      useMapUIStore(useShallow(selectAllStates));
+    const {
+      center,
+      zoom,
+      style,
+      overlay,
+      circle,
+      particles,
+      distanceMeasurement,
+      numParticles,
+      dataset,
+    } = useMapUIStore(useShallow(selectAllStates));
 
     //1. map initialization.
     const { map, mapContainer } = useMapInitialization(
       styles.find(s => s.title === style)?.source || styles[0].source,
+      center,
       zoom,
       ref,
     );

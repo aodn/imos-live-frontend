@@ -1,10 +1,12 @@
 import { create } from 'zustand';
 import { StyleTitle } from '@/styles';
 import { getLast7DatesEnding3DaysAgo } from '@/utils';
+import { LngLat } from 'mapbox-gl';
 
 export type NumParticles = 1000 | 10000 | 100000;
 
 export interface MapUIState {
+  center: LngLat;
   zoom: number;
   style: StyleTitle;
   overlay: boolean;
@@ -14,6 +16,7 @@ export interface MapUIState {
   distanceMeasurement: boolean;
   dataset: string;
   datasets: string[];
+  setCenter: (center: LngLat) => void;
   setZoom: (zoom: number) => void;
   setStyle: (style: StyleTitle) => void;
   setOverlay: (v: boolean) => void;
@@ -26,6 +29,7 @@ export interface MapUIState {
 }
 
 export const useMapUIStore = create<MapUIState>(set => ({
+  center: new LngLat(133.7751, -25.2744),
   zoom: 3,
   style: 'Dark',
   overlay: false,
@@ -35,6 +39,7 @@ export const useMapUIStore = create<MapUIState>(set => ({
   distanceMeasurement: false,
   datasets: getLast7DatesEnding3DaysAgo(),
   dataset: getLast7DatesEnding3DaysAgo().at(0)!,
+  setCenter: center => set({ center }),
   setZoom: zoom => set({ zoom }),
   setStyle: style => set({ style }),
   setOverlay: overlay => set({ overlay }),
@@ -50,6 +55,7 @@ export const useMapUIStore = create<MapUIState>(set => ({
 }));
 
 export const selectAllStates = (s: MapUIState) => ({
+  center: s.center,
   zoom: s.zoom,
   style: s.style,
   overlay: s.overlay,

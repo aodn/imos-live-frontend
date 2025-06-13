@@ -1,8 +1,9 @@
 import { useEffect, useRef } from 'react';
-import mapboxgl from 'mapbox-gl';
+import mapboxgl, { LngLat } from 'mapbox-gl';
 
 export function useMapInitialization(
   style: string,
+  center: LngLat,
   zoom: number,
   map: React.RefObject<mapboxgl.Map | null>,
 ) {
@@ -13,6 +14,7 @@ export function useMapInitialization(
     map.current = new mapboxgl.Map({
       container: mapContainer.current as HTMLElement,
       style,
+      center: center,
       zoom: zoom,
       minZoom: 1,
       maxZoom: 12,
@@ -21,7 +23,7 @@ export function useMapInitialization(
       touchPitch: false,
       pitchWithRotate: false,
     });
-  }, [map, style, zoom]);
+  }, [center, map, style, zoom]);
 
   return { map, mapContainer };
 }
