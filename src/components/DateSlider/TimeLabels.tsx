@@ -45,5 +45,3 @@ export const TimeLabels = memo(
     );
   },
 );
-
-TimeLabels.displayName = 'TimeLabels';

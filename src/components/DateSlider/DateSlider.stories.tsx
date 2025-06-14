@@ -216,9 +216,9 @@ export const PointMode = Template.bind({});
 PointMode.args = {
   viewMode: 'point',
   startDate: new Date('2019-01-01'),
-  endDate: new Date('2025-03-15'),
+  endDate: new Date('2019-01-08'),
   initialTimeUnit: 'day' as TimeUnit,
-  initialPoint: new Date('2023-01-20'),
+  initialPoint: new Date('2019-01-01'),
   sliderWidth: 600,
   sliderHeight: 90,
   trackActiveClassName: 'bg-green-400/20',

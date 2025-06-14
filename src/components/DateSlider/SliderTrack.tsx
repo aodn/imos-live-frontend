@@ -123,6 +123,7 @@ export const SliderTrack = memo(
           getDateFromPercent(percentage, startDate, endDate),
           timeUnit,
         );
+
         setIsHover(true);
         setDateLabel(label);
         setMouseHoverPosition(percentage);

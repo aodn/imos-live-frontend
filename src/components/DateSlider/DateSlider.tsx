@@ -195,20 +195,20 @@ export const DateSlider = memo(
               break;
           }
         }
-
+        const clampPercentage = clampPercent(percentage, 99.9999);
         switch (actualTarget) {
           case 'rangeStart': {
-            const newStart = clamp(percentage, 0, rangeEndRef.current - minGapPercent);
+            const newStart = clamp(clampPercentage, 0, rangeEndRef.current - minGapPercent);
             setRangeStart(newStart);
             break;
           }
           case 'rangeEnd': {
-            const newEnd = clamp(percentage, 100, rangeStartRef.current + minGapPercent);
+            const newEnd = clamp(clampPercentage, 100, rangeStartRef.current + minGapPercent);
             setRangeEnd(newEnd);
             break;
           }
           case 'point': {
-            setPointPosition(percentage);
+            setPointPosition(clampPercentage);
             break;
           }
         }
@@ -237,23 +237,27 @@ export const DateSlider = memo(
 
     const updateHandlePosition = useCallback(
       (handle: DragHandle, percentage: number) => {
+        const clampedPercentage = clampPercent(percentage, 99.9999);
+
         switch (handle) {
           case 'start': {
-            const newStart = Math.max(0, Math.min(percentage, rangeEndRef.current - minGapPercent));
+            const newStart = Math.max(
+              0,
+              Math.min(clampedPercentage, rangeEndRef.current - minGapPercent),
+            );
             setRangeStart(newStart);
             break;
           }
           case 'end': {
             const newEnd = Math.min(
-              100,
-              Math.max(percentage, rangeStartRef.current + minGapPercent),
+              clampedPercentage,
+              Math.max(percentage, rangeStartRef.current + minGapPercent), // Use original percentage here
             );
             setRangeEnd(newEnd);
             break;
           }
           case 'point': {
-            const newPoint = clampPercent(percentage);
-            setPointPosition(newPoint);
+            setPointPosition(clampedPercentage);
             break;
           }
         }
@@ -394,7 +398,7 @@ export const DateSlider = memo(
             break;
           case 'End':
             e.preventDefault();
-            newPercentage = 100;
+            newPercentage = 99.9999;
             break;
         }
 
@@ -528,5 +532,3 @@ export const DateSlider = memo(
     );
   },
 );
-
-DateSlider.displayName = 'DateSlider';

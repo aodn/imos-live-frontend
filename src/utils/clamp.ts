@@ -3,6 +3,6 @@ export function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
 
-export function clampPercent(value: number): number {
-  return clamp(value, 0, 100);
+export function clampPercent(value: number, max: number = 100): number {
+  return clamp(value, 0, max);
 }
