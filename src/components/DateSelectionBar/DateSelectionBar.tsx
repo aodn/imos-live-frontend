@@ -1,6 +1,11 @@
 import { TriangleIcon } from '..';
-import { DateSlider, PointSelection, SelectionResult, SliderExposedMethod } from '../DateSlider';
-import styles from '../DateSlider/DateSlider.module.css';
+import {
+  DateSlider,
+  dateSliderStyles,
+  PointSelection,
+  SelectionResult,
+  SliderExposedMethod,
+} from '../DateSlider';
 import { getLast7DatesEnding3DaysAgo, shortDateFormatToUTC, toShortDateFormat } from '@/utils';
 import { useMapUIStore } from '@/store';
 import { cn } from '@/utils';
@@ -8,6 +13,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useShallow } from 'zustand/shallow';
 
 type DateSelectionBarProps = { className?: string };
+const RENDER_TIMES = 2;
 
 export const DateSelectionBar = ({ className }: DateSelectionBarProps) => {
   const { dataset, setDataset } = useMapUIStore(
@@ -23,7 +29,6 @@ export const DateSelectionBar = ({ className }: DateSelectionBarProps) => {
   const updateAttempts = useRef(0);
 
   const lastSevenDays = useMemo(() => getLast7DatesEnding3DaysAgo('yyyy-mm-dd'), []);
-
   const startDate = new Date(lastSevenDays[0]);
   const endDate = new Date(
     new Date(lastSevenDays.at(-1)!).setDate(new Date(lastSevenDays.at(-1)!).getDate() + 1),
@@ -36,21 +41,20 @@ export const DateSelectionBar = ({ className }: DateSelectionBarProps) => {
   };
 
   useEffect(() => {
-    if (!dataSliderMethod.current || !dataset) return;
+    const setDateSliderToDateTime = dataSliderMethod.current?.setDateTime;
+
+    if (!setDateSliderToDateTime || !dataset) return;
 
     const hasDatasetChanged = lastProcessedDataset.current !== dataset;
+    if (!hasDatasetChanged) return;
 
-    if (hasDatasetChanged) {
-      updateAttempts.current++;
-      lastProcessedDataset.current = dataset;
-    }
+    updateAttempts.current++;
+    lastProcessedDataset.current = dataset;
 
-    if (updateAttempts.current > 2) return;
-
-    const dateTime = shortDateFormatToUTC(dataset);
+    if (updateAttempts.current > RENDER_TIMES) return;
 
     isUpdatingFromUrl.current = true;
-    dataSliderMethod.current.setDateTime(dateTime, 'point');
+    setDateSliderToDateTime(shortDateFormatToUTC(dataset), 'point');
 
     const timeoutId = setTimeout(() => {
       isUpdatingFromUrl.current = false;
@@ -68,8 +72,8 @@ export const DateSelectionBar = ({ className }: DateSelectionBarProps) => {
         endDate={endDate}
         initialPoint={shortDateFormatToUTC(dataset)}
         pointHandleIcon={<TriangleIcon size="xxl" color="imos-grey" />}
-        sliderClassName={styles.frosted}
-        timeUnitSlectionClassName={styles.frosted}
+        sliderClassName={dateSliderStyles.frosted}
+        timeUnitSlectionClassName={dateSliderStyles.frosted}
         trackActiveClassName="hidden"
         onChange={handleSelect as (v: SelectionResult) => void}
         scrollable={true}

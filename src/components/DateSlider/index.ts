@@ -1,3 +1,3 @@
 export * from './DateSlider';
 export * from './type';
-export * from './DateSlider.module.css';
+export { default as dateSliderStyles } from './DateSlider.module.css';
