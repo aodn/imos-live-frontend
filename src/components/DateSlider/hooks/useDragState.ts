@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { DragHandle } from './type';
+import { DragHandle } from '../type';
 
 export function useDragState() {
   const [isDragging, setIsDragging] = useState<DragHandle>(null);

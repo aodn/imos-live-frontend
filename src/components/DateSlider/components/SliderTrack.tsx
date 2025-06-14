@@ -1,12 +1,7 @@
 import { cn } from '@/utils';
 import { useState, useCallback, useMemo, memo } from 'react';
-
-import { SliderTrackProps, ScaleType } from './type';
-import {
-  formatDateForDisplay,
-  getDateFromPercent,
-  getPercentageFromMouseEvent,
-} from './dateSliderUtils';
+import { SliderTrackProps, ScaleType } from '../type';
+import { formatDateForDisplay, getDateFromPercent, getPercentageFromMouseEvent } from '../utils';
 
 const DateLabel = memo(
   ({

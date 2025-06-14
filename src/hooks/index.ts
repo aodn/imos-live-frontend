@@ -23,3 +23,4 @@ export * from './useDropdownPosition';
 export * from './useElementSize';
 export * from './useRAFDFn';
 export * from './useMapView';
+export * from './useSliderDateSyncWithUrl';

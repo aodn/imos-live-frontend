@@ -1,5 +1,4 @@
-import type { VectorFieldAPI } from '@/types';
-import VectorField from '../utils/VectorField';
+import VectorField, { VectorFieldAPI } from './VectorField';
 
 type MetaData =
   | {

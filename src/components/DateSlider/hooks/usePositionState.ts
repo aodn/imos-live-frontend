@@ -1,7 +1,7 @@
 import { clampPercent } from '@/utils';
 import { useCallback, useState, useRef, useEffect } from 'react';
-import { SliderProps, TimeUnit } from './type';
-import { getPeriodTimeScales } from './dateSliderUtils';
+import { SliderProps, TimeUnit } from '../type';
+import { getPeriodTimeScales } from '../utils';
 
 export function usePositionState(
   initialRange: SliderProps['initialRange'],

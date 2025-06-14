@@ -1,6 +1,6 @@
 import { cn } from '@/utils';
-import { Button, TriangleIcon } from '../';
-import { TimeUnit, TimeUnitSelectionProps } from './type';
+import { Button, TriangleIcon } from '../..';
+import { TimeUnit, TimeUnitSelectionProps } from '../type';
 import { useState, useRef, useEffect, memo } from 'react';
 import { useElementSize } from '@/hooks';
 

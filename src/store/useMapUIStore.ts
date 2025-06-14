@@ -5,6 +5,8 @@ import { LngLat } from 'mapbox-gl';
 
 export type NumParticles = 1000 | 10000 | 100000;
 
+export const INITIAL_DATASET = getLast7DatesEnding3DaysAgo().at(0)!;
+
 export interface MapUIState {
   center: LngLat;
   zoom: number;
@@ -38,11 +40,13 @@ export const useMapUIStore = create<MapUIState>(set => ({
   numParticles: 10000,
   distanceMeasurement: false,
   datasets: getLast7DatesEnding3DaysAgo(),
-  dataset: getLast7DatesEnding3DaysAgo().at(0)!,
+  dataset: INITIAL_DATASET,
   setCenter: center => set({ center }),
   setZoom: zoom => set({ zoom }),
   setStyle: style => set({ style }),
-  setOverlay: overlay => set({ overlay }),
+  setOverlay: overlay => {
+    set({ overlay });
+  },
   setCircle: circle => set({ circle }),
   setParticles: particles => set({ particles }),
   setNumParticles: numParticles => set({ numParticles }),

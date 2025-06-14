@@ -51,7 +51,6 @@ export const useDropdownPosition = (
 
     const handleReposition = () => debouncedCalculatePosition();
 
-    // Event listeners
     window.addEventListener('scroll', handleReposition, { passive: true });
     window.addEventListener('resize', handleReposition);
 

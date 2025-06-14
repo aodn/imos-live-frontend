@@ -9,11 +9,11 @@ import {
 import { getLast7DatesEnding3DaysAgo, shortDateFormatToUTC, toShortDateFormat } from '@/utils';
 import { useMapUIStore } from '@/store';
 import { cn } from '@/utils';
-import { useEffect, useMemo, useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { useShallow } from 'zustand/shallow';
+import { useSliderDateSyncWithUrl } from '@/hooks';
 
 type DateSelectionBarProps = { className?: string };
-const RENDER_TIMES = 2;
 
 export const DateSelectionBar = ({ className }: DateSelectionBarProps) => {
   const { dataset, setDataset } = useMapUIStore(
@@ -23,45 +23,21 @@ export const DateSelectionBar = ({ className }: DateSelectionBarProps) => {
     })),
   );
 
-  const dataSliderMethod = useRef<SliderExposedMethod>(null);
-  const isUpdatingFromUrl = useRef(false);
-  const lastProcessedDataset = useRef<string>(null);
-  const updateAttempts = useRef(0);
+  const dateSliderMethod = useRef<SliderExposedMethod>(null);
+
+  useSliderDateSyncWithUrl(dataset, dateSliderMethod);
 
   const lastSevenDays = useMemo(() => getLast7DatesEnding3DaysAgo('yyyy-mm-dd'), []);
-  const startDate = new Date(lastSevenDays[0]);
-  const endDate = new Date(
-    new Date(lastSevenDays.at(-1)!).setDate(new Date(lastSevenDays.at(-1)!).getDate() + 1),
-  );
+  const startDate = useMemo(() => new Date(lastSevenDays[0]), [lastSevenDays]);
+  const endDate = useMemo(() => {
+    const last = new Date(lastSevenDays.at(-1)!);
+    last.setDate(last.getDate() + 1);
+    return last;
+  }, [lastSevenDays]);
 
   const handleSelect = (v: PointSelection) => {
-    //currently, gsla ocean current data is naming in yy-mm-dd pattern, so need to convert same fromat.
-    if (isUpdatingFromUrl.current) return;
     setDataset(toShortDateFormat(v.point));
   };
-
-  useEffect(() => {
-    const setDateSliderToDateTime = dataSliderMethod.current?.setDateTime;
-
-    if (!setDateSliderToDateTime || !dataset) return;
-
-    const hasDatasetChanged = lastProcessedDataset.current !== dataset;
-    if (!hasDatasetChanged) return;
-
-    updateAttempts.current++;
-    lastProcessedDataset.current = dataset;
-
-    if (updateAttempts.current > RENDER_TIMES) return;
-
-    isUpdatingFromUrl.current = true;
-    setDateSliderToDateTime(shortDateFormatToUTC(dataset), 'point');
-
-    const timeoutId = setTimeout(() => {
-      isUpdatingFromUrl.current = false;
-    }, 10);
-
-    return () => clearTimeout(timeoutId);
-  }, [dataset]);
 
   return (
     <div className={cn('shadow-xl', className)}>
@@ -84,7 +60,7 @@ export const DateSelectionBar = ({ className }: DateSelectionBarProps) => {
         }}
         sliderHeight={110}
         sliderWidth={'fill'}
-        imperativeHandleRef={dataSliderMethod}
+        imperativeHandleRef={dateSliderMethod}
       />
     </div>
   );

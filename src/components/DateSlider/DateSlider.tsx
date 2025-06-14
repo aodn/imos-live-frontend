@@ -7,16 +7,17 @@ import {
   useImperativeHandle,
   memo,
 } from 'react';
-import { cn, debounce } from '@/utils';
-import { RenderSliderHandle } from './SliderHandle';
-import { SliderTrack } from './SliderTrack';
-import { checkDateDuration, clampPercent, clamp, convertUTCToLocalDateTime } from '@/utils';
-import { useDrag, useElementSize, useResizeObserver } from '@/hooks';
+import {
+  checkDateDuration,
+  clampPercent,
+  clamp,
+  convertUTCToLocalDateTime,
+  cn,
+  debounce,
+} from '@/utils';
+import { useDrag, useElementSize, useResizeObserver, useRAFDFn } from '@/hooks';
 import { SliderProps, DragHandle, SelectionResult, TimeUnit } from './type';
-import { TimeUnitSelection } from './TimeUnitSelection';
-import { useDragState } from './useDragState';
-import { useFocusManagement } from './useFocusManagement';
-import { usePositionState } from './usePositionState';
+import { useDragState, useFocusManagement, usePositionState } from './hooks';
 import {
   getPeriodTimeScales,
   generateScalesWithInfo,
@@ -25,10 +26,14 @@ import {
   getPercentageFromMouseEvent,
   getPercentFromDate,
   createSelectionResult,
-} from './dateSliderUtils';
-import { TimeLabels } from './TimeLabels';
-import { Spacer } from '../Spacer';
-import { useRAFDFn } from '../../hooks/useRAFDFn';
+} from './utils';
+import {
+  TimeLabels,
+  RenderSliderHandle,
+  SliderTrack,
+  TimeUnitSelection,
+  Spacer,
+} from './components';
 
 const DEFAULT_SCALE_CONFIG = {
   gap: 36,
@@ -101,6 +106,11 @@ export const DateSlider = memo(
     const { isDragging, dragStarted, setIsDragging, setDragStarted, handleDragComplete } =
       useDragState();
 
+    const {
+      ref: sliderContainerRef,
+      size: { width: sliderContainerWidth },
+    } = useElementSize<HTMLDivElement>();
+
     const sliderRef = useRef<HTMLDivElement>(null);
     const trackRef = useRef<HTMLDivElement>(null);
 
@@ -108,11 +118,6 @@ export const DateSlider = memo(
       () => generateScalesWithInfo(startDate, endDate, timeUnit, totalScaleUnits),
       [endDate, startDate, timeUnit, totalScaleUnits],
     );
-
-    const {
-      ref: sliderContainerRef,
-      size: { width: sliderContainerWidth },
-    } = useElementSize<HTMLDivElement>();
 
     const trackWidth = useMemo(() => {
       const safeGap =
@@ -296,7 +301,6 @@ export const DateSlider = memo(
       [rangeStartRef, rangeEndRef, updateHandlePosition, requestHandleFocus],
     );
 
-    // Event handlers
     const handleMouseDown = useCallback(
       (handle: DragHandle) => (e: React.MouseEvent) => {
         e.stopPropagation();

@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { DragHandle } from './type';
+import { DragHandle } from '../type';
 
 export function useFocusManagement() {
   const [pendingFocus, setPendingFocus] = useState<DragHandle>(null);

@@ -14,7 +14,6 @@ export function useRAFDFn(callback: () => void) {
     });
   }, [callback]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (rafIdRef.current) {

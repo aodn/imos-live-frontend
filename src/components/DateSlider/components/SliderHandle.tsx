@@ -1,8 +1,8 @@
 import { cn } from '@/utils';
-import { Button } from '../Button';
-import { RenderSliderHandleProps, SliderHandleProps } from './type';
+import { Button } from '../../Button';
+import { RenderSliderHandleProps, SliderHandleProps } from '../type';
 import { memo } from 'react';
-import { formatDateForDisplay, getDateFromPercent } from './dateSliderUtils';
+import { formatDateForDisplay, getDateFromPercent } from '../utils';
 
 export const SliderHandle = ({
   onDragging,
