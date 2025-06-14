@@ -176,7 +176,7 @@ export const DateSlider = memo(
 
     const setDateTime = useCallback(
       (date: Date, target?: 'point' | 'rangeStart' | 'rangeEnd') => {
-        const percentage = getPercentFromDate(date, startDate, endDate);
+        const percentage = getPercentFromDate(convertUTCToLocalDateTime(date), startDate, endDate);
 
         let actualTarget = target;
         if (!actualTarget) {

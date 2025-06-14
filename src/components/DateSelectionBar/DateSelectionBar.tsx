@@ -1,16 +1,11 @@
 import { TriangleIcon } from '..';
 import { DateSlider, PointSelection, SelectionResult, SliderExposedMethod } from '../DateSlider';
-import {
-  convertUTCToLocalDateTime,
-  getLast7DatesEnding3DaysAgo,
-  shortDateFormatToUTC,
-  toShortDateFormat,
-} from '@/utils';
+import styles from '../DateSlider/DateSlider.module.css';
+import { getLast7DatesEnding3DaysAgo, shortDateFormatToUTC, toShortDateFormat } from '@/utils';
 import { useMapUIStore } from '@/store';
 import { cn } from '@/utils';
 import { useEffect, useMemo, useRef } from 'react';
 import { useShallow } from 'zustand/shallow';
-import styles from '../DateSlider/DateSlider.module.css';
 
 type DateSelectionBarProps = { className?: string };
 
@@ -28,6 +23,11 @@ export const DateSelectionBar = ({ className }: DateSelectionBarProps) => {
   const updateAttempts = useRef(0);
 
   const lastSevenDays = useMemo(() => getLast7DatesEnding3DaysAgo('yyyy-mm-dd'), []);
+
+  const startDate = new Date(lastSevenDays[0]);
+  const endDate = new Date(
+    new Date(lastSevenDays.at(-1)!).setDate(new Date(lastSevenDays.at(-1)!).getDate() + 1),
+  );
 
   const handleSelect = (v: PointSelection) => {
     //currently, gsla ocean current data is naming in yy-mm-dd pattern, so need to convert same fromat.
@@ -47,7 +47,7 @@ export const DateSelectionBar = ({ className }: DateSelectionBarProps) => {
 
     if (updateAttempts.current > 2) return;
 
-    const dateTime = convertUTCToLocalDateTime(shortDateFormatToUTC(dataset));
+    const dateTime = shortDateFormatToUTC(dataset);
 
     isUpdatingFromUrl.current = true;
     dataSliderMethod.current.setDateTime(dateTime, 'point');
@@ -64,8 +64,8 @@ export const DateSelectionBar = ({ className }: DateSelectionBarProps) => {
       <DateSlider
         viewMode="point"
         initialTimeUnit="day"
-        startDate={new Date(lastSevenDays[0])}
-        endDate={new Date(lastSevenDays.at(-1)!)}
+        startDate={startDate}
+        endDate={endDate}
         initialPoint={shortDateFormatToUTC(dataset)}
         pointHandleIcon={<TriangleIcon size="xxl" color="imos-grey" />}
         sliderClassName={styles.frosted}
