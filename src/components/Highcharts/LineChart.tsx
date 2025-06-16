@@ -1,4 +1,4 @@
-import React, { useRef, useImperativeHandle, useMemo } from 'react';
+import React, { useRef, useImperativeHandle, useMemo, memo } from 'react';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import { LineChartProps } from './typs';
@@ -14,7 +14,7 @@ Highcharts.setOptions({
   },
 });
 
-export const LineChart = React.forwardRef<any, LineChartProps>((props, ref) => {
+export const LineChart = memo(({ ref, ...props }: LineChartProps) => {
   const { width = '100%', height = 400, className, style } = props;
 
   const chartRef = useRef<HighchartsReact.RefObject>(null);

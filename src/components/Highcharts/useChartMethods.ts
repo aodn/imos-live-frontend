@@ -162,24 +162,8 @@ export const useChartMethods = (
       const chart = chartRef.current?.chart;
       if (!chart) return;
 
-      const exportTypes = {
-        png: 'image/png',
-        jpeg: 'image/jpeg',
-        pdf: 'application/pdf',
-        svg: 'image/svg+xml',
-      };
-
-      try {
-        chart.exportChart(
-          { type: exportTypes[format] as Highcharts.ExportingMimeTypeValue, filename },
-          {},
-        );
-      } catch (error) {
-        console.warn('Export failed, trying fallback:', error);
-
-        if (format === 'svg' || format === 'png') {
-          exportFallbacks[format](chart, filename);
-        }
+      if (format === 'svg' || format === 'png' || format === 'jpeg' || format === 'pdf') {
+        exportFallbacks[format](chart, filename);
       }
     },
     [chartRef],

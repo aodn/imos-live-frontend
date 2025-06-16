@@ -314,6 +314,113 @@ export const exportFallbacks = {
       console.error('PNG export fallback failed:', error);
     }
   },
+
+  jpeg: (chart: Highcharts.Chart, filename: string) => {
+    return new Promise<void>((resolve, reject) => {
+      try {
+        const svg = chart.getSVG({
+          chart: { backgroundColor: '#ffffff' },
+          exporting: { sourceWidth: 800, sourceHeight: 600 },
+        });
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+
+        if (!ctx) {
+          throw new Error('Canvas context not available');
+        }
+
+        const img = new Image();
+
+        img.onload = () => {
+          try {
+            canvas.width = img.naturalWidth || 800;
+            canvas.height = img.naturalHeight || 600;
+
+            // Fill white background for JPEG
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.drawImage(img, 0, 0);
+
+            canvas.toBlob(
+              blob => {
+                if (blob) {
+                  downloadBlob(blob, `${filename}.jpg`);
+                  resolve();
+                } else {
+                  reject(new Error('Failed to create JPEG blob'));
+                }
+              },
+              'image/jpeg',
+              0.9,
+            );
+          } catch (error) {
+            reject(error);
+          }
+        };
+
+        img.onerror = () => reject(new Error('Failed to load SVG as image'));
+
+        const svgBlob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+        img.src = URL.createObjectURL(svgBlob);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  },
+  pdf: (chart: Highcharts.Chart, filename: string) => {
+    return new Promise<void>((resolve, reject) => {
+      try {
+        // For basic PDF support, we'll save as high-quality PNG
+        // For proper PDF, integrate with jsPDF library
+        const svg = chart.getSVG({
+          chart: { backgroundColor: '#ffffff' },
+          exporting: { sourceWidth: 1200, sourceHeight: 800 }, // Higher resolution for PDF
+        });
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+
+        if (!ctx) {
+          throw new Error('Canvas context not available');
+        }
+
+        const img = new Image();
+
+        img.onload = () => {
+          try {
+            canvas.width = img.naturalWidth || 1200;
+            canvas.height = img.naturalHeight || 800;
+
+            // Fill white background
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.drawImage(img, 0, 0);
+
+            canvas.toBlob(blob => {
+              if (blob) {
+                // Save as high-quality PNG (basic PDF alternative)
+                downloadBlob(blob, `${filename}.png`);
+                console.warn('PDF saved as PNG. Install jsPDF for proper PDF export.');
+                resolve();
+              } else {
+                reject(new Error('Failed to create PDF blob'));
+              }
+            }, 'image/png');
+          } catch (error) {
+            reject(error);
+          }
+        };
+
+        img.onerror = () => reject(new Error('Failed to load SVG as image'));
+
+        const svgBlob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+        img.src = URL.createObjectURL(svgBlob);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  },
 };
 
 export const downloadBlob = (blob: Blob, filename: string) => {
