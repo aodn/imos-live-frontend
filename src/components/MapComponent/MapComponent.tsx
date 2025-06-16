@@ -105,3 +105,5 @@ export const MapComponent = memo(
     );
   },
 );
+
+MapComponent.displayName = 'MapComponent';

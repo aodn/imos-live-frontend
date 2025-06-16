@@ -96,3 +96,5 @@ export const TimeUnitSelection = memo(
     );
   },
 );
+
+TimeUnitSelection.displayName = 'TimeUnitSelection';

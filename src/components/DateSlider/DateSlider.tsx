@@ -536,3 +536,5 @@ export const DateSlider = memo(
     );
   },
 );
+
+DateSlider.displayName = 'DateSlider';

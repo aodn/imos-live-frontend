@@ -1,4 +1,4 @@
-import { TriangleIcon } from '..';
+import { TriangleIcon } from '../Icons';
 import {
   DateSlider,
   dateSliderStyles,
@@ -6,16 +6,15 @@ import {
   SelectionResult,
   SliderExposedMethod,
 } from '../DateSlider';
-import { getLast7DatesEnding3DaysAgo, shortDateFormatToUTC, toShortDateFormat } from '@/utils';
+import { getLast7DatesEnding3DaysAgo, shortDateFormatToUTC, toShortDateFormat, cn } from '@/utils';
 import { useMapUIStore } from '@/store';
-import { cn } from '@/utils';
-import { useMemo, useRef } from 'react';
+import { memo, useCallback, useMemo, useRef } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { useSliderDateSyncWithUrl } from '@/hooks';
 
 type DateSelectionBarProps = { className?: string };
 
-export const DateSelectionBar = ({ className }: DateSelectionBarProps) => {
+export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
   const { dataset, setDataset } = useMapUIStore(
     useShallow(s => ({
       dataset: s.dataset,
@@ -23,9 +22,9 @@ export const DateSelectionBar = ({ className }: DateSelectionBarProps) => {
     })),
   );
 
-  const dateSliderMethod = useRef<SliderExposedMethod>(null);
+  const dateSliderMethodRef = useRef<SliderExposedMethod>(null);
 
-  useSliderDateSyncWithUrl(dataset, dateSliderMethod);
+  useSliderDateSyncWithUrl(dataset, dateSliderMethodRef);
 
   const lastSevenDays = useMemo(() => getLast7DatesEnding3DaysAgo('yyyy-mm-dd'), []);
   const startDate = useMemo(() => new Date(lastSevenDays[0]), [lastSevenDays]);
@@ -35,9 +34,12 @@ export const DateSelectionBar = ({ className }: DateSelectionBarProps) => {
     return last;
   }, [lastSevenDays]);
 
-  const handleSelect = (v: PointSelection) => {
-    setDataset(toShortDateFormat(v.point));
-  };
+  const handleSelect = useCallback(
+    (v: PointSelection) => {
+      setDataset(toShortDateFormat(v.point));
+    },
+    [setDataset],
+  );
 
   return (
     <div className={cn('shadow-xl', className)}>
@@ -54,14 +56,15 @@ export const DateSelectionBar = ({ className }: DateSelectionBarProps) => {
         onChange={handleSelect as (v: SelectionResult) => void}
         scrollable={true}
         scaleUnitConfig={{
-          gap: 40,
           width: { short: 1, medium: 2, long: 2 },
           height: { short: 18, medium: 36, long: 60 },
         }}
         sliderHeight={110}
         sliderWidth={'fill'}
-        imperativeHandleRef={dateSliderMethod}
+        imperativeHandleRef={dateSliderMethodRef}
       />
     </div>
   );
-};
+});
+
+DateSelectionBar.displayName = 'DateSelectionBar';

@@ -30,6 +30,7 @@ const DateLabel = memo(
     );
   },
 );
+DateLabel.displayName = 'DateLabel';
 
 const CursorLine = memo(
   ({
@@ -55,6 +56,7 @@ const CursorLine = memo(
     );
   },
 );
+CursorLine.displayName = 'CursorLine';
 
 const Scales = memo(
   ({
@@ -88,6 +90,7 @@ const Scales = memo(
     );
   },
 );
+Scales.displayName = 'Scales';
 
 export const SliderTrack = memo(
   ({
@@ -204,3 +207,5 @@ export const SliderTrack = memo(
     return null;
   },
 );
+
+SliderTrack.displayName = 'SliderTrack';
