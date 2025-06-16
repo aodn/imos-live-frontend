@@ -19,6 +19,8 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "eslint-plugin-jsx-a11y": "^6.10.2",
+    "highcharts": "^12.2.0",
+    "highcharts-react-official": "^3.2.2",
     "lucide-react": "^0.512.0",
     "mapbox-gl": "^3.11.0",
     "react": "^19.0.0",
