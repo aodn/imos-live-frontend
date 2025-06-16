@@ -22,7 +22,7 @@ const generateTimeSeriesData = (days: number = 30) => {
 };
 
 const meta: Meta<typeof LineChart> = {
-  title: 'Charts/LineChart',
+  title: 'Components/Charts/LineChart',
   component: LineChart,
   parameters: {
     layout: 'centered',
@@ -64,6 +64,25 @@ export const Default: Story = {
           enabled: true,
         },
       },
+    },
+    series: [
+      {
+        name: 'Sample Data',
+        data: [10, 25, 15, 30, 20, 35, 25, 40, 30, 45],
+        type: 'line',
+      },
+    ],
+  },
+};
+
+export const WithoutContextMenu: Story = {
+  args: {
+    title: 'Basic Line Chart',
+    subtitle: 'Simple line chart with default settings',
+    width: 800,
+    height: 400,
+    exporting: {
+      enabled: false,
     },
     series: [
       {
