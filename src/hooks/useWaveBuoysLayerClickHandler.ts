@@ -1,4 +1,14 @@
-import { WAVE_BUOYS_LAYER_ID } from '@/constants';
+import { clusterMaxZoom } from '@/config';
+import {
+  UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
+  WAVE_BUOYS_LAYER_ID,
+  WAVE_BUOYS_SOURCE_ID,
+  ZOOM_LIMIT_TEMP_POINTS_CONNECTION_LINES_LAYER_ID,
+  ZOOM_LIMIT_TEMP_POINTS_CONNECTION_LINES_SOURCE_ID,
+  ZOOM_LIMIT_TEMP_POINTS_LAYER_ID,
+  ZOOM_LIMIT_TEMP_POINTS_SOURCE_ID,
+} from '@/constants';
+import { createZoomLimitPoints } from '@/helpers/createZoomLimitPoints';
 import { useDrawerStore } from '@/store';
 import { WaveBuoyOgcFeature } from '@/types';
 import { normalizeWaveBuouysData } from '@/utils';
@@ -34,6 +44,45 @@ export function useWaveBuoysLayerClickHandler(
   }, [map]);
 
   useEffect(() => {
+    //click on clustered wave buoys layer
+    if (!map.current || !circle || distanceMeasurement) return;
+    const mapInstace = map.current;
+
+    const handleClick = (e: mapboxgl.MapMouseEvent) => {
+      const features = mapInstace.queryRenderedFeatures(e.point, {
+        layers: [WAVE_BUOYS_LAYER_ID],
+      });
+      if (!features[0] || !features[0].properties) return;
+
+      const clusterId = features[0].properties.cluster_id;
+
+      const source = mapInstace.getSource(WAVE_BUOYS_SOURCE_ID) as mapboxgl.GeoJSONSource;
+
+      source.getClusterExpansionZoom(clusterId, (err, zoom) => {
+        if (err) return;
+
+        if (typeof zoom === 'number' && zoom <= clusterMaxZoom) {
+          mapInstace.easeTo({
+            center: (features[0].geometry as any).coordinates,
+            zoom: zoom,
+          });
+        } else {
+          source.getClusterLeaves(clusterId, Infinity, 0, (err, leaves) => {
+            if (err || !leaves) return;
+            createZoomLimitPoints(map, leaves, (features[0].geometry as any).coordinates);
+          });
+        }
+      });
+    };
+
+    mapInstace.on('click', WAVE_BUOYS_LAYER_ID, handleClick);
+    return () => {
+      mapInstace?.off('click', WAVE_BUOYS_LAYER_ID, handleClick);
+    };
+  }, [circle, map, distanceMeasurement]);
+
+  useEffect(() => {
+    //click on unclustered wave buoys layer.
     if (!map.current || !circle || distanceMeasurement) return;
     const mapInstace = map.current;
 
@@ -42,12 +91,50 @@ export function useWaveBuoysLayerClickHandler(
       setClickedPointData(normalizeWaveBuouysData(e.features));
     };
 
-    mapInstace.on('click', WAVE_BUOYS_LAYER_ID, handleClick);
-
+    mapInstace.on('click', UNCLUSTERED_WAVE_BUOYS_LAYER_ID, handleClick);
     return () => {
-      mapInstace?.off('click', WAVE_BUOYS_LAYER_ID, handleClick);
+      mapInstace?.off('click', UNCLUSTERED_WAVE_BUOYS_LAYER_ID, handleClick);
     };
   }, [circle, map, distanceMeasurement]);
+
+  useEffect(() => {
+    //click on ZOOM_LIMIT_TEMP_POINTS_LAYER, because points are too close so that cannot be displayed invidiually. This is the layer temporarily created to display thoese points
+    if (!map.current || !circle || distanceMeasurement) return;
+    const mapInstace = map.current;
+
+    const handleClick = (e: mapboxgl.MapMouseEvent) => {
+      if (!e.features?.length) return;
+      setClickedPointData(normalizeWaveBuouysData(e.features));
+    };
+
+    mapInstace.on('click', ZOOM_LIMIT_TEMP_POINTS_LAYER_ID, handleClick);
+    return () => {
+      mapInstace?.off('click', ZOOM_LIMIT_TEMP_POINTS_LAYER_ID, handleClick);
+    };
+  }, [circle, map, distanceMeasurement]);
+
+  useEffect(() => {
+    //disppeart ZOOM_LIMIT_TEMP_POINTS_LAYER when zoom within clusterMaxZoom level.
+    if (!map.current || !circle) return;
+    const mapInstace = map.current;
+
+    const handleZoomEnd = () => {
+      const currentZoom = mapInstace.getZoom();
+
+      if (currentZoom <= clusterMaxZoom && mapInstace.getSource(ZOOM_LIMIT_TEMP_POINTS_SOURCE_ID)) {
+        mapInstace.removeLayer(ZOOM_LIMIT_TEMP_POINTS_LAYER_ID);
+        mapInstace.removeLayer(ZOOM_LIMIT_TEMP_POINTS_CONNECTION_LINES_LAYER_ID);
+        mapInstace.removeSource(ZOOM_LIMIT_TEMP_POINTS_SOURCE_ID);
+        mapInstace.removeSource(ZOOM_LIMIT_TEMP_POINTS_CONNECTION_LINES_SOURCE_ID);
+      }
+    };
+
+    mapInstace.on('zoomend', handleZoomEnd);
+
+    return () => {
+      mapInstace?.off('zoomend', handleZoomEnd);
+    };
+  }, [map, circle]);
 
   return { clickedPointData, openDrawer, waveBuoysLayerClicked };
 }

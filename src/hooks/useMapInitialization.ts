@@ -17,7 +17,7 @@ export function useMapInitialization(
       center: center,
       zoom: zoom,
       minZoom: 1,
-      maxZoom: 12,
+      maxZoom: 14,
       antialias: true,
       projection: 'mercator',
       touchPitch: false,

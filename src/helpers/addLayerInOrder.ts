@@ -5,9 +5,11 @@ import { layersOrder } from '@/config';
 //ensure layers are in correct order.
 export function addLayerInOrder(
   map: React.RefObject<mapboxgl.Map | null>,
-  layer: Layer | VectoryLayerInterface,
+  layer: Layer | VectoryLayerInterface | null,
   layerId: string,
 ) {
+  if (!layer) return;
+
   if (!map.current?.getLayer(layerId)) {
     map.current?.addLayer(layer);
   }

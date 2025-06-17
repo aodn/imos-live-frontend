@@ -1,12 +1,21 @@
-import { circleLayer } from '@/layers';
-import { WAVE_BUOYS_LAYER_ID, WAVE_BUOYS_SOURCE_ID } from '@/constants';
+import { circleLayer, symbolLayer } from '@/layers';
+import {
+  UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
+  WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID,
+  WAVE_BUOYS_LAYER_ID,
+  WAVE_BUOYS_SOURCE_ID,
+} from '@/constants';
 import { addLayerInOrder, addOrUpdateGeoJsonSource } from '@/helpers';
-import { buildOgcBuoysUrl, sleep } from '@/utils';
+import { sleep } from '@/utils';
 import { useDidMountEffect } from './useDidMountEffect';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
 import { useMapboxLayerRef } from './useMapboxLayerRef';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
-import { waveBuoysLayerConfig } from '@/config';
+import {
+  unclusteredWaveBuoysLayerConfig,
+  waveBuoyCluserLabelLayerConfig,
+  waveBuoysLayerConfig,
+} from '@/config';
 
 export function useWaveBuoysLayer(
   map: React.RefObject<mapboxgl.Map | null>,
@@ -21,15 +30,22 @@ export function useWaveBuoysLayer(
     addOrUpdateGeoJsonSource(
       map.current!,
       WAVE_BUOYS_SOURCE_ID,
-      buildOgcBuoysUrl('b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc'),
+      // buildOgcBuoysUrl('b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc'),
+      '/wave_buoys.geojson',
     );
   };
 
   const setupLayer = async () => {
-    if (!waveBuoysLayer.current) return;
+    if (!waveBuoysLayer.current || !clusterLabelLayer.current) return;
     await setDataByDataset();
     if (!map.current!.getLayer(WAVE_BUOYS_LAYER_ID)) {
       addLayerInOrder(map, waveBuoysLayer.current, WAVE_BUOYS_LAYER_ID);
+    }
+    if (!map.current!.getLayer(UNCLUSTERED_WAVE_BUOYS_LAYER_ID)) {
+      addLayerInOrder(map, unClusteredWaveBuoysLayer.current, UNCLUSTERED_WAVE_BUOYS_LAYER_ID);
+    }
+    if (!map.current!.getLayer(WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID)) {
+      addLayerInOrder(map, clusterLabelLayer.current, WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID);
     }
   };
 
@@ -46,9 +62,37 @@ export function useWaveBuoysLayer(
     style,
   );
 
+  const unClusteredWaveBuoysLayer = useMapboxLayerRef(
+    () =>
+      circleLayer(
+        {
+          id: UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
+          source: WAVE_BUOYS_SOURCE_ID,
+          ...unclusteredWaveBuoysLayerConfig,
+        },
+        circle,
+      ),
+    style,
+  );
+
+  const clusterLabelLayer = useMapboxLayerRef(
+    () =>
+      symbolLayer(
+        {
+          id: WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID,
+          source: WAVE_BUOYS_SOURCE_ID,
+          ...waveBuoyCluserLabelLayerConfig,
+        },
+        circle,
+      ),
+    style,
+  );
+
   const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [style, dataset]);
 
   useMapboxLayerVisibility(map, loadComplete, waveBuoysLayer, circle);
+  useMapboxLayerVisibility(map, loadComplete, unClusteredWaveBuoysLayer, circle);
+  useMapboxLayerVisibility(map, loadComplete, clusterLabelLayer, circle);
 
   useDidMountEffect(() => {
     if (!map.current || !loadComplete) return;

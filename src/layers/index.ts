@@ -3,3 +3,4 @@ export * from './imageLayer';
 export * from './vectorLayer';
 export * from './circleLayer';
 export * from './VectorField';
+export * from './symbolLayer';
