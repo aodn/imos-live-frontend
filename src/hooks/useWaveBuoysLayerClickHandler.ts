@@ -8,7 +8,7 @@ import {
   ZOOM_LIMIT_TEMP_POINTS_LAYER_ID,
   ZOOM_LIMIT_TEMP_POINTS_SOURCE_ID,
 } from '@/constants';
-import { createZoomLimitPoints } from '@/helpers/createZoomLimitPoints';
+import { createZoomLimitPoints } from '@/helpers';
 import { useDrawerStore } from '@/store';
 import { WaveBuoyOgcFeature } from '@/types';
 import { normalizeWaveBuouysData } from '@/utils';
@@ -37,7 +37,6 @@ export function useWaveBuoysLayerClickHandler(
     };
 
     mapInstace.on('mousedown', handleMouseDown);
-
     return () => {
       mapInstace?.off('mousedown', handleMouseDown);
     };

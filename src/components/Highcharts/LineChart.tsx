@@ -13,7 +13,7 @@ Highcharts.setOptions({
     fallbackToExportServer: false,
   },
 });
-
+//TODO: 1. make x axios works like date slider. 2. responsive design.
 export const LineChart = memo(({ ref, ...props }: LineChartProps) => {
   const { width = '100%', height = 400, className, style } = props;
 

@@ -8,6 +8,7 @@ import {
   ZOOM_LIMIT_TEMP_POINTS_LAYER_ID,
   ZOOM_LIMIT_TEMP_POINTS_SOURCE_ID,
 } from '@/constants';
+import type { GeoJsonProperties, Geometry, Feature } from 'geojson';
 
 type PointProperties = {
   [key: string]: any;
@@ -33,7 +34,7 @@ type FeatureLine = {
 
 export function createZoomLimitPoints(
   map: React.RefObject<mapboxgl.Map | null>,
-  points: any[],
+  points: Feature<Geometry, GeoJsonProperties>[],
   clusterCenter: [number, number],
 ) {
   const mapInstace = map.current;
@@ -64,9 +65,9 @@ export function createZoomLimitPoints(
       type: 'Feature',
       geometry: {
         type: 'Point',
-        coordinates: [offsetLng, offsetLat],
+        coordinates: [offsetLng, offsetLat], //TODO: the coordinates are not the original, so either put original value in property or invetigate on it finding other ways.
       },
-      properties: point.properties,
+      properties: point.properties ?? {},
     });
 
     lineFeatures.push({
