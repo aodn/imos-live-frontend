@@ -1,7 +1,7 @@
 import React, { useRef, useImperativeHandle, useMemo, memo } from 'react';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
-import { LineChartProps } from './typs';
+import { LineChartProps } from './type';
 import { initializeHighchartsModules } from './utils';
 import { useChartOptions } from './useChartOptions';
 import { useChartMethods } from './useChartMethods';

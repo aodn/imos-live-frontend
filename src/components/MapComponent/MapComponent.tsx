@@ -1,4 +1,4 @@
-import { memo, useEffect } from 'react';
+import { memo, useEffect, lazy, Suspense } from 'react';
 import { styles } from '@/styles';
 import {
   useMapStyle,
@@ -13,13 +13,14 @@ import {
   useMapResize,
 } from '@/hooks';
 import mapboxgl from 'mapbox-gl';
-import { CircleDetails } from '../CircleDetails';
 import { DistanceMeasurement } from '../DistanceMeasurement';
 import { selectAllStates, useMapUIStore } from '@/store';
 import { useShallow } from 'zustand/shallow';
 import { cn } from '@/utils';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_KEY;
+
+const WaveBuoyChart = lazy(() => import('../Highcharts/WaveBuoyChart'));
 
 export const MapComponent = memo(
   ({ ref, className }: { ref: React.RefObject<mapboxgl.Map | null>; className?: string }) => {
@@ -65,7 +66,11 @@ export const MapComponent = memo(
 
     useEffect(() => {
       if (waveBuoysLayerClickedPointData) {
-        openDrawer(<CircleDetails {...waveBuoysLayerClickedPointData} />);
+        openDrawer(
+          <Suspense fallback={<div>Loading...</div>}>
+            <WaveBuoyChart waveBuoysData={waveBuoysLayerClickedPointData} />
+          </Suspense>,
+        );
       }
     }, [waveBuoysLayerClickedPointData, openDrawer]);
 

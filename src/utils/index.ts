@@ -16,3 +16,4 @@ export * from './queryIncludingSelf';
 export * from './cn';
 export * from './isScrollableElement';
 export * from './tryCatch';
+export * from './normalizeWaveBuouysData';

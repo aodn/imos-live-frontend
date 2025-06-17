@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { LineChart } from './LineChart';
 import React, { useRef } from 'react';
-import { LineChartExposedMethods } from './typs';
+import { LineChartExposedMethods } from './type';
 
 // Sample data generators
 const generateSampleData = (points: number = 10, variance: number = 50) => {

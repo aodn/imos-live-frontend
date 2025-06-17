@@ -1,6 +1,7 @@
 import { WAVE_BUOYS_LAYER_ID } from '@/constants';
 import { useDrawerStore } from '@/store';
-import { WaveBuoyOgcProperties } from '@/types';
+import { WaveBuoyOgcFeature } from '@/types';
+import { normalizeWaveBuouysData } from '@/utils';
 import { useEffect, useRef, useState } from 'react';
 
 export function useWaveBuoysLayerClickHandler(
@@ -10,7 +11,9 @@ export function useWaveBuoysLayerClickHandler(
 ) {
   const waveBuoysLayerClicked = useRef(false);
   const openDrawer = useDrawerStore(s => s.openDrawer);
-  const [clickedPointData, setClickedPointData] = useState<WaveBuoyOgcProperties | null>(null);
+  const [clickedPointData, setClickedPointData] = useState<
+    Omit<WaveBuoyOgcFeature, 'type'>[] | null
+  >(null);
 
   useEffect(() => {
     if (!map.current) return;
@@ -36,8 +39,7 @@ export function useWaveBuoysLayerClickHandler(
 
     const handleClick = (e: mapboxgl.MapMouseEvent) => {
       if (!e.features?.length) return;
-      const { properties } = e.features[0];
-      setClickedPointData(properties as WaveBuoyOgcProperties);
+      setClickedPointData(normalizeWaveBuouysData(e.features));
     };
 
     mapInstace.on('click', WAVE_BUOYS_LAYER_ID, handleClick);

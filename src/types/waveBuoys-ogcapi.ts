@@ -1,5 +1,6 @@
 //This file defines the types for the Wave Buoy OGC API response.
 //endpoint: https://ogcapi-edge.aodn.org.au/api/v1/ogc/collections/uuid/items/summary
+
 export interface WaveBuoyOgcFeatureCollection {
   type: 'FeatureCollection';
   features: WaveBuoyOgcFeature[];

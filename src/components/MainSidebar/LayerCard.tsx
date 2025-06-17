@@ -1,3 +1,4 @@
+import { WAVE_BUOYS_LAYER_ID } from '@/constants';
 import { Button } from '../Button';
 import { MapLayersIcon } from '../Icons';
 import { Image } from '../Image';
@@ -16,10 +17,12 @@ export const LayerCard = ({
   secondButtonLabel,
   addToMap,
   visible,
+  layerId,
 }: LayerCardProps) => {
   const handleClick = () => {
     if (visible) addToMap(false);
     else addToMap(true);
+    if (layerId === WAVE_BUOYS_LAYER_ID) import('../Highcharts/WaveBuoyChart'); //preload wavebuoy chart when wavebuoylayer added.
   };
   return (
     <div className="flex gap-x-6 p-4 rounded-lg shadow-lg bg-white border border-gray-300 overflow-hidden">

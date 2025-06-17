@@ -1,5 +1,5 @@
 import accessibility from 'highcharts/modules/accessibility';
-import { AnimationConfig, SeriesData, ThemeConfig } from './typs';
+import { AnimationConfig, SeriesData, ThemeConfig } from './type';
 import exporting from 'highcharts/modules/exporting';
 import Highcharts from 'highcharts';
 import boost from 'highcharts/modules/boost';

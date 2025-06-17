@@ -13,12 +13,7 @@ export const Layout = () => {
       </main>
       <footer></footer>
       <aside>
-        <Drawer
-          snapMode="snap"
-          direction="bottom"
-          snapPoints={['30%', '50%', '70%']}
-          children={content}
-        />
+        <Drawer snapMode="snap" direction="bottom" snapPoints={['50%', '70%']} children={content} />
       </aside>
     </div>
   );

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { LineChartProps } from './typs';
+import { LineChartProps } from './type';
 import {
   DEFAULT_THEME,
   buildChartConfig,

@@ -1,8 +1,8 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { DragHandle, ViewMode } from '../type';
 import { getPercentageFromMouseEvent } from '../utils';
 
-export function useEventHanldeMethods(
+export function useEventHanlders(
   rangeStartRef: React.RefObject<number>,
   rangeEndRef: React.RefObject<number>,
   pointPositionRef: React.RefObject<number>,
@@ -172,10 +172,21 @@ export function useEventHanldeMethods(
       updateHandlePosition,
     ],
   );
+
+  useEffect(() => {
+    if (!isDragging) return;
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, handleMouseMove, handleMouseUp]);
+
   return {
     handleMouseDown,
-    handleMouseMove,
-    handleMouseUp,
     handleTrackClick,
     handleHandleKeyDown,
   };

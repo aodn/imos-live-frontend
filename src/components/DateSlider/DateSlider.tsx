@@ -17,7 +17,7 @@ import {
 } from '@/utils';
 import { useDrag, useElementSize, useResizeObserver, useRAFDFn } from '@/hooks';
 import { SliderProps, DragHandle, SelectionResult, TimeUnit } from './type';
-import { useDragState, useFocusManagement, usePositionState, useEventHanldeMethods } from './hooks';
+import { useDragState, useFocusManagement, usePositionState, useEventHanlders } from './hooks';
 import {
   getPeriodTimeScales,
   generateScalesWithInfo,
@@ -269,13 +269,7 @@ export const DateSlider = memo(
       [rangeEndRef, minGapPercent, setRangeStart, rangeStartRef, setRangeEnd, setPointPosition],
     );
 
-    const {
-      handleMouseDown,
-      handleMouseMove,
-      handleMouseUp,
-      handleTrackClick,
-      handleHandleKeyDown,
-    } = useEventHanldeMethods(
+    const { handleMouseDown, handleTrackClick, handleHandleKeyDown } = useEventHanlders(
       rangeStartRef,
       rangeEndRef,
       pointPositionRef,
@@ -293,18 +287,6 @@ export const DateSlider = memo(
       isContainerDragging,
       totalScaleUnits,
     );
-
-    useEffect(() => {
-      if (!isDragging) return;
-
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-
-      return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-      };
-    }, [isDragging, handleMouseMove, handleMouseUp]);
 
     const debouncedOnChange = useMemo(
       () => debounce((selection: SelectionResult) => onChange(selection), 100),
