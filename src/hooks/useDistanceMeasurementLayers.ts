@@ -70,8 +70,12 @@ export function useDistanceMeasurementLayers(
     addOrUpdateGeoJsonSource(map.current!, MEASURE_POINTS_SOURCE_ID, measurePointsGeojson);
   }, [measurePointsGeojson]);
 
-  useMapboxLayerVisibility(map, loadComplete, measurePointsLayer, distanceMeasurement);
-  useMapboxLayerVisibility(map, loadComplete, measureLineLayer, distanceMeasurement);
+  useMapboxLayerVisibility(
+    map,
+    loadComplete,
+    [measurePointsLayer, measureLineLayer],
+    distanceMeasurement,
+  );
 
   return { measurePointsGeojson, setMeasurePointsGeojson };
 }

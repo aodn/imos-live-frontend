@@ -70,7 +70,7 @@ export function useOverlayLayer(
 
   const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [style, dataset]);
 
-  useMapboxLayerVisibility(map, loadComplete, overlayLayer, overlay && !isError);
+  useMapboxLayerVisibility(map, loadComplete, [overlayLayer], overlay && !isError);
 
   useDidMountEffect(() => {
     if (!map.current || !loadComplete) return;

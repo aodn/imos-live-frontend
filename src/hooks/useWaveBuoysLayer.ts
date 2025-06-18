@@ -90,9 +90,12 @@ export function useWaveBuoysLayer(
 
   const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [style, dataset]);
 
-  useMapboxLayerVisibility(map, loadComplete, waveBuoysLayer, circle);
-  useMapboxLayerVisibility(map, loadComplete, unClusteredWaveBuoysLayer, circle);
-  useMapboxLayerVisibility(map, loadComplete, clusterLabelLayer, circle);
+  useMapboxLayerVisibility(
+    map,
+    loadComplete,
+    [waveBuoysLayer, unClusteredWaveBuoysLayer, clusterLabelLayer],
+    circle,
+  );
 
   useDidMountEffect(() => {
     if (!map.current || !loadComplete) return;
