@@ -1,11 +1,16 @@
 import { clusterMaxZoom } from '@/config';
 
-export function addOrUpdateGeoJsonSource(
-  map: mapboxgl.Map,
-  id: string,
-  url: string | GeoJSON.FeatureCollection | GeoJSON.Feature,
-  enableCluser: boolean = true,
-) {
+export function addOrUpdateGeoJsonSource({
+  map,
+  id,
+  url,
+  enableCluser = false,
+}: {
+  map: mapboxgl.Map;
+  id: string;
+  url: string | GeoJSON.FeatureCollection | GeoJSON.Feature;
+  enableCluser?: boolean;
+}) {
   const source = map.getSource(id);
 
   if (source && source.type === 'geojson') {

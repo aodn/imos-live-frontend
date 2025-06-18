@@ -13,20 +13,46 @@ export function useDistanceMeasurementLayersClickHandler(
   const [distance, setDistance] = useState<string>('');
 
   const updateGeojson = useCallback(
-    (features: any[]) => {
-      const newFeatures = [...features];
+    (pointFeatures: Feature<Geometry, GeoJsonProperties>[]) => {
+      const newFeatures = [...pointFeatures];
       let dist = '';
-      if (features.length > 1) {
-        const line: Feature<Geometry, GeoJsonProperties> = {
-          type: 'Feature',
-          geometry: {
-            type: 'LineString',
-            coordinates: features.map(pt => pt.geometry.coordinates),
-          },
-          properties: {},
-        };
-        newFeatures.push(line);
-        dist = turf.length(line).toLocaleString();
+
+      // Create LineString feature if we have 2 or more points
+      if (pointFeatures.length > 1) {
+        const coordinates = pointFeatures
+          .map(pt => {
+            // Ensure we're getting coordinates from Point geometry
+            if (pt.geometry.type === 'Point') {
+              return pt.geometry.coordinates;
+            }
+            return null;
+          })
+          .filter(coord => coord !== null);
+
+        if (coordinates.length > 1) {
+          const line: Feature<Geometry, GeoJsonProperties> = {
+            type: 'Feature',
+            geometry: {
+              type: 'LineString',
+              coordinates: coordinates,
+            },
+            properties: {
+              // Add a property to help distinguish line from points
+              featureType: 'measurement-line',
+            },
+          };
+
+          newFeatures.push(line);
+
+          // Calculate distance using turf
+          try {
+            const distanceKm = turf.length(line);
+            dist = `${distanceKm.toFixed(2)} km`;
+          } catch (error) {
+            console.error('Error calculating distance:', error);
+            dist = 'Error calculating distance';
+          }
+        }
       }
 
       setMeasurePointsGeojson({
@@ -44,30 +70,40 @@ export function useDistanceMeasurementLayersClickHandler(
 
     function handleClick(e: {
       point: PointLike | [PointLike, PointLike];
-      lngLat: { lng: any; lat: any };
+      lngLat: { lng: number; lat: number };
     }) {
-      const points = measurePointsGeojson.features.filter(f => f.geometry.type === 'Point');
+      // Get only Point features (exclude LineString features)
+      const points = measurePointsGeojson.features.filter(
+        f => f.geometry.type === 'Point',
+      ) as Feature<Geometry, GeoJsonProperties>[];
+
       const features = mapInstance.queryRenderedFeatures(e.point, {
         layers: [MEASURE_POINTS_LAYER_ID],
       });
 
-      let newPoints;
+      let newPoints: Feature<Geometry, GeoJsonProperties>[];
+
       if (features.length) {
+        // Clicked on existing point - remove it
         const id = features[0].properties?.id;
         newPoints = points.filter(pt => pt.properties?.id !== id);
       } else {
-        newPoints = [
-          ...points,
-          {
-            type: 'Feature',
-            geometry: {
-              type: 'Point',
-              coordinates: [e.lngLat.lng, e.lngLat.lat],
-            },
-            properties: { id: String(Date.now()) },
+        // Clicked on empty space - add new point
+        const newPoint: Feature<Geometry, GeoJsonProperties> = {
+          type: 'Feature',
+          geometry: {
+            type: 'Point',
+            coordinates: [e.lngLat.lng, e.lngLat.lat],
           },
-        ];
+          properties: {
+            id: String(Date.now()),
+            featureType: 'measurement-point',
+          },
+        };
+
+        newPoints = [...points, newPoint];
       }
+
       updateGeojson(newPoints);
     }
 
@@ -79,6 +115,7 @@ export function useDistanceMeasurementLayersClickHandler(
       });
       mapInstance.getCanvas().style.cursor = features.length ? 'pointer' : 'crosshair';
     }
+
     mapInstance.on('mousemove', handleMouseMove);
 
     return () => {
@@ -89,7 +126,9 @@ export function useDistanceMeasurementLayersClickHandler(
 
   useEffect(() => {
     if (!distanceMeasurement) {
-      if (map.current) map.current.getCanvas().style.cursor = 'grab';
+      if (map.current) {
+        map.current.getCanvas().style.cursor = 'grab';
+      }
       setMeasurePointsGeojson({ type: 'FeatureCollection', features: [] });
       setDistance('');
     }

@@ -1,6 +1,6 @@
+import { layersOrder } from '@/config';
 import { VectoryLayerInterface } from '@/layers';
 import { Layer } from 'mapbox-gl';
-import { layersOrder } from '@/config';
 
 //ensure layers are in correct order.
 export function addLayerInOrder(

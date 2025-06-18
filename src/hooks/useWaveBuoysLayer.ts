@@ -27,12 +27,13 @@ export function useWaveBuoysLayer(
     //fake this function to be async so that it can works.
     await sleep(0);
 
-    addOrUpdateGeoJsonSource(
-      map.current!,
-      WAVE_BUOYS_SOURCE_ID,
+    addOrUpdateGeoJsonSource({
+      map: map.current!,
+      id: WAVE_BUOYS_SOURCE_ID,
       // buildOgcBuoysUrl('b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc'),
-      '/wave_buoys.geojson',
-    );
+      url: '/wave_buoys.geojson',
+      enableCluser: true,
+    });
   };
 
   const setupLayer = async () => {

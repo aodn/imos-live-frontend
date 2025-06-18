@@ -31,7 +31,11 @@ export function useDistanceMeasurementLayers(
     //it needs to be async so that it will run after style.onload finish, and this why await sleep(0) here.
     await sleep(0);
     if (measurePointsLayer.current) {
-      addOrUpdateGeoJsonSource(map.current!, MEASURE_POINTS_SOURCE_ID, measurePointsGeojson);
+      addOrUpdateGeoJsonSource({
+        map: map.current!,
+        id: MEASURE_POINTS_SOURCE_ID,
+        url: measurePointsGeojson,
+      });
       if (!map.current?.getLayer(MEASURE_POINTS_LAYER_ID))
         addLayerInOrder(map, measurePointsLayer.current, MEASURE_POINTS_LAYER_ID);
     }
@@ -67,7 +71,11 @@ export function useDistanceMeasurementLayers(
 
   useDidMountEffect(() => {
     if (!map.current || !loadComplete) return;
-    addOrUpdateGeoJsonSource(map.current!, MEASURE_POINTS_SOURCE_ID, measurePointsGeojson);
+    addOrUpdateGeoJsonSource({
+      map: map.current!,
+      id: MEASURE_POINTS_SOURCE_ID,
+      url: measurePointsGeojson,
+    });
   }, [measurePointsGeojson]);
 
   useMapboxLayerVisibility(
