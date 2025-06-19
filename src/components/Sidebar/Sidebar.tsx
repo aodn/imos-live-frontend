@@ -9,6 +9,7 @@ type SidebarProps = {
   children?: React.ReactNode;
   defaultOpen?: boolean;
   wrapperClassName?: string;
+  className?: string;
   openButtonClassName?: string;
   closeButtonClassName?: string;
   openButtonContent?: React.ReactNode;
@@ -23,6 +24,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   children,
   defaultOpen = true,
   wrapperClassName = '',
+  className = '',
   openButtonClassName = '',
   closeButtonClassName = '',
   closeButtonContent,
@@ -43,7 +45,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   };
 
   return (
-    <div className="flex relative  h-full w-full  overflow-hidden">
+    <div className={cn('flex relative  h-full w-full  overflow-hidden', className)}>
       <aside
         className={cn(
           'relative h-full  shadow-lg z-10 overflow-y-auto transition-width duration-100 ease-in-out',

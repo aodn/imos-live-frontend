@@ -10,7 +10,7 @@ interface SwitchProps {
   variant?: 'default' | 'success' | 'warning' | 'danger' | 'info';
   label?: string;
   description?: string;
-  labelPosition?: 'left' | 'right';
+  labelPosition?: 'left' | 'right' | 'top' | 'bottom';
   showIcons?: boolean;
   customColors?: {
     on?: string;
@@ -158,7 +158,13 @@ export const Switch = ({
   }
 
   return (
-    <div className={cn('flex items-center gap-3', labelPosition === 'left' && 'flex-row-reverse')}>
+    <div
+      className={cn('flex items-center gap-3', {
+        'flex-row-reverse': labelPosition === 'left',
+        'flex-col-reverse items-start': labelPosition === 'top',
+        'flex-col': labelPosition === 'bottom',
+      })}
+    >
       {switchElement}
       {labelElement}
     </div>

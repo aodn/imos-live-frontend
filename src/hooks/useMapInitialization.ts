@@ -12,6 +12,7 @@ export function useMapInitialization(
 
   useEffect(() => {
     if (map.current) return;
+
     map.current = new mapboxgl.Map({
       container: mapContainer.current as HTMLElement,
       style,
@@ -24,6 +25,12 @@ export function useMapInitialization(
       touchPitch: false,
       pitchWithRotate: false,
     });
+    return () => {
+      if (map.current) {
+        map.current.remove();
+        map.current = null;
+      }
+    };
   }, [center, map, style, zoom]);
 
   return { map, mapContainer };

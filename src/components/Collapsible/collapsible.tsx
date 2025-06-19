@@ -18,6 +18,7 @@ export type CollapsibleComponentProps = {
   defaultOpen?: boolean;
   disable?: boolean;
   toggleIconHidden?: boolean;
+  isWidthFiexed?: boolean;
 };
 
 export const CollapsibleComponent = ({
@@ -29,15 +30,20 @@ export const CollapsibleComponent = ({
   defaultOpen = false,
   disable = false,
   toggleIconHidden = false,
+  isWidthFiexed = false,
 }: CollapsibleComponentProps) => {
   const isUpward = direction === 'up';
   const { open, toggle } = useToggle(defaultOpen);
 
   return (
-    <div className={cn('bg-[rgba(35,55,75,1)] rounded-xl overflow-hidden', wrapperClassName)}>
+    <div
+      className={cn('overflow-hidden transition-all duration-100 ease-in-out', wrapperClassName, {
+        'w-fit': open && !isWidthFiexed,
+      })}
+    >
       {isUpward && (
         <div
-          className="overflow-hidden transition-all duration-300 ease-in-out"
+          className="overflow-hidden transition-all duration-100 ease-in-out"
           style={{
             maxHeight: open ? `${maxHeight}px` : 0,
             transform: open ? 'translateY(0)' : `translateY(100%)`,
@@ -54,7 +60,7 @@ export const CollapsibleComponent = ({
 
       {!isUpward && (
         <div
-          className="overflow-hidden transition-all duration-300 ease-in-out"
+          className="overflow-hidden transition-all duration-100 ease-in-out"
           style={{
             maxHeight: open ? `${maxHeight}px` : 0,
           }}

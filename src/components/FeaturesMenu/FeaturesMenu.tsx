@@ -78,11 +78,11 @@ export function FeaturesMenu({
   };
   return (
     <aside
-      className={cn('bg-white shadow-lg py-2  w-fit', className)}
+      className={cn('bg-white shadow-lg py-2 w-40 md:w-fit', className)}
       aria-label="Map features configuration menu"
     >
       <div>
-        <ul className="outline-none flex" role="menu" tabIndex={0}>
+        <ul className="outline-none flex justify-between" role="menu" tabIndex={0}>
           {features.map(({ icon: Icon, label, fn }) => (
             <li key={label} role="none">
               <Button
@@ -97,7 +97,7 @@ export function FeaturesMenu({
                 )}
               >
                 <Icon size={iconSize} aria-hidden="true" />
-                <span>{label}</span>
+                <span className="hidden md:block">{label}</span>
               </Button>
             </li>
           ))}
@@ -137,6 +137,7 @@ export function FeaturesMenu({
             <div>
               <Switch
                 label="Distance Measurement"
+                labelPosition="top"
                 initialValue={distanceMeasurement}
                 onChange={handleDistanceMeasurementSelect}
               />

@@ -20,7 +20,7 @@ export function useWaveBuoysLayerClickHandler(
   distanceMeasurement: boolean,
 ) {
   const waveBuoysLayerClicked = useRef(false);
-  const openDrawer = useDrawerStore(s => s.openDrawer);
+  const openDrawer = useDrawerStore(s => s.openBottomDrawer);
   const [clickedPointData, setClickedPointData] = useState<
     Omit<WaveBuoyOgcFeature, 'type'>[] | null
   >(null);

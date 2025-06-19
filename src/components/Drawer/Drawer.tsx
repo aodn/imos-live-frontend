@@ -1,9 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { DragIndicatorIcon, CloseIcon } from '../Icons';
 import { Button } from '../Button';
-import { useDrawerStore } from '@/store';
-import { useShallow } from 'zustand/shallow';
-import { clamp } from '@/utils';
+
+import { clamp, cn } from '@/utils';
 
 type Direction = 'left' | 'right' | 'top' | 'bottom';
 type SnapPoint = number | `${number}%`;
@@ -15,6 +14,9 @@ export interface DrawerProps {
   onClose?: () => void;
   className?: string;
   snapMode?: 'free' | 'snap';
+  isOpen: boolean;
+  closeDrawer: () => void;
+  handleHidden?: boolean;
 }
 
 function getClosestSnapPoint(value: number, snapPoints: number[]) {
@@ -76,6 +78,9 @@ export const Drawer: React.FC<DrawerProps> = ({
   onClose,
   className = '',
   snapMode = 'free',
+  isOpen,
+  closeDrawer,
+  handleHidden = false,
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0, initialSize: 0 });
@@ -83,13 +88,6 @@ export const Drawer: React.FC<DrawerProps> = ({
   const [minCloseThreshold] = useState(300);
   const [resolvedSnapPoints, setResolvedSnapPoints] = useState<number[]>([]);
   const drawerRef = useRef<HTMLDivElement>(null);
-
-  const { isOpen, closeDrawer } = useDrawerStore(
-    useShallow(s => ({
-      isOpen: s.isOpen,
-      closeDrawer: s.closeDrawer,
-    })),
-  );
 
   const isHorizontal = direction === 'left' || direction === 'right';
 
@@ -237,7 +235,7 @@ export const Drawer: React.FC<DrawerProps> = ({
   const getDrawerStyles = () => {
     const size = getDrawerSize();
     const baseClasses =
-      'fixed rounded bg-white shadow-2xl transition-all duration-300 ease-out z-50 border-gray-200';
+      'fixed overflow-hidden rounded bg-white shadow-2xl transition-all duration-300 ease-out z-50 border-gray-200';
 
     if (!isOpen) {
       switch (direction) {
@@ -363,7 +361,11 @@ export const Drawer: React.FC<DrawerProps> = ({
         className={`${drawerStyles.className} ${className}`}
         style={drawerStyles.style}
       >
-        <div className={getResizeHandleStyles()}>
+        <div
+          className={cn(getResizeHandleStyles(), {
+            hidden: handleHidden,
+          })}
+        >
           <button
             type="button"
             aria-label="Drawer handle"
@@ -378,7 +380,7 @@ export const Drawer: React.FC<DrawerProps> = ({
         </div>
 
         <Button
-          className="absolute top-0 right-0 cursor-pointer z-10"
+          className="absolute top-0 right-0 cursor-pointer z-10 hidden md:block"
           variant="ghost"
           onClick={handleClose}
         >

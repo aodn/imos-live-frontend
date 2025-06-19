@@ -35,7 +35,6 @@ export const MapComponent = memo(
       numParticles,
       dataset,
     } = useMapUIStore(useShallow(selectAllStates));
-
     //1. map initialization.
     const { map, mapContainer } = useMapInitialization(
       styles.find(s => s.title === style)?.source || styles[0].source,

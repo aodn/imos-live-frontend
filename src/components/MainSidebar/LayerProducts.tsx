@@ -13,6 +13,7 @@ export const LayerProducts = ({ products, className, title }: LayerProductsProps
   return (
     <div className={className}>
       <CollapsibleComponent
+        isWidthFiexed
         wrapperClassName="border rounded-lg shadow-lg"
         direction="up"
         trigger={({ open, toggle, direction }) => (
@@ -24,7 +25,7 @@ export const LayerProducts = ({ products, className, title }: LayerProductsProps
           />
         )}
       >
-        {<LayerProductsContent className="px-4 py-2" products={products} />}
+        {<LayerProductsContent className="py-2" products={products} />}
       </CollapsibleComponent>
     </div>
   );
