@@ -11,6 +11,7 @@ const WaveBuoyChart = ({ waveBuoysData }: WaveBuoyChartProps) => {
   const subtitle = `Location: ( lng: ${geometry.coordinates[0].toFixed(2)} lat: ${geometry.coordinates[1].toFixed(2)} )`;
   return (
     <LineChart
+      width={'100%'}
       height={350}
       series={[
         {
@@ -18,20 +19,24 @@ const WaveBuoyChart = ({ waveBuoysData }: WaveBuoyChartProps) => {
           data: data,
           lineWidth: 2,
           name: 'Wave Buoys Count',
-          type: 'spline',
+          type: 'line',
         },
       ]}
       subtitle={subtitle}
       title="Wave Buous Data"
-      xAxis={{
-        labels: {
-          format: '{value:%Y-%m}',
-        },
-        title: {
-          text: 'Date',
-        },
-        type: 'datetime',
+      rangeSelector={{
+        enabled: true,
+        selected: 1,
+        buttons: [
+          { type: 'day', count: 7, text: '7D' },
+          { type: 'day', count: 30, text: '30D' },
+          { type: 'month', count: 3, text: '3M' },
+          { type: 'all', text: 'All' },
+        ],
       }}
+      navigator={{ enabled: true }}
+      scrollbar={{ enabled: true }}
+      responsive={true}
       yAxis={{
         labels: {
           format: '{value}',

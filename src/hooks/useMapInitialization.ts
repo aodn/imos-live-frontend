@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import mapboxgl, { LngLat } from 'mapbox-gl';
+import { maxZoom } from '@/config';
 
 export function useMapInitialization(
   style: string,
@@ -17,7 +18,7 @@ export function useMapInitialization(
       center: center,
       zoom: zoom,
       minZoom: 1,
-      maxZoom: 14,
+      maxZoom: maxZoom,
       antialias: true,
       projection: 'mercator',
       touchPitch: false,

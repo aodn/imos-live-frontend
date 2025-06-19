@@ -10,6 +10,9 @@ import {
   buildLegendConfig,
   buildPlotOptionsConfig,
   buildExportingConfig,
+  buildRangeSelectorConfig,
+  buildNavigatorConfig,
+  buildScrollbarConfig,
 } from './utils';
 
 export const useChartOptions = (props: LineChartProps) => {
@@ -30,6 +33,9 @@ export const useChartOptions = (props: LineChartProps) => {
     zoomType,
     panKey = 'shift',
     panning = false,
+    rangeSelector, // Add this
+    navigator, // Add this
+    scrollbar, // Add this
     exporting = { enabled: true },
     boost = false,
     turboThreshold = 1000,
@@ -37,6 +43,8 @@ export const useChartOptions = (props: LineChartProps) => {
     onSeriesClick,
     onChartLoad,
     onRedraw,
+    onRangeSelect, // Add this
+    onRangeButtonClick, // Add this
     accessibility,
   } = props;
 
@@ -52,6 +60,7 @@ export const useChartOptions = (props: LineChartProps) => {
         panning,
         animation,
         theme,
+        rangeSelector, // Pass rangeSelector to adjust margins
         onChartLoad,
         onRedraw,
       ),
@@ -67,6 +76,11 @@ export const useChartOptions = (props: LineChartProps) => {
       tooltip: buildTooltipConfig(tooltip, theme),
       legend: buildLegendConfig(legend, theme),
       plotOptions: buildPlotOptionsConfig(animation, turboThreshold, boost, plotOptions),
+
+      // ADD THESE CONFIGURATIONS
+      rangeSelector: buildRangeSelectorConfig(rangeSelector, theme),
+      navigator: buildNavigatorConfig(navigator, theme),
+      scrollbar: buildScrollbarConfig(scrollbar, theme),
 
       boost: boost
         ? {
@@ -103,6 +117,25 @@ export const useChartOptions = (props: LineChartProps) => {
       credits: { enabled: false },
     };
 
+    // Add range selector event handlers
+    if (rangeSelector?.enabled && (onRangeSelect || onRangeButtonClick)) {
+      if (!chartOptions.xAxis) chartOptions.xAxis = {};
+
+      const xAxisConfig = Array.isArray(chartOptions.xAxis)
+        ? chartOptions.xAxis[0]
+        : chartOptions.xAxis;
+
+      if (!xAxisConfig.events) xAxisConfig.events = {};
+
+      if (onRangeSelect) {
+        xAxisConfig.events.afterSetExtremes = function (this: any, event: any) {
+          if (event.min !== undefined && event.max !== undefined) {
+            onRangeSelect(event.min, event.max);
+          }
+        };
+      }
+    }
+
     return chartOptions;
   }, [
     title,
@@ -121,6 +154,9 @@ export const useChartOptions = (props: LineChartProps) => {
     zoomType,
     panKey,
     panning,
+    rangeSelector, // Add these to dependencies
+    navigator,
+    scrollbar,
     exporting,
     boost,
     turboThreshold,
@@ -128,6 +164,8 @@ export const useChartOptions = (props: LineChartProps) => {
     onSeriesClick,
     onChartLoad,
     onRedraw,
+    onRangeSelect,
+    onRangeButtonClick,
     accessibility,
     themedColors,
   ]);

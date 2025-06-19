@@ -49,6 +49,62 @@ export interface ExportConfig {
   buttons?: Highcharts.ExportingButtonsOptions;
 }
 
+// NEW: Range Selector Type Interfaces
+export interface RangeSelectorButton {
+  type: 'millisecond' | 'second' | 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year' | 'all';
+  count?: number;
+  text: string;
+  title?: string;
+}
+
+export interface RangeSelectorConfig {
+  enabled?: boolean;
+  selected?: number; // Which button is selected by default (0-based index)
+  buttons?: RangeSelectorButton[];
+  inputEnabled?: boolean; // Show date input fields
+  inputBoxWidth?: number;
+  inputBoxHeight?: number;
+  inputPosition?: {
+    align?: 'left' | 'center' | 'right';
+    x?: number;
+    y?: number;
+  };
+  buttonPosition?: {
+    align?: 'left' | 'center' | 'right';
+    x?: number;
+    y?: number;
+  };
+}
+
+export interface NavigatorConfig {
+  enabled?: boolean;
+  height?: number; // Height of the navigator chart
+  margin?: number; // Margin below the main chart
+  maskFill?: string; // Color of the mask outside selected range
+  outlineColor?: string;
+  outlineWidth?: number;
+  handles?: {
+    backgroundColor?: string;
+    borderColor?: string;
+    borderWidth?: number;
+  };
+  series?: {
+    type?: string;
+    color?: string;
+    fillOpacity?: number;
+    lineWidth?: number;
+  };
+}
+
+export interface ScrollbarConfig {
+  enabled?: boolean;
+  height?: number;
+  margin?: number;
+  liveRedraw?: boolean; // Whether to redraw chart while dragging
+  minWidth?: number; // Minimum width of the scrollbar handle
+}
+
+// UPDATED: LineChartExposedMethods (add range selector methods)
 export interface LineChartExposedMethods {
   // State-based updates (Highcharts recommended approach)
   updateData: (seriesIndex: number, newData: number[] | DataPoint[]) => void;
@@ -64,6 +120,12 @@ export interface LineChartExposedMethods {
   showSeries: (seriesIndex: number) => void;
   hideSeries: (seriesIndex: number) => void;
 
+  // NEW: Range selector methods
+  setDateRange: (min: number | Date, max: number | Date) => void;
+  selectRangeButton: (buttonIndex: number) => void;
+  zoomToRange: (min: number | Date, max: number | Date) => void;
+  resetZoom: () => void;
+
   // Chart utilities
   exportChart: (format: 'png' | 'jpeg' | 'pdf' | 'svg', filename?: string) => void;
   updateSize: (width?: number, height?: number) => void;
@@ -73,6 +135,7 @@ export interface LineChartExposedMethods {
   destroy: () => void;
 }
 
+// UPDATED: LineChartProps (add range selector props)
 export interface LineChartProps {
   // Basic configuration
   title?: string;
@@ -104,6 +167,11 @@ export interface LineChartProps {
   panKey?: 'alt' | 'ctrl' | 'meta' | 'shift';
   panning?: boolean;
 
+  // NEW: Range selector and navigator
+  rangeSelector?: RangeSelectorConfig;
+  navigator?: NavigatorConfig;
+  scrollbar?: ScrollbarConfig;
+
   // Export functionality
   exporting?: ExportConfig;
 
@@ -116,6 +184,10 @@ export interface LineChartProps {
   onSeriesClick?: (series: Highcharts.Series) => void;
   onChartLoad?: (chart: Highcharts.Chart) => void;
   onRedraw?: () => void;
+
+  // NEW: Range selector events
+  onRangeSelect?: (min: number, max: number) => void;
+  onRangeButtonClick?: (buttonIndex: number, buttonConfig: RangeSelectorButton) => void;
 
   // Accessibility
   accessibility?: Highcharts.AccessibilityOptions;

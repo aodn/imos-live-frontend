@@ -8,6 +8,7 @@ export const useChartMethods = (
   onPointClick?: (point: any) => void,
   onSeriesClick?: (series: any) => void,
 ) => {
+  // Existing methods...
   const updateData = useCallback(
     (seriesIndex: number, newData: number[] | DataPoint[]) => {
       const chart = chartRef.current?.chart;
@@ -41,7 +42,7 @@ export const useChartMethods = (
     (newSubtitle: string) => {
       const chart = chartRef.current?.chart;
       if (chart) {
-        chart.setTitle({ text: newSubtitle });
+        chart.setTitle(undefined, { text: newSubtitle });
       }
     },
     [chartRef],
@@ -179,6 +180,49 @@ export const useChartMethods = (
     [chartRef],
   );
 
+  // NEW: Range selector methods
+  const setDateRange = useCallback(
+    (min: number | Date, max: number | Date) => {
+      const chart = chartRef.current?.chart;
+      if (chart && chart.xAxis && chart.xAxis[0]) {
+        const minTime = min instanceof Date ? min.getTime() : min;
+        const maxTime = max instanceof Date ? max.getTime() : max;
+        chart.xAxis[0].setExtremes(minTime, maxTime);
+      }
+    },
+    [chartRef],
+  );
+
+  const selectRangeButton = useCallback(
+    (buttonIndex: number) => {
+      const chart = chartRef.current?.chart;
+      if (chart && (chart as any).rangeSelector) {
+        (chart as any).rangeSelector.clickButton(buttonIndex);
+      }
+    },
+    [chartRef],
+  );
+
+  const zoomToRange = useCallback(
+    (min: number | Date, max: number | Date) => {
+      const chart = chartRef.current?.chart;
+      if (chart && chart.xAxis && chart.xAxis[0]) {
+        const minTime = min instanceof Date ? min.getTime() : min;
+        const maxTime = max instanceof Date ? max.getTime() : max;
+        chart.xAxis[0].setExtremes(minTime, maxTime);
+        chart.redraw();
+      }
+    },
+    [chartRef],
+  );
+
+  const resetZoom = useCallback(() => {
+    const chart = chartRef.current?.chart;
+    if (chart) {
+      chart.zoomOut();
+    }
+  }, [chartRef]);
+
   const getChartInstance = useCallback(() => chartRef.current?.chart || null, [chartRef]);
 
   const redraw = useCallback(() => {
@@ -196,6 +240,7 @@ export const useChartMethods = (
   }, [chartRef]);
 
   return {
+    // Existing methods
     updateData,
     updateTitle,
     updateSubtitle,
@@ -211,5 +256,11 @@ export const useChartMethods = (
     getChartInstance,
     redraw,
     destroy,
+
+    // NEW: Range selector methods
+    setDateRange,
+    selectRangeButton,
+    zoomToRange,
+    resetZoom,
   };
 };

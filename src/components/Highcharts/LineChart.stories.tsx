@@ -1,815 +1,768 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import type { Meta, StoryObj } from '@storybook/react';
 import { LineChart } from './LineChart';
-import React, { useRef } from 'react';
-import { LineChartExposedMethods } from './type';
+import Highcharts from 'highcharts';
+import { useRef } from 'react';
 
-// Sample data generators
-const generateSampleData = (points: number = 10, variance: number = 50) => {
-  return Array.from({ length: points }, (_, i) => ({
-    x: i,
-    y: Math.random() * variance + 20,
-  }));
+// Data generators for different scenarios
+const generateTimeSeriesData = (
+  days: number = 365,
+  baseValue: number = 100,
+  volatility: number = 20,
+) => {
+  const data = [];
+  const startDate = new Date('2023-01-01').getTime();
+  const oneDay = 24 * 60 * 60 * 1000;
+
+  for (let i = 0; i < days; i++) {
+    const date = startDate + i * oneDay;
+    const trend = baseValue + (i / days) * 50;
+    const vol = Math.sin(i / 10) * volatility + Math.random() * volatility - volatility / 2;
+    const value = Math.max(0, trend + vol);
+    data.push([date, Math.round(value * 100) / 100]);
+  }
+  return data;
 };
 
-const generateTimeSeriesData = (days: number = 30) => {
-  const startDate = new Date();
-  startDate.setDate(startDate.getDate() - days);
+const generateCryptoData = (days: number = 180) => {
+  const data = [];
+  const startDate = new Date('2024-01-01').getTime();
+  const oneDay = 24 * 60 * 60 * 1000;
+  let price = 50000;
 
-  return Array.from({ length: days }, (_, i) => ({
-    x: new Date(startDate.getTime() + i * 24 * 60 * 60 * 1000).getTime(),
-    y: Math.random() * 100 + 50 + Math.sin(i * 0.1) * 20,
-  }));
+  for (let i = 0; i < days; i++) {
+    const date = startDate + i * oneDay;
+    // High volatility crypto-like pattern
+    const change = (Math.random() - 0.5) * 0.15; // ±15% daily change potential
+    price = Math.max(1000, price * (1 + change));
+    data.push([date, Math.round(price * 100) / 100]);
+  }
+  console.log(data);
+  return data;
 };
 
+const generateMultipleMetrics = () => {
+  const revenue = generateTimeSeriesData(365, 1000, 100);
+  const profit = revenue.map(([date, value]) => [date, value * 0.3 + Math.random() * 50]);
+  const users = generateTimeSeriesData(365, 5000, 500);
+
+  return { revenue, profit, users };
+};
+
+// Meta configuration
 const meta: Meta<typeof LineChart> = {
-  title: 'Components/Charts/LineChart',
+  title: 'Charts/LineChart Examples',
   component: LineChart,
   parameters: {
-    layout: 'centered',
+    layout: 'fullscreen',
+    docs: {
+      description: {
+        component:
+          'A comprehensive collection of LineChart examples showcasing various customization options.',
+      },
+    },
+  },
+  argTypes: {
+    width: { control: { type: 'text' } },
+    height: { control: { type: 'number', min: 200, max: 800, step: 50 } },
+    title: { control: { type: 'text' } },
+    subtitle: { control: { type: 'text' } },
+    responsive: { control: { type: 'boolean' } },
   },
   tags: ['autodocs'],
-  argTypes: {
-    title: { control: 'text' },
-    subtitle: { control: 'text' },
-    width: { control: { type: 'range', min: 300, max: 1200, step: 50 } },
-    height: { control: { type: 'range', min: 200, max: 800, step: 50 } },
-    responsive: { control: 'boolean' },
-    boost: { control: 'boolean' },
-    panning: { control: 'boolean' },
-    zoomType: {
-      control: 'select',
-      options: ['x', 'y', 'xy', undefined],
-    },
-    panKey: {
-      control: 'select',
-      options: ['alt', 'ctrl', 'meta', 'shift'],
-    },
-  },
 };
 
 export default meta;
-type Story = StoryObj<typeof meta>;
+type Story = StoryObj<typeof LineChart>;
 
-// Basic Stories
-export const Default: Story = {
+// 1. Basic Financial Dashboard
+export const FinancialDashboard: Story = {
   args: {
-    title: 'Basic Line Chart',
-    subtitle: 'Simple line chart with default settings',
-    width: 800,
-    height: 400,
-    exporting: {
+    title: 'Financial Portfolio Performance',
+    subtitle: 'Real-time stock tracking with advanced controls',
+    width: '100%',
+    height: 600,
+    series: [
+      {
+        name: 'AAPL',
+        data: generateTimeSeriesData(365, 150, 25),
+        color: '#1f77b4',
+        type: 'line',
+        lineWidth: 2,
+      },
+      {
+        name: 'GOOGL',
+        data: generateTimeSeriesData(365, 120, 20),
+        color: '#ff7f0e',
+        type: 'line',
+        lineWidth: 2,
+      },
+      {
+        name: 'MSFT',
+        data: generateTimeSeriesData(365, 180, 15),
+        color: '#2ca02c',
+        type: 'line',
+        lineWidth: 2,
+      },
+    ],
+    rangeSelector: {
       enabled: true,
-      buttons: {
-        contextButton: {
-          enabled: true,
-        },
-      },
+      selected: 3,
+      buttons: [
+        { type: 'day', count: 7, text: '1W' },
+        { type: 'day', count: 30, text: '1M' },
+        { type: 'month', count: 3, text: '3M' },
+        { type: 'month', count: 6, text: '6M' },
+        { type: 'year', count: 1, text: '1Y' },
+        { type: 'all', text: 'All' },
+      ],
+      inputEnabled: true,
     },
-    series: [
-      {
-        name: 'Sample Data',
-        data: [10, 25, 15, 30, 20, 35, 25, 40, 30, 45],
-        type: 'line',
-      },
-    ],
-  },
-};
-
-export const WithoutContextMenu: Story = {
-  args: {
-    title: 'Basic Line Chart',
-    subtitle: 'Simple line chart with default settings',
-    width: 800,
-    height: 400,
-    exporting: {
-      enabled: false,
+    navigator: {
+      enabled: true,
+      height: 60,
+      margin: 30,
     },
-    series: [
-      {
-        name: 'Sample Data',
-        data: [10, 25, 15, 30, 20, 35, 25, 40, 30, 45],
-        type: 'line',
-      },
-    ],
-  },
-};
-
-export const MultiSeries: Story = {
-  args: {
-    title: 'Multi-Series Line Chart',
-    subtitle: 'Multiple data series with different colors',
-    width: 800,
-    height: 400,
-    series: [
-      {
-        name: 'Revenue',
-        data: generateSampleData(12, 100),
-        color: '#2563eb',
-        type: 'line',
-        lineWidth: 3,
-      },
-      {
-        name: 'Expenses',
-        data: generateSampleData(12, 80),
-        color: '#dc2626',
-        type: 'line',
-        lineWidth: 2,
-        dashStyle: 'Dash',
-      },
-      {
-        name: 'Profit',
-        data: generateSampleData(12, 60),
-        color: '#16a34a',
-        type: 'spline',
-        lineWidth: 2,
-      },
-    ],
-  },
-};
-
-export const TimeSeriesChart: Story = {
-  args: {
-    title: 'Time Series Data',
-    subtitle: 'Chart with datetime x-axis',
-    width: 900,
-    height: 450,
-    series: [
-      {
-        name: 'Stock Price',
-        data: generateTimeSeriesData(60),
-        color: '#8b5cf6',
-        type: 'spline',
-        lineWidth: 2,
-      },
-    ],
+    scrollbar: {
+      enabled: true,
+      height: 25,
+    },
     xAxis: {
       type: 'datetime',
       title: { text: 'Date' },
-      labels: {
-        format: '{value:%b %e}',
-      },
+      labels: { format: '{value:%b %e}' },
     },
     yAxis: {
-      title: { text: 'Price ($)' },
-      labels: {
-        format: '${value}',
+      title: { text: 'Stock Price ($)' },
+      labels: { format: '${value}' },
+    },
+    tooltip: {
+      shared: true,
+      formatter: function (this: any) {
+        let tooltip = `<b>${Highcharts.dateFormat('%A, %b %e, %Y', this.x)}</b><br/>`;
+        this.points.forEach((point: any) => {
+          tooltip += `<span style="color:${point.color}">●</span> ${point.series.name}: <b>$${point.y.toFixed(2)}</b><br/>`;
+        });
+        return tooltip;
       },
     },
-  },
-};
-
-// Styling Stories
-export const DarkTheme: Story = {
-  args: {
-    title: 'Dark Theme Chart',
-    subtitle: 'Chart with dark theme styling',
-    width: 800,
-    height: 400,
-    series: [
-      {
-        name: 'Data Series 1',
-        data: generateSampleData(15, 50),
-        color: '#60a5fa',
-        type: 'line',
-      },
-      {
-        name: 'Data Series 2',
-        data: generateSampleData(15, 60),
-        color: '#34d399',
-        type: 'line',
-      },
-    ],
     theme: {
-      backgroundColor: '#1f2937',
-      textColor: '#f9fafb',
-      gridColor: '#374151',
-      lineColor: '#6b7280',
-      colors: ['#60a5fa', '#34d399', '#fbbf24', '#f87171', '#a78bfa'],
+      backgroundColor: '#ffffff',
+      textColor: '#333333',
+      gridColor: '#e6e6e6',
+      lineColor: '#cccccc',
+    },
+    onRangeSelect: (min: number, max: number) => {
+      console.log('Financial range:', new Date(min), 'to', new Date(max));
     },
   },
 };
 
-export const CustomColors: Story = {
+// 2. Cryptocurrency Trading View
+export const CryptoDashboard: Story = {
   args: {
-    title: 'Custom Color Palette',
-    subtitle: 'Chart with custom color scheme',
-    width: 800,
-    height: 400,
+    title: 'Cryptocurrency Price Tracker',
+    subtitle: 'Bitcoin price movement with volume indicators',
+    width: '100%',
+    height: 550,
     series: [
       {
-        name: 'Series A',
-        data: generateSampleData(10, 40),
-        color: '#ff6b6b',
+        name: 'Bitcoin Price',
+        data: generateCryptoData(180),
+        color: '#f7931e',
         type: 'line',
-      },
-      {
-        name: 'Series B',
-        data: generateSampleData(10, 35),
-        color: '#4ecdc4',
-        type: 'line',
-      },
-      {
-        name: 'Series C',
-        data: generateSampleData(10, 45),
-        color: '#45b7d1',
-        type: 'line',
-      },
-    ],
-    theme: {
-      colors: ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#6c5ce7'],
-    },
-  },
-};
-
-// Chart Types
-export const MixedTypes: Story = {
-  args: {
-    title: 'Mixed Chart Types',
-    subtitle: 'Combining different chart types',
-    width: 800,
-    height: 400,
-    series: [
-      {
-        name: 'Line Series',
-        data: generateSampleData(12, 50),
-        type: 'line',
-        color: '#3b82f6',
-      },
-      {
-        name: 'Spline Series',
-        data: generateSampleData(12, 40),
-        type: 'spline',
-        color: '#ef4444',
-      },
-      {
-        name: 'Area Series',
-        data: generateSampleData(12, 30),
-        type: 'area',
-        color: '#10b981',
-      },
-    ],
-  },
-};
-
-export const ScatterPlot: Story = {
-  args: {
-    title: 'Scatter Plot',
-    subtitle: 'Data points without connecting lines',
-    width: 800,
-    height: 400,
-    series: [
-      {
-        name: 'Scatter Data',
-        data: Array.from({ length: 50 }, () => ({
-          x: Math.random() * 100,
-          y: Math.random() * 100,
-        })),
-        type: 'scatter',
-        color: '#8b5cf6',
-        marker: {
-          radius: 5,
-          symbol: 'circle',
-        },
-      },
-    ],
-  },
-};
-
-// Interactive Features
-export const ZoomableChart: Story = {
-  args: {
-    title: 'Zoomable Chart',
-    subtitle: 'Drag to zoom, shift+drag to pan',
-    width: 800,
-    height: 400,
-    zoomType: 'xy',
-    panning: true,
-    panKey: 'shift',
-    series: [
-      {
-        name: 'Large Dataset',
-        data: generateSampleData(100, 80),
-        type: 'line',
-        color: '#06b6d4',
-      },
-    ],
-  },
-};
-
-export const WithMarkers: Story = {
-  args: {
-    title: 'Chart with Custom Markers',
-    subtitle: 'Different marker styles for each series',
-    width: 800,
-    height: 400,
-    series: [
-      {
-        name: 'Circle Markers',
-        data: generateSampleData(8, 50),
-        type: 'line',
-        color: '#f59e0b',
-        marker: {
-          symbol: 'circle',
-          radius: 6,
-          enabled: true,
-        },
-      },
-      {
-        name: 'Square Markers',
-        data: generateSampleData(8, 40),
-        type: 'line',
-        color: '#8b5cf6',
-        marker: {
-          symbol: 'square',
-          radius: 5,
-          enabled: true,
-        },
-      },
-      {
-        name: 'Diamond Markers',
-        data: generateSampleData(8, 45),
-        type: 'line',
-        color: '#ef4444',
-        marker: {
-          symbol: 'diamond',
-          radius: 7,
-          enabled: true,
-        },
-      },
-    ],
-  },
-};
-
-// Animation Stories
-export const AnimatedChart: Story = {
-  args: {
-    title: 'Animated Chart',
-    subtitle: 'Chart with custom animation settings',
-    width: 800,
-    height: 400,
-    animation: {
-      enabled: true,
-      duration: 2000,
-      easing: 'easeOutBounce',
-    },
-    series: [
-      {
-        name: 'Animated Series',
-        data: generateSampleData(12, 60),
-        type: 'spline',
-        color: '#10b981',
         lineWidth: 3,
+        marker: { enabled: false },
       },
-    ],
-  },
-};
-
-export const NoAnimation: Story = {
-  args: {
-    title: 'No Animation',
-    subtitle: 'Chart with animations disabled',
-    width: 800,
-    height: 400,
-    animation: {
-      enabled: false,
-    },
-    series: [
       {
-        name: 'Static Series',
-        data: generateSampleData(12, 60),
+        name: 'Moving Average (7d)',
+        data: generateCryptoData(180).map(([date, value]) => [date, value * 0.95]),
+        color: '#666666',
         type: 'line',
-        color: '#dc2626',
-      },
-    ],
-  },
-};
-
-// Performance Stories
-export const HighPerformance: Story = {
-  args: {
-    title: 'High Performance Chart',
-    subtitle: 'Large dataset with boost enabled',
-    width: 800,
-    height: 400,
-    boost: true,
-    turboThreshold: 500,
-    series: [
-      {
-        name: 'Large Dataset',
-        data: generateSampleData(2000, 100),
-        type: 'line',
-        color: '#f59e0b',
         lineWidth: 1,
+        dashStyle: 'Dash',
+        marker: { enabled: false },
       },
     ],
+    rangeSelector: {
+      enabled: true,
+      selected: 2,
+      buttons: [
+        { type: 'day', count: 1, text: '24H' },
+        { type: 'day', count: 7, text: '7D' },
+        { type: 'day', count: 30, text: '30D' },
+        { type: 'month', count: 3, text: '3M' },
+        { type: 'all', text: 'All' },
+      ],
+      inputEnabled: false,
+    },
+    navigator: {
+      enabled: true,
+      height: 40,
+      maskFill: 'rgba(247, 147, 30, 0.1)',
+    },
+    scrollbar: { enabled: false },
+    xAxis: {
+      type: 'datetime',
+      labels: { format: '{value:%m/%d}' },
+    },
+    yAxis: {
+      title: { text: 'Price (USD)' },
+      labels: { format: '${value:,.0f}' },
+      opposite: true,
+    },
+    theme: {
+      backgroundColor: '#1a1a1a',
+      textColor: '#ffffff',
+      gridColor: '#333333',
+      lineColor: '#555555',
+      colors: ['#f7931e', '#666666', '#00d4ff', '#ff6b6b'],
+    },
+    tooltip: {
+      backgroundColor: 'rgba(0, 0, 0, 0.8)',
+      borderColor: '#f7931e',
+      style: { color: '#ffffff' },
+      formatter: function (this: any) {
+        return `<b>${Highcharts.dateFormat('%b %e, %Y', this.x)}</b><br/>
+                <span style="color:${this.points[0].color}">●</span> ${this.points[0].series.name}: 
+                <b>$${this.points[0].y.toLocaleString()}</b>`;
+      },
+    },
   },
 };
 
-// Dual Axis
-export const DualAxis: Story = {
+// 3. Business Metrics Dashboard
+export const BusinessMetrics: Story = {
   args: {
-    title: 'Dual Y-Axis Chart',
-    subtitle: 'Two different scales on left and right',
-    width: 800,
-    height: 400,
-    series: [
-      {
-        name: 'Temperature (°C)',
-        data: Array.from({ length: 12 }, (_, i) => 15 + Math.sin(i * 0.5) * 10),
-        type: 'line',
-        color: '#ef4444',
-        yAxis: 0,
-      },
-      {
-        name: 'Rainfall (mm)',
-        data: Array.from({ length: 12 }, () => Math.random() * 200 + 50),
-        type: 'column',
-        color: '#3b82f6',
-        yAxis: 1,
-      },
-    ],
+    title: 'Business Performance Dashboard',
+    subtitle: 'Multi-axis view of key business indicators',
+    width: '100%',
+    height: 500,
+    series: (() => {
+      const { revenue, profit, users } = generateMultipleMetrics();
+      return [
+        {
+          name: 'Monthly Revenue',
+          data: revenue,
+          color: '#2ecc71',
+          type: 'column',
+          yAxis: 0,
+          tooltip: { valueSuffix: 'K' },
+        },
+        {
+          name: 'Net Profit',
+          data: profit,
+          color: '#3498db',
+          type: 'spline',
+          yAxis: 0,
+          lineWidth: 3,
+          tooltip: { valueSuffix: 'K' },
+        },
+        {
+          name: 'Active Users',
+          data: users,
+          color: '#e74c3c',
+          type: 'line',
+          yAxis: 1,
+          lineWidth: 2,
+          dashStyle: 'ShortDot',
+          tooltip: { valueSuffix: ' users' },
+        },
+      ];
+    })(),
+    rangeSelector: {
+      enabled: true,
+      selected: 2,
+      buttons: [
+        { type: 'month', count: 1, text: '1M' },
+        { type: 'month', count: 3, text: '3M' },
+        { type: 'month', count: 6, text: '6M' },
+        { type: 'year', count: 1, text: '1Y' },
+        { type: 'all', text: 'All' },
+      ],
+    },
+    navigator: { enabled: true, height: 45 },
+    scrollbar: { enabled: true },
+    xAxis: {
+      type: 'datetime',
+      title: { text: 'Time Period' },
+    },
     yAxis: [
       {
-        title: { text: 'Temperature (°C)' },
-        labels: { format: '{value}°C' },
+        title: { text: 'Revenue & Profit ($K)', style: { color: '#2ecc71' } },
+        labels: { format: '${value}K', style: { color: '#2ecc71' } },
+        opposite: false,
       },
       {
-        title: { text: 'Rainfall (mm)' },
-        labels: { format: '{value}mm' },
+        title: { text: 'Active Users', style: { color: '#e74c3c' } },
+        labels: { format: '{value}', style: { color: '#e74c3c' } },
         opposite: true,
-      },
-    ],
-  },
-};
-
-// Custom Tooltip
-export const CustomTooltip: Story = {
-  args: {
-    title: 'Custom Tooltip',
-    subtitle: 'Chart with custom tooltip formatting',
-    width: 800,
-    height: 400,
-    series: [
-      {
-        name: 'Sales Data',
-        data: generateSampleData(12, 1000),
-        type: 'line',
-        color: '#10b981',
       },
     ],
     tooltip: {
       shared: true,
-      backgroundColor: 'rgba(0, 0, 0, 0.8)',
-      style: { color: '#ffffff' },
-      borderColor: '#10b981',
-      borderRadius: 8,
-      customFormatter: function (point: any) {
-        const value = typeof point.y === 'number' ? point.y : 0;
-        const xValue = typeof point.x === 'number' ? point.x : point.point?.index || 0;
-        return `<b>${point.series.name}</b><br/>
-                Value: ${value.toFixed(2)}<br/>
-                Point: ${xValue}`;
+      formatter: function (this: any) {
+        let tooltip = `<b>${Highcharts.dateFormat('%b %Y', this.x)}</b><br/>`;
+        this.points.forEach((point: any) => {
+          const suffix = point.series.name.includes('Users') ? ' users' : 'K';
+          tooltip += `<span style="color:${point.color}">●</span> ${point.series.name}: <b>${point.y.toFixed(1)}${suffix}</b><br/>`;
+        });
+        return tooltip;
       },
     },
-  },
-};
-
-// Export Configuration
-export const ExportEnabled: Story = {
-  args: {
-    title: 'Chart with Export Options',
-    subtitle: 'Click the menu button to export',
-    width: 800,
-    height: 400,
-    series: [
-      {
-        name: 'Exportable Data',
-        data: generateSampleData(12, 50),
-        type: 'line',
-        color: '#8b5cf6',
-      },
-    ],
-    exporting: {
-      enabled: true,
-      filename: 'my-chart',
-      formats: ['png', 'jpeg', 'pdf', 'svg'],
-    },
-  },
-};
-
-// Error Handling
-export const EmptyData: Story = {
-  args: {
-    title: 'Chart with Empty Data',
-    subtitle: 'Handling empty datasets gracefully',
-    width: 800,
-    height: 400,
-    series: [
-      {
-        name: 'Empty Series',
-        data: [],
-        type: 'line',
-        color: '#6b7280',
-      },
-    ],
-  },
-};
-
-// Advanced Styling
-export const GradientChart: Story = {
-  args: {
-    title: 'Gradient Styled Chart',
-    subtitle: 'Chart with gradient background and styling',
-    width: 800,
-    height: 400,
-    series: [
-      {
-        name: 'Gradient Series',
-        data: generateSampleData(15, 60),
-        type: 'area',
-        color: '#3b82f6',
-      },
-    ],
     theme: {
-      backgroundColor: '#f8fafc',
-      textColor: '#1e293b',
-      gridColor: 'rgba(59, 130, 246, 0.2)',
-      lineColor: 'rgba(59, 130, 246, 0.3)',
-      colors: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'],
+      backgroundColor: '#f8f9fa',
+      textColor: '#2c3e50',
+      gridColor: '#ecf0f1',
+      lineColor: '#bdc3c7',
     },
   },
 };
 
-// Playground Story for testing
+// 4. Minimal Clean Design
+export const MinimalDesign: Story = {
+  args: {
+    title: 'Clean Minimal Chart',
+    subtitle: 'Simplified design for presentations',
+    width: '100%',
+    height: 400,
+    series: [
+      {
+        name: 'Growth Trend',
+        data: generateTimeSeriesData(90, 100, 5),
+        color: '#6c5ce7',
+        type: 'spline',
+        lineWidth: 3,
+        marker: { enabled: false },
+      },
+    ],
+    rangeSelector: {
+      enabled: true,
+      selected: 2,
+      inputEnabled: false,
+      buttons: [
+        { type: 'day', count: 7, text: '7D' },
+        { type: 'day', count: 30, text: '30D' },
+        { type: 'all', text: 'All' },
+      ],
+    },
+    navigator: { enabled: false },
+    scrollbar: { enabled: false },
+    xAxis: {
+      type: 'datetime',
+      lineWidth: 0,
+      tickWidth: 0,
+      labels: { style: { fontSize: '12px' } },
+    },
+    yAxis: {
+      gridLineWidth: 1,
+      lineWidth: 0,
+      tickWidth: 0,
+      title: { text: null },
+      labels: { style: { fontSize: '12px' } },
+    },
+    legend: { enabled: false },
+    theme: {
+      backgroundColor: 'transparent',
+      textColor: '#74b9ff',
+      gridColor: '#f1f3f4',
+      lineColor: '#e0e0e0',
+    },
+    tooltip: {
+      backgroundColor: 'rgba(108, 92, 231, 0.9)',
+      borderWidth: 0,
+      borderRadius: 8,
+      style: { color: '#ffffff', fontSize: '12px' },
+    },
+  },
+};
+
+// 5. Scientific Data Visualization
+export const ScientificData: Story = {
+  args: {
+    title: 'Temperature Monitoring Station',
+    subtitle: 'Environmental sensors data with error margins',
+    width: '100%',
+    height: 500,
+    series: [
+      {
+        name: 'Temperature (°C)',
+        data: generateTimeSeriesData(365, 20, 8),
+        color: '#e17055',
+        type: 'line',
+        lineWidth: 2,
+        marker: { enabled: true, radius: 2, symbol: 'circle' },
+      },
+      {
+        name: 'Humidity (%)',
+        data: generateTimeSeriesData(365, 60, 15),
+        color: '#0984e3',
+        type: 'spline',
+        lineWidth: 2,
+        yAxis: 1,
+        marker: { enabled: true, radius: 2, symbol: 'square' },
+      },
+      {
+        name: 'Pressure (hPa)',
+        data: generateTimeSeriesData(365, 1013, 20),
+        color: '#00b894',
+        type: 'line',
+        lineWidth: 1,
+        yAxis: 2,
+        marker: { enabled: false },
+      },
+    ],
+    rangeSelector: {
+      enabled: true,
+      selected: 1,
+      buttons: [
+        { type: 'day', count: 1, text: '24H' },
+        { type: 'day', count: 7, text: '1W' },
+        { type: 'month', count: 1, text: '1M' },
+        { type: 'month', count: 3, text: '3M' },
+        { type: 'all', text: 'All' },
+      ],
+    },
+    navigator: {
+      enabled: true,
+      height: 35,
+      series: { color: '#e17055', fillOpacity: 0.1 },
+    },
+    xAxis: {
+      type: 'datetime',
+      title: { text: 'Date & Time' },
+      labels: { format: '{value:%m/%d %H:%M}' },
+    },
+    yAxis: [
+      {
+        title: { text: 'Temperature (°C)', style: { color: '#e17055' } },
+        labels: { format: '{value}°C', style: { color: '#e17055' } },
+        opposite: false,
+      },
+      {
+        title: { text: 'Humidity (%)', style: { color: '#0984e3' } },
+        labels: { format: '{value}%', style: { color: '#0984e3' } },
+        opposite: true,
+      },
+      {
+        title: { text: 'Pressure (hPa)', style: { color: '#00b894' } },
+        labels: { format: '{value} hPa', style: { color: '#00b894' } },
+        opposite: false,
+        offset: 60,
+      },
+    ],
+    tooltip: {
+      shared: true,
+      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+      borderColor: '#2d3436',
+      borderRadius: 6,
+      formatter: function (this: any) {
+        let tooltip = `<b>${Highcharts.dateFormat('%A, %b %e, %Y %H:%M', this.x)}</b><br/>`;
+        this.points.forEach((point: any) => {
+          let unit = '';
+          if (point.series.name.includes('Temperature')) unit = '°C';
+          else if (point.series.name.includes('Humidity')) unit = '%';
+          else if (point.series.name.includes('Pressure')) unit = ' hPa';
+
+          tooltip += `<span style="color:${point.color}">●</span> ${point.series.name}: <b>${point.y.toFixed(1)}${unit}</b><br/>`;
+        });
+        return tooltip;
+      },
+    },
+    theme: {
+      backgroundColor: '#ffffff',
+      textColor: '#2d3436',
+      gridColor: '#ddd',
+      lineColor: '#bbb',
+    },
+  },
+};
+
+// 6. High Performance Large Dataset
+export const HighPerformance: Story = {
+  args: {
+    title: 'High-Frequency Trading Data',
+    subtitle: 'Optimized for large datasets with boost module',
+    width: '100%',
+    height: 450,
+    series: [
+      {
+        name: 'Price Feed',
+        data: (() => {
+          const data = [];
+          const start = new Date('2024-01-01').getTime();
+          for (let i = 0; i < 10000; i++) {
+            data.push([start + i * 60000, 100 + Math.sin(i / 100) * 20 + Math.random() * 10]);
+          }
+          return data;
+        })(),
+        color: '#fd79a8',
+        type: 'line',
+        lineWidth: 1,
+        marker: { enabled: false },
+      },
+    ],
+    boost: true,
+    turboThreshold: 5000,
+    rangeSelector: {
+      enabled: true,
+      selected: 0,
+      buttons: [
+        { type: 'hour', count: 1, text: '1H' },
+        { type: 'hour', count: 6, text: '6H' },
+        { type: 'day', count: 1, text: '1D' },
+        { type: 'all', text: 'All' },
+      ],
+    },
+    navigator: {
+      enabled: true,
+      height: 30,
+      series: { lineWidth: 1 },
+    },
+    xAxis: {
+      type: 'datetime',
+      labels: { format: '{value:%H:%M}' },
+    },
+    yAxis: {
+      title: { text: 'Price' },
+      labels: { format: '${value:.2f}' },
+    },
+    tooltip: {
+      shared: false,
+      formatter: function (this: any) {
+        return `<b>${Highcharts.dateFormat('%H:%M:%S', this.x)}</b><br/>
+                Price: <b>$${this.y.toFixed(2)}</b>`;
+      },
+    },
+    animation: { enabled: false },
+    plotOptions: {
+      series: {
+        turboThreshold: 5000,
+        animation: false,
+      },
+    },
+  },
+};
+
+// 7. Interactive Controls Demo
+export const InteractiveControls: Story = {
+  render: args => {
+    const chartRef = useRef<any>(null);
+
+    const handleExport = (format: 'png' | 'jpeg' | 'pdf' | 'svg') => {
+      chartRef.current?.exportChart(format, 'my-chart');
+    };
+
+    const handleAddSeries = () => {
+      chartRef.current?.addSeries({
+        name: `Series ${Date.now()}`,
+        data: generateTimeSeriesData(100, Math.random() * 200, 20),
+        color: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+      });
+    };
+
+    const handleZoomRange = () => {
+      const now = Date.now();
+      const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000;
+      chartRef.current?.zoomToRange(thirtyDaysAgo, now);
+    };
+
+    return (
+      <div>
+        <div style={{ marginBottom: '20px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          <button
+            onClick={() => handleExport('png')}
+            style={{ padding: '8px 16px', border: '1px solid #ccc', borderRadius: '4px' }}
+          >
+            Export PNG
+          </button>
+          <button
+            onClick={() => handleExport('svg')}
+            style={{ padding: '8px 16px', border: '1px solid #ccc', borderRadius: '4px' }}
+          >
+            Export SVG
+          </button>
+          <button
+            onClick={handleAddSeries}
+            style={{ padding: '8px 16px', border: '1px solid #ccc', borderRadius: '4px' }}
+          >
+            Add Random Series
+          </button>
+          <button
+            onClick={handleZoomRange}
+            style={{ padding: '8px 16px', border: '1px solid #ccc', borderRadius: '4px' }}
+          >
+            Zoom to 30 Days
+          </button>
+          <button
+            onClick={() => chartRef.current?.resetZoom()}
+            style={{ padding: '8px 16px', border: '1px solid #ccc', borderRadius: '4px' }}
+          >
+            Reset Zoom
+          </button>
+        </div>
+        <LineChart
+          {...args}
+          ref={chartRef}
+          onRangeSelect={(min, max) => {
+            console.log('Range selected:', new Date(min), 'to', new Date(max));
+          }}
+          onPointClick={point => {
+            console.log('Point clicked:', point);
+          }}
+        />
+      </div>
+    );
+  },
+  args: {
+    title: 'Interactive Chart Controls',
+    subtitle: 'Click buttons above to test chart methods',
+    width: '100%',
+    height: 450,
+    series: [
+      {
+        name: 'Sample Data',
+        data: generateTimeSeriesData(365, 100, 20),
+        color: '#6c5ce7',
+        type: 'line',
+        lineWidth: 2,
+      },
+    ],
+    rangeSelector: {
+      enabled: true,
+      selected: 2,
+      buttons: [
+        { type: 'day', count: 7, text: '7D' },
+        { type: 'day', count: 30, text: '30D' },
+        { type: 'month', count: 3, text: '3M' },
+        { type: 'all', text: 'All' },
+      ],
+    },
+    navigator: { enabled: true },
+    scrollbar: { enabled: true },
+    exporting: { enabled: true },
+  },
+};
+
+// 8. Custom Themed Chart
+export const CustomTheme: Story = {
+  args: {
+    title: 'Neon Cyberpunk Theme',
+    subtitle: 'Futuristic data visualization',
+    width: '100%',
+    height: 500,
+    series: [
+      {
+        name: 'Neural Network Activity',
+        data: generateTimeSeriesData(180, 85, 25),
+        color: '#00ff88',
+        type: 'spline',
+        lineWidth: 3,
+        marker: { enabled: true, radius: 3, symbol: 'circle' },
+      },
+      {
+        name: 'System Load',
+        data: generateTimeSeriesData(180, 60, 15),
+        color: '#ff0080',
+        type: 'line',
+        lineWidth: 2,
+        dashStyle: 'Dash',
+      },
+    ],
+    rangeSelector: {
+      enabled: true,
+      selected: 1,
+      buttons: [
+        { type: 'day', count: 7, text: '7D' },
+        { type: 'day', count: 30, text: '30D' },
+        { type: 'month', count: 3, text: '3M' },
+        { type: 'all', text: 'ALL' },
+      ],
+    },
+    navigator: {
+      enabled: true,
+      height: 40,
+      maskFill: 'rgba(0, 255, 136, 0.1)',
+    },
+    theme: {
+      backgroundColor: '#0a0a0a',
+      textColor: '#00ff88',
+      gridColor: '#1a1a1a',
+      lineColor: '#333333',
+      colors: ['#00ff88', '#ff0080', '#0080ff', '#ffff00', '#ff8000'],
+    },
+    xAxis: {
+      type: 'datetime',
+      gridLineColor: '#1a1a1a',
+      lineColor: '#333333',
+      tickColor: '#333333',
+      labels: {
+        style: { color: '#00ff88', fontSize: '11px' },
+        format: '{value:%m/%d}',
+      },
+    },
+    yAxis: {
+      gridLineColor: '#1a1a1a',
+      lineColor: '#333333',
+      tickColor: '#333333',
+      title: {
+        text: 'Activity Level (%)',
+        style: { color: '#00ff88' },
+      },
+      labels: {
+        style: { color: '#00ff88', fontSize: '11px' },
+        format: '{value}%',
+      },
+    },
+    tooltip: {
+      backgroundColor: 'rgba(0, 0, 0, 0.9)',
+      borderColor: '#00ff88',
+      borderWidth: 1,
+      style: { color: '#00ff88', fontSize: '12px' },
+      shadow: false,
+    },
+    legend: {
+      itemStyle: { color: '#00ff88' },
+      itemHoverStyle: { color: '#ffffff' },
+    },
+  },
+};
+
+// Playground for testing
 export const Playground: Story = {
   args: {
-    title: 'Interactive Playground',
+    title: 'Chart Playground',
     subtitle: 'Experiment with different settings',
-    width: 800,
-    height: 400,
+    width: '100%',
+    height: 500,
     series: [
       {
-        name: 'Primary Series',
-        data: generateSampleData(12, 50),
+        name: 'Test Series',
+        data: generateTimeSeriesData(200, 100, 20),
+        color: '#3498db',
         type: 'line',
-        color: '#3b82f6',
-      },
-      {
-        name: 'Secondary Series',
-        data: generateSampleData(12, 40),
-        type: 'line',
-        color: '#10b981',
+        lineWidth: 2,
       },
     ],
+    rangeSelector: {
+      enabled: true,
+      selected: 1,
+      buttons: [
+        { type: 'day', count: 7, text: '7D' },
+        { type: 'day', count: 30, text: '30D' },
+        { type: 'month', count: 3, text: '3M' },
+        { type: 'all', text: 'All' },
+      ],
+    },
+    navigator: { enabled: true },
+    scrollbar: { enabled: true },
     responsive: true,
-    boost: false,
-    panning: false,
-    zoomType: undefined,
-    animation: {
-      enabled: true,
-      duration: 1000,
-    },
   },
-};
-
-export const BasicCustomButton: Story = {
-  args: {
-    title: 'Basic Custom Export Button',
-    subtitle: 'Simple button styling',
-    width: 800,
-    height: 400,
-    series: [
-      {
-        name: 'Sample Data',
-        data: [10, 25, 15, 30, 20, 35, 25, 40, 30, 45],
-        type: 'line',
-        color: '#3b82f6',
-      },
-    ],
-    exporting: {
-      enabled: true,
-      buttons: {
-        contextButton: {
-          // Button positioning
-          x: -10,
-          y: 10,
-
-          // Button appearance
-          symbol: 'menu', // Options: 'menu', 'download', 'hamburger', etc.
-          symbolFill: '#666',
-          symbolStroke: '#333',
-          symbolStrokeWidth: 1,
-
-          // Button theme/styling
-          theme: {
-            fill: '#f8f9fa', // Background color
-            stroke: '#dee2e6', // Border color
-            'stroke-width': 1, // Border width
-            r: 4, // Border radius
-            padding: 8, // Internal padding
-
-            // Hover state
-            states: {
-              hover: {
-                fill: '#e9ecef',
-                stroke: '#adb5bd',
-              },
-              select: {
-                fill: '#6c757d',
-                stroke: '#495057',
-              },
-            },
-          },
-
-          // Menu items
-          menuItems: ['downloadPNG', 'downloadJPEG', 'downloadPDF', 'downloadSVG'],
-        },
+  parameters: {
+    docs: {
+      description: {
+        story: 'Use the controls panel to experiment with different chart configurations.',
       },
     },
   },
-};
-
-// Method 3: Custom Icon Button
-export const CustomIconButton: Story = {
-  args: {
-    title: 'Custom Icon Export Button',
-    subtitle: 'Using custom SVG path for icon',
-    width: 800,
-    height: 400,
-    series: [
-      {
-        name: 'Sample Data',
-        data: [10, 25, 15, 30, 20, 35, 25, 40, 30, 45],
-        type: 'line',
-        color: '#f59e0b',
-      },
-    ],
-    exporting: {
-      enabled: true,
-      buttons: {
-        contextButton: {
-          // Custom SVG path for download icon
-          symbol: 'M12 16l-4-4h3V4h2v8h3l-4 4zm-8 2v2h16v-2H4z',
-          symbolFill: '#ffffff',
-          symbolStroke: 'none',
-
-          theme: {
-            fill: '#f59e0b',
-            stroke: '#d97706',
-            'stroke-width': 1,
-            r: 6,
-            padding: 8,
-            width: 32,
-            height: 32,
-
-            states: {
-              hover: {
-                fill: '#d97706',
-                stroke: '#b45309',
-              },
-            },
-          },
-        },
-      },
-    },
-  },
-};
-
-// Method 6: Completely Custom React Button Component
-export const ReactCustomButton = () => {
-  const chartRef = useRef<LineChartExposedMethods>(null!);
-  const [isExporting, setIsExporting] = React.useState(false);
-  const [showMenu, setShowMenu] = React.useState(false);
-
-  const handleExport = async (format: 'png' | 'jpeg' | 'pdf' | 'svg') => {
-    setIsExporting(true);
-    setShowMenu(false);
-
-    try {
-      chartRef.current?.exportChart(format, `chart-${Date.now()}`);
-    } catch (error) {
-      console.error('Export failed:', error);
-    } finally {
-      setTimeout(() => setIsExporting(false), 1000);
-    }
-  };
-
-  return (
-    <div style={{ position: 'relative' }}>
-      {/* Custom Export Button */}
-      <div
-        style={{
-          position: 'absolute',
-          top: '10px',
-          right: '10px',
-          zIndex: 1000,
-        }}
-      >
-        <div style={{ position: 'relative' }}>
-          <button
-            onClick={() => setShowMenu(!showMenu)}
-            disabled={isExporting}
-            style={{
-              backgroundColor: '#3b82f6',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '8px 12px',
-              cursor: isExporting ? 'not-allowed' : 'pointer',
-              fontSize: '14px',
-              fontWeight: '500',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-              opacity: isExporting ? 0.6 : 1,
-              transition: 'all 0.2s',
-            }}
-          >
-            {isExporting ? 'Exporting...' : '📥 Export'}
-          </button>
-
-          {/* Custom Dropdown Menu */}
-          {showMenu && (
-            <div
-              style={{
-                position: 'absolute',
-                top: '100%',
-                right: 0,
-                marginTop: '4px',
-                backgroundColor: 'white',
-                border: '1px solid #e5e7eb',
-                borderRadius: '8px',
-                boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-                minWidth: '160px',
-                zIndex: 1001,
-              }}
-            >
-              {[
-                { format: 'png' as const, label: '📷 PNG Image', color: '#10b981' },
-                { format: 'jpeg' as const, label: '🖼️ JPEG Image', color: '#f59e0b' },
-                { format: 'pdf' as const, label: '📄 PDF Document', color: '#ef4444' },
-                { format: 'svg' as const, label: '🎨 SVG Vector', color: '#8b5cf6' },
-              ].map(({ format, label, color }) => (
-                <button
-                  key={format}
-                  onClick={() => handleExport(format)}
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    border: 'none',
-                    backgroundColor: 'transparent',
-                    textAlign: 'left',
-                    cursor: 'pointer',
-                    fontSize: '14px',
-                    color: '#374151',
-                    borderBottom: '1px solid #f3f4f6',
-                    transition: 'background-color 0.2s',
-                  }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.backgroundColor = '#f9fafb';
-                    e.currentTarget.style.color = color;
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                    e.currentTarget.style.color = '#374151';
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Click outside to close menu */}
-      {showMenu && (
-        <button
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 999,
-          }}
-          onClick={() => setShowMenu(false)}
-        />
-      )}
-
-      <LineChart
-        ref={chartRef}
-        title="Chart with Custom React Export Button"
-        subtitle="Modern custom export controls"
-        width={800}
-        height={400}
-        series={[
-          {
-            name: 'Sample Data',
-            data: [10, 25, 15, 30, 20, 35, 25, 40, 30, 45],
-            type: 'line',
-            color: '#3b82f6',
-          },
-        ]}
-      />
-    </div>
-  );
 };

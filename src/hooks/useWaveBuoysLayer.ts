@@ -6,7 +6,7 @@ import {
   WAVE_BUOYS_SOURCE_ID,
 } from '@/constants';
 import { addLayerInOrder, addOrUpdateGeoJsonSource } from '@/helpers';
-import { sleep } from '@/utils';
+import { buildOgcBuoysUrl, sleep } from '@/utils';
 import { useDidMountEffect } from './useDidMountEffect';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
 import { useMapboxLayerRef } from './useMapboxLayerRef';
@@ -30,9 +30,9 @@ export function useWaveBuoysLayer(
     addOrUpdateGeoJsonSource({
       map: map.current!,
       id: WAVE_BUOYS_SOURCE_ID,
-      // buildOgcBuoysUrl('b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc'),
-      url: '/wave_buoys.geojson',
+      url: buildOgcBuoysUrl('b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc'),
       enableCluser: true,
+      clusterRadius: 40,
     });
   };
 

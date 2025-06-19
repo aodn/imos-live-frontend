@@ -1,5 +1,5 @@
 import React, { useRef, useImperativeHandle, useMemo, memo } from 'react';
-import Highcharts from 'highcharts';
+import Highcharts from 'highcharts/highstock'; // Use highstock instead of regular highcharts
 import HighchartsReact from 'highcharts-react-official';
 import { LineChartProps } from './type';
 import { initializeHighchartsModules } from './utils';
@@ -13,7 +13,7 @@ Highcharts.setOptions({
     fallbackToExportServer: false,
   },
 });
-//TODO: 1. make x axios works like date slider. 2. responsive design.
+
 export const LineChart = memo(({ ref, ...props }: LineChartProps) => {
   const { width = '100%', height = 400, className, style } = props;
 
@@ -45,6 +45,7 @@ export const LineChart = memo(({ ref, ...props }: LineChartProps) => {
       <HighchartsReact
         ref={chartRef}
         highcharts={Highcharts}
+        constructorType={'stockChart'} // THIS IS CRITICAL - use stockChart constructor
         options={chartOptions}
         allowChartUpdate={true}
         updateArgs={[true, true, true]}

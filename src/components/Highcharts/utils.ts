@@ -1,7 +1,14 @@
 import accessibility from 'highcharts/modules/accessibility';
-import { AnimationConfig, SeriesData, ThemeConfig } from './type';
+import {
+  AnimationConfig,
+  NavigatorConfig,
+  RangeSelectorConfig,
+  ScrollbarConfig,
+  SeriesData,
+  ThemeConfig,
+} from './type';
 import exporting from 'highcharts/modules/exporting';
-import Highcharts from 'highcharts';
+import Highcharts from 'highcharts/highstock'; // Use highstock
 import boost from 'highcharts/modules/boost';
 import exportData from 'highcharts/modules/export-data';
 import offlineExporting from 'highcharts/modules/offline-exporting';
@@ -33,24 +40,139 @@ export const initializeHighchartsModules = () => {
   });
 };
 
+export const buildRangeSelectorConfig = (
+  rangeSelector?: RangeSelectorConfig,
+  theme?: ThemeConfig,
+) => {
+  if (!rangeSelector?.enabled) {
+    return { enabled: false };
+  }
+
+  const defaultButtons = [
+    { type: 'day' as const, count: 7, text: '7d' },
+    { type: 'day' as const, count: 30, text: '30d' },
+    { type: 'month' as const, count: 3, text: '3m' },
+    { type: 'month' as const, count: 6, text: '6m' },
+    { type: 'year' as const, count: 1, text: '1y' },
+    { type: 'all' as const, text: 'All' },
+  ];
+
+  return {
+    enabled: true,
+    selected: rangeSelector.selected || 1,
+    buttons: rangeSelector.buttons || defaultButtons,
+    inputEnabled: rangeSelector.inputEnabled !== false,
+    inputBoxBorderColor: theme?.lineColor || DEFAULT_THEME.lineColor,
+    inputBoxWidth: rangeSelector.inputBoxWidth || 120,
+    inputBoxHeight: rangeSelector.inputBoxHeight || 18,
+    inputStyle: {
+      color: theme?.textColor || DEFAULT_THEME.textColor,
+      fontWeight: 'normal',
+    },
+    labelStyle: {
+      color: theme?.textColor || DEFAULT_THEME.textColor,
+      fontWeight: 'bold',
+    },
+    buttonTheme: {
+      fill: theme?.backgroundColor || 'none',
+      stroke: theme?.lineColor || DEFAULT_THEME.lineColor,
+      'stroke-width': 1,
+      style: {
+        color: theme?.textColor || DEFAULT_THEME.textColor,
+        fontWeight: 'normal',
+      },
+      states: {
+        hover: {
+          fill: theme?.gridColor || '#f0f0f0',
+          style: {
+            color: theme?.textColor || DEFAULT_THEME.textColor,
+          },
+        },
+        select: {
+          fill: theme?.lineColor || DEFAULT_THEME.lineColor,
+          style: {
+            color: '#ffffff',
+          },
+        },
+      },
+    },
+  };
+};
+
+export const buildNavigatorConfig = (navigator?: NavigatorConfig, theme?: ThemeConfig) => {
+  if (!navigator?.enabled) {
+    return { enabled: false };
+  }
+
+  return {
+    enabled: true,
+    height: navigator.height || 40,
+    margin: navigator.margin || 25,
+    maskFill: navigator.maskFill || 'rgba(102, 133, 194, 0.3)',
+    outlineColor: theme?.lineColor || DEFAULT_THEME.lineColor,
+    outlineWidth: 1,
+    handles: {
+      backgroundColor: theme?.backgroundColor || '#f2f2f2',
+      borderColor: theme?.lineColor || DEFAULT_THEME.lineColor,
+    },
+    xAxis: {
+      gridLineColor: theme?.gridColor || DEFAULT_THEME.gridColor,
+      labels: {
+        style: {
+          color: theme?.textColor || '#666666',
+          fontSize: '10px',
+        },
+      },
+    },
+    yAxis: {
+      gridLineColor: theme?.gridColor || DEFAULT_THEME.gridColor,
+    },
+    series: {
+      color: theme?.colors?.[0] || DEFAULT_THEME.colors[0],
+      fillOpacity: 0.05,
+      lineWidth: 1,
+    },
+  };
+};
+
+export const buildScrollbarConfig = (scrollbar?: ScrollbarConfig, theme?: ThemeConfig) => {
+  if (!scrollbar?.enabled) {
+    return { enabled: false };
+  }
+
+  return {
+    enabled: true,
+    height: scrollbar.height || 20,
+    barBackgroundColor: theme?.gridColor || DEFAULT_THEME.gridColor,
+    barBorderRadius: 7,
+    barBorderWidth: 0,
+    buttonBackgroundColor: theme?.lineColor || DEFAULT_THEME.lineColor,
+    buttonBorderWidth: 0,
+    buttonBorderRadius: 7,
+    trackBackgroundColor: 'none',
+    trackBorderWidth: 1,
+    trackBorderRadius: 8,
+    trackBorderColor: theme?.lineColor || DEFAULT_THEME.lineColor,
+  };
+};
+
+// Rest of your existing utility functions remain the same...
 export const sanitizeMarker = (
   marker?: Highcharts.PointMarkerOptionsObject,
 ): Highcharts.PointMarkerOptionsObject | undefined => {
   if (!marker) return undefined;
 
-  // Ensure symbol is valid or remove it
   const validSymbols = ['circle', 'square', 'diamond', 'triangle', 'triangle-down'];
 
   return {
     ...marker,
     symbol:
-      marker.symbol && validSymbols.includes(marker.symbol as string) ? marker.symbol : 'circle', // Default to circle if invalid
+      marker.symbol && validSymbols.includes(marker.symbol as string) ? marker.symbol : 'circle',
     enabled: marker.enabled !== false,
     radius: typeof marker.radius === 'number' ? marker.radius : 4,
   };
 };
 
-// Helper function to process series data safely
 export const processSeries = (
   series: SeriesData[],
   themedColors: string[],
@@ -71,7 +193,6 @@ export const processSeries = (
       zIndex: s.zIndex,
     };
 
-    // Only add marker if it exists and sanitize it
     if (s.marker) {
       const sanitizedMarker = sanitizeMarker(s.marker);
       if (sanitizedMarker) {
@@ -79,7 +200,6 @@ export const processSeries = (
       }
     }
 
-    // Add event handlers if provided
     if (onPointClick || onSeriesClick) {
       if (onPointClick) {
         seriesConfig.point = {
@@ -112,6 +232,7 @@ export const buildChartConfig = (
   panning: boolean,
   animation: AnimationConfig,
   theme: ThemeConfig | undefined,
+  rangeSelector?: RangeSelectorConfig,
   onChartLoad?: (chart: Highcharts.Chart) => void,
   onRedraw?: () => void,
 ): Highcharts.ChartOptions => ({
@@ -133,6 +254,7 @@ export const buildChartConfig = (
     },
     redraw: onRedraw,
   },
+  marginTop: rangeSelector?.enabled ? 80 : undefined,
   ...(zoomType ? { zoomType: zoomType as any } : {}),
 });
 
@@ -336,7 +458,6 @@ export const exportFallbacks = {
             canvas.width = img.naturalWidth || 800;
             canvas.height = img.naturalHeight || 600;
 
-            // Fill white background for JPEG
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -368,14 +489,13 @@ export const exportFallbacks = {
       }
     });
   },
+
   pdf: (chart: Highcharts.Chart, filename: string) => {
     return new Promise<void>((resolve, reject) => {
       try {
-        // For basic PDF support, we'll save as high-quality PNG
-        // For proper PDF, integrate with jsPDF library
         const svg = chart.getSVG({
           chart: { backgroundColor: '#ffffff' },
-          exporting: { sourceWidth: 1200, sourceHeight: 800 }, // Higher resolution for PDF
+          exporting: { sourceWidth: 1200, sourceHeight: 800 },
         });
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
@@ -391,7 +511,6 @@ export const exportFallbacks = {
             canvas.width = img.naturalWidth || 1200;
             canvas.height = img.naturalHeight || 800;
 
-            // Fill white background
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -399,7 +518,6 @@ export const exportFallbacks = {
 
             canvas.toBlob(blob => {
               if (blob) {
-                // Save as high-quality PNG (basic PDF alternative)
                 downloadBlob(blob, `${filename}.png`);
                 console.warn('PDF saved as PNG. Install jsPDF for proper PDF export.');
                 resolve();

@@ -37,7 +37,7 @@ export const waveBuoysLayerConfig: Partial<CircleLayerSpecification> = {
   },
 };
 
-export const clusterMaxZoom = 14;
+export const clusterMaxZoom = 16;
 
 export const unclusteredWaveBuoysLayerConfig: Partial<CircleLayerSpecification> = {
   filter: ['!', ['has', 'point_count']], // Only show unclustered points

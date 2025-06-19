@@ -52,7 +52,7 @@ export function useWaveBuoysLayerClickHandler(
         layers: [WAVE_BUOYS_LAYER_ID],
       });
       if (!features[0] || !features[0].properties) return;
-
+      console.log(e.features);
       const clusterId = features[0].properties.cluster_id;
 
       const source = mapInstace.getSource(WAVE_BUOYS_SOURCE_ID) as mapboxgl.GeoJSONSource;
@@ -80,13 +80,43 @@ export function useWaveBuoysLayerClickHandler(
     };
   }, [circle, map, distanceMeasurement]);
 
+  /**
+   * how cluster works?
+   * In a zoom level, if the points distance is within the clusterRadius, then these points will be clutered into one group.
+   * With zoomin, the poins outsider clusterRadius will move out from clustered group and go into unclustered layer.
+   *
+   * getClusterLeaves can get points inside a cluser.
+   *
+   * When cluster not enabled, there is only one layer for all the points. And for the poinst that share the same cooridnate location, when click on it,
+   * e.features can include all the points.
+   * But when cluster enabled, the points in same coordinate location will be clustered. And when click on it, temporary points will be created aroung the
+   * clustered point. So we cannot get all the points thourhg e.features. So in order to get all points data for same location and displayed in linechart,
+   * need another way. currently, as for demo, we can use js method to get all the point within same location from geojson data source. In the future better
+   * by calling api.
+   *
+   * And another problme in geojson data, coordinate precision only has one decimal, but in e.features.geometry.coordiates, the prcesion will have multiple decimals.
+   * We can round the coordiates to one decimal to identify point from geojson.
+   */
+
   useEffect(() => {
     //click on unclustered wave buoys layer.
     if (!map.current || !circle || distanceMeasurement) return;
     const mapInstace = map.current;
 
     const handleClick = (e: mapboxgl.MapMouseEvent) => {
-      if (!e.features?.length) return;
+      if (!e.features?.length) return; //queryRenderedFeatures can only get features displayed within viewport.
+
+      console.log(e.features);
+
+      const clusterId = e.features[0].properties?.cluster_id;
+      const source = mapInstace.getSource(WAVE_BUOYS_SOURCE_ID) as mapboxgl.GeoJSONSource;
+      console.log(clusterId);
+      source.getClusterLeaves(clusterId, 100, 0, (err, leaves) => {
+        if (err) return console.error(err);
+        console.log('Features in cluster:', leaves);
+        //TODO: get data from the point and the data consumed by line chart.
+      });
+
       setClickedPointData(normalizeWaveBuouysData(e.features));
     };
 
@@ -103,6 +133,8 @@ export function useWaveBuoysLayerClickHandler(
 
     const handleClick = (e: mapboxgl.MapMouseEvent) => {
       if (!e.features?.length) return;
+
+      console.log(e.features);
       setClickedPointData(normalizeWaveBuouysData(e.features));
     };
 
