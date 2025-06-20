@@ -3,12 +3,10 @@ import {
   UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
   WAVE_BUOYS_LAYER_ID,
   WAVE_BUOYS_SOURCE_ID,
-  ZOOM_LIMIT_TEMP_POINTS_CONNECTION_LINES_LAYER_ID,
-  ZOOM_LIMIT_TEMP_POINTS_CONNECTION_LINES_SOURCE_ID,
   ZOOM_LIMIT_TEMP_POINTS_LAYER_ID,
   ZOOM_LIMIT_TEMP_POINTS_SOURCE_ID,
 } from '@/constants';
-import { createZoomLimitPoints } from '@/helpers';
+import { createZoomLimitPoints, removeZoomLimitTempPoints } from '@/helpers';
 import { useDrawerStore } from '@/store';
 import { WaveBuoyOgcFeature } from '@/types';
 import { normalizeWaveBuouysData } from '@/utils';
@@ -20,27 +18,78 @@ export function useWaveBuoysLayerClickHandler(
   distanceMeasurement: boolean,
 ) {
   const waveBuoysLayerClicked = useRef(false);
+  const tempPointsEventPrevent = useRef(false);
   const openDrawer = useDrawerStore(s => s.openBottomDrawer);
   const [clickedPointData, setClickedPointData] = useState<
     Omit<WaveBuoyOgcFeature, 'type'>[] | null
   >(null);
 
   useEffect(() => {
-    if (!map.current) return;
+    if (!map.current || !circle) return;
+    const mapInstance = map.current;
+
+    const layers = [
+      WAVE_BUOYS_LAYER_ID,
+      UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
+      ZOOM_LIMIT_TEMP_POINTS_LAYER_ID,
+    ];
+
+    const handleMouseEnter = () => {
+      mapInstance.getCanvas().style.cursor = 'pointer';
+    };
+
+    const handleMouseLeave = () => {
+      mapInstance.getCanvas().style.cursor = '';
+    };
+
+    layers.forEach(layerId => {
+      mapInstance.on('mouseenter', layerId, handleMouseEnter);
+      mapInstance.on('mouseleave', layerId, handleMouseLeave);
+    });
+
+    return () => {
+      layers.forEach(layerId => {
+        mapInstance?.off('mouseenter', layerId, handleMouseEnter);
+        mapInstance?.off('mouseleave', layerId, handleMouseLeave);
+      });
+      if (mapInstance?.getCanvas()) {
+        mapInstance.getCanvas().style.cursor = '';
+      }
+    };
+  }, [circle, map]);
+
+  useEffect(() => {
+    if (!map.current || !circle) return;
     const mapInstace = map.current;
 
     const handleMouseDown = (e: mapboxgl.MapMouseEvent & { originalEvent: MouseEvent }) => {
-      const features = map.current!.queryRenderedFeatures(e.point, {
-        layers: [WAVE_BUOYS_LAYER_ID],
+      const wavebuoysLayers = [WAVE_BUOYS_LAYER_ID, UNCLUSTERED_WAVE_BUOYS_LAYER_ID];
+      const hasZoomLimitTempPoints = mapInstace.getSource(ZOOM_LIMIT_TEMP_POINTS_SOURCE_ID);
+
+      const layers = hasZoomLimitTempPoints
+        ? [...wavebuoysLayers, ZOOM_LIMIT_TEMP_POINTS_LAYER_ID]
+        : wavebuoysLayers;
+
+      const features = map.current?.queryRenderedFeatures(e.point, { layers: layers });
+      // Check if wave buoys layers were clicked
+      waveBuoysLayerClicked.current = (features?.length || 0) > 0;
+
+      //handle zoom limit temp points removal
+      if (!hasZoomLimitTempPoints) return;
+      const zoomLimitFeatures = map.current?.queryRenderedFeatures(e.point, {
+        layers: [ZOOM_LIMIT_TEMP_POINTS_LAYER_ID],
       });
-      waveBuoysLayerClicked.current = !!(features && features.length > 0);
+      if (!zoomLimitFeatures?.length) {
+        removeZoomLimitTempPoints(map);
+        tempPointsEventPrevent.current = true;
+      }
     };
 
     mapInstace.on('mousedown', handleMouseDown);
     return () => {
       mapInstace?.off('mousedown', handleMouseDown);
     };
-  }, [map]);
+  }, [circle, map]);
 
   useEffect(() => {
     //click on clustered wave buoys layer
@@ -52,7 +101,7 @@ export function useWaveBuoysLayerClickHandler(
         layers: [WAVE_BUOYS_LAYER_ID],
       });
       if (!features[0] || !features[0].properties) return;
-      console.log(e.features);
+
       const clusterId = features[0].properties.cluster_id;
 
       const source = mapInstace.getSource(WAVE_BUOYS_SOURCE_ID) as mapboxgl.GeoJSONSource;
@@ -106,14 +155,11 @@ export function useWaveBuoysLayerClickHandler(
     const handleClick = (e: mapboxgl.MapMouseEvent) => {
       if (!e.features?.length) return; //queryRenderedFeatures can only get features displayed within viewport.
 
-      console.log(e.features);
-
       const clusterId = e.features[0].properties?.cluster_id;
       const source = mapInstace.getSource(WAVE_BUOYS_SOURCE_ID) as mapboxgl.GeoJSONSource;
-      console.log(clusterId);
       source.getClusterLeaves(clusterId, 100, 0, (err, leaves) => {
         if (err) return console.error(err);
-        console.log('Features in cluster:', leaves);
+        console.log(leaves);
         //TODO: get data from the point and the data consumed by line chart.
       });
 
@@ -133,8 +179,6 @@ export function useWaveBuoysLayerClickHandler(
 
     const handleClick = (e: mapboxgl.MapMouseEvent) => {
       if (!e.features?.length) return;
-
-      console.log(e.features);
       setClickedPointData(normalizeWaveBuouysData(e.features));
     };
 
@@ -153,10 +197,7 @@ export function useWaveBuoysLayerClickHandler(
       const currentZoom = mapInstace.getZoom();
 
       if (currentZoom <= clusterMaxZoom && mapInstace.getSource(ZOOM_LIMIT_TEMP_POINTS_SOURCE_ID)) {
-        mapInstace.removeLayer(ZOOM_LIMIT_TEMP_POINTS_LAYER_ID);
-        mapInstace.removeLayer(ZOOM_LIMIT_TEMP_POINTS_CONNECTION_LINES_LAYER_ID);
-        mapInstace.removeSource(ZOOM_LIMIT_TEMP_POINTS_SOURCE_ID);
-        mapInstace.removeSource(ZOOM_LIMIT_TEMP_POINTS_CONNECTION_LINES_SOURCE_ID);
+        removeZoomLimitTempPoints(map);
       }
     };
 
@@ -167,5 +208,5 @@ export function useWaveBuoysLayerClickHandler(
     };
   }, [map, circle]);
 
-  return { clickedPointData, openDrawer, waveBuoysLayerClicked };
+  return { clickedPointData, openDrawer, waveBuoysLayerClicked, tempPointsEventPrevent };
 }

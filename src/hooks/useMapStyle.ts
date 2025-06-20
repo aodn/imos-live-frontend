@@ -3,13 +3,17 @@ import { styles } from '@/styles';
 
 export function useMapStyle(map: React.RefObject<mapboxgl.Map | null>, style: string) {
   const selectedStyle = useMemo(() => {
-    const a = styles.find(s => s.title === style)?.source || styles[0].source;
-    return a;
+    return styles.find(s => s.title === style)?.source || styles[0].source;
   }, [style]);
 
   useEffect(() => {
     if (!map.current) return;
-    map.current.setStyle(selectedStyle);
+    const applyStyle = () => map.current?.setStyle(selectedStyle);
+
+    if (map.current.isStyleLoaded()) {
+      applyStyle();
+    }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedStyle]);
 }

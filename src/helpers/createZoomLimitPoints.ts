@@ -9,6 +9,7 @@ import {
   ZOOM_LIMIT_TEMP_POINTS_SOURCE_ID,
 } from '@/constants';
 import type { GeoJsonProperties, Geometry, Feature } from 'geojson';
+import { removeZoomLimitTempPoints } from './removeZoomLimitTempPoints';
 
 type PointProperties = {
   [key: string]: any;
@@ -41,10 +42,7 @@ export function createZoomLimitPoints(
   if (!mapInstace) return;
 
   if (mapInstace.getSource(ZOOM_LIMIT_TEMP_POINTS_SOURCE_ID)) {
-    mapInstace.removeLayer(ZOOM_LIMIT_TEMP_POINTS_LAYER_ID);
-    mapInstace.removeLayer(ZOOM_LIMIT_TEMP_POINTS_CONNECTION_LINES_LAYER_ID);
-    mapInstace.removeSource(ZOOM_LIMIT_TEMP_POINTS_SOURCE_ID);
-    mapInstace.removeSource(ZOOM_LIMIT_TEMP_POINTS_CONNECTION_LINES_SOURCE_ID);
+    removeZoomLimitTempPoints(map);
   }
 
   const pixelDistance = 60;

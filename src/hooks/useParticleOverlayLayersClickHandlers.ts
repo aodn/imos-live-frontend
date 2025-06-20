@@ -10,6 +10,7 @@ type UseMapClickHandlersOptions = {
   overlay: boolean;
   particles: boolean;
   waveBuoysLayerClicked: React.RefObject<boolean>;
+  tempPointsEventPrevent: React.RefObject<boolean>;
   distanceMeasurement: boolean;
 };
 //Mapbox GL JS only allows layer-specific click events on vector layers (e.g., fill, circle, line).
@@ -20,6 +21,7 @@ export function useParticleOverlayLayersClickHandlers({
   overlay,
   particles,
   waveBuoysLayerClicked,
+  tempPointsEventPrevent,
   distanceMeasurement,
 }: UseMapClickHandlersOptions) {
   const { showToast } = useToast();
@@ -31,6 +33,11 @@ export function useParticleOverlayLayersClickHandlers({
     const handleClick = async (e: mapboxgl.MapMouseEvent) => {
       if (waveBuoysLayerClicked.current) {
         waveBuoysLayerClicked.current = false;
+        return;
+      }
+
+      if (tempPointsEventPrevent.current) {
+        tempPointsEventPrevent.current = false;
         return;
       }
 
@@ -65,5 +72,14 @@ export function useParticleOverlayLayersClickHandlers({
     return () => {
       mapInstance.off('click', debounceClick);
     };
-  }, [dataset, overlay, particles, distanceMeasurement, map, waveBuoysLayerClicked, showToast]);
+  }, [
+    dataset,
+    overlay,
+    particles,
+    distanceMeasurement,
+    map,
+    waveBuoysLayerClicked,
+    showToast,
+    tempPointsEventPrevent,
+  ]);
 }

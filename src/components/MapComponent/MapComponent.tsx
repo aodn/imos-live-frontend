@@ -61,6 +61,7 @@ export const MapComponent = memo(
       clickedPointData: waveBuoysLayerClickedPointData,
       openDrawer,
       waveBuoysLayerClicked,
+      tempPointsEventPrevent,
     } = useWaveBuoysLayerClickHandler(map, circle, distanceMeasurement);
 
     useEffect(() => {
@@ -79,6 +80,7 @@ export const MapComponent = memo(
       overlay,
       particles,
       waveBuoysLayerClicked,
+      tempPointsEventPrevent,
       distanceMeasurement,
     });
 

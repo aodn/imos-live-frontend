@@ -31,7 +31,8 @@ export function useMapInitialization(
         map.current = null;
       }
     };
-  }, [center, map, style, zoom]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return { map, mapContainer };
 }
