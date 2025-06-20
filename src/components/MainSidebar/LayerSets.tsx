@@ -23,6 +23,7 @@ export const LayerSets = ({ layersDatasets, title, className }: LayerSetsProps) 
               secondButtonLabel="Remove from map"
               layerId={dataset.layerId}
               visible={dataset.visible}
+              icon={dataset.icon}
             />
           </div>
         ))}

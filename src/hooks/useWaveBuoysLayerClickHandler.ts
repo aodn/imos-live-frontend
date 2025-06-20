@@ -129,24 +129,6 @@ export function useWaveBuoysLayerClickHandler(
     };
   }, [circle, map, distanceMeasurement]);
 
-  /**
-   * how cluster works?
-   * In a zoom level, if the points distance is within the clusterRadius, then these points will be clutered into one group.
-   * With zoomin, the poins outsider clusterRadius will move out from clustered group and go into unclustered layer.
-   *
-   * getClusterLeaves can get points inside a cluser.
-   *
-   * When cluster not enabled, there is only one layer for all the points. And for the poinst that share the same cooridnate location, when click on it,
-   * e.features can include all the points.
-   * But when cluster enabled, the points in same coordinate location will be clustered. And when click on it, temporary points will be created aroung the
-   * clustered point. So we cannot get all the points thourhg e.features. So in order to get all points data for same location and displayed in linechart,
-   * need another way. currently, as for demo, we can use js method to get all the point within same location from geojson data source. In the future better
-   * by calling api.
-   *
-   * And another problme in geojson data, coordinate precision only has one decimal, but in e.features.geometry.coordiates, the prcesion will have multiple decimals.
-   * We can round the coordiates to one decimal to identify point from geojson.
-   */
-
   useEffect(() => {
     //click on unclustered wave buoys layer.
     if (!map.current || !circle || distanceMeasurement) return;
@@ -210,3 +192,20 @@ export function useWaveBuoysLayerClickHandler(
 
   return { clickedPointData, openDrawer, waveBuoysLayerClicked, tempPointsEventPrevent };
 }
+/**
+ * how cluster works?
+ * In a zoom level, if the points distance is within the clusterRadius, then these points will be clutered into one group.
+ * With zoomin, the poins outsider clusterRadius will move out from clustered group and go into unclustered layer.
+ *
+ * getClusterLeaves can get points inside a cluser.
+ *
+ * When cluster not enabled, there is only one layer for all the points. And for the poinst that share the same cooridnate location, when click on it,
+ * e.features can include all the points.
+ * But when cluster enabled, the points in same coordinate location will be clustered. And when click on it, temporary points will be created aroung the
+ * clustered point. So we cannot get all the points thourhg e.features. So in order to get all points data for same location and displayed in linechart,
+ * need another way. currently, as for demo, we can use js method to get all the point within same location from geojson data source. In the future better
+ * by calling api.
+ *
+ * And another problme in geojson data, coordinate precision only has one decimal, but in e.features.geometry.coordiates, the prcesion will have multiple decimals.
+ * We can round the coordiates to one decimal to identify point from geojson.
+ */

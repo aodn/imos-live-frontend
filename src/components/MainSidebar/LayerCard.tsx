@@ -6,6 +6,7 @@ import { LayersDataset } from './MainSidebarContent';
 import { CollapsibleComponent, TriggerArgs } from '../Collapsible';
 import { cn } from '@/utils';
 import { useViewportSize } from '@/hooks';
+import { ReactNode } from 'react';
 
 export type LayerCardProps = LayersDataset & {
   firstButtonLabel: string;
@@ -21,6 +22,7 @@ export const LayerCard = ({
   addToMap,
   visible,
   layerId,
+  icon,
 }: LayerCardProps) => {
   const { widthBreakpoint } = useViewportSize();
   const isMobileOrTablet = ['sm', 'md'].includes(widthBreakpoint || '');
@@ -38,6 +40,7 @@ export const LayerCard = ({
         isWidthFiexed
         trigger={({ toggle, open, direction, toggleIconHidden }: TriggerArgs) => (
           <CardTrigger
+            icon={icon}
             title={title}
             open={open}
             toggle={toggle}
@@ -53,7 +56,7 @@ export const LayerCard = ({
           </div>
           <div className="flex-1  flex flex-col justify-between">
             <div>
-              <h3 className={`font-semibold mb-2`}>{title}</h3>
+              <h3 className="font-semibold mb-2 hidden md:block">{title}</h3>
               <p className={`text-sm mb-3 leading-relaxed`}>{description}</p>
             </div>
 
@@ -82,12 +85,14 @@ const CardTrigger = ({
   direction = 'down',
   toggleIconHidden = false,
   title,
-}: TriggerArgs & { title: string }) => {
+  icon,
+}: TriggerArgs & { title: string; icon: ReactNode }) => {
   const shouldRotate = direction === 'down' ? open : !open;
   return (
     <div className="md:hidden">
       <div className="flex items-center justify-between">
-        <div>
+        <div className="flex  gap-x-4">
+          {icon}
           <h3 className={`font-semibold mb-2`}>{title}</h3>
         </div>
         {!toggleIconHidden && (

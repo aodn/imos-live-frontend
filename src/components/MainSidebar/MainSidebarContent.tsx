@@ -6,7 +6,7 @@ import { LayerSets } from './LayerSets';
 import { headderDataMock, layerProductsMock, featuredDatasetMock } from './mock';
 import { useMapUIStore } from '@/store';
 import { useShallow } from 'zustand/shallow';
-import { useMemo } from 'react';
+import { ReactNode, useMemo } from 'react';
 import { cn, normalizeLayerSets } from '@/utils';
 
 export type HeaderData = {
@@ -16,6 +16,7 @@ export type HeaderData = {
 export type LayersDataset = {
   image: ImageType;
   title: string;
+  icon: ReactNode;
   description: string;
   addToMap: (v: boolean) => void;
   layerId: string;

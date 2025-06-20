@@ -37,12 +37,12 @@ export const CollapsibleTrigger = ({
         >
           {FirstIcon ? (
             <FirstIcon
-              color="imos-white"
+              color="imos-grey"
               className={cn('transition-transform duration-300', open && 'rotate-180')}
             />
           ) : (
             <ArrowDownIcon
-              color="imos-white"
+              color="imos-grey"
               className={cn('transition-transform duration-300', open && 'rotate-180')}
             />
           )}
@@ -58,9 +58,9 @@ export const CollapsibleTrigger = ({
           )}
         >
           {SecondIcon ? (
-            <SecondIcon color="imos-white" size="xl" className="md:rotate-180" />
+            <SecondIcon color="imos-grey" size="xl" className="md:rotate-180" />
           ) : (
-            <DragIndicatorIcon color="imos-white" size="xl" className="rotate-180" />
+            <DragIndicatorIcon color="imos-grey" size="xl" className="rotate-180" />
           )}
         </Button>
 
@@ -73,7 +73,7 @@ export const CollapsibleTrigger = ({
           onClick={toggle}
         >
           {SecondIcon ? (
-            <SecondIcon color="imos-white" size="xl" className="md:rotate-180" />
+            <SecondIcon color="imos-grey" size="xl" className="md:rotate-180" />
           ) : (
             <LayersIcon color="imos-grey" size="xl" />
           )}

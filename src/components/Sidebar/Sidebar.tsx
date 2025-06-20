@@ -78,7 +78,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           onClick={handleOpen}
           className={cn('absolute z-20 left-4 top-4', openButtonClassName)}
         >
-          {openButtonContent || <MenuIcon size="xl" />}
+          {openButtonContent || <MenuIcon size="xl" color="imos-white" />}
         </Button>
       )}
 

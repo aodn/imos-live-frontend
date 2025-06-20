@@ -11,6 +11,10 @@ import {
   DateSelectionBar,
   UrlSyncHandler,
   Drawer,
+  LayersIndicator,
+  WaterSurfaceIcon,
+  WaveIcon,
+  SatelliteIcon,
 } from '@/components';
 import { useDrawerStore, useMapUIStore } from '@/store';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -61,11 +65,19 @@ export const Map = () => {
             className="absolute!"
             handleHidden
           />
+          <LayersIndicator
+            className="md:hidden absolute top-10 left-4 z-10"
+            layers={[
+              { Icon: WaveIcon, label: 'particles' },
+              { Icon: WaterSurfaceIcon, label: 'overlay' },
+              { Icon: SatelliteIcon, label: 'circle' },
+            ]}
+          />
           <MapComponent ref={mapRef} key={isMobileOrTablet ? 'mobile' : 'desktop'} />
-          <MapControlPanel ref={mapRef} className="absolute top-16 left-4 z-10 hidden md:block" />
+          <MapControlPanel ref={mapRef} className="absolute top-10 left-0 z-10 hidden md:block" />
           <DateSelectionBar className="absolute bottom-10 left-1/2 -translate-x-1/2 w-full pointer-events-none" />
           <FloatingPanel
-            wrapperClassName="w-20 md:w-fit bg-[#aeb5bd] rounded-xl"
+            wrapperClassName="w-14 md:w-fit bg-emerald-300  rounded-xl"
             boundary="parent"
             collapsible
             children={
