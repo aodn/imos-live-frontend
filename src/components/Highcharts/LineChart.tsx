@@ -1,5 +1,5 @@
 import React, { useRef, useImperativeHandle, useMemo, memo } from 'react';
-import Highcharts from 'highcharts/highstock'; // Use highstock instead of regular highcharts
+import Highcharts from 'highcharts/highstock';
 import HighchartsReact from 'highcharts-react-official';
 import { LineChartProps } from './type';
 import { initializeHighchartsModules } from './utils';
@@ -45,7 +45,7 @@ export const LineChart = memo(({ ref, ...props }: LineChartProps) => {
       <HighchartsReact
         ref={chartRef}
         highcharts={Highcharts}
-        constructorType={'stockChart'} // THIS IS CRITICAL - use stockChart constructor
+        constructorType={'stockChart'}
         options={chartOptions}
         allowChartUpdate={true}
         updateArgs={[true, true, true]}

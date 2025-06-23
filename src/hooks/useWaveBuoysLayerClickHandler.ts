@@ -135,16 +135,7 @@ export function useWaveBuoysLayerClickHandler(
     const mapInstace = map.current;
 
     const handleClick = (e: mapboxgl.MapMouseEvent) => {
-      if (!e.features?.length) return; //queryRenderedFeatures can only get features displayed within viewport.
-
-      const clusterId = e.features[0].properties?.cluster_id;
-      const source = mapInstace.getSource(WAVE_BUOYS_SOURCE_ID) as mapboxgl.GeoJSONSource;
-      source.getClusterLeaves(clusterId, 100, 0, (err, leaves) => {
-        if (err) return console.error(err);
-        console.log(leaves);
-        //TODO: get data from the point and the data consumed by line chart.
-      });
-
+      if (!e.features?.length) return;
       setClickedPointData(normalizeWaveBuouysData(e.features));
     };
 
@@ -199,13 +190,8 @@ export function useWaveBuoysLayerClickHandler(
  *
  * getClusterLeaves can get points inside a cluser.
  *
- * When cluster not enabled, there is only one layer for all the points. And for the poinst that share the same cooridnate location, when click on it,
- * e.features can include all the points.
- * But when cluster enabled, the points in same coordinate location will be clustered. And when click on it, temporary points will be created aroung the
- * clustered point. So we cannot get all the points thourhg e.features. So in order to get all points data for same location and displayed in linechart,
- * need another way. currently, as for demo, we can use js method to get all the point within same location from geojson data source. In the future better
- * by calling api.
- *
  * And another problme in geojson data, coordinate precision only has one decimal, but in e.features.geometry.coordiates, the prcesion will have multiple decimals.
  * We can round the coordiates to one decimal to identify point from geojson.
+ *
+ * queryRenderedFeatures can only get features displayed within viewport.
  */

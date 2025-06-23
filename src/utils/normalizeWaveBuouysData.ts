@@ -11,7 +11,7 @@ export function normalizeWaveBuouysData(
 }
 
 type WaveBuoyData = {
-  data: { x: number; y: number }[];
+  date: Date;
   geometry: WaveBuoyOgcFeature['geometry'];
 };
 
@@ -19,14 +19,12 @@ export function toWaveBuoyChartData(waveBuoys: Omit<WaveBuoyOgcFeature, 'type'>[
   if (waveBuoys.length === 0) {
     throw new Error('waveBuoys must contain at least one feature');
   }
-
+  //this needs to be revised, because after enable clustering, each point is plotted from
+  //one point in geojson. And this function should generate data has one coordinate and one date,
+  //then we can use this date and coordinate to query from endpoint or other ways to get
+  //detailed data that need to be displayed in highchart.
   return {
     geometry: waveBuoys[0].geometry,
-    data: waveBuoys
-      .map(w => ({
-        x: new Date(w.properties.date).getTime(),
-        y: w.properties.count,
-      }))
-      .sort((a, b) => a.x - b.x),
+    date: new Date(waveBuoys[0].properties.date),
   };
 }

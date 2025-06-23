@@ -62,21 +62,35 @@ export const buildRangeSelectorConfig = (
     selected: rangeSelector.selected || 1,
     buttons: rangeSelector.buttons || defaultButtons,
     inputEnabled: rangeSelector.inputEnabled !== false,
-    inputBoxBorderColor: theme?.lineColor || DEFAULT_THEME.lineColor,
+
+    inputBoxBorderColor:
+      rangeSelector.inputBoxBorderColor || theme?.lineColor || DEFAULT_THEME.lineColor,
     inputBoxWidth: rangeSelector.inputBoxWidth || 120,
-    inputBoxHeight: rangeSelector.inputBoxHeight || 18,
-    inputStyle: {
+    inputBoxHeight: rangeSelector.inputBoxHeight || 20,
+    inputStyle: rangeSelector.inputStyle || {
       color: theme?.textColor || DEFAULT_THEME.textColor,
-      fontWeight: 'normal',
+      fontSize: '12px',
+      fontFamily: 'Arial, sans-serif',
+      background: 'white',
+      border: '1px solid #cccccc',
+      zIndex: 10,
+      opacity: 1,
     },
+    inputDateFormat: rangeSelector.inputDateFormat || '%Y-%m-%d',
+    inputEditDateFormat: rangeSelector.inputEditDateFormat || '%Y-%m-%d',
+    floating: rangeSelector.floating || false,
+    y: rangeSelector.y || 0,
+    height: rangeSelector.height || 35,
     labelStyle: {
       color: theme?.textColor || DEFAULT_THEME.textColor,
       fontWeight: 'bold',
     },
+
     buttonTheme: {
       fill: theme?.backgroundColor || 'none',
       stroke: theme?.lineColor || DEFAULT_THEME.lineColor,
       'stroke-width': 1,
+      zIndex: 7,
       style: {
         color: theme?.textColor || DEFAULT_THEME.textColor,
         fontWeight: 'normal',
@@ -254,10 +268,12 @@ export const buildChartConfig = (
     },
     redraw: onRedraw,
   },
-  marginTop: rangeSelector?.enabled ? 80 : undefined,
+  // Improved margin calculations for range selector
+  marginTop: rangeSelector?.enabled ? 100 : undefined, // Increased from 80
+  marginBottom: 120, // Add bottom margin for navigator
+  spacing: [10, 10, 15, 10], // [top, right, bottom, left] spacing
   ...(zoomType ? { zoomType: zoomType as any } : {}),
 });
-
 export const buildTitleConfig = (
   title: string,
   subtitle: string | undefined,
@@ -551,4 +567,26 @@ export const downloadBlob = (blob: Blob, filename: string) => {
   link.click();
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
+};
+
+export const calculateDateRange = (seriesData: any[]) => {
+  if (!seriesData || seriesData.length === 0) return { min: null, max: null };
+
+  let minDate = Infinity;
+  let maxDate = -Infinity;
+
+  seriesData.forEach(series => {
+    if (series.data && series.data.length > 0) {
+      const firstPoint = series.data[0][0]; // First timestamp
+      const lastPoint = series.data[series.data.length - 1][0]; // Last timestamp
+
+      minDate = Math.min(minDate, firstPoint);
+      maxDate = Math.max(maxDate, lastPoint);
+    }
+  });
+
+  return {
+    min: minDate === Infinity ? null : minDate,
+    max: maxDate === -Infinity ? null : maxDate,
+  };
 };

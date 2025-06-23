@@ -3,13 +3,14 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { LineChart } from './LineChart';
 import Highcharts from 'highcharts';
 import { useRef } from 'react';
+import { SeriesData } from './type';
 
 // Data generators for different scenarios
 const generateTimeSeriesData = (
   days: number = 365,
   baseValue: number = 100,
   volatility: number = 20,
-) => {
+): SeriesData['data'] => {
   const data = [];
   const startDate = new Date('2023-01-01').getTime();
   const oneDay = 24 * 60 * 60 * 1000;
@@ -32,18 +33,20 @@ const generateCryptoData = (days: number = 180) => {
 
   for (let i = 0; i < days; i++) {
     const date = startDate + i * oneDay;
-    // High volatility crypto-like pattern
-    const change = (Math.random() - 0.5) * 0.15; // ±15% daily change potential
+    const change = (Math.random() - 0.5) * 0.15;
     price = Math.max(1000, price * (1 + change));
     data.push([date, Math.round(price * 100) / 100]);
   }
-  console.log(data);
+
   return data;
 };
 
 const generateMultipleMetrics = () => {
   const revenue = generateTimeSeriesData(365, 1000, 100);
-  const profit = revenue.map(([date, value]) => [date, value * 0.3 + Math.random() * 50]);
+  const profit = revenue.map(point => {
+    const [date, value] = point as [number, number];
+    return [date, value * 0.3 + Math.random() * 50];
+  });
   const users = generateTimeSeriesData(365, 5000, 500);
 
   return { revenue, profit, users };

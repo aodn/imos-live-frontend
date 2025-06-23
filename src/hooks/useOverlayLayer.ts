@@ -14,6 +14,7 @@ import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { overlayLayerConfig } from '@/config';
 import { useToast } from '@/components';
 import { useState } from 'react';
+import { getMetaData } from '@/api';
 
 export function useOverlayLayer(
   map: React.RefObject<mapboxgl.Map | null>,
@@ -25,7 +26,7 @@ export function useOverlayLayer(
   const [isError, setIsError] = useState(false);
 
   const setDataByDataset = async () => {
-    const meta = await tryCatch(processMetaData(buildDatasetUrl(dataset, GSLA_META_NAME)), () => {
+    const meta = await tryCatch(getMetaData(buildDatasetUrl(dataset, GSLA_META_NAME)), () => {
       showToast({
         type: 'error',
         title: 'Error occurred',
@@ -36,7 +37,7 @@ export function useOverlayLayer(
     });
     if (!meta) return;
 
-    const { maxBounds, lonRange, latRange } = meta;
+    const { maxBounds, lonRange, latRange } = processMetaData(meta);
 
     setIsError(false);
 

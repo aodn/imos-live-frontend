@@ -12,7 +12,7 @@ export interface DataPoint {
 
 export interface SeriesData {
   name: string;
-  data: number[] | DataPoint[];
+  data: (number | string)[][] | DataPoint[];
   color?: string;
   type?: 'line' | 'spline' | 'area' | 'areaspline' | 'column' | 'scatter';
   lineWidth?: number;
@@ -74,6 +74,26 @@ export interface RangeSelectorConfig {
     x?: number;
     y?: number;
   };
+  inputBoxBorderColor?: string;
+  inputStyle?: {
+    color?: string;
+    fontSize?: string;
+    fontFamily?: string;
+    background?: string;
+    border?: string;
+    zIndex?: number;
+    opacity?: number;
+    textAlign?: string;
+    lineHeight?: string;
+    padding?: string;
+    margin?: string;
+    boxSizing?: string;
+  };
+  inputDateFormat?: string;
+  inputEditDateFormat?: string;
+  y?: number; // Positioning from top
+  height?: number; // Height of range selector
+  floating?: boolean; // Whether it floats over chart
 }
 
 export interface NavigatorConfig {
@@ -161,6 +181,7 @@ export interface LineChartProps {
   tooltip?: TooltipConfig;
   legend?: Highcharts.LegendOptions;
   plotOptions?: Highcharts.PlotOptions;
+  chart?: Partial<Highcharts.ChartOptions>;
 
   // Interaction
   zoomType?: 'x' | 'y' | 'xy';

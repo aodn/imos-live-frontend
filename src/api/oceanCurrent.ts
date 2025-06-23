@@ -1,4 +1,4 @@
-import api from './instance';
+import { api } from './instance';
 
 export interface OceanCurrentResponse {
   u: number;

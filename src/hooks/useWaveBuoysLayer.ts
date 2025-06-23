@@ -31,7 +31,7 @@ export function useWaveBuoysLayer(
       map: map.current!,
       id: WAVE_BUOYS_SOURCE_ID,
       // url: buildOgcBuoysUrl('b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc'),
-      url: '/ogcapi-wavebuoy.json',
+      url: '/ogcapi-argo.json',
       enableCluser: true,
       clusterRadius: 40,
     });

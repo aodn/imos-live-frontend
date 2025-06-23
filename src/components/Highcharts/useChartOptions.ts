@@ -46,24 +46,28 @@ export const useChartOptions = (props: LineChartProps) => {
     onRangeSelect, // Add this
     onRangeButtonClick, // Add this
     accessibility,
+    chart,
   } = props;
 
   const themedColors = useMemo(() => theme?.colors || DEFAULT_THEME.colors, [theme?.colors]);
 
   return useMemo(() => {
     const chartOptions: Highcharts.Options = {
-      chart: buildChartConfig(
-        width,
-        height,
-        zoomType,
-        panKey,
-        panning,
-        animation,
-        theme,
-        rangeSelector, // Pass rangeSelector to adjust margins
-        onChartLoad,
-        onRedraw,
-      ),
+      chart: {
+        ...buildChartConfig(
+          width,
+          height,
+          zoomType,
+          panKey,
+          panning,
+          animation,
+          theme,
+          rangeSelector, // Pass rangeSelector to adjust margins
+          onChartLoad,
+          onRedraw,
+        ),
+        ...chart,
+      },
 
       ...buildTitleConfig(title, subtitle, theme),
 
@@ -154,11 +158,12 @@ export const useChartOptions = (props: LineChartProps) => {
     zoomType,
     panKey,
     panning,
-    rangeSelector, // Add these to dependencies
+    rangeSelector,
     navigator,
     scrollbar,
     exporting,
     boost,
+    chart,
     turboThreshold,
     onPointClick,
     onSeriesClick,

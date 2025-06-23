@@ -1,4 +1,4 @@
-import api from './instance';
+import { fakeApi } from './instance';
 
 export type RangeType = [number, number];
 
@@ -10,6 +10,6 @@ export type MetaType = {
 };
 
 export const getMetaData = async (url: string): Promise<MetaType> => {
-  const response = await api.get<MetaType>(url);
+  const response = await fakeApi.get<MetaType>(url);
   return response.data;
 };

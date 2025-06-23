@@ -2,8 +2,17 @@ import axios from 'axios';
 
 const datasetBaseUrl = import.meta.env.VITE_DATASET_BASE_URL;
 
-const api: Axios.AxiosInstance = axios.create({
+export const api: Axios.AxiosInstance = axios.create({
   baseURL: `${datasetBaseUrl}/api/v1`,
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+  },
+});
+
+export const fakeApi: Axios.AxiosInstance = axios.create({
+  baseURL: ``,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -29,5 +38,3 @@ api.interceptors.response.use(
     return Promise.reject(error);
   },
 );
-
-export default api;

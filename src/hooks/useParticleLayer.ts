@@ -14,6 +14,7 @@ import { useParticleLayerVisibility } from './useParticleLayerVisibility';
 import { useParticleLayerRef } from './useParticleLayerRef';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useToast } from '@/components';
+import { getMetaData } from '@/api';
 
 export function useParticleLayer(
   map: React.RefObject<mapboxgl.Map | null>,
@@ -26,7 +27,7 @@ export function useParticleLayer(
   const [isError, setIsError] = useState(false);
 
   const setDataByDataset = async () => {
-    const meta = await tryCatch(processMetaData(buildDatasetUrl(dataset, GSLA_META_NAME)), () => {
+    const meta = await tryCatch(getMetaData(buildDatasetUrl(dataset, GSLA_META_NAME)), () => {
       showToast({
         type: 'error',
         title: 'Error occurred',
@@ -38,7 +39,7 @@ export function useParticleLayer(
 
     if (!meta) return;
 
-    const { maxBounds, bounds, lonRange, latRange, uRange, vRange } = meta;
+    const { maxBounds, bounds, lonRange, latRange, uRange, vRange } = processMetaData(meta);
 
     map.current!.setMaxBounds(maxBounds);
 

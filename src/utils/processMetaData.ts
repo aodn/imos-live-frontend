@@ -1,4 +1,4 @@
-import { getMetaData, MetaType, RangeType } from '@/api';
+import { MetaType, RangeType } from '@/api';
 
 type MaxBoundsType = [range: RangeType, range: RangeType];
 
@@ -9,8 +9,7 @@ export type ProcessedMetaType = MetaType & {
   maxBounds: MaxBoundsType;
 };
 
-export async function processMetaData(url: string): Promise<ProcessedMetaType> {
-  const meta: MetaType = await getMetaData(url);
+export function processMetaData(meta: MetaType): ProcessedMetaType {
   const { lonRange, latRange, uRange, vRange } = meta;
 
   //fours lines shape a rectangle, lon x, lat y.
