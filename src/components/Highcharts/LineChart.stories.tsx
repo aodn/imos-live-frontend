@@ -54,7 +54,7 @@ const generateMultipleMetrics = () => {
 
 // Meta configuration
 const meta: Meta<typeof LineChart> = {
-  title: 'Charts/LineChart Examples',
+  title: 'components/LineChart',
   component: LineChart,
   parameters: {
     layout: 'fullscreen',
