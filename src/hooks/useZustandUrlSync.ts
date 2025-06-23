@@ -15,7 +15,7 @@ const serialize = (value: any): string => {
   if (typeof value === 'number') return String(value);
 
   try {
-    return btoa(JSON.stringify(value));
+    return JSON.stringify(value);
   } catch {
     return String(value);
   }
@@ -30,7 +30,7 @@ const deserialize = (value: string, originalValue: any): any => {
   if (typeof originalValue === 'string') return value;
   if (typeof originalValue === 'object' && originalValue !== null) {
     try {
-      return JSON.parse(atob(value));
+      return JSON.parse(value);
     } catch {
       try {
         return JSON.parse(value);
