@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { shortDateFormatToUTC } from '@/utils';
+import { dateToUTC } from '@/utils';
 import { useSearchParams } from 'react-router-dom';
 import { INITIAL_DATASET } from '@/store';
 import { SliderExposedMethod } from '@/components/DateSlider';
@@ -26,6 +26,6 @@ export function useSliderDateSyncWithUrl(
     if (attemptCount.current > maxAttempts) return;
 
     lastDataset.current = dataset;
-    setDateTime(shortDateFormatToUTC(dataset), 'point');
+    setDateTime(dateToUTC(dataset), 'point');
   }, [dataset, searchParams, sliderMethodRef]);
 }

@@ -6,7 +6,7 @@ import {
   SelectionResult,
   SliderExposedMethod,
 } from '../DateSlider';
-import { getLast7DatesEnding3DaysAgo, shortDateFormatToUTC, toShortDateFormat, cn } from '@/utils';
+import { getLast7DatesEnding3DaysAgo, dateToUTC, toDateFormatString, cn } from '@/utils';
 import { useMapUIStore } from '@/store';
 import { memo, useCallback, useMemo, useRef } from 'react';
 import { useShallow } from 'zustand/shallow';
@@ -36,7 +36,7 @@ export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
 
   const handleSelect = useCallback(
     (v: PointSelection) => {
-      setDataset(toShortDateFormat(v.point));
+      setDataset(toDateFormatString(v.point));
     },
     [setDataset],
   );
@@ -48,7 +48,7 @@ export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
         initialTimeUnit="day"
         startDate={startDate}
         endDate={endDate}
-        initialPoint={shortDateFormatToUTC(dataset)}
+        initialPoint={dateToUTC(dataset)}
         pointHandleIcon={<TriangleIcon size="xxl" color="imos-grey" />}
         sliderClassName={dateSliderStyles.frosted}
         timeUnitSlectionClassName={dateSliderStyles.frosted}

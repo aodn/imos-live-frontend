@@ -1,10 +1,10 @@
 import { FixedLengthArray } from '@/types';
 
 /**
- * Get the last 7 dates in the format "YY-MM-DD" ending 3 days ago.
+ * Get the last 7 dates in the format "YYYY-MM-DD" ending 3 days ago.
  * The dates are in descending order, starting from 6 days ago to 3 days ago.
  * For example, if today is 2023-10-10, the output will be:
- * ["23-10-01", "23-10-02", "23-10-03", "23-10-04", "23-10-05", "23-10-06", "23-10-07"]
+ * ["2023-10-01", "2023-10-02", "2023-10-03", "2023-10-04", "2023-10-05", "2023-10-06", "2023-10-07"]
  * @returns Last 7 dates in the format "YY-MM-DD" ending 3 days ago.
  * By passing format like 'yyyy-mm-dd', 'yy-mm-dd', 'dd/mm/yyyy', it will generate dates liek:
  * getLast7DatesEnding3DaysAgo('yy-mm-dd');
@@ -17,7 +17,7 @@ import { FixedLengthArray } from '@/types';
     → ['25.05.2024', ..., '31.05.2024']
  */
 export function getLast7DatesEnding3DaysAgo(
-  format: string = 'yy-mm-dd',
+  format: string = 'yyyy-mm-dd',
 ): FixedLengthArray<string, 7> {
   const dates: string[] = [];
   const today = new Date();
@@ -51,36 +51,35 @@ export function getLast7DatesEnding3DaysAgo(
  * @param dateString
  * @returns
  */
-export function toShortDateFormat(dateString: string | Date): string {
+export function toDateFormatString(dateString: string | Date): string {
   const date = new Date(dateString);
   if (isNaN(date.getTime())) {
     throw new Error(`Invalid date string: "${dateString}"`);
   }
 
-  const yy = String(date.getFullYear()).slice(-2);
+  const yy = String(date.getFullYear());
   const mm = String(date.getMonth() + 1).padStart(2, '0');
   const dd = String(date.getDate()).padStart(2, '0');
 
   return `${yy}-${mm}-${dd}`;
 }
 
-/**
- * Convert data from yy-mm-dd to UTC.
- * @param yyMmDd
- * @returns
- */
-export function shortDateFormatToUTC(dateString: string): Date {
-  const [yy, mm, dd] = dateString.split('-').map(Number);
-
-  if ([yy, mm, dd].some(isNaN)) {
-    throw new Error(`Invalid date string: ${dateString}`);
+export function dateToUTC(dateString: string): Date {
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) {
+    throw new Error(`Invalid date string: "${dateString}"`);
   }
-
-  // Assume 2000–2099 for 2-digit year
-  const fullYear = yy + 2000;
-
-  // Date.UTC expects month in 0–11 range
-  return new Date(Date.UTC(fullYear, mm - 1, dd));
+  return new Date(
+    Date.UTC(
+      date.getUTCFullYear(),
+      date.getUTCMonth(),
+      date.getUTCDate(),
+      date.getUTCHours(),
+      date.getUTCMinutes(),
+      date.getUTCSeconds(),
+      date.getUTCMilliseconds(),
+    ),
+  );
 }
 
 /**
