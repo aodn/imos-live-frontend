@@ -5,6 +5,7 @@ export async function tryCatch<T>(
   try {
     return await promise;
   } catch (err) {
+    console.log(err);
     onError?.(err);
     return undefined;
   }

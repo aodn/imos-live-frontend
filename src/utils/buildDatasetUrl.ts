@@ -1,5 +1,4 @@
-const datasetBaseUrl = import.meta.env.VITE_DATASET_BASE_URL;
-
+const VITE_S3_BASE_URL = import.meta.env.VITE_S3_BASE_URL;
 /**
  * Builds a dataset URL for fetching assets.
  *
@@ -8,6 +7,6 @@ const datasetBaseUrl = import.meta.env.VITE_DATASET_BASE_URL;
  * @param type
  */
 export function buildDatasetUrl(date: string, type: string): string {
-  return `${datasetBaseUrl}/images/${date}/${type}`;
+  return `${VITE_S3_BASE_URL}/${date}/${type}`;
   //return `${date}/${type}`;
 }
