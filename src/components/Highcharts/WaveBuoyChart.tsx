@@ -1,58 +1,81 @@
-import { WaveBuoyOgcFeature } from '@/types';
+import { BuoyDataVariants, WaveBuoyPositionFeature } from '@/types';
 import { LineChart } from './LineChart';
 import { toWaveBuoyChartData } from '@/utils';
 import { useWaveBuoyDetails } from '@/hooks';
 import { useMemo } from 'react';
 import { SeriesData } from './type';
 
-const seriesStyle: Partial<SeriesData>[] = [
-  {
-    name: 'WPPE',
-    color: '#e17055',
-    type: 'line',
-    lineWidth: 2,
-    marker: { enabled: true, radius: 2, symbol: 'circle' },
-  },
-  {
-    name: 'WPDS',
-    color: '#0984e3',
-    type: 'spline',
-    lineWidth: 2,
-    marker: { enabled: true, radius: 2, symbol: 'square' },
-  },
-  {
-    name: 'WHTH',
-    color: '#00b894',
-    type: 'line',
-    lineWidth: 2,
-    marker: { enabled: true },
-  },
+const buoyDataVariants: BuoyDataVariants[] = [
+  'WPPE',
+  'WPDS',
+  'WPDI',
+  'SSWMD',
+  // 'WAVE_quality_control',
+  'WMDS',
+  'WPFM',
+  'WSSH',
 ];
 
+const colors = [
+  '#e17055',
+  '#0984e3',
+  '#00b894',
+  '#6c5ce7',
+  '#fdcb6e',
+  '#d63031',
+  '#74b9ff',
+  '#55efc4',
+];
+
+function generateSeriesStyles(viriants: string[]): Partial<SeriesData>[] {
+  return viriants.map((v, index) => ({
+    name: v,
+    color: colors[index % colors.length],
+    type: 'line',
+    lineWidth: 2,
+    marker: {
+      enabled: true,
+      radius: 2,
+      symbol: 'circle',
+    },
+  }));
+}
+
 type WaveBuoyChartProps = {
-  waveBuoysData: Omit<WaveBuoyOgcFeature, 'type'>[];
+  waveBuoysData: Omit<WaveBuoyPositionFeature, 'type'>[];
 };
 
 const WaveBuoyChart = ({ waveBuoysData }: WaveBuoyChartProps) => {
-  const { date, geometry } = toWaveBuoyChartData(waveBuoysData);
-  const { data, loading, error } = useWaveBuoyDetails(
-    date.toISOString(),
-    geometry.coordinates[1],
-    geometry.coordinates[0],
-  );
+  const { dateString, buoy, geometry } = toWaveBuoyChartData(waveBuoysData);
+  const { data, loading, error } = useWaveBuoyDetails(dateString, buoy);
 
-  const seriseData: SeriesData[] | null = useMemo(() => {
-    if (!data || data.length === 0) return null;
-    return data?.map(d => ({
-      ...d,
-      ...seriesStyle.find(s => s.name === d.name),
-    }));
+  const seriseData: SeriesData[] = useMemo(() => {
+    if (!data) return [];
+    const { features } = data;
+    if (!features.length) return [];
+
+    const properties = features[0].properties;
+
+    const seriesStyle = generateSeriesStyles(buoyDataVariants);
+
+    return buoyDataVariants.map(variant => {
+      const d = properties[variant];
+      return {
+        ...d,
+        name: variant,
+        ...seriesStyle.find(s => s.name === variant),
+      };
+    });
   }, [data]);
 
-  const subtitle = `Location: ( lng: ${geometry.coordinates[0].toFixed(2)} lat: ${geometry.coordinates[1].toFixed(2)} )`;
+  const subtitle = useMemo(
+    () =>
+      `Position:  ( lng: ${geometry.coordinates[0].toFixed(2)} lat: ${geometry.coordinates[1].toFixed(2)} )`,
+    [geometry.coordinates],
+  );
+
   if (error) return <div>error</div>;
   if (loading) return <div>loading</div>;
-  if (!data || data.length === 0) return null;
 
   return (
     <LineChart
@@ -60,7 +83,7 @@ const WaveBuoyChart = ({ waveBuoysData }: WaveBuoyChartProps) => {
       height={500}
       series={seriseData!}
       subtitle={subtitle}
-      title="Wave Buous Data"
+      title={data?.metadata.location}
       turboThreshold={4000}
       rangeSelector={{
         enabled: true,
@@ -141,25 +164,3 @@ const WaveBuoyChart = ({ waveBuoysData }: WaveBuoyChartProps) => {
   );
 };
 export default WaveBuoyChart;
-//TODOS: 1. the data will be fetched through api calling based on the date, geometry. 2. there should be a conditional rendering,
-// if failed to get data, render error message. Otherwise, render this linechart. When fetching, display a loader.
-
-/**
- * Task: 1. plot wave buoys data in circles on map. 2. should be able to select date range, then only wave buoys data within this
- * date range will be plotted on map. 3. when click on a wave buoy circle(point), the bottom drawer triggered, time series LineChart
- * will appear inside this drawer, and this chart will display time series data of this wave buoy point.
- *
- * How to make it: 1. create wave buoy layer and change wave buouy layer's data source as date change. 2. when click a wave buoy point
- * on map, get this point's date and geometry coordinate. 3. the drawer triggered, make api call with the date and coordinate as query params
- * to get this point's time series data. If succeed, add the time series data to series props of linechart.
- *
- *
- * Current problems: 1. we do not have a endpoint to return wave buoys data on daily basis, currently it is month basis. so we need to
- * have an endpoint getting daily data. 2. We do not have a endpoint to get one specific buoy's time series data based on date and coordinates.
- * Currently, I have a csv file called apollpBat.csv under public folder given by Eduardo and it can be used as mock time serise data for every
- * buoy point. But the correct way to do this is still we have an endpoint to get this data.
- *
- * My current temporary dev way: 1. define each wave buoy time series data types that returned from API. 2. create a function to convert
- * this csv file to expected type. 3. pre-process this csv file using the function and generate a json file saved under public. 3. use axios call
- * to get response from this pre-preocessed json file. 4. add the response data to linechart.
- */

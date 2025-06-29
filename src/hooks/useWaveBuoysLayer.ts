@@ -6,7 +6,7 @@ import {
   WAVE_BUOYS_SOURCE_ID,
 } from '@/constants';
 import { addLayerInOrder, addOrUpdateGeoJsonSource } from '@/helpers';
-import { sleep } from '@/utils';
+import { buildBuoyLocationDatasetUrl, sleep } from '@/utils';
 import { useDidMountEffect } from './useDidMountEffect';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
 import { useMapboxLayerRef } from './useMapboxLayerRef';
@@ -30,8 +30,7 @@ export function useWaveBuoysLayer(
     addOrUpdateGeoJsonSource({
       map: map.current!,
       id: WAVE_BUOYS_SOURCE_ID,
-      // url: buildOgcBuoysUrl('b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc'),
-      url: '/ogcapi-argo.json',
+      url: buildBuoyLocationDatasetUrl(dataset),
       enableCluser: true,
       clusterRadius: 40,
     });
@@ -102,7 +101,7 @@ export function useWaveBuoysLayer(
   useDidMountEffect(() => {
     if (!map.current || !loadComplete) return;
     setDataByDataset();
-  }, [loadComplete]);
+  }, [loadComplete, dataset]);
 
   return { waveBuoysLayer };
 }

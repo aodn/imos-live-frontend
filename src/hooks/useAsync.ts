@@ -1,9 +1,5 @@
-import {
-  getOceanCurrentDetails,
-  getWaveBuoyDetails,
-  OceanCurrentResponse,
-  WaveBuoyDetails,
-} from '@/api';
+import { getOceanCurrentDetails, getWaveBuoyDetails, OceanCurrentResponse } from '@/api';
+import { WaveBuoyDetailsFeatureCollection } from '@/types';
 import { useState, useEffect, useCallback } from 'react';
 
 interface UseAsyncOptions<TArgs extends any[]> {
@@ -47,10 +43,10 @@ export function useAsync<TData, TArgs extends any[] = []>(
   return { data, error, loading, refetch: call };
 }
 
-export function useWaveBuoyDetails(date: string, lat: number, lon: number) {
-  return useAsync<WaveBuoyDetails, [string, number, number]>(getWaveBuoyDetails, {
+export function useWaveBuoyDetails(date: string, buoy: string) {
+  return useAsync<WaveBuoyDetailsFeatureCollection, [string, string]>(getWaveBuoyDetails, {
     immediate: true,
-    args: [date, lat, lon],
+    args: [date, buoy],
   });
 }
 

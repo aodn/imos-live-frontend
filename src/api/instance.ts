@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 const datasetBaseUrl = import.meta.env.VITE_DATASET_BASE_URL;
+const s3_base_url = import.meta.env.VITE_S3_BASE_URL;
 
 export const api: Axios.AxiosInstance = axios.create({
   baseURL: `${datasetBaseUrl}/api/v1`,
@@ -11,8 +12,8 @@ export const api: Axios.AxiosInstance = axios.create({
   },
 });
 
-export const fakeApi: Axios.AxiosInstance = axios.create({
-  baseURL: ``,
+export const s3Api: Axios.AxiosInstance = axios.create({
+  baseURL: `${s3_base_url}`,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',

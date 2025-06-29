@@ -6,7 +6,11 @@ const VITE_S3_BASE_URL = import.meta.env.VITE_S3_BASE_URL;
  * @param date
  * @param type
  */
-export function buildDatasetUrl(date: string, type: string): string {
-  return `${VITE_S3_BASE_URL}/${date}/${type}`;
-  //return `${date}/${type}`;
+
+export function buildGSLADatasetUrl(date: string, type: string): string {
+  return `${VITE_S3_BASE_URL}/GSLA/${date}/${type}`;
+}
+
+export function buildBuoyLocationDatasetUrl(date: string): string {
+  return `${VITE_S3_BASE_URL}/BUOY/buoy_locations/buoy_locations_${date}.geojson`;
 }
