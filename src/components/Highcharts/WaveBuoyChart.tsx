@@ -140,7 +140,7 @@ const WaveBuoyChart = ({ waveBuoysData }: WaveBuoyChartProps) => {
       xAxis={{
         type: 'datetime',
         title: { text: 'Date & Time' },
-        labels: { format: '{value:%m/%d}' },
+        labels: { format: '{value:%H:%M}' },
         offset: 0,
       }}
       yAxis={{

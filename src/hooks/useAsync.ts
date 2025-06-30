@@ -1,6 +1,6 @@
 import { getOceanCurrentDetails, getWaveBuoyDetails, OceanCurrentResponse } from '@/api';
 import { WaveBuoyDetailsFeatureCollection } from '@/types';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 interface UseAsyncOptions<TArgs extends any[]> {
   immediate?: boolean;
@@ -14,19 +14,35 @@ export function useAsync<TData, TArgs extends any[] = []>(
   const [data, setData] = useState<TData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const call = useCallback(
     async (...args: TArgs) => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+
+      abortControllerRef.current = new AbortController();
+      const currentController = abortControllerRef.current;
+
       setLoading(true);
       setError(null);
 
       try {
         const result = await asyncFunction(...args);
-        setData(result);
+
+        // Only update state if this request wasn't aborted
+        if (!currentController.signal.aborted) {
+          setData(result);
+        }
       } catch (err: any) {
-        setError(err?.response?.data?.message || err.message || 'Unknown error');
+        if (!currentController.signal.aborted) {
+          setError(err?.response?.data?.message || err.message || 'Unknown error');
+        }
       } finally {
-        setLoading(false);
+        if (!currentController.signal.aborted) {
+          setLoading(false);
+        }
       }
     },
     [asyncFunction],
@@ -37,6 +53,13 @@ export function useAsync<TData, TArgs extends any[] = []>(
     if (options.immediate) {
       call(...((options.args ?? []) as TArgs));
     }
+
+    // Cleanup function to abort any pending requests
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [call, options.immediate]);
 
