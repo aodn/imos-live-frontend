@@ -11,7 +11,7 @@ export type BuoyDataVariants =
   | 'WPFM'
   | 'WSSH';
 
-type BuoyItemContent<T> = {
+export type BuoyItemContent<T> = {
   name: T;
   data: SeriesData['data'];
 };

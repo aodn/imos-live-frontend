@@ -1,51 +1,18 @@
-import { BuoyDataVariants, WaveBuoyPositionFeature } from '@/types';
+import { WaveBuoyPositionFeature } from '@/types';
 import { LineChart } from './LineChart';
 import { toWaveBuoyChartData } from '@/utils';
 import { useWaveBuoyDetails } from '@/hooks';
 import { useMemo } from 'react';
 import { SeriesData } from './type';
-
-const buoyDataVariants: BuoyDataVariants[] = [
-  'WPPE',
-  'WPDS',
-  'WPDI',
-  'SSWMD',
-  // 'WAVE_quality_control',
-  'WMDS',
-  'WPFM',
-  'WSSH',
-];
-
-const colors = [
-  '#e17055',
-  '#0984e3',
-  '#00b894',
-  '#6c5ce7',
-  '#fdcb6e',
-  '#d63031',
-  '#74b9ff',
-  '#55efc4',
-];
-
-function generateSeriesStyles(viriants: string[]): Partial<SeriesData>[] {
-  return viriants.map((v, index) => ({
-    name: v,
-    color: colors[index % colors.length],
-    type: 'line',
-    lineWidth: 2,
-    marker: {
-      enabled: true,
-      radius: 2,
-      symbol: 'circle',
-    },
-  }));
-}
+import { buoyDataDirectionVariant, buoyDataVariants } from './config';
+import { generateSeriesStyles, processDirectionData } from './utils';
 
 type WaveBuoyChartProps = {
   waveBuoysData: Omit<WaveBuoyPositionFeature, 'type'>[];
+  showDirection?: boolean;
 };
 
-const WaveBuoyChart = ({ waveBuoysData }: WaveBuoyChartProps) => {
+const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => {
   const { dateString, buoy, geometry } = toWaveBuoyChartData(waveBuoysData);
   const { data, loading, error } = useWaveBuoyDetails(dateString, buoy);
 
@@ -56,23 +23,80 @@ const WaveBuoyChart = ({ waveBuoysData }: WaveBuoyChartProps) => {
 
     const properties = features[0].properties;
 
-    const seriesStyle = generateSeriesStyles(buoyDataVariants);
+    const noneDirectionVariants = buoyDataVariants.filter(b => b !== buoyDataDirectionVariant);
 
-    return buoyDataVariants.map(variant => {
+    const seriesStyle = generateSeriesStyles(noneDirectionVariants);
+
+    const regularSeries = noneDirectionVariants.map(variant => {
       const d = properties[variant];
       return {
         ...d,
         name: variant,
         ...seriesStyle.find(s => s.name === variant),
+        yAxis: 0,
       };
     });
-  }, [data]);
+
+    const allSeries = [...regularSeries];
+
+    if (showDirection) {
+      if (properties[buoyDataDirectionVariant]) {
+        const directionSeries = processDirectionData(properties[buoyDataDirectionVariant]);
+        if (directionSeries) {
+          allSeries.push(directionSeries);
+        }
+      }
+    }
+    return allSeries;
+  }, [data, showDirection]);
 
   const subtitle = useMemo(
     () =>
       `Position:  ( lng: ${geometry.coordinates[0].toFixed(2)} lat: ${geometry.coordinates[1].toFixed(2)} )`,
     [geometry.coordinates],
   );
+
+  const yAxisConfig = useMemo(() => {
+    if (!showDirection) {
+      // Single axis when no direction arrows
+      return {
+        gridLineWidth: 1,
+        lineWidth: 0,
+        tickWidth: 0,
+        title: { text: 'Wave Height (m)' },
+        labels: { style: { fontSize: '12px' } },
+        offset: 0,
+      };
+    }
+
+    return [
+      // Primary axis for wave data (takes up most of chart)
+      {
+        gridLineWidth: 1,
+        lineWidth: 0,
+        tickWidth: 0,
+        title: { text: 'Wave Height (m)' },
+        labels: { style: { fontSize: '12px' } },
+        offset: 0,
+        height: '85%', // Use 85% of chart height
+        top: '5%', // Start 5% from top
+      },
+      // Secondary axis for arrows (small space at bottom)
+      {
+        title: { text: null },
+        labels: { enabled: false },
+        gridLineWidth: 0,
+        lineWidth: 0,
+        tickWidth: 0,
+        visible: false,
+        height: '10%', // Use 10% of chart height
+        top: '90%', // Position at 90% from top (bottom area)
+        min: -1, // Fixed range for arrow positioning
+        max: 1,
+        offset: 0,
+      },
+    ];
+  }, [showDirection]);
 
   if (error) return <div>error</div>;
   if (loading) return <div>loading</div>;
@@ -132,25 +156,18 @@ const WaveBuoyChart = ({ waveBuoysData }: WaveBuoyChartProps) => {
       }}
       chart={{
         marginTop: 80,
-        marginBottom: 100,
+        marginBottom: 80,
         spacing: [10, 10, 15, 10],
       }}
       scrollbar={{ enabled: true, height: 20 }}
       responsive={true}
       xAxis={{
         type: 'datetime',
-        title: { text: 'Date & Time' },
+        // title: { text: 'Date & Time' },
         labels: { format: '{value:%H:%M}' },
         offset: 0,
       }}
-      yAxis={{
-        gridLineWidth: 1,
-        lineWidth: 0,
-        tickWidth: 0,
-        title: { text: null },
-        labels: { style: { fontSize: '12px' } },
-        offset: 0,
-      }}
+      yAxis={yAxisConfig}
       plotOptions={{
         series: {
           clip: true,
@@ -159,6 +176,12 @@ const WaveBuoyChart = ({ waveBuoysData }: WaveBuoyChartProps) => {
       }}
       tooltip={{
         shared: true,
+        customFormatter: point => {
+          if (point.series.name === buoyDataDirectionVariant) {
+            return `<span style="color:${point.color}">●</span> ${point.series.name}: <b>${point.options?.direction?.toFixed(1)}°</b> (to)<br/>`;
+          }
+          return `<span style="color:${point.color}">●</span> ${point.series.name}: <b>${point.y?.toFixed(2)} m</b><br/>`;
+        },
       }}
     />
   );

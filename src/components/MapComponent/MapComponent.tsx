@@ -69,7 +69,7 @@ export const MapComponent = memo(
       if (waveBuoysLayerClickedPointData) {
         openDrawer(
           <Suspense fallback={<div>Loading...</div>}>
-            <WaveBuoyChart waveBuoysData={waveBuoysLayerClickedPointData} />
+            <WaveBuoyChart waveBuoysData={waveBuoysLayerClickedPointData} showDirection={true} />
           </Suspense>,
         );
       }

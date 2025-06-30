@@ -20,8 +20,9 @@ export interface SeriesData {
   marker?: Highcharts.PointMarkerOptionsObject;
   visible?: boolean;
   showInLegend?: boolean;
-  yAxis?: number;
+  yAxis: number;
   zIndex?: number;
+  tooltip?: Highcharts.TooltipOptions;
 }
 
 export interface ThemeConfig {
