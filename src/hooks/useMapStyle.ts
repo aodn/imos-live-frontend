@@ -8,7 +8,8 @@ export function useMapStyle(map: React.RefObject<mapboxgl.Map | null>, style: st
 
   useEffect(() => {
     if (!map.current) return;
-    const applyStyle = () => map.current?.setStyle(selectedStyle);
+
+    const applyStyle = () => map.current?.setStyle(selectedStyle as any);
 
     if (map.current.isStyleLoaded()) {
       applyStyle();
