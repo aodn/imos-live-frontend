@@ -11,9 +11,7 @@ export function useMapStyle(map: React.RefObject<mapboxgl.Map | null>, style: st
 
     const applyStyle = () => map.current?.setStyle(selectedStyle as any);
 
-    if (map.current.isStyleLoaded()) {
-      applyStyle();
-    }
+    applyStyle();
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedStyle]);
