@@ -1,11 +1,15 @@
 import { OVERLAY_LAYER_ID, PARTICLE_LAYER_ID, WAVE_BUOYS_LAYER_ID } from '@/constants';
 import { WaterSurfaceIcon, WaveIcon, RadarIcon, SatelliteIcon } from '../Icons';
 import { LayersDataset } from './MainSidebarContent';
+import occeanCurrentImage from '@/assets/layer_test_1.jpg';
+import anomalySeaLevelImage from '@/assets/layer_test_2.jpg';
+import waveBuoysImage from '@/assets/layer_test_3.jpg';
+import loggImage from '@/assets/imos_logo_with_title.png';
 
 export const headderDataMock = {
   title: 'IMOS Live',
   image: {
-    src: 'src/assets/imos_logo_with_title.png',
+    src: loggImage,
     alt: 'IMOS Logo',
     height: 63,
     width: 147,
@@ -15,7 +19,7 @@ export const headderDataMock = {
 export const featuredDatasetMock: LayersDataset[] = [
   {
     image: {
-      src: 'src/assets/layer_test_1.jpg',
+      src: occeanCurrentImage,
       alt: 'Layer Test 1',
     },
     title: 'GSLA Ocean current',
@@ -28,7 +32,7 @@ export const featuredDatasetMock: LayersDataset[] = [
   },
   {
     image: {
-      src: 'src/assets/layer_test_2.jpg',
+      src: anomalySeaLevelImage,
       alt: 'Layer Test 2',
     },
     title: 'GSLA Anomaly sea levels',
@@ -41,7 +45,7 @@ export const featuredDatasetMock: LayersDataset[] = [
   },
   {
     image: {
-      src: 'src/assets/layer_test_3.jpg',
+      src: waveBuoysImage,
       alt: 'Layer Test 3',
     },
     title: 'Wave buoys',

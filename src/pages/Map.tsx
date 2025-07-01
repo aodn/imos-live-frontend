@@ -22,6 +22,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useViewportSize } from '@/hooks';
 import { Header as MapHeader } from '@/components';
 import { useShallow } from 'zustand/shallow';
+import logImage from '@/assets/imos_logo_with_title.png';
 
 export const Map = () => {
   const refreshDatasets = useMapUIStore(s => s.refreshDatasets);
@@ -47,7 +48,7 @@ export const Map = () => {
         <MapHeader
           className="md:hidden"
           image={{
-            src: 'src/assets/imos_logo_with_title.png',
+            src: logImage,
             alt: 'IMOS Logo',
             height: 63,
             width: 147,
