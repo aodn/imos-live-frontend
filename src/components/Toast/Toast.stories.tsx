@@ -503,35 +503,34 @@ export const Playground: Story = {
     },
   },
   argTypes: {
-    'toastConfig.type': {
-      control: { type: 'select' },
-      options: ['success', 'error', 'warning', 'info'],
-    },
-    'toastConfig.position': {
-      control: { type: 'select' },
-      options: [
-        'top-left',
-        'top-center',
-        'top-right',
-        'bottom-left',
-        'bottom-center',
-        'bottom-right',
-      ],
-    },
-    'toastConfig.duration': {
-      control: { type: 'number', min: 1000, max: 10000, step: 1000 },
-    },
-    'toastConfig.title': {
-      control: { type: 'text' },
-    },
-    'toastConfig.message': {
-      control: { type: 'text' },
-    },
-    'toastConfig.closable': {
-      control: { type: 'boolean' },
-    },
-    'toastConfig.persistent': {
-      control: { type: 'boolean' },
+    toastConfig: {
+      control: { type: 'object' },
+      position: {
+        control: { type: 'select' },
+        options: [
+          'top-left',
+          'top-center',
+          'top-right',
+          'bottom-left',
+          'bottom-center',
+          'bottom-right',
+        ],
+      },
+      duration: {
+        control: { type: 'number', min: 1000, max: 10000, step: 1000 },
+      },
+      title: {
+        control: { type: 'text' },
+      },
+      message: {
+        control: { type: 'text' },
+      },
+      closable: {
+        control: { type: 'boolean' },
+      },
+      persistent: {
+        control: { type: 'boolean' },
+      },
     },
   },
   parameters: {
