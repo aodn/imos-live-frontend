@@ -43,8 +43,8 @@ export const Demo: Story = {
   render: (args: DrawerProps) => {
     const { openDrawer, content } = useDrawerStore(
       useShallow(state => ({
-        openDrawer: state.openDrawer,
-        content: state.content,
+        openDrawer: state.openBottomDrawer,
+        content: state.bottomDrawer.content,
       })),
     );
 

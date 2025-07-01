@@ -16,7 +16,7 @@ type RelativeType = 'topLeft' | 'topRight';
 export type DragWrapperProps = {
   boundary?: 'window' | 'parent';
   dragHandleClassName?: string;
-  children: ReactNode;
+  children?: ReactNode;
   initialPosition?: PositionType;
   disableDragging?: boolean;
   isPositionReset?: boolean;

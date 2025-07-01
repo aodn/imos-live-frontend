@@ -92,6 +92,7 @@ export const FinancialDashboard: Story = {
         color: '#1f77b4',
         type: 'line',
         lineWidth: 2,
+        yAxis: 0,
       },
       {
         name: 'GOOGL',
@@ -99,6 +100,7 @@ export const FinancialDashboard: Story = {
         color: '#ff7f0e',
         type: 'line',
         lineWidth: 2,
+        yAxis: 0,
       },
       {
         name: 'MSFT',
@@ -106,6 +108,7 @@ export const FinancialDashboard: Story = {
         color: '#2ca02c',
         type: 'line',
         lineWidth: 2,
+        yAxis: 0,
       },
     ],
     rangeSelector: {
@@ -176,6 +179,7 @@ export const CryptoDashboard: Story = {
         type: 'line',
         lineWidth: 3,
         marker: { enabled: false },
+        yAxis: 0,
       },
       {
         name: 'Moving Average (7d)',
@@ -185,6 +189,7 @@ export const CryptoDashboard: Story = {
         lineWidth: 1,
         dashStyle: 'Dash',
         marker: { enabled: false },
+        yAxis: 0,
       },
     ],
     rangeSelector: {
@@ -337,6 +342,7 @@ export const MinimalDesign: Story = {
         type: 'spline',
         lineWidth: 3,
         marker: { enabled: false },
+        yAxis: 0,
       },
     ],
     rangeSelector: {
@@ -395,6 +401,7 @@ export const ScientificData: Story = {
         type: 'line',
         lineWidth: 2,
         marker: { enabled: true, radius: 2, symbol: 'circle' },
+        yAxis: 0,
       },
       {
         name: 'Humidity (%)',
@@ -503,6 +510,7 @@ export const HighPerformance: Story = {
         type: 'line',
         lineWidth: 1,
         marker: { enabled: false },
+        yAxis: 0,
       },
     ],
     boost: true,
@@ -629,6 +637,7 @@ export const InteractiveControls: Story = {
         color: '#6c5ce7',
         type: 'line',
         lineWidth: 2,
+        yAxis: 0,
       },
     ],
     rangeSelector: {
@@ -662,6 +671,7 @@ export const CustomTheme: Story = {
         type: 'spline',
         lineWidth: 3,
         marker: { enabled: true, radius: 3, symbol: 'circle' },
+        yAxis: 0,
       },
       {
         name: 'System Load',
@@ -670,6 +680,7 @@ export const CustomTheme: Story = {
         type: 'line',
         lineWidth: 2,
         dashStyle: 'Dash',
+        yAxis: 0,
       },
     ],
     rangeSelector: {
@@ -745,6 +756,7 @@ export const Playground: Story = {
         color: '#3498db',
         type: 'line',
         lineWidth: 2,
+        yAxis: 0,
       },
     ],
     rangeSelector: {
