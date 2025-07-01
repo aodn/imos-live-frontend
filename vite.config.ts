@@ -1,4 +1,4 @@
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig, loadEnv, Plugin } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import path from 'path';
 import svgr from 'vite-plugin-svgr';
@@ -8,7 +8,7 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd());
   return {
-    plugins: [react(), tailwindcss(), svgr()],
+    plugins: [react(), tailwindcss(), svgr(), excludeStorybookFiles()],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
@@ -27,3 +27,15 @@ export default defineConfig(({ mode }) => {
     },
   };
 });
+
+function excludeStorybookFiles(): Plugin {
+  return {
+    name: 'exclude-storybook-files',
+    load(id) {
+      if (id.match(/\.stories\.(t|j)sx?$/) || id.endsWith('.stories.mdx')) {
+        return ''; // empty module
+      }
+      return null;
+    },
+  };
+}
