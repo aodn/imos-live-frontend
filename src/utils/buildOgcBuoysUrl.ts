@@ -1,4 +1,3 @@
-// const OGC_BASE_URL = import.meta.env.VITE_OGC_BASE_URL;
 /**
  * Builds a URL for fetching buoys geojson.
  *

@@ -3,6 +3,7 @@ import { DateSlider } from './DateSlider';
 import type { SliderProps, TimeUnit, SelectionResult, DragHandle } from './type';
 import { FaDotCircle, FaArrowsAltH } from 'react-icons/fa';
 import { Button } from '../Button';
+import type { StoryFn } from '@storybook/react';
 
 export default {
   title: 'Components/DateSlider',
@@ -95,14 +96,14 @@ const ControlButtons = memo(
         {(viewMode === 'range' || viewMode === 'combined') && (
           <>
             <Button
-              onClick={() => handleSetDateTime(new Date('2021-06-01'), 'rangeStart')}
+              onClick={() => handleSetDateTime(new Date('2021-06-01'), 'start')}
               size="sm"
               style={buttonStyle}
             >
               Set Range Start to 2021-06-01
             </Button>
             <Button
-              onClick={() => handleSetDateTime(new Date('2021-09-01'), 'rangeEnd')}
+              onClick={() => handleSetDateTime(new Date('2021-09-01'), 'end')}
               size="sm"
               style={buttonStyle}
             >
@@ -170,6 +171,10 @@ const DateSliderTemplate = (args: Partial<SliderProps>) => {
       >
         <DateSlider
           {...args}
+          startDate={args.startDate ?? new Date('2000-01-01')}
+          endDate={args.endDate ?? new Date('2030-12-31')}
+          viewMode={args.viewMode ?? 'point'}
+          initialTimeUnit={args.initialTimeUnit ?? 'day'}
           onChange={handleSelectionChange}
           imperativeHandleRef={sliderRef}
           pointHandleIcon={<FaDotCircle />}
@@ -184,7 +189,7 @@ const DateSliderTemplate = (args: Partial<SliderProps>) => {
   );
 };
 
-const Template = DateSliderTemplate;
+const Template: StoryFn<Partial<SliderProps>> = DateSliderTemplate;
 
 // Story configurations with better defaults and documentation
 export const RangeMode = Template.bind({});
@@ -203,14 +208,6 @@ RangeMode.args = {
   trackBaseClassName: 'bg-gray-200/20',
   minGapScaleUnits: 1,
 };
-RangeMode.storyName = 'Range Selection Mode';
-RangeMode.parameters = {
-  docs: {
-    description: {
-      story: 'Allows users to select a date range with start and end handles.',
-    },
-  },
-};
 
 export const PointMode = Template.bind({});
 PointMode.args = {
@@ -223,14 +220,6 @@ PointMode.args = {
   sliderHeight: 90,
   trackActiveClassName: 'bg-green-400/20',
   trackBaseClassName: 'bg-gray-100/20',
-};
-PointMode.storyName = 'Point Selection Mode';
-PointMode.parameters = {
-  docs: {
-    description: {
-      story: 'Allows users to select a single point in time.',
-    },
-  },
 };
 
 export const CombinedMode = Template.bind({});
@@ -250,14 +239,6 @@ CombinedMode.args = {
   trackBaseClassName: 'bg-gray-300/20',
   minGapScaleUnits: 2,
 };
-CombinedMode.storyName = 'Combined Selection Mode';
-CombinedMode.parameters = {
-  docs: {
-    description: {
-      story: 'Combines both range and point selection in a single slider.',
-    },
-  },
-};
 
 export const FixedTRackWidthSlider = Template.bind({});
 FixedTRackWidthSlider.args = {
@@ -274,14 +255,6 @@ FixedTRackWidthSlider.args = {
   sliderHeight: 100,
   trackActiveClassName: 'bg-orange-400/20',
   trackBaseClassName: 'bg-gray-200/20',
-};
-FixedTRackWidthSlider.storyName = 'FixedTRackWidth';
-FixedTRackWidthSlider.parameters = {
-  docs: {
-    description: {
-      story: 'Slider that fills the available width with fixed track proportions.',
-    },
-  },
 };
 
 export const CustomStyles = Template.bind({});
@@ -305,14 +278,6 @@ CustomStyles.args = {
   minGapScaleUnits: 1,
   trackPaddingX: 48,
 };
-CustomStyles.storyName = 'Custom Styling';
-CustomStyles.parameters = {
-  docs: {
-    description: {
-      story: 'Demonstrates custom styling capabilities with gradients and borders.',
-    },
-  },
-};
 
 export const YearlyOverview = Template.bind({});
 YearlyOverview.args = {
@@ -329,13 +294,5 @@ YearlyOverview.args = {
     gap: 60,
     width: { short: 2, medium: 4, long: 8 },
     height: { short: 10, medium: 20, long: 40 },
-  },
-};
-YearlyOverview.storyName = 'Yearly Timeline';
-YearlyOverview.parameters = {
-  docs: {
-    description: {
-      story: 'Long-term timeline spanning multiple decades with yearly granularity.',
-    },
   },
 };

@@ -1,15 +1,7 @@
 import { SeriesData } from '@/components';
 
 // Wave Buoy Details Types
-export type BuoyDataVariants =
-  | 'WPPE'
-  | 'WPDS'
-  | 'WPDI'
-  | 'SSWMD'
-  | 'WAVE_quality_control'
-  | 'WMDS'
-  | 'WPFM'
-  | 'WSSH';
+export type BuoyDataVariants = 'SSWMD' | 'WAVE_quality_control' | 'WPFM' | 'WSSH';
 
 export type BuoyItemContent<T> = {
   name: T;
