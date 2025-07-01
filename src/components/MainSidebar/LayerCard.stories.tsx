@@ -20,6 +20,7 @@ export const Primary: Story = {
       alt: 'Layer Test 1',
     },
     title: 'Featured Dataset 01',
+    icon: null,
     description:
       'm ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.m ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
     addToMap: (v: boolean) => console.log(v),
