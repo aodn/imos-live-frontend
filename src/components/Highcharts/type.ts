@@ -23,6 +23,7 @@ export interface SeriesData {
   yAxis: number;
   zIndex?: number;
   tooltip?: Highcharts.TooltipOptions;
+  [key: string]: any;
 }
 
 export interface ThemeConfig {

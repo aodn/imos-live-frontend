@@ -1,10 +1,10 @@
-import { WaveBuoyPositionFeature } from '@/types';
+import { BuoyItemContent, WaveBuoyPositionFeature } from '@/types';
 import { LineChart } from './LineChart';
 import { toWaveBuoyChartData } from '@/utils';
 import { useWaveBuoyDetails } from '@/hooks';
 import { useMemo } from 'react';
 import { SeriesData } from './type';
-import { buoyDataDirectionVariant, buoyDataVariants } from './config';
+import { buoyDataDirectionVariant, buoyDataInfoVariant, noneDirectionVariants } from './config';
 import { generateSeriesStyles, processDirectionData } from './utils';
 
 type WaveBuoyChartProps = {
@@ -12,9 +12,26 @@ type WaveBuoyChartProps = {
   showDirection?: boolean;
 };
 
+type DataLookup<T extends string> = Record<T, BuoyItemContent<T>>;
+
 const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => {
   const { dateString, buoy, geometry } = toWaveBuoyChartData(waveBuoysData);
   const { data, loading, error } = useWaveBuoyDetails(dateString, buoy);
+
+  const dataLookup = useMemo(() => {
+    if (!data?.features?.length) return {} as DataLookup<(typeof buoyDataInfoVariant)[number]>;
+
+    const properties = data.features[0].properties;
+    return buoyDataInfoVariant.reduce(
+      (acc, variant) => {
+        if (properties[variant]) {
+          acc[variant] = properties[variant];
+        }
+        return acc;
+      },
+      {} as DataLookup<(typeof buoyDataInfoVariant)[number]>,
+    );
+  }, [data]);
 
   const seriseData: SeriesData[] = useMemo(() => {
     if (!data) return [];
@@ -22,8 +39,6 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
     if (!features.length) return [];
 
     const properties = features[0].properties;
-
-    const noneDirectionVariants = buoyDataVariants.filter(b => b !== buoyDataDirectionVariant);
 
     const seriesStyle = generateSeriesStyles(noneDirectionVariants);
 
@@ -37,17 +52,11 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
       };
     });
 
-    const allSeries = [...regularSeries];
+    const directionSeries = showDirection
+      ? processDirectionData(properties[buoyDataDirectionVariant])
+      : null;
 
-    if (showDirection) {
-      if (properties[buoyDataDirectionVariant]) {
-        const directionSeries = processDirectionData(properties[buoyDataDirectionVariant]);
-        if (directionSeries) {
-          allSeries.push(directionSeries);
-        }
-      }
-    }
-    return allSeries;
+    return directionSeries ? [...regularSeries, directionSeries] : [...regularSeries];
   }, [data, showDirection]);
 
   const subtitle = useMemo(
@@ -176,11 +185,30 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
       }}
       tooltip={{
         shared: true,
-        customFormatter: point => {
+        split: false,
+        useHTML: true,
+        customFormatter: function (context: any) {
+          const point = context.point;
+          const datetime = new Date(point.x).toLocaleString();
+
+          let tooltipHTML = `<div style="font-size: 12px;"><b>Time:</b> ${datetime}<br/>`;
+
           if (point.series.name === buoyDataDirectionVariant) {
-            return `<span style="color:${point.color}">●</span> ${point.series.name}: <b>${point.options?.direction?.toFixed(1)}°</b> (to)<br/>`;
+            const wavePeriodPoint = dataLookup.WPFM?.data.find(
+              d => Array.isArray(d) && d[0] === point.x,
+            );
+
+            const wavePeriod =
+              wavePeriodPoint && Array.isArray(wavePeriodPoint) ? wavePeriodPoint[1] : null;
+
+            const direction = point.options?.direction || point.y;
+            tooltipHTML += `<span style="color:${point.color}">●</span> <b>${point.series.name}:</b> ${direction?.toFixed(1)}° (to)<br/><span style="color:${point.color}">●</span> <b>${dataLookup.WPFM?.name}:</b> ${wavePeriod} s<br/>`;
+          } else {
+            tooltipHTML += `<span style="color:${point.color}">●</span> <b>${point.series.name}:</b> ${point.y?.toFixed(2)} m<br/>`;
           }
-          return `<span style="color:${point.color}">●</span> ${point.series.name}: <b>${point.y?.toFixed(2)} m</b><br/>`;
+
+          tooltipHTML += '</div>';
+          return tooltipHTML;
         },
       }}
     />

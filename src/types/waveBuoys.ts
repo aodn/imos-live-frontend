@@ -14,7 +14,16 @@ export type BuoyDataVariants =
 export type BuoyItemContent<T> = {
   name: T;
   data: SeriesData['data'];
-};
+  units?: string;
+  valid_max?: number;
+  valid_min?: number;
+  standard_name?: string;
+  long_name?: string;
+  positive?: string;
+  reference_datum?: string;
+  ancillary_variable?: string;
+  compass_correction_applied?: string;
+} & Record<string, any>;
 
 type BuouyItem<T extends string> = Record<T, BuoyItemContent<T>>;
 

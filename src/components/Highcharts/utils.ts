@@ -321,20 +321,25 @@ export const buildAxisConfig = (axis: any, theme: ThemeConfig | undefined) => {
   return axis ? [{ ...defaultAxis, ...axis }] : [defaultAxis];
 };
 
-export const buildTooltipConfig = (tooltip: any, theme: ThemeConfig | undefined) => ({
-  shared: true,
-  backgroundColor: theme?.backgroundColor || 'rgba(255, 255, 255, 0.95)',
-  borderColor: theme?.lineColor || DEFAULT_THEME.lineColor,
-  style: {
-    color: theme?.textColor || DEFAULT_THEME.textColor,
-  },
-  formatter: tooltip?.customFormatter
-    ? function (this: any) {
-        return tooltip.customFormatter!(this);
-      }
-    : undefined,
-  ...tooltip,
-});
+export const buildTooltipConfig = (tooltip: any, theme: ThemeConfig | undefined) => {
+  const { customFormatter, ...otherTooltipProps } = tooltip || {};
+
+  return {
+    shared: true,
+    useHTML: true,
+    backgroundColor: theme?.backgroundColor || 'rgba(255, 255, 255, 0.95)',
+    borderColor: theme?.lineColor || DEFAULT_THEME.lineColor,
+    style: {
+      color: theme?.textColor || DEFAULT_THEME.textColor,
+    },
+    formatter: customFormatter
+      ? function (this: any) {
+          return customFormatter(this);
+        }
+      : undefined,
+    ...otherTooltipProps,
+  };
+};
 
 export const buildLegendConfig = (legend: any, theme: ThemeConfig | undefined) => ({
   itemStyle: {
@@ -618,9 +623,10 @@ export function createDirectionArrow(
   const arrowDirection = direction + 180; // Point where waves are going TO
 
   const arrowSvg = `
-    <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+     <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
       <g transform="rotate(${arrowDirection} 16 16)">
-        <path d="M16 4 L24 20 L16 16 L8 20 Z" fill="${color}" stroke="#fff" stroke-width="1.5"/>
+        <rect x="14.5" y="8" width="3" height="16" fill="${color}"/>
+        <path d="M16 4 L24 12 L20 12 L16 8 L12 12 L8 12 Z" fill="${color}"/>
       </g>
     </svg>
   `;
