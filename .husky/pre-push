@@ -1,0 +1,11 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+branch="$(git symbolic-ref --short HEAD)"
+
+# Accept: feature/*, fix/*, hotfix/*, main/dev
+if ! echo "$branch" | grep -Eq '^(feature|fix|hotfix)\/[a-z0-9._-]+$|^(main|dev)$'; then
+  echo "❌ Invalid branch name: '$branch'"
+  echo "✅ Use: feature/*, fix/*, hotfix/*, main, or dev"
+  exit 1
+fi
