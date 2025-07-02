@@ -1,11 +1,12 @@
 import { BuoyItemContent, WaveBuoyPositionFeature } from '@/types';
 import { LineChart } from './LineChart';
 import { toWaveBuoyChartData } from '@/utils';
-import { useWaveBuoyDetails } from '@/hooks';
+import { useAsync } from '@/hooks';
 import { useMemo } from 'react';
 import { SeriesData } from './type';
 import { buoyDataDirectionVariant, buoyDataInfoVariant, noneDirectionVariants } from './config';
 import { generateSeriesStyles, processDirectionData } from './utils';
+import { getWaveBuoyDetails } from '@/api';
 
 type WaveBuoyChartProps = {
   waveBuoysData: Omit<WaveBuoyPositionFeature, 'type'>[];
@@ -16,7 +17,10 @@ type DataLookup<T extends string> = Record<T, BuoyItemContent<T>>;
 
 const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => {
   const { dateString, buoy, geometry } = toWaveBuoyChartData(waveBuoysData);
-  const { data, loading, error } = useWaveBuoyDetails(dateString, buoy);
+  const { data, loading, error } = useAsync(getWaveBuoyDetails, {
+    immediate: true,
+    args: [dateString, buoy],
+  });
 
   const dataLookup = useMemo(() => {
     if (!data?.features?.length) return {} as DataLookup<(typeof buoyDataInfoVariant)[number]>;
