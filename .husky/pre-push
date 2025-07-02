@@ -1,6 +1,3 @@
-#!/bin/sh
-. "$(dirname "$0")/_/husky.sh"
-
 branch="$(git symbolic-ref --short HEAD)"
 
 # Accept: feature/*, fix/*, hotfix/*, main/dev
