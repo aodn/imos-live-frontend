@@ -1,6 +1,10 @@
 import { BuoyItemContent, WaveBuoyPositionFeature } from '@/types';
 import { LineChart } from './LineChart';
-import { toWaveBuoyChartData } from '@/utils';
+import {
+  createMergedCollectionWithAllParameters,
+  getLast7Dates,
+  toWaveBuoyChartData,
+} from '@/utils';
 import { useAsync } from '@/hooks';
 import { useMemo } from 'react';
 import { SeriesData } from './type';
@@ -17,11 +21,24 @@ type DataLookup<T extends string> = Record<T, BuoyItemContent<T>>;
 
 const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => {
   const { dateString, buoy, geometry } = toWaveBuoyChartData(waveBuoysData);
-  const { data, loading, error } = useAsync(getWaveBuoyDetails, {
+  const latestSevendays = getLast7Dates(dateString);
+
+  // const { data, loading, error } = useAsync(getWaveBuoyDetails, {
+  //   immediate: true,
+  //   args: [dateString, buoy],
+  // });
+
+  const {
+    data: multiData,
+    loading,
+    error,
+  } = useAsync(getWaveBuoyDetails, {
     immediate: true,
-    args: [dateString, buoy],
+    multipleArgs: latestSevendays.map((d): [string, string] => [d, buoy]),
   });
 
+  const data = createMergedCollectionWithAllParameters(multiData || []);
+  console.log(data);
   const dataLookup = useMemo(() => {
     if (!data?.features?.length) return {} as DataLookup<(typeof buoyDataInfoVariant)[number]>;
 
@@ -177,7 +194,8 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
       xAxis={{
         type: 'datetime',
         // title: { text: 'Date & Time' },
-        labels: { format: '{value:%H:%M}' },
+        //labels: { format: '{value:%H:%M}' },
+        labels: { format: '{value:%b %e %H:%M}' },
         offset: 0,
       }}
       yAxis={yAxisConfig}

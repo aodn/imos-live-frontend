@@ -17,3 +17,4 @@ export * from './cn';
 export * from './isScrollableElement';
 export * from './tryCatch';
 export * from './normalizeWaveBuouysData';
+export * from './mergeWaveBuoyDatas';
