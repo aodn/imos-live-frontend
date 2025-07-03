@@ -668,3 +668,98 @@ export function processDirectionData(data: BuoyItemContent<BuoyDataVariants>): S
     showInLegend: true,
   };
 }
+
+export function calculateDataRange(seriesData: SeriesData[]) {
+  if (!seriesData?.length) return null;
+
+  let allTimestamps: number[] = [];
+
+  // Collect all timestamps from all series
+  seriesData.forEach(series => {
+    if (series.data?.length) {
+      const timestamps = series.data
+        .map(point => {
+          if (Array.isArray(point)) {
+            return point[0];
+          } else if (typeof point === 'object' && point !== null && 'x' in point) {
+            return (point as { x: number }).x;
+          }
+          return undefined;
+        })
+        .filter((t): t is number => typeof t === 'number');
+      allTimestamps = allTimestamps.concat(timestamps);
+    }
+  });
+
+  if (!allTimestamps.length) return null;
+
+  const minTime = Math.min(...allTimestamps);
+  const maxTime = Math.max(...allTimestamps);
+  const rangeDays = (maxTime - minTime) / (1000 * 60 * 60 * 24);
+
+  return {
+    minTime,
+    maxTime,
+    rangeDays,
+    rangeHours: rangeDays * 24,
+  };
+}
+
+type RangeSelectorButtonType =
+  | 'all'
+  | 'hour'
+  | 'day'
+  | 'month'
+  | 'year'
+  | 'millisecond'
+  | 'second'
+  | 'minute'
+  | 'week';
+
+export function generateDynamicButtons(dataRange: ReturnType<typeof calculateDataRange>) {
+  if (!dataRange) return [{ type: 'all' as RangeSelectorButtonType, text: 'All' }];
+
+  const { rangeDays, rangeHours } = dataRange;
+  const buttons: { type: RangeSelectorButtonType; count?: number; text: string }[] = [];
+
+  // Add hour-based buttons for short ranges
+  if (rangeHours >= 6) {
+    buttons.push({ type: 'hour', count: 6, text: '6H' });
+  }
+  if (rangeHours >= 12) {
+    buttons.push({ type: 'hour', count: 12, text: '12H' });
+  }
+  if (rangeHours >= 24) {
+    buttons.push({ type: 'day', count: 1, text: '24H' });
+  }
+
+  // Add day-based buttons
+  if (rangeDays >= 3) {
+    buttons.push({ type: 'day', count: 3, text: '3D' });
+  }
+  if (rangeDays >= 7) {
+    buttons.push({ type: 'day', count: 7, text: '1W' });
+  }
+  if (rangeDays >= 14) {
+    buttons.push({ type: 'day', count: 14, text: '2W' });
+  }
+
+  // Add month-based buttons for longer ranges
+  if (rangeDays >= 30) {
+    buttons.push({ type: 'month', count: 1, text: '1M' });
+  }
+  if (rangeDays >= 90) {
+    buttons.push({ type: 'month', count: 3, text: '3M' });
+  }
+  if (rangeDays >= 180) {
+    buttons.push({ type: 'month', count: 6, text: '6M' });
+  }
+  if (rangeDays >= 365) {
+    buttons.push({ type: 'year', count: 1, text: '1Y' });
+  }
+
+  // Always add "All" button
+  buttons.push({ type: 'all', text: 'All' });
+
+  return buttons;
+}
