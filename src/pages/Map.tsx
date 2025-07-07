@@ -108,7 +108,7 @@ export const Map = () => {
   );
 
   return (
-    <div className="overflow-hidden h-screen w-full">
+    <div className="overflow-hidden h-screen-exact w-full">
       {isMobileOrTablet ? (
         <div className="h-full w-full">{mapContent}</div>
       ) : (
