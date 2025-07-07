@@ -76,7 +76,7 @@ export const Map = () => {
           />
           <MapComponent ref={mapRef} key={isMobileOrTablet ? 'mobile' : 'desktop'} />
           <MapControlPanel ref={mapRef} className="absolute top-10 left-0 z-10 hidden md:block" />
-          <DateSelectionBar className="absolute bottom-10 left-1/2 -translate-x-1/2 w-full pointer-events-none" />
+          <DateSelectionBar className="absolute bottom-2 left-1/2 -translate-x-1/2 w-full pointer-events-none" />
           <FloatingPanel
             wrapperClassName="w-14 md:w-fit bg-emerald-300  rounded-xl"
             boundary="parent"

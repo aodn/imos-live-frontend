@@ -26,6 +26,7 @@ export function useWaveBuoysLayer(
 ) {
   const { showToast } = useToast();
   const [isError, setIsError] = useState(false);
+
   const setDataByDataset = async () => {
     try {
       await addOrUpdateGeoJsonSource({
