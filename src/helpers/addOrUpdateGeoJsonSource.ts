@@ -1,38 +1,54 @@
+import { getWaveBuoyLocations } from '@/api';
 import { clusterMaxZoom } from '@/config';
+import { tryCatch } from '@/utils';
 
-export function addOrUpdateGeoJsonSource({
+export async function addOrUpdateGeoJsonSource({
   map,
   id,
-  url,
+  data,
   enableCluser = false,
   clusterRadius,
 }: {
   map: mapboxgl.Map;
   id: string;
-  url: string | GeoJSON.FeatureCollection | GeoJSON.Feature;
+  data: string | GeoJSON.FeatureCollection | GeoJSON.Feature;
   enableCluser?: boolean;
   clusterRadius?: number;
 }) {
-  const source = map.getSource(id);
+  let dataSource: GeoJSON.FeatureCollection | GeoJSON.Feature | undefined;
 
-  if (source && source.type === 'geojson') {
-    return source.setData(url);
+  if (typeof data === 'string') {
+    dataSource = await tryCatch(getWaveBuoyLocations(data));
+  } else {
+    dataSource = data;
   }
 
-  const sourceOptions = clusterRadius
-    ? {
-        type: 'geojson' as const,
-        data: url,
-        cluster: enableCluser,
-        clusterMaxZoom: clusterMaxZoom,
-        clusterRadius: clusterRadius,
-      }
-    : {
-        type: 'geojson' as const,
-        data: url,
-        cluster: enableCluser,
-        clusterMaxZoom: clusterMaxZoom,
-      };
+  if (!dataSource) {
+    //remove layer and source when fail to get data.
+    // const layers = map.getStyle().layers || [];
+
+    // for (const layer of layers) {
+    //   if (layer.source === id) {
+    //     map.removeLayer(layer.id);
+    //   }
+    // }
+    // if (map.getSource(id)) map.removeSource(id);
+    // return;
+    throw Error('No wave buoys data soruce');
+  }
+
+  const source = map.getSource(id);
+  if (source && source.type === 'geojson') {
+    return source.setData(dataSource);
+  }
+
+  const sourceOptions = {
+    type: 'geojson' as const,
+    data: dataSource,
+    cluster: enableCluser,
+    clusterMaxZoom: clusterMaxZoom,
+    ...(clusterRadius ? { clusterRadius } : {}),
+  };
 
   map.addSource(id, sourceOptions);
 }
