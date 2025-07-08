@@ -122,7 +122,7 @@ export function dateToUTC(dateString: string): Date {
  * @param dateString
  * @returns Date object in local timezone
  */
-export function convertUTCToLocalDateTime(input: string | Date): Date {
+export function convertToLocalDateTime(input: number | string | Date): Date {
   const utcDate = new Date(input);
   if (isNaN(utcDate.getTime())) {
     throw new Error(`Invalid UTC date: ${input}`);

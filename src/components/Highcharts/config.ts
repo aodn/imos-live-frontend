@@ -31,6 +31,7 @@ export const noneDirectionVariants: BuoyDataVariants[] = [
 
 export const buoyDataDirectionVariant = 'SSWMD';
 export const buoyDataInfoVariant: BuoyDataVariants[] = ['WPFM'];
+export const obseravtionVariants = ['WSSH', 'SSWMD', 'WPFM'];
 
 export const directionColors = {
   direction: '#FF5722',

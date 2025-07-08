@@ -16,6 +16,7 @@ import {
   processDirectionData,
 } from './utils';
 import { getWaveBuoyDetails } from '@/api';
+import { LatestObservation } from './LatestObservation';
 
 type WaveBuoyChartProps = {
   waveBuoysData: Omit<WaveBuoyPositionFeature, 'type'>[];
@@ -171,80 +172,84 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
   if (loading) return <div>loading</div>;
 
   return (
-    <LineChart
-      width={'100%'}
-      height={500}
-      series={seriseData!}
-      subtitle={subtitle}
-      title={data?.metadata.location}
-      turboThreshold={4000}
-      rangeSelector={{
-        enabled: true,
-        selected: defaultSelected,
-        buttonPosition: {
-          align: 'left',
-          x: 0,
-          y: 0,
-        },
+    <div className="w-full">
+      <LineChart
+        width={'100%'}
+        height={500}
+        series={seriseData!}
+        subtitle={subtitle}
+        title={data?.metadata.location}
+        turboThreshold={4000}
+        rangeSelector={{
+          enabled: true,
+          selected: defaultSelected,
+          buttonPosition: {
+            align: 'left',
+            x: 0,
+            y: 0,
+          },
 
-        inputPosition: {
-          align: 'right',
-          x: 0,
-          y: 0,
-        },
-        inputBoxBorderColor: '#cccccc',
-        inputBoxWidth: 120,
-        inputBoxHeight: 20,
-        inputStyle: {
-          color: '#333333',
-          fontSize: '12px',
-          fontFamily: 'Arial, sans-serif',
-          background: 'white',
-          border: '1px solid #cccccc',
-          zIndex: 10,
-          opacity: 1,
-          textAlign: 'center',
-          padding: '2px 4px',
-        },
-        inputDateFormat: '%Y-%m-%d',
-        inputEditDateFormat: '%Y-%m-%d',
-        floating: false,
-        y: -50,
-        buttons: dynamicButtons,
-      }}
-      navigator={{
-        enabled: true,
-        height: 50,
-        margin: 10,
-      }}
-      chart={{
-        marginTop: 80,
-        marginBottom: 80,
-        spacing: [10, 10, 15, 10],
-      }}
-      scrollbar={{ enabled: true, height: 20 }}
-      responsive={true}
-      xAxis={{
-        type: 'datetime',
-        // title: { text: 'Date & Time' },
-        //labels: { format: '{value:%H:%M}' },
-        labels: { format: '{value:%b %e %H:%M}' },
-        offset: 0,
-      }}
-      yAxis={yAxisConfig}
-      plotOptions={{
-        series: {
-          clip: true,
-          cropThreshold: 0,
-        },
-      }}
-      tooltip={{
-        shared: true,
-        split: false,
-        useHTML: true,
-        customFormatter: tooltipFormatter,
-      }}
-    />
+          inputPosition: {
+            align: 'right',
+            x: 0,
+            y: 0,
+          },
+          inputBoxBorderColor: '#cccccc',
+          inputBoxWidth: 120,
+          inputBoxHeight: 20,
+          inputStyle: {
+            color: '#333333',
+            fontSize: '12px',
+            fontFamily: 'Arial, sans-serif',
+            background: 'white',
+            border: '1px solid #cccccc',
+            zIndex: 10,
+            opacity: 1,
+            textAlign: 'center',
+            padding: '2px 4px',
+          },
+          inputDateFormat: '%Y-%m-%d',
+          inputEditDateFormat: '%Y-%m-%d',
+          floating: false,
+          y: -50,
+          buttons: dynamicButtons,
+        }}
+        navigator={{
+          enabled: true,
+          height: 50,
+          margin: 10,
+        }}
+        chart={{
+          marginTop: 80,
+          marginBottom: 80,
+          spacing: [10, 10, 15, 10],
+        }}
+        scrollbar={{ enabled: true, height: 20 }}
+        responsive={true}
+        xAxis={{
+          type: 'datetime',
+          // title: { text: 'Date & Time' },
+          //labels: { format: '{value:%H:%M}' },
+          labels: { format: '{value:%b %e %H:%M}' },
+          offset: 0,
+        }}
+        yAxis={yAxisConfig}
+        plotOptions={{
+          series: {
+            clip: true,
+            cropThreshold: 0,
+          },
+        }}
+        tooltip={{
+          shared: true,
+          split: false,
+          useHTML: true,
+          customFormatter: tooltipFormatter,
+        }}
+      />
+      <LatestObservation multiData={multiData} />
+    </div>
   );
 };
+
 export default WaveBuoyChart;

@@ -27,7 +27,7 @@ export type BuoyItemContent<T> = {
 
 type BuouyItem<T extends string> = Record<T, BuoyItemContent<T>>;
 
-type WaveBuoyDetailsProperties = BuouyItem<BuoyDataVariants> & {
+export type WaveBuoyDetailsProperties = BuouyItem<BuoyDataVariants> & {
   date: string;
   location: string;
   recourds_count: number;

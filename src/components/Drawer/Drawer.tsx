@@ -355,7 +355,7 @@ export const Drawer: React.FC<DrawerProps> = ({
           }}
         />
       )}
-
+      {/* TODO: make drag handle easy to be dragged in mobile.  */}
       <div
         ref={drawerRef}
         className={`${drawerStyles.className} ${className}`}
