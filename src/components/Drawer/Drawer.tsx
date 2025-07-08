@@ -13,6 +13,7 @@ export interface DrawerProps {
   children: React.ReactNode;
   onClose?: () => void;
   className?: string;
+  contentWrapperClassName?: string;
   snapMode?: 'free' | 'snap';
   isOpen: boolean;
   closeDrawer: () => void;
@@ -77,6 +78,7 @@ export const Drawer: React.FC<DrawerProps> = ({
   children,
   onClose,
   className = '',
+  contentWrapperClassName,
   snapMode = 'free',
   isOpen,
   closeDrawer,
@@ -355,7 +357,7 @@ export const Drawer: React.FC<DrawerProps> = ({
           }}
         />
       )}
-      {/* TODO: make drag handle easy to be dragged in mobile.  */}
+
       <div
         ref={drawerRef}
         className={`${drawerStyles.className} ${className}`}
@@ -389,7 +391,11 @@ export const Drawer: React.FC<DrawerProps> = ({
           <CloseIcon onClick={handleClose} />
         </Button>
 
-        <div className="h-full w-full overflow-auto px-1 py-4 md:px-4">{children}</div>
+        <div
+          className={cn('h-full w-full overflow-auto px-1 py-4 md:px-4', contentWrapperClassName)}
+        >
+          {children}
+        </div>
       </div>
     </>
   );

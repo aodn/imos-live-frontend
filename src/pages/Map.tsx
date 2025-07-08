@@ -64,6 +64,7 @@ export const Map = () => {
             snapPoints={['85%']}
             children={leftDrawer.content}
             className="absolute!"
+            contentWrapperClassName="px-2"
             handleHidden
           />
           <LayersIndicator
