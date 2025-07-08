@@ -8,6 +8,9 @@ export default {
   ],
   theme: {
     extend: {
+      height: {
+        'screen-exact': '100dvh',
+      },
       colors: {
         'imos-white': '#fff',
         'imos-black': '#000',

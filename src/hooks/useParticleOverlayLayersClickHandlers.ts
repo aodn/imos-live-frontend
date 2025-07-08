@@ -2,7 +2,8 @@ import { useEffect, RefObject, useRef } from 'react';
 import { showPopup } from '@/helpers';
 import { debounce } from '@/utils';
 import { useToast } from '@/components';
-import { useOceanCurrentDetials } from './useAsync';
+import { useAsync } from './useAsync';
+import { getOceanCurrentDetails } from '@/api';
 
 type UseMapClickHandlersOptions = {
   map: RefObject<mapboxgl.Map | null>;
@@ -30,11 +31,10 @@ export function useParticleOverlayLayersClickHandlers({
     data: oceanCurrentDetails,
     error,
     refetch: fetchOceanCurrentDetails,
-  } = useOceanCurrentDetials(
-    dataset,
-    clickCoordinatesRef.current?.lat || 0,
-    clickCoordinatesRef.current?.lng || 0,
-  );
+  } = useAsync(getOceanCurrentDetails, {
+    immediate: false,
+    args: [dataset, clickCoordinatesRef.current?.lat || 0, clickCoordinatesRef.current?.lng || 0],
+  });
 
   useEffect(() => {
     if (!clickCoordinatesRef.current) return;

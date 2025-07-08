@@ -46,6 +46,41 @@ export function getLast7DatesEnding3DaysAgo(
 }
 
 /**
+ *
+ * @param date string in 'yyyy-mm-dd' format
+ * @param format
+ * @returns  Last 7 dates in the format "YY-MM-DD" ending provided date.
+ */
+export function getLast7Dates(
+  date: string,
+  format: string = 'yyyy-mm-dd',
+): FixedLengthArray<string, 7> {
+  const dates: string[] = [];
+
+  const endDate = new Date(date);
+
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date(endDate);
+    date.setDate(endDate.getDate() - i);
+
+    const yyyy = date.getFullYear();
+    const yy = String(yyyy).slice(-2);
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+
+    const formattedDate = format
+      .replace(/yyyy/g, String(yyyy))
+      .replace(/yy/g, yy)
+      .replace(/mm/g, mm)
+      .replace(/dd/g, dd);
+
+    dates.push(formattedDate);
+  }
+
+  return dates as FixedLengthArray<string, 7>;
+}
+
+/**
  * Convert dateString to yy-mm-dd type, beacuse current GSLA data for ocean current particles are named in yy-mm-dd format, which should be changed
  * in the future.
  * @param dateString
@@ -87,7 +122,7 @@ export function dateToUTC(dateString: string): Date {
  * @param dateString
  * @returns Date object in local timezone
  */
-export function convertUTCToLocalDateTime(input: string | Date): Date {
+export function convertToLocalDateTime(input: number | string | Date): Date {
   const utcDate = new Date(input);
   if (isNaN(utcDate.getTime())) {
     throw new Error(`Invalid UTC date: ${input}`);

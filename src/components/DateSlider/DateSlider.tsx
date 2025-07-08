@@ -11,7 +11,7 @@ import {
   checkDateDuration,
   clampPercent,
   clamp,
-  convertUTCToLocalDateTime,
+  convertToLocalDateTime,
   cn,
   debounce,
 } from '@/utils';
@@ -68,8 +68,8 @@ export const DateSlider = memo(
     const [dimensions, setDimensions] = useState({ parent: 0, slider: 0 });
     const [timeUnit, setTimeUnit] = useState<TimeUnit>(initialTimeUnit);
 
-    const startDate = useMemo(() => convertUTCToLocalDateTime(propStartDate), [propStartDate]);
-    const endDate = useMemo(() => convertUTCToLocalDateTime(propEndDate), [propEndDate]);
+    const startDate = useMemo(() => convertToLocalDateTime(propStartDate), [propStartDate]);
+    const endDate = useMemo(() => convertToLocalDateTime(propEndDate), [propEndDate]);
 
     const totalScaleUnits = useMemo(
       () => getPeriodTimeScales(startDate, endDate, timeUnit),
@@ -180,7 +180,7 @@ export const DateSlider = memo(
 
     const setDateTime = useCallback(
       (date: Date, target?: 'point' | 'rangeStart' | 'rangeEnd') => {
-        const percentage = getPercentFromDate(convertUTCToLocalDateTime(date), startDate, endDate);
+        const percentage = getPercentFromDate(convertToLocalDateTime(date), startDate, endDate);
 
         let actualTarget = target;
         if (!actualTarget) {

@@ -6,7 +6,6 @@ import {
   WAVE_BUOYS_SOURCE_ID,
 } from '@/constants';
 import { addLayerInOrder, addOrUpdateGeoJsonSource } from '@/helpers';
-import { buildBuoyLocationDatasetUrl, sleep } from '@/utils';
 import { useDidMountEffect } from './useDidMountEffect';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
 import { useMapboxLayerRef } from './useMapboxLayerRef';
@@ -16,6 +15,8 @@ import {
   waveBuoyCluserLabelLayerConfig,
   waveBuoysLayerConfig,
 } from '@/config';
+import { useState } from 'react';
+import { useToast } from '@/components';
 
 export function useWaveBuoysLayer(
   map: React.RefObject<mapboxgl.Map | null>,
@@ -23,21 +24,34 @@ export function useWaveBuoysLayer(
   style: string,
   dataset: string,
 ) {
-  const setDataByDataset = async () => {
-    //fake this function to be async so that it can works.
-    await sleep(0);
+  const { showToast } = useToast();
+  const [isError, setIsError] = useState(false);
 
-    addOrUpdateGeoJsonSource({
-      map: map.current!,
-      id: WAVE_BUOYS_SOURCE_ID,
-      url: buildBuoyLocationDatasetUrl(dataset),
-      enableCluser: true,
-      clusterRadius: 40,
-    });
+  const setDataByDataset = async () => {
+    try {
+      await addOrUpdateGeoJsonSource({
+        map: map.current!,
+        id: WAVE_BUOYS_SOURCE_ID,
+        data: dataset,
+        enableCluser: true,
+        clusterRadius: 40,
+      });
+
+      setIsError(false);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      showToast({
+        type: 'error',
+        title: 'Error occurred',
+        message: 'Failed to get wave Buoys of this date',
+        duration: 6000,
+      });
+      setIsError(true);
+    }
   };
 
   const setupLayer = async () => {
-    if (!waveBuoysLayer.current || !clusterLabelLayer.current) return;
+    if (!waveBuoysLayer?.current || !clusterLabelLayer?.current) return;
     await setDataByDataset();
     if (!map.current!.getLayer(WAVE_BUOYS_LAYER_ID)) {
       addLayerInOrder(map, waveBuoysLayer.current, WAVE_BUOYS_LAYER_ID);
@@ -95,7 +109,7 @@ export function useWaveBuoysLayer(
     map,
     loadComplete,
     [waveBuoysLayer, unClusteredWaveBuoysLayer, clusterLabelLayer],
-    circle,
+    circle && !isError,
   );
 
   useDidMountEffect(() => {

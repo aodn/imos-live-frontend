@@ -1,11 +1,22 @@
 import { BuoyItemContent, WaveBuoyPositionFeature } from '@/types';
 import { LineChart } from './LineChart';
-import { toWaveBuoyChartData } from '@/utils';
-import { useWaveBuoyDetails } from '@/hooks';
-import { useMemo } from 'react';
+import {
+  createMergedCollectionWithAllParameters,
+  getLast7Dates,
+  toWaveBuoyChartData,
+} from '@/utils';
+import { useAsync } from '@/hooks';
+import { useCallback, useMemo } from 'react';
 import { SeriesData } from './type';
 import { buoyDataDirectionVariant, buoyDataInfoVariant, noneDirectionVariants } from './config';
-import { generateSeriesStyles, processDirectionData } from './utils';
+import {
+  calculateDataRange,
+  generateDynamicButtons,
+  generateSeriesStyles,
+  processDirectionData,
+} from './utils';
+import { getWaveBuoyDetails } from '@/api';
+import { LatestObservation } from './LatestObservation';
 
 type WaveBuoyChartProps = {
   waveBuoysData: Omit<WaveBuoyPositionFeature, 'type'>[];
@@ -16,7 +27,18 @@ type DataLookup<T extends string> = Record<T, BuoyItemContent<T>>;
 
 const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => {
   const { dateString, buoy, geometry } = toWaveBuoyChartData(waveBuoysData);
-  const { data, loading, error } = useWaveBuoyDetails(dateString, buoy);
+  const latestSevendays = getLast7Dates(dateString);
+
+  const {
+    data: multiData,
+    loading,
+    error,
+  } = useAsync(getWaveBuoyDetails, {
+    immediate: true,
+    multipleArgs: latestSevendays.map((d): [string, string] => [d, buoy]),
+  });
+
+  const data = createMergedCollectionWithAllParameters(multiData || []);
 
   const dataLookup = useMemo(() => {
     if (!data?.features?.length) return {} as DataLookup<(typeof buoyDataInfoVariant)[number]>;
@@ -59,10 +81,49 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
     return directionSeries ? [...regularSeries, directionSeries] : [...regularSeries];
   }, [data, showDirection]);
 
+  const dynamicButtons = useMemo(() => {
+    const dataRange = calculateDataRange(seriseData);
+    return generateDynamicButtons(dataRange);
+  }, [seriseData]);
+
+  //select middle button.
+  const defaultSelected = useMemo(() => {
+    const buttonCount = dynamicButtons.length;
+    if (buttonCount <= 2) return buttonCount - 1;
+    return Math.floor(buttonCount / 2);
+  }, [dynamicButtons]);
+
   const subtitle = useMemo(
     () =>
       `Position:  ( lng: ${geometry.coordinates[0].toFixed(2)} lat: ${geometry.coordinates[1].toFixed(2)} )`,
     [geometry.coordinates],
+  );
+
+  const tooltipFormatter = useCallback(
+    (context: any) => {
+      const point = context.point;
+      const datetime = new Date(point.x).toLocaleString();
+
+      let tooltipHTML = `<div style="font-size: 12px;"><b>Time:</b> ${datetime}<br/>`;
+
+      if (point.series.name === buoyDataDirectionVariant) {
+        const wavePeriodPoint = dataLookup.WPFM?.data.find(
+          d => Array.isArray(d) && d[0] === point.x,
+        );
+
+        const wavePeriod =
+          wavePeriodPoint && Array.isArray(wavePeriodPoint) ? wavePeriodPoint[1] : null;
+
+        const direction = point.options?.direction || point.y;
+        tooltipHTML += `<span style="color:${point.color}">●</span> <b>${point.series.name}:</b> ${direction?.toFixed(1)}° (to)<br/><span style="color:${point.color}">●</span> <b>${dataLookup.WPFM?.name}:</b> ${wavePeriod} s<br/>`;
+      } else {
+        tooltipHTML += `<span style="color:${point.color}">●</span> <b>${point.series.name}:</b> ${point.y?.toFixed(2)} m<br/>`;
+      }
+
+      tooltipHTML += '</div>';
+      return tooltipHTML;
+    },
+    [dataLookup.WPFM?.data, dataLookup.WPFM?.name],
   );
 
   const yAxisConfig = useMemo(() => {
@@ -111,107 +172,84 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
   if (loading) return <div>loading</div>;
 
   return (
-    <LineChart
-      width={'100%'}
-      height={500}
-      series={seriseData!}
-      subtitle={subtitle}
-      title={data?.metadata.location}
-      turboThreshold={4000}
-      rangeSelector={{
-        enabled: true,
-        selected: 4,
-        buttonPosition: {
-          align: 'left',
-          x: 0,
-          y: 0,
-        },
+    <div className="w-full">
+      <LineChart
+        width={'100%'}
+        height={500}
+        series={seriseData!}
+        subtitle={subtitle}
+        title={data?.metadata.location}
+        turboThreshold={4000}
+        rangeSelector={{
+          enabled: true,
+          selected: defaultSelected,
+          buttonPosition: {
+            align: 'left',
+            x: 0,
+            y: 0,
+          },
 
-        inputPosition: {
-          align: 'right',
-          x: 0,
-          y: 0,
-        },
-        inputBoxBorderColor: '#cccccc',
-        inputBoxWidth: 120,
-        inputBoxHeight: 20,
-        inputStyle: {
-          color: '#333333',
-          fontSize: '12px',
-          fontFamily: 'Arial, sans-serif',
-          background: 'white',
-          border: '1px solid #cccccc',
-          zIndex: 10,
-          opacity: 1,
-          textAlign: 'center',
-          padding: '2px 4px',
-        },
-        inputDateFormat: '%Y-%m-%d',
-        inputEditDateFormat: '%Y-%m-%d',
-        floating: false,
-        y: -50,
-        buttons: [
-          { type: 'day', count: 1, text: '24H' },
-          { type: 'day', count: 7, text: '1W' },
-          { type: 'month', count: 1, text: '1M' },
-          { type: 'month', count: 3, text: '3M' },
-          { type: 'all', text: 'All' },
-        ],
-      }}
-      navigator={{
-        enabled: true,
-        height: 50,
-        margin: 10,
-      }}
-      chart={{
-        marginTop: 80,
-        marginBottom: 80,
-        spacing: [10, 10, 15, 10],
-      }}
-      scrollbar={{ enabled: true, height: 20 }}
-      responsive={true}
-      xAxis={{
-        type: 'datetime',
-        // title: { text: 'Date & Time' },
-        labels: { format: '{value:%H:%M}' },
-        offset: 0,
-      }}
-      yAxis={yAxisConfig}
-      plotOptions={{
-        series: {
-          clip: true,
-          cropThreshold: 0,
-        },
-      }}
-      tooltip={{
-        shared: true,
-        split: false,
-        useHTML: true,
-        customFormatter: function (context: any) {
-          const point = context.point;
-          const datetime = new Date(point.x).toLocaleString();
-
-          let tooltipHTML = `<div style="font-size: 12px;"><b>Time:</b> ${datetime}<br/>`;
-
-          if (point.series.name === buoyDataDirectionVariant) {
-            const wavePeriodPoint = dataLookup.WPFM?.data.find(
-              d => Array.isArray(d) && d[0] === point.x,
-            );
-
-            const wavePeriod =
-              wavePeriodPoint && Array.isArray(wavePeriodPoint) ? wavePeriodPoint[1] : null;
-
-            const direction = point.options?.direction || point.y;
-            tooltipHTML += `<span style="color:${point.color}">●</span> <b>${point.series.name}:</b> ${direction?.toFixed(1)}° (to)<br/><span style="color:${point.color}">●</span> <b>${dataLookup.WPFM?.name}:</b> ${wavePeriod} s<br/>`;
-          } else {
-            tooltipHTML += `<span style="color:${point.color}">●</span> <b>${point.series.name}:</b> ${point.y?.toFixed(2)} m<br/>`;
-          }
-
-          tooltipHTML += '</div>';
-          return tooltipHTML;
-        },
-      }}
-    />
+          inputPosition: {
+            align: 'right',
+            x: 0,
+            y: 0,
+          },
+          inputBoxBorderColor: '#cccccc',
+          inputBoxWidth: 120,
+          inputBoxHeight: 20,
+          inputStyle: {
+            color: '#333333',
+            fontSize: '12px',
+            fontFamily: 'Arial, sans-serif',
+            background: 'white',
+            border: '1px solid #cccccc',
+            zIndex: 10,
+            opacity: 1,
+            textAlign: 'center',
+            padding: '2px 4px',
+          },
+          inputDateFormat: '%Y-%m-%d',
+          inputEditDateFormat: '%Y-%m-%d',
+          floating: false,
+          y: -50,
+          buttons: dynamicButtons,
+        }}
+        navigator={{
+          enabled: true,
+          height: 50,
+          margin: 10,
+        }}
+        chart={{
+          marginTop: 80,
+          marginBottom: 80,
+          spacing: [10, 10, 15, 10],
+        }}
+        scrollbar={{ enabled: true, height: 20 }}
+        responsive={true}
+        xAxis={{
+          type: 'datetime',
+          // title: { text: 'Date & Time' },
+          //labels: { format: '{value:%H:%M}' },
+          labels: { format: '{value:%b %e %H:%M}' },
+          offset: 0,
+        }}
+        yAxis={yAxisConfig}
+        plotOptions={{
+          series: {
+            clip: true,
+            cropThreshold: 0,
+          },
+        }}
+        tooltip={{
+          shared: true,
+          split: false,
+          useHTML: true,
+          customFormatter: tooltipFormatter,
+        }}
+      />
+      <LatestObservation multiData={multiData} />
+    </div>
   );
 };
+
 export default WaveBuoyChart;

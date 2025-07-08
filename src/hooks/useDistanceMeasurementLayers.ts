@@ -8,7 +8,6 @@ import {
 import { circleLayer, lineLayer } from '@/layers';
 import { measureLinesConfig, measurePointsConfig } from '@/config';
 import { addLayerInOrder, addOrUpdateGeoJsonSource } from '@/helpers';
-import { sleep } from '@/utils';
 import { FeatureCollection, GeoJsonProperties, Geometry } from 'geojson';
 import { useMapboxLayerRef } from './useMapboxLayerRef';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
@@ -28,13 +27,11 @@ export function useDistanceMeasurementLayers(
   });
 
   const setupLayer = async () => {
-    //it needs to be async so that it will run after style.onload finish, and this why await sleep(0) here.
-    await sleep(0);
     if (measurePointsLayer.current) {
-      addOrUpdateGeoJsonSource({
+      await addOrUpdateGeoJsonSource({
         map: map.current!,
         id: MEASURE_POINTS_SOURCE_ID,
-        url: measurePointsGeojson,
+        data: measurePointsGeojson,
       });
       if (!map.current?.getLayer(MEASURE_POINTS_LAYER_ID))
         addLayerInOrder(map, measurePointsLayer.current, MEASURE_POINTS_LAYER_ID);
@@ -74,7 +71,7 @@ export function useDistanceMeasurementLayers(
     addOrUpdateGeoJsonSource({
       map: map.current!,
       id: MEASURE_POINTS_SOURCE_ID,
-      url: measurePointsGeojson,
+      data: measurePointsGeojson,
     });
   }, [measurePointsGeojson]);
 

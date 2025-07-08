@@ -24,6 +24,7 @@ export function useMapInitialization(
       projection: 'mercator',
       touchPitch: false,
       pitchWithRotate: false,
+      attributionControl: false,
     });
     return () => {
       if (map.current) {

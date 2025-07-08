@@ -1,7 +1,15 @@
 import { SeriesData } from '@/components';
 
 // Wave Buoy Details Types
-export type BuoyDataVariants = 'SSWMD' | 'WAVE_quality_control' | 'WPFM' | 'WSSH';
+export type BuoyDataVariants =
+  | 'SSWMD'
+  | 'WAVE_quality_control'
+  | 'WPFM'
+  | 'WSSH'
+  | 'WMDS'
+  | 'WPDI'
+  | 'WPPE'
+  | 'WPDS';
 
 export type BuoyItemContent<T> = {
   name: T;
@@ -19,7 +27,7 @@ export type BuoyItemContent<T> = {
 
 type BuouyItem<T extends string> = Record<T, BuoyItemContent<T>>;
 
-type WaveBuoyDetailsProperties = BuouyItem<BuoyDataVariants> & {
+export type WaveBuoyDetailsProperties = BuouyItem<BuoyDataVariants> & {
   date: string;
   location: string;
   recourds_count: number;
@@ -27,6 +35,7 @@ type WaveBuoyDetailsProperties = BuouyItem<BuoyDataVariants> & {
     start: string;
     end: string;
   };
+  [key: string]: any;
 };
 
 export type WaveBuoyGeometry = {

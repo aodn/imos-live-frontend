@@ -31,7 +31,7 @@ export const useDrawerStore = create<DrawerStore>(set => ({
     content: null,
     direction: 'bottom',
     snapMode: 'snap',
-    snapPoints: ['50%', '70%'],
+    snapPoints: ['60%', '90%'],
   },
 
   leftDrawer: {
@@ -41,7 +41,7 @@ export const useDrawerStore = create<DrawerStore>(set => ({
     snapPoints: ['100%'],
   },
 
-  openBottomDrawer: (content, snapPoints = ['50%', '70%'], snapMode = 'snap') =>
+  openBottomDrawer: (content, snapPoints = ['60%', '90%'], snapMode = 'snap') =>
     set(state => ({
       bottomDrawer: {
         ...state.bottomDrawer,

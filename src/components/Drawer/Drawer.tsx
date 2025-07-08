@@ -310,13 +310,13 @@ export const Drawer: React.FC<DrawerProps> = ({
 
     switch (direction) {
       case 'left':
-        return `${handleClasses} top-0 right-0 w-3 h-full hover:w-3`;
+        return `${handleClasses} top-0 right-0 w-4 h-full  md:w-3 :`;
       case 'right':
-        return `${handleClasses} top-0 left-0 w-3 h-full hover:w-3`;
+        return `${handleClasses} top-0 left-0 w-4 md:w-3 h-full `;
       case 'top':
-        return `${handleClasses} bottom-0 left-0 w-full h-3 hover:h-3`;
+        return `${handleClasses} bottom-0 left-0 w-full h-6 md:h-3 `;
       case 'bottom':
-        return `${handleClasses} top-0 left-0 w-full h-3 hover:h-3`;
+        return `${handleClasses} top-0 left-0 w-full h-6 md:h-3 `;
       default:
         return handleClasses;
     }
@@ -355,7 +355,7 @@ export const Drawer: React.FC<DrawerProps> = ({
           }}
         />
       )}
-
+      {/* TODO: make drag handle easy to be dragged in mobile.  */}
       <div
         ref={drawerRef}
         className={`${drawerStyles.className} ${className}`}
@@ -369,13 +369,15 @@ export const Drawer: React.FC<DrawerProps> = ({
           <button
             type="button"
             aria-label="Drawer handle"
-            className="cursor-grab active:cursor-grabbing"
+            className="cursor-grab active:cursor-grabbing px-4 h-full relative"
             onMouseDown={handleMouseDown}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
           >
-            <DragIndicatorIcon className={getHandleIconStyles()} size="sm" />
+            <DragIndicatorIcon
+              className={cn(getHandleIconStyles(), 'absolute top-0 left-1/2 -translate-x-1/2')}
+            />
           </button>
         </div>
 
@@ -387,7 +389,7 @@ export const Drawer: React.FC<DrawerProps> = ({
           <CloseIcon onClick={handleClose} />
         </Button>
 
-        <div className="h-full w-full overflow-auto p-4">{children}</div>
+        <div className="h-full w-full overflow-auto px-1 py-4 md:px-4">{children}</div>
       </div>
     </>
   );

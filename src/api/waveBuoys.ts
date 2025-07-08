@@ -10,3 +10,12 @@ export const getWaveBuoyDetails = async (
   );
   return response.data;
 };
+
+export const getWaveBuoyLocations = async (
+  date: string,
+): Promise<GeoJSON.FeatureCollection | GeoJSON.Feature> => {
+  const response = await s3Api.get<GeoJSON.FeatureCollection | GeoJSON.Feature>(
+    '/BUOY/buoy_locations/' + `buoy_locations_${date}.geojson`,
+  );
+  return response.data;
+};
