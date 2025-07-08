@@ -24,7 +24,7 @@ const DateLabel = memo(
       <div
         style={{ left: `${position}%` }}
         className={cn(
-          'absolute top-0 left-1/2 transform -translate-x-1/2 bg-red-600 text-white text-xs px-2 py-1 rounded whitespace-nowrap pointer-events-none',
+          'hidden md:block absolute top-0 left-1/2 transform -translate-x-1/2 bg-red-600 text-white text-xs px-2 py-1 rounded whitespace-nowrap pointer-events-none',
           labelClassName,
         )}
         role="tooltip"
@@ -53,7 +53,7 @@ const CursorLine = memo(
       <div
         style={{ left: `${position}%` }}
         className={cn(
-          'absolute top-0 h-full w-[1px] bg-red-500/70 transform -translate-x-0.5 pointer-events-none z-20 transition-opacity duration-150',
+          'hidden md:block absolute top-0 h-full w-[1px] bg-red-500/70 transform -translate-x-0.5 pointer-events-none z-20 transition-opacity duration-150',
           className,
         )}
         aria-hidden="true"
@@ -148,7 +148,7 @@ export const SliderTrack = memo(
           timeUnit,
         );
 
-        setIsHover(true);
+        setIsHover(false);
         setDateLabel(label);
         setMouseHoverPosition(percentage);
       },
