@@ -4,12 +4,18 @@ import { RenderSliderHandleProps, SliderHandleProps } from '../type';
 import { memo } from 'react';
 import { formatDateForDisplay, getDateFromPercent } from '../utils';
 
+// Updated SliderHandleProps type to include touch event handlers
+type UpdatedSliderHandleProps = SliderHandleProps & {
+  onTouchStart?: (e: React.TouchEvent) => void;
+};
+
 export const SliderHandle = ({
   onDragging,
   position,
   label,
   icon,
   onMouseDown,
+  onTouchStart,
   className,
   labelClassName,
   ref,
@@ -19,19 +25,20 @@ export const SliderHandle = ({
   handleType,
   onKeyDown,
   onFocus,
-}: SliderHandleProps) => {
+}: UpdatedSliderHandleProps) => {
   return (
     <Button
       ref={ref}
       size={'icon'}
       variant={'ghost'}
       className={cn(
-        'group absolute pointer-events-auto z-20 transform  -translate-x-1/2 transition-all duration-50 hover:scale-110 hover:bg-transparent active:bg-transparent focus-visible:ring-0',
+        'group absolute pointer-events-auto z-20 transform  -translate-x-1/2 transition-all duration-50 hover:scale-110 hover:bg-transparent active:bg-transparent focus-visible:ring-0 touch-none',
         className,
         { 'scale-110': onDragging },
       )}
       style={{ left: `${position}%` }}
       onMouseDown={onMouseDown}
+      onTouchStart={onTouchStart}
       role="slider"
       aria-orientation="horizontal"
       aria-valuemin={min}
@@ -68,7 +75,12 @@ export const SliderHandle = ({
   );
 };
 
-export const RenderSliderHandle = memo<RenderSliderHandleProps>(
+// Updated RenderSliderHandleProps type to include touch event handlers
+type UpdatedRenderSliderHandleProps = RenderSliderHandleProps & {
+  onTouchStart: (handle: 'start' | 'end' | 'point') => (e: React.TouchEvent) => void;
+};
+
+export const RenderSliderHandle = memo<UpdatedRenderSliderHandleProps>(
   ({
     viewMode,
     rangeStart,
@@ -85,6 +97,7 @@ export const RenderSliderHandle = memo<RenderSliderHandleProps>(
     pointHandleRef,
     onHandleFocus,
     onMouseDown,
+    onTouchStart,
     onKeyDown,
   }) => {
     const commonProps = {
@@ -110,6 +123,7 @@ export const RenderSliderHandle = memo<RenderSliderHandleProps>(
                 timeUnit,
               )}
               onMouseDown={onMouseDown('start')}
+              onTouchStart={onTouchStart('start')}
               value={rangeStart}
               handleType="range start"
               onKeyDown={onKeyDown('start')}
@@ -125,6 +139,7 @@ export const RenderSliderHandle = memo<RenderSliderHandleProps>(
                 timeUnit,
               )}
               onMouseDown={onMouseDown('end')}
+              onTouchStart={onTouchStart('end')}
               value={rangeEnd}
               handleType="range end"
               onKeyDown={onKeyDown('end')}
@@ -144,6 +159,7 @@ export const RenderSliderHandle = memo<RenderSliderHandleProps>(
               timeUnit,
             )}
             onMouseDown={onMouseDown('point')}
+            onTouchStart={onTouchStart('point')}
             value={pointPosition}
             handleType="point"
             onKeyDown={onKeyDown('point')}

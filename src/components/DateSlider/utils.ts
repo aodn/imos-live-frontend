@@ -218,6 +218,17 @@ export const getPercentageFromMouseEvent = (
   return clampPercent(((e.clientX - rect.left) / rect.width) * 100);
 };
 
+// New function to handle touch events
+export const getPercentageFromTouchEvent = (
+  e: React.TouchEvent<Element> | TouchEvent,
+  trackRef: React.RefObject<HTMLDivElement | null>,
+): number => {
+  if (!trackRef.current || !e.touches.length) return 0;
+  const rect = trackRef.current.getBoundingClientRect();
+  const touch = e.touches[0] || e.changedTouches[0];
+  return clampPercent(((touch.clientX - rect.left) / rect.width) * 100);
+};
+
 export const getDateFromPercent = (percent: number, startDate: Date, endDate: Date): Date => {
   const startTime = startDate.getTime();
   const endTime = endDate.getTime();

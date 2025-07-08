@@ -1,7 +1,12 @@
 import { cn } from '@/utils';
 import { useState, useCallback, useMemo, memo } from 'react';
 import { SliderTrackProps, ScaleType } from '../type';
-import { formatDateForDisplay, getDateFromPercent, getPercentageFromMouseEvent } from '../utils';
+import {
+  formatDateForDisplay,
+  getDateFromPercent,
+  getPercentageFromMouseEvent,
+  getPercentageFromTouchEvent,
+} from '../utils';
 
 const DateLabel = memo(
   ({
@@ -92,9 +97,15 @@ const Scales = memo(
 );
 Scales.displayName = 'Scales';
 
+// Updated props type to include touch event handler
+type UpdatedSliderTrackProps = SliderTrackProps & {
+  onTrackTouch: (e: React.TouchEvent) => void;
+};
+
 export const SliderTrack = memo(
   ({
     onTrackClick,
+    onTrackTouch,
     baseTrackclassName,
     scales,
     scaleUnitConfig,
@@ -104,7 +115,7 @@ export const SliderTrack = memo(
     endDate,
     onDragging,
     ...props
-  }: SliderTrackProps) => {
+  }: UpdatedSliderTrackProps) => {
     const [mouseHoverPosition, setMouseHoverPosition] = useState<number>();
     const [isHover, setIsHover] = useState(false);
     const [dateLabel, setDateLabel] = useState<string>();
@@ -129,8 +140,29 @@ export const SliderTrack = memo(
       [trackRef, startDate, endDate, timeUnit],
     );
 
+    const handleTouchMove = useCallback(
+      (e: React.TouchEvent<Element>) => {
+        const percentage = getPercentageFromTouchEvent(e, trackRef);
+        const label = formatDateForDisplay(
+          getDateFromPercent(percentage, startDate, endDate),
+          timeUnit,
+        );
+
+        setIsHover(true);
+        setDateLabel(label);
+        setMouseHoverPosition(percentage);
+      },
+      [trackRef, startDate, endDate, timeUnit],
+    );
+
+    const handleTouchEnd = useCallback(() => {
+      setIsHover(false);
+      setMouseHoverPosition(undefined);
+    }, []);
+
     const baseClassName = useMemo(
-      () => cn('h-full w-full relative overflow-visible cursor-pointer', baseTrackclassName),
+      () =>
+        cn('h-full w-full relative overflow-visible cursor-pointer touch-none', baseTrackclassName),
       [baseTrackclassName],
     );
 
@@ -142,8 +174,11 @@ export const SliderTrack = memo(
         <div
           ref={trackRef}
           onClick={onTrackClick}
+          onTouchStart={onTrackTouch}
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
           className={baseClassName}
           aria-hidden="true"
         >
@@ -175,8 +210,11 @@ export const SliderTrack = memo(
           ref={trackRef}
           className={baseClassName}
           onClick={onTrackClick}
+          onTouchStart={onTrackTouch}
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
           aria-hidden="true"
         >
           <Scales scales={scales} scaleUnitConfig={scaleUnitConfig} />

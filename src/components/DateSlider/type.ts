@@ -73,6 +73,7 @@ export type NumOfScales = { short: number; medium: number; long: number };
 
 export type BaseSliderTrackProps = {
   onTrackClick: (e: React.MouseEvent) => void;
+  onTrackTouch: (e: React.TouchEvent) => void;
   baseTrackclassName?: string;
   scales: Scale[];
   scaleUnitConfig: ScaleUnitConfig;
@@ -117,6 +118,7 @@ export type SliderHandleProps = {
   label: string;
   icon: ReactNode;
   onMouseDown: (e: React.MouseEvent) => void;
+  onTouchStart?: (e: React.TouchEvent) => void;
   ref: RefObject<HTMLButtonElement | null>;
   min?: number;
   max?: number;
@@ -142,6 +144,7 @@ export type RenderSliderHandleProps = {
   pointHandleRef: React.RefObject<HTMLButtonElement | null>;
   onHandleFocus: (event: React.FocusEvent<HTMLButtonElement>) => void;
   onMouseDown: (handle: DragHandle) => (e: React.MouseEvent) => void;
+  onTouchStart: (handle: DragHandle) => (e: React.TouchEvent) => void;
   onKeyDown: (handle: DragHandle) => (e: React.KeyboardEvent) => void;
 };
 

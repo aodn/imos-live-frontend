@@ -269,7 +269,13 @@ export const DateSlider = memo(
       [rangeEndRef, minGapPercent, setRangeStart, rangeStartRef, setRangeEnd, setPointPosition],
     );
 
-    const { handleMouseDown, handleTrackClick, handleHandleKeyDown } = useEventHanlders(
+    const {
+      handleMouseDown,
+      handleTouchStart,
+      handleTrackClick,
+      handleTrackTouch,
+      handleHandleKeyDown,
+    } = useEventHanlders(
       rangeStartRef,
       rangeEndRef,
       pointPositionRef,
@@ -337,6 +343,7 @@ export const DateSlider = memo(
                   rangeStart={rangeStart}
                   rangeEnd={rangeEnd}
                   onTrackClick={handleTrackClick}
+                  onTrackTouch={handleTrackTouch}
                   scales={scales}
                   scaleUnitConfig={scaleUnitConfig}
                   baseTrackclassName={trackBaseClassName}
@@ -370,6 +377,7 @@ export const DateSlider = memo(
                   pointHandleRef={pointHandleRef}
                   onHandleFocus={handleHandleFocus}
                   onMouseDown={handleMouseDown}
+                  onTouchStart={handleTouchStart}
                   onKeyDown={handleHandleKeyDown}
                 />
               </div>

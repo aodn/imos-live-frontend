@@ -1,6 +1,6 @@
 import { useCallback, useEffect } from 'react';
 import { DragHandle, ViewMode } from '../type';
-import { getPercentageFromMouseEvent } from '../utils';
+import { getPercentageFromMouseEvent, getPercentageFromTouchEvent } from '../utils';
 
 export function useEventHanlders(
   rangeStartRef: React.RefObject<number>,
@@ -51,12 +51,26 @@ export function useEventHanlders(
     [rangeStartRef, rangeEndRef, updateHandlePosition, requestHandleFocus],
   );
 
+  // Mouse event handlers
   const handleMouseDown = useCallback(
     (handle: DragHandle) => (e: React.MouseEvent) => {
       e.stopPropagation();
+      e.preventDefault();
       setIsDragging(handle);
       setDragStarted(false);
       setLastInteractionType('mouse');
+    },
+    [setIsDragging, setDragStarted, setLastInteractionType],
+  );
+
+  // Touch event handlers
+  const handleTouchStart = useCallback(
+    (handle: DragHandle) => (e: React.TouchEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
+      setIsDragging(handle);
+      setDragStarted(false);
+      setLastInteractionType('mouse'); // Treat touch as mouse interaction for UI purposes
     },
     [setIsDragging, setDragStarted, setLastInteractionType],
   );
@@ -72,7 +86,25 @@ export function useEventHanlders(
     [isDragging, trackRef, updateHandlePosition],
   );
 
+  const handleTouchMove = useCallback(
+    (e: globalThis.TouchEvent) => {
+      if (!isDragging) return;
+      e.preventDefault(); // Prevent scrolling while dragging
+      requestAnimationFrame(() => {
+        const percentage = getPercentageFromTouchEvent(e, trackRef);
+        updateHandlePosition(isDragging, percentage);
+      });
+    },
+    [isDragging, trackRef, updateHandlePosition],
+  );
+
   const handleMouseUp = useCallback(() => {
+    if (isDragging) {
+      handleDragComplete();
+    }
+  }, [isDragging, handleDragComplete]);
+
+  const handleTouchEnd = useCallback(() => {
     if (isDragging) {
       handleDragComplete();
     }
@@ -85,6 +117,44 @@ export function useEventHanlders(
       }
 
       const percentage = getPercentageFromMouseEvent(e, trackRef);
+
+      switch (viewMode) {
+        case 'range':
+          handleRangeClick(percentage);
+          break;
+        case 'point':
+          updateHandlePosition('point', percentage);
+          requestHandleFocus('point', 'mouse');
+          break;
+        case 'combined': {
+          const closestHandle = findClosestHandle(percentage);
+          updateHandlePosition(closestHandle, percentage);
+          requestHandleFocus(closestHandle, 'mouse');
+          break;
+        }
+      }
+    },
+    [
+      isDragging,
+      dragStarted,
+      isContainerDragging,
+      sliderRef,
+      trackRef,
+      viewMode,
+      handleRangeClick,
+      updateHandlePosition,
+      requestHandleFocus,
+      findClosestHandle,
+    ],
+  );
+
+  const handleTrackTouch = useCallback(
+    (e: React.TouchEvent) => {
+      if (isDragging || dragStarted || isContainerDragging || !sliderRef.current) {
+        return;
+      }
+
+      const percentage = getPercentageFromTouchEvent(e, trackRef);
 
       switch (viewMode) {
         case 'range':
@@ -173,21 +243,35 @@ export function useEventHanlders(
     ],
   );
 
+  // Set up global event listeners for mouse and touch events
   useEffect(() => {
     if (!isDragging) return;
 
+    // Mouse events
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
 
+    document.addEventListener('touchmove', handleTouchMove);
+    document.addEventListener('touchend', handleTouchEnd);
+    document.addEventListener('touchcancel', handleTouchEnd);
+
     return () => {
+      // Clean up mouse events
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
+
+      // Clean up touch events
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+      document.removeEventListener('touchcancel', handleTouchEnd);
     };
-  }, [isDragging, handleMouseMove, handleMouseUp]);
+  }, [isDragging, handleMouseMove, handleMouseUp, handleTouchMove, handleTouchEnd]);
 
   return {
     handleMouseDown,
+    handleTouchStart,
     handleTrackClick,
+    handleTrackTouch,
     handleHandleKeyDown,
   };
 }
