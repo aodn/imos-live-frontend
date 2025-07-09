@@ -18,7 +18,7 @@ export const Layout = () => {
   return (
     <div
       className={cn('w-full min-h-screen flex flex-col', {
-        'h-screen-exact': page === 'map',
+        'h-screen-exact overflow-hidden': page === 'map',
       })}
     >
       <main className="h-full w-full flex-1">
