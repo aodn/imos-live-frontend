@@ -43,3 +43,18 @@ export const vectorConfig = {
     1.0: '#f80759',
   },
 };
+
+export const vectorAndriodConfig = {
+  nParticles: 10000,
+  speedFactor: 3.0,
+  dropRate: 0.005,
+  dropRateBump: 0.08,
+  fadeOpacity: 0.975,
+  pointSize: 1.2,
+  colours: {
+    0.0: '#40E0D0',
+    0.33: '#FF8C00',
+    0.67: '#FF0080',
+    1.0: '#f80759',
+  },
+};

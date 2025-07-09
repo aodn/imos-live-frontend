@@ -1,8 +1,12 @@
 import mapboxgl from 'mapbox-gl';
 import * as twgl from 'twgl.js';
 import { vs, fs, vsQuad, fsScreen, fsUpdate } from '../utils/shader.js';
-import { vectorConfig as config } from '@/config';
+import { vectorAndriodConfig, vectorConfig } from '@/config';
+import { getDeviceType } from '@/utils';
 
+const device = getDeviceType();
+
+const config = device === 'android' ? vectorAndriodConfig : vectorConfig;
 /**
  * 
 Shaders (Vertex and Fragment) run efficiently on the GPU to handle thousands of particles simultaneously. This is ideal for real-time simulations of particle movements.

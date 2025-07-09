@@ -8,6 +8,13 @@
 
 @custom-variant dark (&:is(.dark *));
 
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -25,9 +32,9 @@
     height: -webkit-fill-available;
   }
 
-  @supports (height: 100dvh) {
+  @supports (height: 100svh) {
     .h-screen-exact {
-      height: 100dvh;
+      height: 100svh;
     }
   }
 }
