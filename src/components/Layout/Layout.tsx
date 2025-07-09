@@ -2,6 +2,8 @@ import { Outlet } from 'react-router-dom';
 import { useDrawerStore } from '@/store';
 import { Drawer } from '../Drawer';
 import { useShallow } from 'zustand/shallow';
+import { useCurrentPage } from '@/hooks';
+import { cn } from '@/utils';
 
 export const Layout = () => {
   const { bottomDrawer, closeBottomDrawer } = useDrawerStore(
@@ -11,8 +13,14 @@ export const Layout = () => {
     })),
   );
 
+  const page = useCurrentPage();
+
   return (
-    <div className="w-full min-h-screen flex flex-col">
+    <div
+      className={cn('w-full min-h-screen flex flex-col', {
+        'h-screen-exact': page === 'map',
+      })}
+    >
       <main className="h-full w-full flex-1">
         <Outlet />
       </main>

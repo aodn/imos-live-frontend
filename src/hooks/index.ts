@@ -26,3 +26,4 @@ export * from './useMapView';
 export * from './useSliderDateSyncWithUrl';
 export * from './useViewPortSize';
 export * from './useAsync';
+export * from './useCurrentPage';
