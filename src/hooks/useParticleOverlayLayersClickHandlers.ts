@@ -1,9 +1,9 @@
-import { useEffect, RefObject, useRef } from 'react';
+import { getOceanCurrentData, getOceanCurrentDetails } from '@/api';
+import { useToast } from '@/components';
 import { showPopup } from '@/helpers';
 import { debounce } from '@/utils';
-import { useToast } from '@/components';
+import { RefObject, useCallback, useEffect } from 'react';
 import { useAsync } from './useAsync';
-import { getOceanCurrentDetails } from '@/api';
 
 type UseMapClickHandlersOptions = {
   map: RefObject<mapboxgl.Map | null>;
@@ -25,56 +25,16 @@ export function useParticleOverlayLayersClickHandlers({
   distanceMeasurement,
 }: UseMapClickHandlersOptions) {
   const { showToast } = useToast();
-  const clickCoordinatesRef = useRef<{ lat: number; lng: number } | null>(null);
-
-  const {
-    data: oceanCurrentDetails,
-    error,
-    refetch: fetchOceanCurrentDetails,
-  } = useAsync(getOceanCurrentDetails, {
-    immediate: false,
-    args: [dataset, clickCoordinatesRef.current?.lat || 0, clickCoordinatesRef.current?.lng || 0],
+  const { data: oceanCurrentData, error } = useAsync(getOceanCurrentData, {
+    args: [dataset],
+    immediate: !!dataset,
   });
 
-  useEffect(() => {
-    if (!clickCoordinatesRef.current) return;
-
-    if (error) {
-      showToast({
-        type: 'error',
-        title: 'Error occurred',
-        message: 'Failed to get ocean current details',
-        duration: 6000,
-      });
-      clickCoordinatesRef.current = null;
-      return;
-    }
-
-    if (oceanCurrentDetails) {
-      const { gsla, alpha, speed, degree, direction } = oceanCurrentDetails;
-      const { lat, lng } = clickCoordinatesRef.current;
-
-      if (!alpha) {
-        clickCoordinatesRef.current = null;
+  const handleMapClick = useCallback(
+    debounce((e: mapboxgl.MapMouseEvent) => {
+      if (!map?.current || !oceanCurrentData || distanceMeasurement || (!particles && !overlay))
         return;
-      }
 
-      showPopup(map.current!, {
-        lat,
-        lng,
-        ...(particles ? { speed, direction, degree } : {}),
-        ...(overlay ? { gsla } : {}),
-      });
-
-      clickCoordinatesRef.current = null;
-    }
-  }, [oceanCurrentDetails, error, particles, overlay, map, showToast]);
-
-  useEffect(() => {
-    if (!map.current || (!particles && !overlay) || distanceMeasurement) return;
-    const mapInstance = map.current;
-
-    const handleClick = async (e: mapboxgl.MapMouseEvent) => {
       if (waveBuoysLayerClicked.current) {
         waveBuoysLayerClicked.current = false;
         return;
@@ -85,26 +45,38 @@ export function useParticleOverlayLayersClickHandlers({
         return;
       }
 
-      const { lng, lat } = e.lngLat;
+      const { lngLat } = e;
+      const details = getOceanCurrentDetails(lngLat, oceanCurrentData);
+      if (!details) return;
+      const { gsla, speed, degree, direction } = details;
 
-      clickCoordinatesRef.current = { lat, lng };
-      fetchOceanCurrentDetails(dataset, lat, lng);
-    };
+      showPopup(map.current, {
+        ...lngLat,
+        ...(particles ? { speed, direction, degree } : {}),
+        ...(overlay ? { gsla } : {}),
+      });
+    }, 400),
+    [oceanCurrentData, distanceMeasurement, overlay, particles],
+  );
 
-    const debounceClick = debounce(handleClick, 100);
+  useEffect(() => {
+    if (!error) return;
 
-    mapInstance.on('click', debounceClick);
+    showToast({
+      type: 'error',
+      title: 'Error occurred',
+      message: 'Failed to get ocean current details',
+      duration: 6000,
+    });
+  }, [error]);
+
+  useEffect(() => {
+    if (!map?.current) return;
+    const { current } = map;
+
+    current.on('click', handleMapClick);
     return () => {
-      mapInstance.off('click', debounceClick);
+      current.off('click', handleMapClick);
     };
-  }, [
-    dataset,
-    overlay,
-    particles,
-    distanceMeasurement,
-    map,
-    waveBuoysLayerClicked,
-    tempPointsEventPrevent,
-    fetchOceanCurrentDetails,
-  ]);
+  }, [map, handleMapClick]);
 }
