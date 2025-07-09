@@ -42,10 +42,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div
         className={cn(
-          'flex items-center gap-2 px-3 py-1 h-[46px] bg-background-primary rounded-[10px] ring-inset focus-visible:outline focus-visible:outline-offset cursor-pointer',
+          'flex items-center gap-2 px-3 py-1 h-[46px] bg-white rounded-[10px] ring-inset focus-visible:outline focus-visible:outline-offset-2 cursor-pointer',
           !invalid
-            ? 'ring-1 ring-interactive-action-field hover:ring-[#F58121] active:ring-[#F58121]  active:ring-2 focus:ring-[#F58121]  focus:ring-2'
-            : 'ring-2 !ring-negative-700',
+            ? 'ring-1 ring-gray-300 hover:ring-orange-500 active:ring-orange-500 active:ring-2 focus:ring-orange-500 focus:ring-2'
+            : 'ring-2 ring-red-700',
           wrapperClassName,
           style.parent,
         )}
@@ -57,7 +57,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             value={value || ''}
             onChange={handleChange}
             className={cn([
-              'order-last peer h-full min-w-[80px] w-full  text-field-active outline-none appearance-none  disabled:cursor-not-allowed disabled:bg-transparent read-only:bg-transparent',
+              'order-last peer h-full min-w-[80px] w-full text-gray-900 outline-none appearance-none disabled:cursor-not-allowed disabled:bg-transparent read-only:bg-transparent',
               innerClassName,
               style.input,
             ])}
@@ -68,7 +68,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           />
           <p
             className={cn(
-              'pointer-events-none order-first absolute top-1/2 -translate-y-1/2  text-base peer-focus:!relative  peer-focus:text-xs peer-focus:top-0 peer-focus:ion   peer-focus:translate-y-0 transition-all duration-150',
+              'pointer-events-none order-first absolute top-1/2 -translate-y-1/2 text-base peer-focus:!relative peer-focus:text-xs peer-focus:top-0 peer-focus:translate-y-0 transition-all duration-150',
               { '!text-xs !relative !top-0 !translate-y-0': value },
             )}
           >
