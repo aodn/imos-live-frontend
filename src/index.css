@@ -32,9 +32,9 @@ body {
     height: -webkit-fill-available;
   }
 
-  @supports (height: 100svh) {
+  @supports (height: 100dvh) {
     .h-screen-exact {
-      height: 100svh;
+      height: 100dvh;
     }
   }
 }
