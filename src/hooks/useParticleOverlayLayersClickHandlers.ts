@@ -30,6 +30,7 @@ export function useParticleOverlayLayersClickHandlers({
     immediate: !!dataset,
   });
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleMapClick = useCallback(
     debounce((e: mapboxgl.MapMouseEvent) => {
       if (!map?.current || !oceanCurrentData || distanceMeasurement || (!particles && !overlay))
@@ -68,7 +69,7 @@ export function useParticleOverlayLayersClickHandlers({
       message: 'Failed to get ocean current details',
       duration: 6000,
     });
-  }, [error]);
+  }, [error, showToast]);
 
   useEffect(() => {
     if (!map?.current) return;
