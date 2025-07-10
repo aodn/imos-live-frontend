@@ -13,7 +13,7 @@ type OceanCurrentDetails = {
   gslaUnit: string;
 };
 
-type DataPoint = [number, number, number, number];
+type DataPoint = [number, number, number];
 
 type OceanCurrentDataResponse = {
   width: number;
@@ -48,7 +48,7 @@ export const getOceanCurrentDetails = (
 
   const colIndex = Math.floor(((lng - minLon) / (maxLng - minLon)) * gslaData.width);
   const rowIndex = Math.floor(((maxLat - lat) / (maxLat - minLat)) * gslaData.height);
-  const [u, v, , gsla] = gslaData.data[rowIndex][colIndex];
+  const [u, v, gsla] = gslaData.data[rowIndex][colIndex];
   if (!u && !v && !gsla) return null;
 
   const speed = Math.sqrt(u ** 2 + v ** 2);
