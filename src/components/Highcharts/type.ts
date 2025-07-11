@@ -44,7 +44,7 @@ export interface TooltipConfig extends Highcharts.TooltipOptions {
   customFormatter?: (point: Highcharts.Point) => string;
 }
 
-export interface ExportConfig {
+interface ExportConfig {
   enabled?: boolean;
   filename?: string;
   formats?: ('png' | 'jpeg' | 'pdf' | 'svg')[];
@@ -52,7 +52,7 @@ export interface ExportConfig {
 }
 
 // NEW: Range Selector Type Interfaces
-export interface RangeSelectorButton {
+interface RangeSelectorButton {
   type: 'millisecond' | 'second' | 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year' | 'all';
   count?: number;
   text: string;
@@ -127,7 +127,7 @@ export interface ScrollbarConfig {
 }
 
 // UPDATED: LineChartExposedMethods (add range selector methods)
-export interface LineChartExposedMethods {
+interface LineChartExposedMethods {
   // State-based updates (Highcharts recommended approach)
   updateData: (seriesIndex: number, newData: number[] | DataPoint[]) => void;
   updateTitle: (newTitle: string) => void;

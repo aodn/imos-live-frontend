@@ -1,7 +1,6 @@
 export * from './MapComponent';
 export * from './PopupContent';
 export * from './Layout';
-export * from './CircleDetails';
 export * from './DistanceMeasurement';
 export * from './Button';
 export * from './Collapsible';
