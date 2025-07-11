@@ -4,14 +4,14 @@ export type ViewMode = 'range' | 'point' | 'combined';
 export type TimeUnit = 'day' | 'month' | 'year';
 export type DragHandle = 'start' | 'end' | 'point' | null;
 
-export type RangeSelection = {
+type RangeSelection = {
   range: {
     start: Date;
     end: Date;
   };
 };
 
-export type PointSelection = {
+type PointSelection = {
   point: Date;
 };
 
@@ -20,7 +20,7 @@ export type TimeLabel = {
   position: number;
 };
 
-export type CombinedSelection = RangeSelection & PointSelection;
+type CombinedSelection = RangeSelection & PointSelection;
 
 export type SelectionResult = RangeSelection | PointSelection | CombinedSelection;
 
@@ -71,7 +71,7 @@ export type ScaleType = 'short' | 'medium' | 'long';
 export type Scale = { position: number; type: ScaleType; date: Date };
 export type NumOfScales = { short: number; medium: number; long: number };
 
-export type BaseSliderTrackProps = {
+type BaseSliderTrackProps = {
   onTrackClick: (e: React.MouseEvent) => void;
   onTrackTouch: (e: React.TouchEvent) => void;
   baseTrackclassName?: string;
@@ -84,13 +84,13 @@ export type BaseSliderTrackProps = {
   onDragging: boolean;
 };
 
-export type PointModeProps = {
+type PointModeProps = {
   mode: 'point';
   activeTrackClassName?: string;
   pointPosition: number;
 };
 
-export type CombinedModeProps = {
+type CombinedModeProps = {
   mode: 'combined';
   rangeStart: number;
   rangeEnd: number;
@@ -99,7 +99,7 @@ export type CombinedModeProps = {
   activeTrackClassName?: string;
 };
 
-export type RangeModeProps = {
+type RangeModeProps = {
   mode: 'range';
   rangeStart: number;
   rangeEnd: number;
