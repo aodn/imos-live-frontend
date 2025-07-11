@@ -11,7 +11,7 @@ type RangeSelection = {
   };
 };
 
-type PointSelection = {
+export type PointSelection = {
   point: Date;
 };
 
