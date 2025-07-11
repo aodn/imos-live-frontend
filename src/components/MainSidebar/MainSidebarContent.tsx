@@ -3,7 +3,7 @@ import { Header } from './Header';
 import { ImageType } from '@/types';
 import { LayerProducts } from './LayerProducts';
 import { LayerSets } from './LayerSets';
-import { headderDataMock, layerProductsMock, featuredDatasetMock } from './mock';
+import { headerData, layerProductsMock, featuredDataset } from './products';
 import { useMapUIStore } from '@/store';
 import { useShallow } from 'zustand/shallow';
 import { ReactNode, useMemo } from 'react';
@@ -46,7 +46,7 @@ export const MainSidebarContent: React.FC<MainSidebarProps> = ({ className = '' 
   );
   const normalizedLayerSets = useMemo(() => {
     return normalizeLayerSets(
-      featuredDatasetMock.map(item => ({ ...item })),
+      featuredDataset.map(item => ({ ...item })),
       {
         setCircle,
         setOverlay,
@@ -61,11 +61,7 @@ export const MainSidebarContent: React.FC<MainSidebarProps> = ({ className = '' 
   }, [setCircle, setOverlay, setParticles, particles, overlay, circle]);
   return (
     <div className={cn('h-full', className)}>
-      <Header
-        className="hidden md:flex"
-        image={headderDataMock.image}
-        title={headderDataMock.title}
-      />
+      <Header className="hidden md:flex" image={headerData.image} title={headerData.title} />
 
       <Search className="mt-4 md:px-2" />
 

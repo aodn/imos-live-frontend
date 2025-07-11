@@ -6,7 +6,7 @@ import anomalySeaLevelImage from '@/assets/layer_test_2.jpg';
 import waveBuoysImage from '@/assets/layer_test_3.jpg';
 import loggImage from '@/assets/imos_logo_with_title.png';
 
-export const headderDataMock = {
+export const headerData = {
   title: 'IMOS Live',
   image: {
     src: loggImage,
@@ -16,44 +16,51 @@ export const headderDataMock = {
   },
 };
 
-export const featuredDatasetMock: LayersDataset[] = [
+export const featuredDataset: LayersDataset[] = [
   {
     image: {
       src: occeanCurrentImage,
-      alt: 'Layer Test 1',
+      alt: 'GSLA Ocean current',
     },
     title: 'GSLA Ocean current',
     icon: <WaveIcon size="lg" />,
     description:
-      'm ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.m ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-    addToMap: () => console.log('Add to map clicked'),
+      'Gridded sea level (GSL) and surface geostrophic velocity (UCUR,VCUR) for the Australasian region.' +
+      ' GSLA is mapped using optimal interpolation of detided, de-meaned, inverse-barometer-adjusted altimeter' +
+      ' and tidegauge estimates of sea level. GSL is GSLA plus an estimate of the departure of mean sea level from the geoid.' +
+      ' The geostrophic velocities are derived from GSL.',
     layerId: PARTICLE_LAYER_ID,
+    addToMap: () => console.log('Add to map clicked'),
     visible: false,
   },
   {
     image: {
       src: anomalySeaLevelImage,
-      alt: 'Layer Test 2',
+      alt: 'GSLA Anomaly sea levels',
     },
     title: 'GSLA Anomaly sea levels',
     icon: <WaterSurfaceIcon size="lg" />,
     description:
-      'm ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.m ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-    addToMap: () => console.log('Add to map clicked'),
+      'Gridded (adjusted) sea level anomaly (GSLA)' +
+      ' for the Australasian region.' +
+      ' GSLA is mapped using optimal interpolation of detided, de-meaned, inverse-barometer-adjusted altimeter' +
+      ' and tidegauge estimates of sea level. GSL is GSLA plus an estimate of the departure of mean sea level from the geoid.' +
+      ' The geostrophic velocities are derived from GSL.',
     layerId: OVERLAY_LAYER_ID,
+    addToMap: () => console.log('Add to map clicked'),
     visible: false,
   },
   {
     image: {
       src: waveBuoysImage,
-      alt: 'Layer Test 3',
+      alt: 'Wave buoys',
     },
     title: 'Wave buoys',
     icon: <SatelliteIcon size="lg" />,
     description:
-      'm ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.m ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-    addToMap: () => console.log('Add to map clicked'),
+      'Buoys provide integral wave parameters. Buoy data from the following organisations contribute to the National Wave Archive: Manly Hydraulics Laboratory, Bureau of Meteorology, DOT, DES, IMOS, Gippsland Ports, DPE, UWA, Deakin University, Pilbara Ports Authority and Flinders University and SARDI.',
     layerId: WAVE_BUOYS_LAYER_ID,
+    addToMap: () => console.log('Add to map clicked'),
     visible: false,
   },
 ];

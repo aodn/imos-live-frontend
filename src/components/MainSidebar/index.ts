@@ -1,3 +1,3 @@
 export * from './MainSidebarContent';
-export * from './mock';
+export * from './products';
 export * from './Header';
