@@ -1,13 +1,6 @@
 /**
- * 
-The shader code is in strings because GLSL has to be passed to the GPU as text
-
-WebGL compiles these strings into GPU programs
-
-This is standard in JS WebGL workflows (especially with TWGL or raw WebGL)
-
-This code implements a real-time particle simulation on a Mapbox map, using WebGL shaders to move and 
-render particles based on a vector field (e.g. wind or ocean current data) encoded in a PNG image.
+ * Fix using the packing method from GitHub issue #12
+ * This properly handles precision on devices without float texture support
  */
 
 const vs = `
@@ -21,15 +14,24 @@ uniform float u_point_size;
 
 varying vec2 v_particle_pos;
 
+const vec2 bitEnc = vec2(1.,255.);
+const vec2 bitDec = 1./bitEnc;
+
+// decode particle position from pixel RGBA
+vec2 fromRGBA(const vec4 color) {
+  vec4 rounded_color = floor(color * 255.0 + 0.5) / 255.0;
+  float x = dot(rounded_color.rg, bitDec);
+  float y = dot(rounded_color.ba, bitDec);
+  return vec2(x, y);
+}
+
 void main() {
     vec4 color = texture2D(u_particles, vec2(
         fract(a_index / u_particles_res),
         floor(a_index / u_particles_res) / u_particles_res));
 
-    // decode current particle position from the pixel's RGBA value
-    v_particle_pos = vec2(
-        color.r / 255.0 + color.b,
-        color.g / 255.0 + color.a);
+    // Use the proper decoding method
+    v_particle_pos = fromRGBA(color);
 
     gl_PointSize = u_point_size;
     gl_Position = vec4(2.0 * v_particle_pos.x - 1.0, 1.0 - 2.0 * v_particle_pos.y, 0, 1);
@@ -163,11 +165,35 @@ uniform vec4 u_data_bounds;
 
 varying vec2 v_tex_pos;
 
+const vec2 bitEnc = vec2(1.,255.);
+const vec2 bitDec = 1./bitEnc;
+
 // pseudo-random generator
 const vec3 rand_constants = vec3(12.9898, 78.233, 4375.85453);
 float rand(const vec2 co) {
     float t = dot(rand_constants.xy, co);
     return fract(sin(t) * (rand_constants.z + t));
+}
+
+// decode particle position from pixel RGBA
+vec2 fromRGBA(const vec4 color) {
+  vec4 rounded_color = floor(color * 255.0 + 0.5) / 255.0;
+  float x = dot(rounded_color.rg, bitDec);
+  float y = dot(rounded_color.ba, bitDec);
+  return vec2(x, y);
+}
+
+// encode particle position to pixel RGBA
+vec4 toRGBA (const vec2 pos) {
+  vec2 rg = bitEnc * pos.x;
+  rg = fract(rg);
+  rg -= rg.yy * vec2(1. / 255., 0.);
+
+  vec2 ba = bitEnc * pos.y;
+  ba = fract(ba);
+  ba -= ba.yy * vec2(1. / 255., 0.);
+
+  return vec4(rg, ba);
 }
 
 // vector magnitude lookup; use manual bilinear filtering based on 4 adjacent pixels for smooth interpolation
@@ -198,9 +224,9 @@ vec2 returnLonLat(float x_domain, float y_domain, vec2 pos) {
 
 void main() {
     vec4 color = texture2D(u_particles, v_tex_pos);
-    vec2 pos = vec2(
-        color.r / 255.0 + color.b,
-        color.g / 255.0 + color.a); // decode particle position from pixel RGBA
+    
+    // Use the proper decoding method
+    vec2 pos = fromRGBA(color);
 
     //convert from 0-1 to degrees for proper texture value lookup
     float x_domain = abs(u_bounds.x - u_bounds.z);
@@ -240,10 +266,9 @@ void main() {
         rand(seed + 2.1));
     pos = mix(pos, random_pos, drop);
 
-    // encode the new particle position back into RGBA
-    gl_FragColor = vec4(
-        fract(pos * 255.0),
-        floor(pos * 255.0) / 255.0);
+    // Use the proper encoding method
+    gl_FragColor = toRGBA(pos);
 }
 `;
+
 export { vs, fs, vsQuad, fsScreen, fsUpdate };
