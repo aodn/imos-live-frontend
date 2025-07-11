@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { LayerSets } from './LayerSets';
-import { featuredDatasetMock } from './mock';
+import { featuredDataset } from './products';
 
 const meta = {
   title: 'components/MainSidebar/LayerSets',
@@ -16,7 +16,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Primary: Story = {
   args: {
-    layersDatasets: featuredDatasetMock,
+    layersDatasets: featuredDataset,
     title: 'OC Products',
   },
 };

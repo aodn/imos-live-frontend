@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { LayerProducts } from './LayerProducts';
-import { layerProductsMock } from './mock';
+import { layerProductsMock } from './products';
 
 const meta = {
   title: 'components/MainSidebar/LayerProducts',
