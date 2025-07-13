@@ -1,5 +1,5 @@
 /**
- * Fix using the packing method from GitHub issue #12
+ * Fix using the packing method from GitHub issue https://github.com/mapbox/webgl-wind/issues/12
  * This properly handles precision on devices without float texture support
  */
 
@@ -272,3 +272,48 @@ void main() {
 `;
 
 export { vs, fs, vsQuad, fsScreen, fsUpdate };
+
+/**
+ * why fix works?
+ * 
+ * original code:
+ *  vec4 color = texture2D(u_particles, v_tex_pos);
+    vec2 pos = vec2(
+        color.r / 255.0 + color.b,
+        color.g / 255.0 + color.a); // decode particle position from pixel RGBA
+
+     gl_FragColor = vec4(
+        fract(pos * 255.0),
+        floor(pos * 255.0) / 255.0);
+    
+    color is rgba vec4 value, and each rgba is between 0 to 1.
+    rgba to position: color.r / 255.0 + color.b = pos.x, color.g / 255.0 + color.a=pos.y
+    postion to rgba: fract(pos.x * 255.0) = color.r, floor(pos.x * 255.0) / 255.0) = color.b, fract(pos.y * 255.0) = color.g, floor(pos.y * 255.0) / 255.0) = color.a
+    What has done is to packing r,b to represent pos.x and g,a represent pos.y, and revese this processing.
+    but the issue is when color.r/255.0, say color.r = 0.2195, then color.r/255.0 = 0.000861 which is fine precision, for some devices that do not support float texture,
+    there will be precision loss.
+
+    fixed code:
+    vec2 fromRGBA(const vec4 color) {
+        vec4 rounded_color = floor(color * 255.0 + 0.5) / 255.0;
+        float x = dot(rounded_color.rg, bitDec);
+        float y = dot(rounded_color.ba, bitDec);
+        return vec2(x, y);
+        }
+    vec4 toRGBA (const vec2 pos) {
+        vec2 rg = bitEnc * pos.x;
+        rg = fract(rg);
+        rg -= rg.yy * vec2(1. / 255., 0.);
+
+        vec2 ba = bitEnc * pos.y;
+        ba = fract(ba);
+        ba -= ba.yy * vec2(1. / 255., 0.);
+
+        return vec4(rg, ba);
+        }
+    v_particle_pos = fromRGBA(color);
+    gl_FragColor = toRGBA(pos);
+
+    now instead of color.r / 255.0 + color.b and color.g / 255.0 + color.a, vec4 rounded_color = floor(color * 255.0 + 0.5) / 255.0 is used, which an avoid fine precision,
+    because floor(color * 255.0 + 0.5) ensure to get nearest int from 0-255, and then the result divided by 255 is 8-bit value.
+ */
