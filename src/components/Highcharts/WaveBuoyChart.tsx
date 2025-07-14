@@ -240,6 +240,7 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
             cropThreshold: 0,
           },
         }}
+        exporting={{ enabled: false }}
         tooltip={{
           shared: true,
           split: false,
