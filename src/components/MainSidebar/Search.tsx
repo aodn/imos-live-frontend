@@ -7,7 +7,7 @@ import { cn } from '@/utils';
 type SearchProps = {
   className?: string;
   label?: string;
-  fn?: () => void;
+  fn?: (searchValue: string) => void;
 };
 
 export const Search = ({ label, fn, className }: SearchProps = {}) => {
@@ -16,8 +16,7 @@ export const Search = ({ label, fn, className }: SearchProps = {}) => {
     setSearchQuery(value);
   };
   const handleSearch = (v: string) => () => {
-    console.log('search query', v);
-    if (fn) fn();
+    if (fn) fn(v);
   };
 
   return (
@@ -32,7 +31,7 @@ export const Search = ({ label, fn, className }: SearchProps = {}) => {
             <Button
               size={'icon'}
               variant={'secondary'}
-              className="hover:scale-110 active:scale-110 transition-transform"
+              className="hover:scale-110 active:scale-110 transition-transform hidden"
             >
               <ConfigIcon color="imos-grey" />
             </Button>
