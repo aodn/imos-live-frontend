@@ -60,7 +60,7 @@ export const MainSidebarContent: React.FC<MainSidebarProps> = ({ className = '' 
     );
   }, [setCircle, setOverlay, setParticles, particles, overlay, circle]);
   return (
-    <div className={cn('h-full', className)}>
+    <div className={cn('h-full pb-4', className)}>
       <Header className="hidden md:flex" image={headerData.image} title={headerData.title} />
 
       <Search className="mt-4 md:px-2" />
@@ -71,7 +71,11 @@ export const MainSidebarContent: React.FC<MainSidebarProps> = ({ className = '' 
         className="md:px-2 mt-4"
       />
 
-      <LayerProducts products={layerProductsMock} title="OC Products" className="mt-4  md:px-8" />
+      <LayerProducts
+        products={layerProductsMock}
+        title="OC Products"
+        className="mt-4 md:px-8 hidden"
+      />
     </div>
   );
 };
