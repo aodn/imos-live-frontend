@@ -7,14 +7,7 @@ import {
   useImperativeHandle,
   memo,
 } from 'react';
-import {
-  checkDateDuration,
-  clampPercent,
-  clamp,
-  convertToLocalDateTime,
-  cn,
-  debounce,
-} from '@/utils';
+import { checkDateDuration, clampPercent, clamp, toLocalDate, cn, debounce } from '@/utils';
 import { useDrag, useElementSize, useResizeObserver, useRAFDFn } from '@/hooks';
 import { SliderProps, DragHandle, SelectionResult, TimeUnit } from './type';
 import { useDragState, useFocusManagement, usePositionState, useEventHanlders } from './hooks';
@@ -68,8 +61,8 @@ export const DateSlider = memo(
     const [dimensions, setDimensions] = useState({ parent: 0, slider: 0 });
     const [timeUnit, setTimeUnit] = useState<TimeUnit>(initialTimeUnit);
 
-    const startDate = useMemo(() => convertToLocalDateTime(propStartDate), [propStartDate]);
-    const endDate = useMemo(() => convertToLocalDateTime(propEndDate), [propEndDate]);
+    const startDate = useMemo(() => toLocalDate(propStartDate), [propStartDate]);
+    const endDate = useMemo(() => toLocalDate(propEndDate), [propEndDate]);
 
     const totalScaleUnits = useMemo(
       () => getPeriodTimeScales(startDate, endDate, timeUnit),
@@ -180,7 +173,7 @@ export const DateSlider = memo(
 
     const setDateTime = useCallback(
       (date: Date, target?: 'point' | 'rangeStart' | 'rangeEnd') => {
-        const percentage = getPercentFromDate(convertToLocalDateTime(date), startDate, endDate);
+        const percentage = getPercentFromDate(toLocalDate(date), startDate, endDate);
 
         let actualTarget = target;
         if (!actualTarget) {

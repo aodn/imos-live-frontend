@@ -119,14 +119,33 @@ export function dateToUTC(dateString: string): Date {
 
 /**
  * Converts a UTC date string to local timezone
- * @param dateString
- * @returns Date object in local timezone
+ * @param input
+ * @returns Date object in local timezone, which is 00:00:00 (midnight) in local time on the same year/month/day as in UTC.
  */
-export function convertToLocalDateTime(input: number | string | Date): Date {
+export function toLocalDate(input: number | string | Date): Date {
   const utcDate = new Date(input);
   if (isNaN(utcDate.getTime())) {
     throw new Error(`Invalid UTC date: ${input}`);
   }
 
   return new Date(utcDate.getUTCFullYear(), utcDate.getUTCMonth(), utcDate.getUTCDate());
+}
+
+/**
+ * Converts a UTC date string to local time string
+ * @param input
+ * @param locales
+ * @param options
+ * @returns LocaleDateString
+ */
+export function toLocalDateTime(
+  input: number | string | Date,
+  locales?: Intl.LocalesArgument,
+  options?: Intl.DateTimeFormatOptions,
+): string {
+  const date = new Date(input);
+  if (isNaN(date.getTime())) {
+    throw new Error(`Invalid UTC date: ${input}`);
+  }
+  return date.toLocaleString(locales, options);
 }
