@@ -9,6 +9,11 @@ import { useChartMethods } from './useChartMethods';
 initializeHighchartsModules();
 
 Highcharts.setOptions({
+  time: {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
+    useUTC: false,
+  },
   exporting: {
     fallbackToExportServer: false,
   },

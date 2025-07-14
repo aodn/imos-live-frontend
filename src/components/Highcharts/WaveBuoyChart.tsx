@@ -3,6 +3,7 @@ import { LineChart } from './LineChart';
 import {
   createMergedCollectionWithAllParameters,
   getLast7Dates,
+  toLocalDateTime,
   toWaveBuoyChartData,
 } from '@/utils';
 import { useAsync } from '@/hooks';
@@ -102,7 +103,7 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
   const tooltipFormatter = useCallback(
     (context: any) => {
       const point = context.point;
-      const datetime = new Date(point.x).toLocaleString();
+      const datetime = toLocalDateTime(point.x);
 
       let tooltipHTML = `<div style="font-size: 12px;"><b>Time:</b> ${datetime}<br/>`;
 
@@ -228,8 +229,6 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
         responsive={true}
         xAxis={{
           type: 'datetime',
-          // title: { text: 'Date & Time' },
-          //labels: { format: '{value:%H:%M}' },
           labels: { format: '{value:%b %e %H:%M}' },
           offset: 0,
         }}

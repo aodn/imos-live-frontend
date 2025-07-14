@@ -93,6 +93,7 @@ export interface RangeSelectorConfig {
   };
   inputDateFormat?: string;
   inputEditDateFormat?: string;
+  inputDateParser?: (value: string) => number;
   y?: number; // Positioning from top
   height?: number; // Height of range selector
   floating?: boolean; // Whether it floats over chart

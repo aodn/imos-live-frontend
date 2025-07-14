@@ -1,4 +1,4 @@
-import { convertToLocalDateTime, cn } from '@/utils';
+import { cn, toLocalDateTime } from '@/utils';
 import { WaveBuoyDetailsFeatureCollection, WaveBuoyDetailsProperties } from '@/types';
 import { obseravtionVariants } from './config';
 import { useMemo } from 'react';
@@ -72,7 +72,7 @@ export function LatestObservation({
             <span>Latest Observations</span>
             {observationData[0]?.timeStamp && (
               <span className="text-xs font-light ml-2">
-                {convertToLocalDateTime(observationData[0].timeStamp).toLocaleString()}
+                {toLocalDateTime(observationData[0].timeStamp)}
               </span>
             )}
           </h2>
