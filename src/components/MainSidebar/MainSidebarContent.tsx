@@ -6,7 +6,7 @@ import { LayerSets } from './LayerSets';
 import { headerData, layerProductsMock, featuredDataset } from './products';
 import { useMapUIStore } from '@/store';
 import { useShallow } from 'zustand/shallow';
-import { ReactNode, useMemo } from 'react';
+import { ReactNode, useMemo, useState } from 'react';
 import { cn, normalizeLayerSets } from '@/utils';
 
 export type HeaderData = {
@@ -34,6 +34,8 @@ type MainSidebarProps = {
 };
 
 export const MainSidebarContent: React.FC<MainSidebarProps> = ({ className = '' }) => {
+  const [searchQuery, setSearchQuery] = useState('');
+
   const { overlay, particles, circle, setOverlay, setCircle, setParticles } = useMapUIStore(
     useShallow(s => ({
       overlay: s.overlay,
@@ -59,19 +61,30 @@ export const MainSidebarContent: React.FC<MainSidebarProps> = ({ className = '' 
       },
     );
   }, [setCircle, setOverlay, setParticles, particles, overlay, circle]);
+
+  const filteredLayerSets = useMemo(() => {
+    return normalizedLayerSets.filter(layerSet =>
+      layerSet.title.toLowerCase().includes(searchQuery.toLowerCase()),
+    );
+  }, [normalizedLayerSets, searchQuery]);
+
   return (
-    <div className={cn('h-full', className)}>
+    <div className={cn('h-full pb-4', className)}>
       <Header className="hidden md:flex" image={headerData.image} title={headerData.title} />
 
-      <Search className="mt-4 md:px-2" />
+      <Search className="mt-4 md:px-2" fn={s => setSearchQuery(s)} />
 
       <LayerSets
         title="Featured Functions"
-        layersDatasets={normalizedLayerSets}
+        layersDatasets={filteredLayerSets}
         className="md:px-2 mt-4"
       />
 
-      <LayerProducts products={layerProductsMock} title="OC Products" className="mt-4  md:px-8" />
+      <LayerProducts
+        products={layerProductsMock}
+        title="OC Products"
+        className="mt-4 md:px-8 hidden"
+      />
     </div>
   );
 };
