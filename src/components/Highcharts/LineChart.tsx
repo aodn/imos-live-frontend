@@ -9,6 +9,9 @@ import { useChartMethods } from './useChartMethods';
 initializeHighchartsModules();
 
 Highcharts.setOptions({
+  time: {
+    useUTC: false,
+  },
   exporting: {
     fallbackToExportServer: false,
   },

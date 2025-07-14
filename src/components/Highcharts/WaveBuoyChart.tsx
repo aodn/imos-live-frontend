@@ -229,17 +229,7 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
         responsive={true}
         xAxis={{
           type: 'datetime',
-          labels: {
-            formatter: function () {
-              return toLocalDateTime(this.value, 'en-US', {
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false,
-              });
-            },
-          },
+          labels: { format: '{value:%b %e %H:%M}' },
           offset: 0,
         }}
         yAxis={yAxisConfig}
