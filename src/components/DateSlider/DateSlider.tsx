@@ -57,6 +57,7 @@ export const DateSlider = memo(
     sliderWidth,
     sliderHeight,
     imperativeHandleRef,
+    pointLabelPersistent,
   }: SliderProps) => {
     const [dimensions, setDimensions] = useState({ parent: 0, slider: 0 });
     const [timeUnit, setTimeUnit] = useState<TimeUnit>(initialTimeUnit);
@@ -372,6 +373,7 @@ export const DateSlider = memo(
                   onMouseDown={handleMouseDown}
                   onTouchStart={handleTouchStart}
                   onKeyDown={handleHandleKeyDown}
+                  pointLabelPersistent={pointLabelPersistent}
                 />
               </div>
             </div>
