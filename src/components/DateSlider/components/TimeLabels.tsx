@@ -9,7 +9,8 @@ export const TimeLabels = memo(
     trackWidth,
     timeUnit,
     minDistance = 40,
-    className = 'bottom-0 text-center text-sm text-gray-700 absolute',
+    isTimeLabelPerDay = false,
+    className = 'bottom-0 text-center text-sm text-imos-white absolute',
   }: TimeLabelsProps) => {
     const getVisibleLabels = (): TimeLabel[] => {
       if (!timeLabels.length || !scales.length) return [];
@@ -45,7 +46,7 @@ export const TimeLabels = memo(
             style={{ left: `${position}%` }}
             aria-hidden="true"
           >
-            {formatDateForDisplay(date, timeUnit, false).toUpperCase()}
+            {formatDateForDisplay(date, timeUnit, isTimeLabelPerDay).toUpperCase()}
           </span>
         ))}
       </>

@@ -157,6 +157,7 @@ export const generateTimeLabelsWithPositions = (
   start: Date,
   end: Date,
   unit: TimeUnit,
+  isPerDay: boolean = false,
 ): TimeLabel[] => {
   const labels: TimeLabel[] = [];
   const current = new Date(start);
@@ -169,8 +170,14 @@ export const generateTimeLabelsWithPositions = (
     let labelDate: Date | undefined;
     switch (unit) {
       case 'day':
-        labelDate = new Date(current.getFullYear(), current.getMonth(), 1);
-        current.setMonth(current.getMonth() + 1);
+        if (isPerDay) {
+          labelDate = new Date(current.getFullYear(), current.getMonth(), current.getDate());
+          current.setDate(current.getDate() + 1);
+        } else {
+          labelDate = new Date(current.getFullYear(), current.getMonth(), 1);
+          current.setMonth(current.getMonth() + 1);
+        }
+
         break;
       case 'month':
         labelDate = new Date(current.getFullYear(), 0, 1);
