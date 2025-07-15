@@ -1,6 +1,7 @@
-import { memo } from 'react';
+import { memo, useMemo, useCallback } from 'react';
 import { TimeLabel, TimeLabelsProps } from '../type';
 import { formatDateForDisplay } from '../utils';
+import { useViewportSize } from '@/hooks';
 
 export const TimeLabels = memo(
   ({
@@ -9,9 +10,13 @@ export const TimeLabels = memo(
     trackWidth,
     timeUnit,
     minDistance = 40,
-    className = 'bottom-0 text-center text-sm text-gray-700 absolute',
+    isTimeLabelPerDay = false,
+    className = 'bottom-0 text-center text-sm text-imos-white absolute',
   }: TimeLabelsProps) => {
-    const getVisibleLabels = (): TimeLabel[] => {
+    const { widthBreakpoint } = useViewportSize();
+    const isMobileOrTablet = ['sm', 'md'].includes(widthBreakpoint || '');
+
+    const getVisibleLabels = useCallback((): TimeLabel[] => {
       if (!timeLabels.length || !scales.length) return [];
 
       const visible: TimeLabel[] = [];
@@ -33,8 +38,12 @@ export const TimeLabels = memo(
       }
 
       return visible;
-    };
-    const visibleLabels = getVisibleLabels();
+    }, [timeLabels, scales, trackWidth, minDistance]);
+
+    const visibleLabels = useMemo(
+      () => (isMobileOrTablet ? getVisibleLabels().slice(0, 1) : getVisibleLabels()),
+      [getVisibleLabels, isMobileOrTablet],
+    );
 
     return (
       <>
@@ -45,7 +54,7 @@ export const TimeLabels = memo(
             style={{ left: `${position}%` }}
             aria-hidden="true"
           >
-            {formatDateForDisplay(date, timeUnit, false).toUpperCase()}
+            {formatDateForDisplay(date, timeUnit, isTimeLabelPerDay).toUpperCase()}
           </span>
         ))}
       </>

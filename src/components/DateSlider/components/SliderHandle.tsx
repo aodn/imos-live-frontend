@@ -7,6 +7,7 @@ import { formatDateForDisplay, getDateFromPercent } from '../utils';
 // Updated SliderHandleProps type to include touch event handlers
 type UpdatedSliderHandleProps = SliderHandleProps & {
   onTouchStart?: (e: React.TouchEvent) => void;
+  labelPersistent?: boolean;
 };
 
 export const SliderHandle = ({
@@ -25,6 +26,7 @@ export const SliderHandle = ({
   handleType,
   onKeyDown,
   onFocus,
+  labelPersistent = false,
 }: UpdatedSliderHandleProps) => {
   return (
     <Button
@@ -50,7 +52,7 @@ export const SliderHandle = ({
       onKeyDown={onKeyDown}
       onFocus={onFocus}
     >
-      {onDragging && (
+      {(onDragging || labelPersistent) && (
         <div
           className={cn(
             'absolute top-0  left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap',
@@ -75,9 +77,9 @@ export const SliderHandle = ({
   );
 };
 
-// Updated RenderSliderHandleProps type to include touch event handlers
 type UpdatedRenderSliderHandleProps = RenderSliderHandleProps & {
   onTouchStart: (handle: 'start' | 'end' | 'point') => (e: React.TouchEvent) => void;
+  pointLabelPersistent?: boolean;
 };
 
 export const RenderSliderHandle = memo<UpdatedRenderSliderHandleProps>(
@@ -99,6 +101,7 @@ export const RenderSliderHandle = memo<UpdatedRenderSliderHandleProps>(
     onMouseDown,
     onTouchStart,
     onKeyDown,
+    pointLabelPersistent,
   }) => {
     const commonProps = {
       className: 'top-0',
@@ -163,6 +166,7 @@ export const RenderSliderHandle = memo<UpdatedRenderSliderHandleProps>(
             value={pointPosition}
             handleType="point"
             onKeyDown={onKeyDown('point')}
+            labelPersistent={pointLabelPersistent}
           />
         )}
       </>

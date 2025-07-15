@@ -57,6 +57,8 @@ export const DateSlider = memo(
     sliderWidth,
     sliderHeight,
     imperativeHandleRef,
+    pointLabelPersistent,
+    isTimeLabelPerDay = false,
   }: SliderProps) => {
     const [dimensions, setDimensions] = useState({ parent: 0, slider: 0 });
     const [timeUnit, setTimeUnit] = useState<TimeUnit>(initialTimeUnit);
@@ -126,8 +128,8 @@ export const DateSlider = memo(
     }, [numberOfScales, scaleUnitConfig, sliderContainerWidth, totalScaleUnits]);
 
     const timeLabels = useMemo(
-      () => generateTimeLabelsWithPositions(startDate, endDate, timeUnit),
-      [endDate, startDate, timeUnit],
+      () => generateTimeLabelsWithPositions(startDate, endDate, timeUnit, isTimeLabelPerDay),
+      [endDate, startDate, timeUnit, isTimeLabelPerDay],
     );
 
     const updateDimensions = useCallback(() => {
@@ -353,6 +355,7 @@ export const DateSlider = memo(
                   scales={scales}
                   trackWidth={trackWidth}
                   timeUnit={timeUnit}
+                  isTimeLabelPerDay={isTimeLabelPerDay}
                 />
                 <RenderSliderHandle
                   viewMode={viewMode}
@@ -372,6 +375,7 @@ export const DateSlider = memo(
                   onMouseDown={handleMouseDown}
                   onTouchStart={handleTouchStart}
                   onKeyDown={handleHandleKeyDown}
+                  pointLabelPersistent={pointLabelPersistent}
                 />
               </div>
             </div>

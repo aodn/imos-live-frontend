@@ -65,6 +65,8 @@ export type SliderProps = {
   sliderWidth?: 'fill' | number; //fill means its width will fill parent.
   sliderHeight?: number;
   imperativeHandleRef?: React.Ref<SliderExposedMethod>;
+  pointLabelPersistent?: boolean;
+  isTimeLabelPerDay?: boolean;
 };
 
 export type ScaleType = 'short' | 'medium' | 'long';
@@ -163,4 +165,5 @@ export type TimeLabelsProps = {
   timeUnit: TimeUnit;
   minDistance?: number;
   className?: string;
+  isTimeLabelPerDay?: boolean;
 };
