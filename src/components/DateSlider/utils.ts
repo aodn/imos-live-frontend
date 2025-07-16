@@ -215,7 +215,6 @@ export const generateTimeLabelsWithPositions = (
   if (labels.length === 0 || labels[labels.length - 1].date.getTime() !== endLabel.getTime()) {
     const labelTime = endLabel.getTime();
     const percentage = totalTimeSpan === 0 ? 0 : ((labelTime - startTime) / totalTimeSpan) * 100;
-    console.log(endLabel);
     labels.push({ date: endLabel, position: percentage });
   }
 

@@ -242,27 +242,6 @@ export function useWaveBuoysLayerClickHandler(
     };
   }, [circle, map]);
 
-  //  Clear unclustered circle selection on Escape key press
-  useEffect(() => {
-    if (!map.current || !circle) return;
-
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && selectedFeatureId.current !== null && map.current) {
-        map.current.setFeatureState(
-          { source: WAVE_BUOYS_SOURCE_ID, id: selectedFeatureId.current },
-          { selected: false },
-        );
-        selectedFeatureId.current = null;
-        setClickedPointData(null);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyPress);
-    return () => {
-      window.removeEventListener('keydown', handleKeyPress);
-    };
-  }, [circle, map]);
-
   return {
     clickedPointData,
     openDrawer,
