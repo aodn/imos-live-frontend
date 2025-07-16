@@ -1,6 +1,6 @@
-import { buildGSLADatasetUrl } from '@/utils';
-import { s3Api } from './instance';
 import { GSLA_DATA_NAME } from '@/constants';
+import { buildGSLADatasetPath } from '@/utils';
+import { s3Api } from './instance';
 
 type OceanCurrentDetails = {
   u: number;
@@ -25,7 +25,7 @@ type OceanCurrentDataResponse = {
 
 export const getOceanCurrentData = async (date: string): Promise<OceanCurrentDataResponse> => {
   const response = await s3Api.get<OceanCurrentDataResponse>(
-    buildGSLADatasetUrl(date, GSLA_DATA_NAME),
+    buildGSLADatasetPath(date, GSLA_DATA_NAME),
   );
   return response.data;
 };
