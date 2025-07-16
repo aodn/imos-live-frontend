@@ -384,7 +384,7 @@ export const Drawer: React.FC<DrawerProps> = ({
         </div>
 
         <Button
-          className="absolute top-0 right-0 cursor-pointer z-10 hidden md:block"
+          className="absolute top-0 right-0 cursor-pointer z-10 block"
           variant="ghost"
           onClick={handleClose}
         >

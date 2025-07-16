@@ -59,6 +59,7 @@ export const DateSlider = memo(
     imperativeHandleRef,
     pointLabelPersistent,
     isTimeLabelPerDay = false,
+    withEndLabel = true,
   }: SliderProps) => {
     const [dimensions, setDimensions] = useState({ parent: 0, slider: 0 });
     const [timeUnit, setTimeUnit] = useState<TimeUnit>(initialTimeUnit);
@@ -129,7 +130,7 @@ export const DateSlider = memo(
 
     const timeLabels = useMemo(
       () => generateTimeLabelsWithPositions(startDate, endDate, timeUnit, isTimeLabelPerDay),
-      [endDate, startDate, timeUnit, isTimeLabelPerDay],
+      [startDate, endDate, timeUnit, isTimeLabelPerDay],
     );
 
     const updateDimensions = useCallback(() => {
@@ -356,6 +357,7 @@ export const DateSlider = memo(
                   trackWidth={trackWidth}
                   timeUnit={timeUnit}
                   isTimeLabelPerDay={isTimeLabelPerDay}
+                  withEndLabel={withEndLabel}
                 />
                 <RenderSliderHandle
                   viewMode={viewMode}

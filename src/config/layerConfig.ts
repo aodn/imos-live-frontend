@@ -40,12 +40,47 @@ export const waveBuoysLayerConfig: Partial<CircleLayerSpecification> = {
 export const clusterMaxZoom = 16;
 
 export const unclusteredWaveBuoysLayerConfig: Partial<CircleLayerSpecification> = {
-  filter: ['!', ['has', 'point_count']], // Only show unclustered points
+  filter: ['!', ['has', 'point_count']],
   paint: {
-    'circle-color': '#11b4da',
-    'circle-radius': 8,
-    'circle-stroke-width': 1,
-    'circle-stroke-color': '#fff',
+    'circle-color': [
+      'case',
+      ['boolean', ['feature-state', 'selected'], false],
+      '#ffffff', // white center when selected
+      '#11b4da', // blue when not selected
+    ],
+    'circle-radius': [
+      'case',
+      ['boolean', ['feature-state', 'selected'], false],
+      10, // slightly larger when selected
+      8, // normal size
+    ],
+    'circle-stroke-width': [
+      'case',
+      ['boolean', ['feature-state', 'selected'], false],
+      4, // thicker stroke when selected
+      1, // normal stroke
+    ],
+    'circle-stroke-color': [
+      'case',
+      ['boolean', ['feature-state', 'selected'], false],
+      '#11b4da', // blue outline when selected (inverted colors)
+      '#ffffff', // white outline when not selected
+    ],
+    'circle-stroke-opacity': [
+      'case',
+      ['boolean', ['feature-state', 'selected'], false],
+      1, // full opacity when selected
+      0.8, // slightly transparent when not selected
+    ],
+    // Add smooth transitions
+    'circle-radius-transition': {
+      duration: 200,
+      delay: 0,
+    },
+    'circle-stroke-width-transition': {
+      duration: 200,
+      delay: 0,
+    },
   },
 };
 

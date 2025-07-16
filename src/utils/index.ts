@@ -16,3 +16,5 @@ export * from './isScrollableElement';
 export * from './tryCatch';
 export * from './normalizeWaveBuouysData';
 export * from './mergeWaveBuoyDatas';
+export * from './getFirstAndLast';
+export * from './addIdIdToFeatures';

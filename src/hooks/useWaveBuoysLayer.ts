@@ -102,7 +102,6 @@ export function useWaveBuoysLayer(
       ),
     style,
   );
-
   const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [style, dataset]);
 
   useMapboxLayerVisibility(
