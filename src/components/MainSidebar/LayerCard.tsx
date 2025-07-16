@@ -25,7 +25,7 @@ export const LayerCard = ({
   icon,
 }: LayerCardProps) => {
   const { widthBreakpoint } = useViewportSize();
-  const isMobileOrTablet = ['sm', 'md'].includes(widthBreakpoint || '');
+  const isSmallScreen = ['sm', 'md'].includes(widthBreakpoint || '');
 
   const handleClick = () => {
     if (visible) addToMap(false);
@@ -48,7 +48,7 @@ export const LayerCard = ({
             toggleIconHidden={toggleIconHidden}
           />
         )}
-        disable={!isMobileOrTablet}
+        disable={!isSmallScreen}
       >
         <div className="flex flex-col md:flex-row md:p-4 pb-4 gap-y-4 md:gap-y-0 md:gap-x-6  overflow-hidden">
           <div className="flex-1 min-w-30 rounded-lg overflow-hidden aspect-square">
