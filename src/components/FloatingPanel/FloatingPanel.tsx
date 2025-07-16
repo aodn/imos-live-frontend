@@ -5,6 +5,7 @@ import { CollapsibleTrigger } from './CollapsibleTrigger';
 type FloatingPanelProps = Omit<CollapsibleComponentProps, 'open' | 'toggle' | 'trigger'> &
   Omit<DragWrapperProps, 'children' | 'dragHandleClassName'> & {
     collapsible?: boolean;
+    initialOpen?: boolean;
   };
 
 export const FloatingPanel = ({
@@ -14,6 +15,7 @@ export const FloatingPanel = ({
   boundary,
   initialPosition,
   collapsible = false,
+  initialOpen = false,
 }: FloatingPanelProps) => {
   const dragHandleId = useId();
   const dragHandleClass = `panel-drag-handle-${dragHandleId}`;
@@ -28,7 +30,7 @@ export const FloatingPanel = ({
       <CollapsibleComponent
         disable={!collapsible}
         toggleIconHidden={!collapsible}
-        defaultOpen={collapsible}
+        defaultOpen={initialOpen}
         maxHeight={maxHeight}
         wrapperClassName={wrapperClassName}
         trigger={({ open, toggle, toggleIconHidden }) => (

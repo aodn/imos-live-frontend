@@ -82,6 +82,7 @@ export const Map = () => {
             wrapperClassName="w-14 md:w-fit bg-emerald-300  rounded-xl"
             boundary="parent"
             collapsible
+            initialOpen={!isMobileOrTablet}
             children={
               <FeaturesMenu
                 features={[
