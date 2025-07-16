@@ -21,6 +21,8 @@ export function useWaveBuoysLayerClickHandler(
   const tempPointsEventPrevent = useRef(false);
   const selectedFeatureId = useRef<string | number | null>(null);
   const openDrawer = useDrawerStore(s => s.openBottomDrawer);
+  const bottomDrawer = useDrawerStore(s => s.bottomDrawer);
+
   const [clickedPointData, setClickedPointData] = useState<
     Omit<WaveBuoyPositionFeature, 'type'>[] | null
   >(null);
@@ -214,33 +216,12 @@ export function useWaveBuoysLayerClickHandler(
     };
   }, [map, circle]);
 
-  // Clear unclustered circle selection when clicking on empty map area
+  // Clear unclustered circle selection when drawer closed.
   useEffect(() => {
-    if (!map.current || !circle) return;
-    const mapInstance = map.current;
-
-    const handleMapClick = (e: mapboxgl.MapMouseEvent) => {
-      // Check if click was on any wave buoy layers
-      const features = mapInstance.queryRenderedFeatures(e.point, {
-        layers: [WAVE_BUOYS_LAYER_ID, UNCLUSTERED_WAVE_BUOYS_LAYER_ID],
-      });
-
-      // If no features were clicked, clear the selection
-      if (features.length === 0 && selectedFeatureId.current !== null) {
-        mapInstance.setFeatureState(
-          { source: WAVE_BUOYS_SOURCE_ID, id: selectedFeatureId.current },
-          { selected: false },
-        );
-        selectedFeatureId.current = null;
-        setClickedPointData(null);
-      }
-    };
-
-    mapInstance.on('click', handleMapClick);
-    return () => {
-      mapInstance?.off('click', handleMapClick);
-    };
-  }, [circle, map]);
+    if (!bottomDrawer.isOpen) {
+      clearSelection();
+    }
+  }, [bottomDrawer.isOpen, clearSelection]);
 
   return {
     clickedPointData,
