@@ -64,7 +64,7 @@ export const TimeUnitSelection = memo(
           })}
         >
           <p
-            className={cn('text-center text-base font-bold', {
+            className={cn('text-center text-base font-bold text-imos-white', {
               'text-xs': heightBreakpoint === 'sm' || heightBreakpoint === 'xs',
             })}
           >
@@ -78,7 +78,7 @@ export const TimeUnitSelection = memo(
               onClick={handleTimeUnitPreviousSelect}
               disabled={isPrevBtnDisabled()}
             >
-              <TriangleIcon size={getIconSize(heightBreakpoint)} color="imos-grey" />
+              <TriangleIcon size={getIconSize(heightBreakpoint)} color="imos-white" />
             </Button>
             <Button
               aria-label="next time unit"
@@ -88,7 +88,7 @@ export const TimeUnitSelection = memo(
               onClick={handleTimeUnitNextSelect}
               disabled={isNextBtnDisabled()}
             >
-              <TriangleIcon size={getIconSize(heightBreakpoint)} color="imos-grey" />
+              <TriangleIcon size={getIconSize(heightBreakpoint)} color="imos-white" />
             </Button>
           </div>
         </div>
