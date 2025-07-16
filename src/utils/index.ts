@@ -17,3 +17,4 @@ export * from './normalizeWaveBuouysData';
 export * from './mergeWaveBuoyDatas';
 export * from './getFirstAndLast';
 export * from './addIdIdToFeatures';
+export * from './sleep';
