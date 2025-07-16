@@ -6,7 +6,7 @@ import {
 } from '@/constants';
 import { addLayerInOrder, addOrUpdateImageSource } from '@/helpers';
 import { imageLayer } from '@/layers';
-import { processMetaData, tryCatch, buildGSLADatasetUrl } from '@/utils';
+import { processMetaData, tryCatch, buildGSLADatasetFullPath, buildGSLADatasetPath } from '@/utils';
 import { useDidMountEffect } from './useDidMountEffect';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
 import { useMapboxLayerRef } from './useMapboxLayerRef';
@@ -26,7 +26,7 @@ export function useOverlayLayer(
   const [isError, setIsError] = useState(false);
 
   const setDataByDataset = async () => {
-    const meta = await tryCatch(getMetaData(buildGSLADatasetUrl(dataset, GSLA_META_NAME)), () => {
+    const meta = await tryCatch(getMetaData(buildGSLADatasetPath(dataset, GSLA_META_NAME)), () => {
       showToast({
         type: 'error',
         title: 'Error occurred',
@@ -46,7 +46,7 @@ export function useOverlayLayer(
     addOrUpdateImageSource(
       map.current!,
       OVERLAY_SOURCE_ID,
-      buildGSLADatasetUrl(dataset, GSLA_SEA_LEVEL_NAME),
+      buildGSLADatasetFullPath(dataset, GSLA_SEA_LEVEL_NAME),
       lonRange,
       latRange,
     );

@@ -44,32 +44,33 @@ The interface consists of:
 ### Prerequisites
 
 - Mapbox API key (set as `VITE_MAPBOX_KEY` environment variable)
-- Dataset base URL (set as `VITE_DATASET_BASE_URL` environment variable)
+- Dataset base URL (set as `VITE_S3_BASE_URL` environment variable)
 
 ### Installation
 
-1. Move to imos-mapbox-app directory
-
-   ```
-   cd imos-mapbox-app
-   ```
-
-2. Install dependencies:
+1. Install dependencies:
 
    ```
    npm install
    ```
 
-3. Set required environment variables:
+1. Set required environment variables:
 
    ```
    VITE_MAPBOX_KEY=your_mapbox_key_here
-   VITE_DATASET_BASE_URL=your_dataset_url_here
+   VITE_S3_BASE_URL=[file server endpoint which contains the output of gsla_processing_script and wave_buoys_processing_script scripts]
    ```
 
-4. Start the development server:
+1. Run the app:
+
    ```
    npm run dev
+   ```
+
+   You can run the frontend using mock data, which does not require the `VITE_S3_BASE_URL` environment variable. To start the application with randomly generated local data, use:
+
+   ```
+   npm run dev:mock
    ```
 
 ## Performance Considerations

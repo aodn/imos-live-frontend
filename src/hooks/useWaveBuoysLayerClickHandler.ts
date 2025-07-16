@@ -10,7 +10,7 @@ import { createZoomLimitPoints, removeZoomLimitTempPoints } from '@/helpers';
 import { useDrawerStore } from '@/store';
 import { WaveBuoyPositionFeature } from '@/types';
 import { normalizeWaveBuouysData } from '@/utils';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 export function useWaveBuoysLayerClickHandler(
   map: React.RefObject<mapboxgl.Map | null>,
@@ -19,10 +19,24 @@ export function useWaveBuoysLayerClickHandler(
 ) {
   const waveBuoysLayerClicked = useRef(false);
   const tempPointsEventPrevent = useRef(false);
+  const selectedFeatureId = useRef<string | number | null>(null);
   const openDrawer = useDrawerStore(s => s.openBottomDrawer);
+  const bottomDrawer = useDrawerStore(s => s.bottomDrawer);
+
   const [clickedPointData, setClickedPointData] = useState<
     Omit<WaveBuoyPositionFeature, 'type'>[] | null
   >(null);
+
+  const clearSelection = useCallback(() => {
+    if (!map.current || selectedFeatureId.current === null) return;
+
+    map.current.setFeatureState(
+      { source: WAVE_BUOYS_SOURCE_ID, id: selectedFeatureId.current },
+      { selected: false },
+    );
+    selectedFeatureId.current = null;
+    setClickedPointData(null);
+  }, [map]);
 
   useEffect(() => {
     if (!map.current || !circle) return;
@@ -60,11 +74,11 @@ export function useWaveBuoysLayerClickHandler(
 
   useEffect(() => {
     if (!map.current || !circle) return;
-    const mapInstace = map.current;
+    const mapInstance = map.current;
 
     const handleMouseDown = (e: mapboxgl.MapMouseEvent & { originalEvent: MouseEvent }) => {
       const wavebuoysLayers = [WAVE_BUOYS_LAYER_ID, UNCLUSTERED_WAVE_BUOYS_LAYER_ID];
-      const hasZoomLimitTempPoints = mapInstace.getSource(ZOOM_LIMIT_TEMP_POINTS_SOURCE_ID);
+      const hasZoomLimitTempPoints = mapInstance.getSource(ZOOM_LIMIT_TEMP_POINTS_SOURCE_ID);
 
       const layers = hasZoomLimitTempPoints
         ? [...wavebuoysLayers, ZOOM_LIMIT_TEMP_POINTS_LAYER_ID]
@@ -85,32 +99,32 @@ export function useWaveBuoysLayerClickHandler(
       }
     };
 
-    mapInstace.on('mousedown', handleMouseDown);
+    mapInstance.on('mousedown', handleMouseDown);
     return () => {
-      mapInstace?.off('mousedown', handleMouseDown);
+      mapInstance?.off('mousedown', handleMouseDown);
     };
   }, [circle, map]);
 
   useEffect(() => {
     //click on clustered wave buoys layer
     if (!map.current || !circle || distanceMeasurement) return;
-    const mapInstace = map.current;
+    const mapInstance = map.current;
 
     const handleClick = (e: mapboxgl.MapMouseEvent) => {
-      const features = mapInstace.queryRenderedFeatures(e.point, {
+      const features = mapInstance.queryRenderedFeatures(e.point, {
         layers: [WAVE_BUOYS_LAYER_ID],
       });
       if (!features[0] || !features[0].properties) return;
 
       const clusterId = features[0].properties.cluster_id;
 
-      const source = mapInstace.getSource(WAVE_BUOYS_SOURCE_ID) as mapboxgl.GeoJSONSource;
+      const source = mapInstance.getSource(WAVE_BUOYS_SOURCE_ID) as mapboxgl.GeoJSONSource;
 
       source.getClusterExpansionZoom(clusterId, (err, zoom) => {
         if (err) return;
 
         if (typeof zoom === 'number' && zoom <= clusterMaxZoom) {
-          mapInstace.easeTo({
+          mapInstance.easeTo({
             center: (features[0].geometry as any).coordinates,
             zoom: zoom,
           });
@@ -123,65 +137,99 @@ export function useWaveBuoysLayerClickHandler(
       });
     };
 
-    mapInstace.on('click', WAVE_BUOYS_LAYER_ID, handleClick);
+    mapInstance.on('click', WAVE_BUOYS_LAYER_ID, handleClick);
     return () => {
-      mapInstace?.off('click', WAVE_BUOYS_LAYER_ID, handleClick);
+      mapInstance?.off('click', WAVE_BUOYS_LAYER_ID, handleClick);
     };
   }, [circle, map, distanceMeasurement]);
 
   useEffect(() => {
     //click on unclustered wave buoys layer.
     if (!map.current || !circle || distanceMeasurement) return;
-    const mapInstace = map.current;
+    const mapInstance = map.current;
 
     const handleClick = (e: mapboxgl.MapMouseEvent) => {
       if (!e.features?.length) return;
+      const feature = e.features[0];
+      // const featureId = feature.properties?._id;
+      const featureId = feature.properties?._id;
+
+      if (selectedFeatureId.current !== null) {
+        mapInstance.setFeatureState(
+          { source: WAVE_BUOYS_SOURCE_ID, id: selectedFeatureId.current },
+          { selected: false },
+        );
+      }
+
+      if (featureId !== undefined) {
+        mapInstance.setFeatureState(
+          { source: WAVE_BUOYS_SOURCE_ID, id: featureId },
+          { selected: true },
+        );
+        selectedFeatureId.current = featureId;
+      }
       setClickedPointData(normalizeWaveBuouysData(e.features));
     };
 
-    mapInstace.on('click', UNCLUSTERED_WAVE_BUOYS_LAYER_ID, handleClick);
+    mapInstance.on('click', UNCLUSTERED_WAVE_BUOYS_LAYER_ID, handleClick);
     return () => {
-      mapInstace?.off('click', UNCLUSTERED_WAVE_BUOYS_LAYER_ID, handleClick);
+      mapInstance?.off('click', UNCLUSTERED_WAVE_BUOYS_LAYER_ID, handleClick);
     };
   }, [circle, map, distanceMeasurement]);
 
   useEffect(() => {
     //click on ZOOM_LIMIT_TEMP_POINTS_LAYER, because points are too close so that cannot be displayed invidiually. This is the layer temporarily created to display thoese points
     if (!map.current || !circle || distanceMeasurement) return;
-    const mapInstace = map.current;
+    const mapInstance = map.current;
 
     const handleClick = (e: mapboxgl.MapMouseEvent) => {
       if (!e.features?.length) return;
       setClickedPointData(normalizeWaveBuouysData(e.features));
     };
 
-    mapInstace.on('click', ZOOM_LIMIT_TEMP_POINTS_LAYER_ID, handleClick);
+    mapInstance.on('click', ZOOM_LIMIT_TEMP_POINTS_LAYER_ID, handleClick);
     return () => {
-      mapInstace?.off('click', ZOOM_LIMIT_TEMP_POINTS_LAYER_ID, handleClick);
+      mapInstance?.off('click', ZOOM_LIMIT_TEMP_POINTS_LAYER_ID, handleClick);
     };
   }, [circle, map, distanceMeasurement]);
 
   useEffect(() => {
     //disppeart ZOOM_LIMIT_TEMP_POINTS_LAYER when zoom within clusterMaxZoom level.
     if (!map.current || !circle) return;
-    const mapInstace = map.current;
+    const mapInstance = map.current;
 
     const handleZoomEnd = () => {
-      const currentZoom = mapInstace.getZoom();
+      const currentZoom = mapInstance.getZoom();
 
-      if (currentZoom <= clusterMaxZoom && mapInstace.getSource(ZOOM_LIMIT_TEMP_POINTS_SOURCE_ID)) {
+      if (
+        currentZoom <= clusterMaxZoom &&
+        mapInstance.getSource(ZOOM_LIMIT_TEMP_POINTS_SOURCE_ID)
+      ) {
         removeZoomLimitTempPoints(map);
       }
     };
 
-    mapInstace.on('zoomend', handleZoomEnd);
+    mapInstance.on('zoomend', handleZoomEnd);
 
     return () => {
-      mapInstace?.off('zoomend', handleZoomEnd);
+      mapInstance?.off('zoomend', handleZoomEnd);
     };
   }, [map, circle]);
 
-  return { clickedPointData, openDrawer, waveBuoysLayerClicked, tempPointsEventPrevent };
+  // Clear unclustered circle selection when drawer closed.
+  useEffect(() => {
+    if (!bottomDrawer.isOpen) {
+      clearSelection();
+    }
+  }, [bottomDrawer.isOpen, clearSelection]);
+
+  return {
+    clickedPointData,
+    openDrawer,
+    waveBuoysLayerClicked,
+    tempPointsEventPrevent,
+    clearSelection,
+  };
 }
 /**
  * how cluster works?
