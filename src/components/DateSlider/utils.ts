@@ -10,8 +10,6 @@ import {
 } from '@/components/DateSlider/type';
 import { clampPercent } from '@/utils';
 
-// Date Arithmetic
-
 //add a certain amount of scale unit to a date to get new date, when unit is day, it is to add some amount of days.
 //when unit is month, it is to add some amount of months. when unit is year, it is to add some amount of years.
 export const generateNewDateByAddingScaleUnit = (

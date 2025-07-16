@@ -16,7 +16,7 @@ export const TimeLabels = memo(
     className = 'bottom-0 whitespace-nowrap text-center text-xs text-imos-white absolute',
   }: TimeLabelsProps) => {
     const { widthBreakpoint } = useViewportSize();
-    const isMobileOrTablet = ['sm', 'md'].includes(widthBreakpoint || '');
+    const isSmallScreen = ['sm', 'md'].includes(widthBreakpoint || '');
 
     const getVisibleLabels = useCallback((): TimeLabel[] => {
       if (!timeLabels.length || !scales.length) return [];
@@ -43,8 +43,8 @@ export const TimeLabels = memo(
     }, [timeLabels, scales, trackWidth, minDistance, withEndLabel]);
 
     const visibleLabels = useMemo(
-      () => (isMobileOrTablet ? getFirstAndLast(getVisibleLabels()) : getVisibleLabels()),
-      [getVisibleLabels, isMobileOrTablet],
+      () => (isSmallScreen ? getFirstAndLast(getVisibleLabels()) : getVisibleLabels()),
+      [getVisibleLabels, isSmallScreen],
     );
 
     return (

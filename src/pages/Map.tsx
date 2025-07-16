@@ -29,7 +29,7 @@ export const Map = () => {
   const mapRef = useRef<mapboxgl.Map | null>(null);
 
   const { widthBreakpoint } = useViewportSize();
-  const isMobileOrTablet = ['sm', 'md'].includes(widthBreakpoint || '');
+  const isSmallScreen = ['sm', 'md'].includes(widthBreakpoint || '');
 
   const { leftDrawer, closeLeftDrawer } = useDrawerStore(
     useShallow(s => ({
@@ -75,14 +75,14 @@ export const Map = () => {
               { Icon: SatelliteIcon, label: 'circle' },
             ]}
           />
-          <MapComponent ref={mapRef} key={isMobileOrTablet ? 'mobile' : 'desktop'} />
+          <MapComponent ref={mapRef} key={isSmallScreen ? 'mobile' : 'desktop'} />
           <MapControlPanel ref={mapRef} className="absolute top-10 left-0 z-10 hidden md:block" />
           <DateSelectionBar className="absolute bottom-2 left-1/2 -translate-x-1/2 w-full pointer-events-none" />
           <FloatingPanel
             wrapperClassName="w-14 md:w-fit bg-emerald-300  rounded-xl"
             boundary="parent"
             collapsible
-            initialOpen={!isMobileOrTablet}
+            initialOpen={!isSmallScreen}
             children={
               <FeaturesMenu
                 features={[
@@ -101,7 +101,7 @@ export const Map = () => {
     ),
     [
       closeLeftDrawer,
-      isMobileOrTablet,
+      isSmallScreen,
       leftDrawer.content,
       leftDrawer.direction,
       leftDrawer.isOpen,
@@ -111,7 +111,7 @@ export const Map = () => {
 
   return (
     <div className="overflow-hidden h-full w-full">
-      {isMobileOrTablet ? (
+      {isSmallScreen ? (
         <div className="h-full w-full">{mapContent}</div>
       ) : (
         <Sidebar width={540} defaultOpen={true} sidebarContent={<MainSidebarContent />}>
