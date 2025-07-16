@@ -1,6 +1,6 @@
 import { getWaveBuoyLocations } from '@/api';
 import { clusterMaxZoom } from '@/config';
-import { tryCatch } from '@/utils';
+import { tryCatch, addIdToFeatures } from '@/utils';
 
 export async function addOrUpdateGeoJsonSource({
   map,
@@ -24,17 +24,11 @@ export async function addOrUpdateGeoJsonSource({
   }
 
   if (!dataSource) {
-    //remove layer and source when fail to get data.
-    // const layers = map.getStyle().layers || [];
-
-    // for (const layer of layers) {
-    //   if (layer.source === id) {
-    //     map.removeLayer(layer.id);
-    //   }
-    // }
-    // if (map.getSource(id)) map.removeSource(id);
-    // return;
     throw Error('No wave buoys data soruce');
+  }
+
+  if ('features' in dataSource) {
+    addIdToFeatures(dataSource.features);
   }
 
   const source = map.getSource(id);
@@ -48,6 +42,9 @@ export async function addOrUpdateGeoJsonSource({
     cluster: enableCluser,
     clusterMaxZoom: clusterMaxZoom,
     ...(clusterRadius ? { clusterRadius } : {}),
+    // CRITICAL: This tells Mapbox to use properties._id as the feature ID for state management
+    // This is necessary because clustering can cause feature.id to be lost
+    promoteId: '_id',
   };
 
   map.addSource(id, sourceOptions);
