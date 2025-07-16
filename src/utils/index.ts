@@ -5,7 +5,6 @@ export * from './dateUtils';
 export * from './processMetaData';
 export * from './shader';
 export * from './debounce';
-export * from './buildOgcBuoysUrl';
 export * from './getScaledDimensions';
 export * from './normalizeLayerSets';
 export * from './clamp';
