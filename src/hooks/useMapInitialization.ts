@@ -25,7 +25,6 @@ export function useMapInitialization(
       touchPitch: false,
       pitchWithRotate: false,
       attributionControl: false,
-      dragRotate: false,
     });
 
     map.current.dragRotate.disable();
