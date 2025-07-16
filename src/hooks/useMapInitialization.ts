@@ -25,7 +25,11 @@ export function useMapInitialization(
       touchPitch: false,
       pitchWithRotate: false,
       attributionControl: false,
+      dragRotate: false,
     });
+
+    map.current.touchZoomRotate.disableRotation();
+
     return () => {
       if (map.current) {
         map.current.remove();
