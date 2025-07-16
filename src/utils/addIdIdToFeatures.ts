@@ -1,7 +1,12 @@
-import { Point } from 'geojson';
+import type { Geometry, Point } from 'geojson';
+
+function isPoint(geom: Geometry): geom is Point {
+  return geom.type === 'Point';
+}
 
 export function addIdToFeatures(features: GeoJSON.FeatureCollection['features']) {
   features.forEach((feature, index) => {
+    if (!isPoint(feature.geometry)) return;
     const coords = (feature.geometry as Point).coordinates;
     const id = `${coords[0].toFixed(2)}-${coords[1].toFixed(2)}-${index}`;
     if (!feature.properties) feature.properties = {};
