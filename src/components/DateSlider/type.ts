@@ -67,6 +67,7 @@ export type SliderProps = {
   imperativeHandleRef?: React.Ref<SliderExposedMethod>;
   pointLabelPersistent?: boolean;
   isTimeLabelPerDay?: boolean;
+  withEndLabel?: boolean;
 };
 
 export type ScaleType = 'short' | 'medium' | 'long';
@@ -166,4 +167,5 @@ export type TimeLabelsProps = {
   minDistance?: number;
   className?: string;
   isTimeLabelPerDay?: boolean;
+  withEndLabel?: boolean;
 };

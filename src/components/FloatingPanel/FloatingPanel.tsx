@@ -28,7 +28,7 @@ export const FloatingPanel = ({
       <CollapsibleComponent
         disable={!collapsible}
         toggleIconHidden={!collapsible}
-        defaultOpen={!collapsible}
+        defaultOpen={collapsible}
         maxHeight={maxHeight}
         wrapperClassName={wrapperClassName}
         trigger={({ open, toggle, toggleIconHidden }) => (

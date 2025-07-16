@@ -46,10 +46,16 @@ export const getPeriodTimeScales = (start: Date, end: Date, unit: TimeUnit): num
   }
 };
 
-export const getRepresentativeDate = (date: Date, unit: TimeUnit): Date => {
+export const getRepresentativeDate = (
+  date: Date,
+  unit: TimeUnit,
+  isPerDay: boolean = false,
+): Date => {
   switch (unit) {
     case 'day':
-      return new Date(date.getFullYear(), date.getMonth(), 1);
+      return isPerDay
+        ? new Date(date.getFullYear(), date.getMonth(), date.getDate())
+        : new Date(date.getFullYear(), date.getMonth(), 1);
     case 'month':
       return new Date(date.getFullYear(), 0, 1);
     case 'year':
@@ -205,11 +211,11 @@ export const generateTimeLabelsWithPositions = (
   }
 
   // Add end label if needed
-  const endLabel = getRepresentativeDate(end, unit);
+  const endLabel = getRepresentativeDate(end, unit, isPerDay);
   if (labels.length === 0 || labels[labels.length - 1].date.getTime() !== endLabel.getTime()) {
     const labelTime = endLabel.getTime();
     const percentage = totalTimeSpan === 0 ? 0 : ((labelTime - startTime) / totalTimeSpan) * 100;
-
+    console.log(endLabel);
     labels.push({ date: endLabel, position: percentage });
   }
 

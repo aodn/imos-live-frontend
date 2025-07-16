@@ -64,6 +64,7 @@ export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
         imperativeHandleRef={dateSliderMethodRef}
         pointLabelPersistent={true}
         isTimeLabelPerDay={true}
+        withEndLabel={false}
       />
     </div>
   );

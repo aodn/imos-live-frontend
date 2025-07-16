@@ -2,6 +2,7 @@ import { memo, useMemo, useCallback } from 'react';
 import { TimeLabel, TimeLabelsProps } from '../type';
 import { formatDateForDisplay } from '../utils';
 import { useViewportSize } from '@/hooks';
+import { getFirstAndLast } from '@/utils';
 
 export const TimeLabels = memo(
   ({
@@ -11,7 +12,8 @@ export const TimeLabels = memo(
     timeUnit,
     minDistance = 40,
     isTimeLabelPerDay = false,
-    className = 'bottom-0 text-center text-sm text-imos-white absolute',
+    withEndLabel = true,
+    className = 'bottom-0 whitespace-nowrap text-center text-xs text-imos-white absolute',
   }: TimeLabelsProps) => {
     const { widthBreakpoint } = useViewportSize();
     const isMobileOrTablet = ['sm', 'md'].includes(widthBreakpoint || '');
@@ -37,11 +39,11 @@ export const TimeLabels = memo(
         }
       }
 
-      return visible;
-    }, [timeLabels, scales, trackWidth, minDistance]);
+      return withEndLabel ? visible : visible.slice(0, -1);
+    }, [timeLabels, scales, trackWidth, minDistance, withEndLabel]);
 
     const visibleLabels = useMemo(
-      () => (isMobileOrTablet ? getVisibleLabels().slice(0, 1) : getVisibleLabels()),
+      () => (isMobileOrTablet ? getFirstAndLast(getVisibleLabels()) : getVisibleLabels()),
       [getVisibleLabels, isMobileOrTablet],
     );
 
