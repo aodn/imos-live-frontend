@@ -15,7 +15,21 @@ export function showPopup(map: mapboxgl.Map, options: PopupOptions) {
   const { lat, lng, speed, direction, degree, gsla } = options;
 
   const container = document.createElement('div');
+  container.className = 'custom-popup-container';
   const root = createRoot(container);
+
+  const popup = new mapboxgl.Popup({
+    closeButton: false,
+    closeOnClick: true,
+    className: 'custom-popup',
+    maxWidth: 'none',
+    offset: 25,
+  });
+
+  popup.on('close', () => {
+    root.unmount();
+  });
+
   root.render(
     <PopupContent
       lat={lat}
@@ -24,8 +38,9 @@ export function showPopup(map: mapboxgl.Map, options: PopupOptions) {
       direction={direction}
       degree={degree}
       gsla={gsla}
+      onClose={() => popup.remove()}
     />,
   );
 
-  new mapboxgl.Popup().setLngLat([lng, lat]).setDOMContent(container).addTo(map);
+  popup.setLngLat([lng, lat]).setDOMContent(container).addTo(map);
 }
