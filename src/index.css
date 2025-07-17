@@ -6,8 +6,6 @@
 */
 @config "../tailwind.config.js";
 
-@custom-variant dark (&:is(.dark *));
-
 html,
 body {
   margin: 0;
@@ -37,4 +35,12 @@ body {
       height: 100dvh;
     }
   }
+}
+
+.custom-popup .mapboxgl-popup-content {
+  @apply p-0 bg-transparent shadow-none;
+}
+
+.custom-popup .mapboxgl-popup-tip {
+  @apply border-t-white;
 }
