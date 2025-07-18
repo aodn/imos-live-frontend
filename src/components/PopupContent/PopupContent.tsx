@@ -41,28 +41,28 @@ export const PopupContent = ({
           </span>
         </div>
 
-        {speed && (
+        {speed !== undefined && (
           <div className="flex justify-between items-center">
             <span className="text-gray-600 font-medium">Speed:</span>
             <span className="text-green-600 font-semibold">{speed.toFixed(2)} m/s</span>
           </div>
         )}
 
-        {direction && (
+        {direction !== undefined && (
           <div className="flex justify-between items-center">
             <span className="text-gray-600 font-medium">Direction:</span>
             <span className="text-blue-600 font-semibold">{direction}</span>
           </div>
         )}
 
-        {degree && (
+        {degree !== undefined && (
           <div className="flex justify-between items-center">
             <span className="text-gray-600 font-medium">Bearing:</span>
             <span className="text-purple-600 font-semibold">{degree.toFixed(2)}°</span>
           </div>
         )}
 
-        {gsla && (
+        {gsla !== undefined && (
           <div className="flex justify-between items-center">
             <span className="text-gray-600 font-medium">GSLA:</span>
             <span className="text-orange-600 font-semibold">{gsla.toFixed(2)} m</span>
