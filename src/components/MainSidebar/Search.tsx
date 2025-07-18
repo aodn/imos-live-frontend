@@ -40,6 +40,7 @@ export const Search = ({ label, fn, className }: SearchProps = {}) => {
               onClick={handleSearch(searchQuery)}
               size={'icon'}
               className="hover:scale-110 active:scale-110 transition-transform"
+              aria-label="search"
             >
               <SearchIcon color="imos-white" />
             </Button>

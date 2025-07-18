@@ -95,6 +95,7 @@ export function FeaturesMenu({
                   'flex justify-start items-center gap-x-3 w-full py-4 text-sm rounded-xs transition',
                   selectionClassName,
                 )}
+                aria-label={label}
               >
                 <Icon size={iconSize} aria-hidden="true" />
                 <span className="hidden md:block">{label}</span>

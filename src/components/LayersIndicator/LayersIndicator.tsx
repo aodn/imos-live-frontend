@@ -53,7 +53,7 @@ export const LayersIndicator = ({ layers, className }: LayersIndicatorProps) => 
         return (
           <Button
             key={'LayersIndicator-' + label}
-            aria-label={label}
+            aria-label={'close' + label}
             className={cn('relative h-10 w-10 rounded bg-white flex justify-center items-center', {
               hidden: !visibles[label],
             })}

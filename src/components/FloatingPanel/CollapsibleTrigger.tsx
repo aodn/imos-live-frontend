@@ -34,6 +34,7 @@ export const CollapsibleTrigger = ({
           size="icon"
           className="hover:bg-transparent hidden md:block"
           onClick={toggle}
+          aria-label="toggle collapsible"
         >
           {FirstIcon ? (
             <FirstIcon
@@ -56,6 +57,7 @@ export const CollapsibleTrigger = ({
           className={cn(
             'hidden md:block absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2  hover:bg-transparent cursor-grab',
           )}
+          aria-label="drag"
         >
           {SecondIcon ? (
             <SecondIcon color="imos-grey" size="xl" className="md:rotate-180" />
@@ -71,6 +73,7 @@ export const CollapsibleTrigger = ({
             'md:hidden absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2  hover:bg-transparent cursor-grab',
           )}
           onClick={toggle}
+          aria-label="drag and toggle collapsible"
         >
           {SecondIcon ? (
             <SecondIcon color="imos-grey" size="xl" className="md:rotate-180" />
