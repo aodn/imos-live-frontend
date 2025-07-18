@@ -1,7 +1,7 @@
-import { getOceanCurrentData, getOceanCurrentDetails } from '@/api';
+import { getOceanCurrentData } from '@/api';
 import { useToast } from '@/components';
 import { showPopup } from '@/helpers';
-import { debounce } from '@/utils';
+import { debounce, processOceanCurrentDetails } from '@/utils';
 import { RefObject, useCallback, useEffect } from 'react';
 import { useAsync } from './useAsync';
 
@@ -47,7 +47,7 @@ export function useParticleOverlayLayersClickHandlers({
       }
 
       const { lngLat } = e;
-      const details = getOceanCurrentDetails(lngLat, oceanCurrentData);
+      const details = processOceanCurrentDetails(lngLat, oceanCurrentData);
       if (!details) return;
       const { gsla, speed, degree, direction } = details;
 

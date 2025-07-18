@@ -16,5 +16,6 @@ export * from './tryCatch';
 export * from './normalizeWaveBuouysData';
 export * from './mergeWaveBuoyDatas';
 export * from './getFirstAndLast';
-export * from './addIdIdToFeatures';
+export * from './addIdToFeatures';
 export * from './sleep';
+export * from './processOceanCurrentDetails';
