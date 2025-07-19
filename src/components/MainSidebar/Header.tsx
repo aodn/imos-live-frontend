@@ -24,7 +24,13 @@ export const Header = ({ image, title, className }: HeaderProps) => {
       )}
     >
       <div className="border-r-2 flex-1 flex items-center md:justify-center justify-between">
-        <Button variant="ghost" size="icon" className="md:hidden" onClick={handleClick}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="md:hidden"
+          onClick={handleClick}
+          aria-label="open siderbar"
+        >
           <MenuIcon size="xl" />
         </Button>
         <Image

@@ -40,7 +40,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     };
 
     return (
-      <div
+      <label
         className={cn(
           'flex items-center gap-2 px-3 py-1 h-[46px] bg-white rounded-[10px] ring-inset focus-visible:outline focus-visible:outline-offset-2 cursor-pointer',
           !invalid
@@ -66,17 +66,17 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             data-testid="input-field"
             {...attributes}
           />
-          <p
+          <span
             className={cn(
               'pointer-events-none order-first absolute top-1/2 -translate-y-1/2 text-base peer-focus:!relative peer-focus:text-xs peer-focus:top-0 peer-focus:translate-y-0 transition-all duration-150',
               { '!text-xs !relative !top-0 !translate-y-0': value },
             )}
           >
             {label}
-          </p>
+          </span>
         </div>
         {slotSuffix}
-      </div>
+      </label>
     );
   },
 );

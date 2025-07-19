@@ -25,7 +25,7 @@ export const PopupContent = ({
         {onClose && (
           <button
             onClick={onClose}
-            className="text-white hover:text-gray-200 text-xl  w-6 h-6 flex items-center justify-center"
+            className="text-white hover:text-gray-200 text-xl  w-6 h-6 flex items-center justify-center cursor-pointer"
           >
             ×
           </button>

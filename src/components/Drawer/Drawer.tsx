@@ -387,6 +387,7 @@ export const Drawer: React.FC<DrawerProps> = ({
           className="absolute top-0 right-0 cursor-pointer z-10 block"
           variant="ghost"
           onClick={handleClose}
+          aria-label="close drawer"
         >
           <CloseIcon onClick={handleClose} />
         </Button>
