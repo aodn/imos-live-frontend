@@ -27,3 +27,4 @@ export * from './useSliderDateSyncWithUrl';
 export * from './useViewPortSize';
 export * from './useAsync';
 export * from './useCurrentPage';
+export * from './useSeo';
