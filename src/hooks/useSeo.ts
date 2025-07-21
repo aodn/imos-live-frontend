@@ -11,6 +11,7 @@ interface SEOData {
   twitterHandle?: string;
 }
 
+//the reason not using react-helmet-async is because react 19 not support it.
 export const useSEO = (seoData: SEOData) => {
   const {
     title = 'IMOS LIVE',
