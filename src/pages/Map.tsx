@@ -30,12 +30,6 @@ export const Map = () => {
   const { widthBreakpoint } = useViewportSize();
   const isSmallScreen = ['sm', 'md'].includes(widthBreakpoint || '');
 
-  // useSEO({
-  //   title: 'IMOS LIVE',
-  //   description: 'Imos live web, visualize wave bouys, gsla data',
-  //   keywords: 'AODN, IMOS, imos live, gsla, wave buoys',
-  // });
-
   const { leftDrawer, closeLeftDrawer } = useDrawerStore(
     useShallow(s => ({
       leftDrawer: s.leftDrawer,
