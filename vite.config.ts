@@ -30,9 +30,14 @@ export default defineConfig(() => {
     build: {
       rollupOptions: {
         output: {
-          manualChunks: {
-            vendor: ['react', 'react-dom'],
-            router: ['react-router-dom'],
+          manualChunks(id) {
+            if (id.includes('node_modules/mapbox-gl')) {
+              return 'mapbox';
+            }
+
+            if (id.includes('node_modules') && !id.includes('node_modules/highcharts')) {
+              return 'vendor';
+            }
           },
         },
       },
