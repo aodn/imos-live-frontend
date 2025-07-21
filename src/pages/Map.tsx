@@ -19,7 +19,7 @@ import {
 import { useDrawerStore, useMapUIStore } from '@/store';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useEffect, useMemo, useRef } from 'react';
-import { useViewportSize, useSEO } from '@/hooks';
+import { useViewportSize } from '@/hooks';
 import { Header as MapHeader } from '@/components';
 import { useShallow } from 'zustand/shallow';
 import logImage from '@/assets/imos_logo_with_title.png';
@@ -30,11 +30,11 @@ export const Map = () => {
   const { widthBreakpoint } = useViewportSize();
   const isSmallScreen = ['sm', 'md'].includes(widthBreakpoint || '');
 
-  useSEO({
-    title: 'IMOS LIVE',
-    description: 'Imos live web, visualize wave bouys, gsla data',
-    keywords: 'AODN, IMOS, imos live, gsla, wave buoys',
-  });
+  // useSEO({
+  //   title: 'IMOS LIVE',
+  //   description: 'Imos live web, visualize wave bouys, gsla data',
+  //   keywords: 'AODN, IMOS, imos live, gsla, wave buoys',
+  // });
 
   const { leftDrawer, closeLeftDrawer } = useDrawerStore(
     useShallow(s => ({
