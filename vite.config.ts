@@ -5,14 +5,36 @@ import { defineConfig, Plugin } from 'vite';
 import svgr from 'vite-plugin-svgr';
 import { meta, data as gslaData, inputBitmap, overlayBitmap } from './test-data/gsla';
 import { locations, data as buoyData } from './test-data/buoy';
+import { visualizer } from 'rollup-plugin-visualizer';
 
 // https://vite.dev/config/
 export default defineConfig(() => {
   return {
-    plugins: [react(), tailwindcss(), svgr(), mockServerPlugin()],
+    plugins: [
+      react(),
+      tailwindcss(),
+      svgr(),
+      visualizer({
+        filename: 'dist/stats.html', // where the report will be saved
+        open: true, // auto-open in browser after build
+        gzipSize: true,
+        brotliSize: true,
+      }),
+      mockServerPlugin(),
+    ],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
+      },
+    },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            vendor: ['react', 'react-dom'],
+            router: ['react-router-dom'],
+          },
+        },
       },
     },
   };
