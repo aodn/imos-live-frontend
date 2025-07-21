@@ -67,6 +67,7 @@
     "lint-staged": "^16.1.2",
     "playwright": "^1.52.0",
     "prettier": "3.5.3",
+    "rollup-plugin-visualizer": "^6.0.3",
     "storybook": "^8.6.12",
     "tailwindcss": "^4.1.7",
     "tw-animate-css": "^1.3.0",

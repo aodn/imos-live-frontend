@@ -27,7 +27,6 @@ import logImage from '@/assets/imos_logo_with_title.png';
 export const Map = () => {
   const refreshDatasets = useMapUIStore(s => s.refreshDatasets);
   const mapRef = useRef<mapboxgl.Map | null>(null);
-
   const { widthBreakpoint } = useViewportSize();
   const isSmallScreen = ['sm', 'md'].includes(widthBreakpoint || '');
 
