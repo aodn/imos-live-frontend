@@ -57,7 +57,7 @@ export const LayerCard = ({
           <div className="flex-1  flex flex-col justify-between">
             <div>
               <h3 className="font-semibold mb-2 hidden md:block">{title}</h3>
-              <p className="text-sm mb-3 leading-relaxed line-clamp-7" title={description}>
+              <p className="text-sm mb-3 leading-relaxed md:line-clamp-7" title={description}>
                 {description}
               </p>
             </div>
