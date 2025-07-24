@@ -1,7 +1,9 @@
-const VITE_S3_BASE_URL = import.meta.env.VITE_S3_BASE_URL;
+//VITE_EDGE_BASE_URL=/proxy-edge, this should be defined in env for development.
+import { getS3BaseUrl } from '@/utils';
 
 export function buildGSLADatasetFullPath(date: string, type: string): string {
-  return `${VITE_S3_BASE_URL}/${buildGSLADatasetPath(date, type)}`;
+  const s3_base_url = getS3BaseUrl();
+  return `${s3_base_url}/${buildGSLADatasetPath(date, type)}`;
 }
 
 export function buildGSLADatasetPath(date: string, type: string): string {

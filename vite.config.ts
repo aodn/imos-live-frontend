@@ -1,14 +1,16 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react-swc';
 import path from 'path';
-import { defineConfig, Plugin } from 'vite';
+import { defineConfig, loadEnv, Plugin } from 'vite';
 import svgr from 'vite-plugin-svgr';
 import { meta, data as gslaData, inputBitmap, overlayBitmap } from './test-data/gsla';
 import { locations, data as buoyData } from './test-data/buoy';
 import { visualizer } from 'rollup-plugin-visualizer';
 
 // https://vite.dev/config/
-export default defineConfig(() => {
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '');
+
   return {
     plugins: [
       react(),
@@ -22,6 +24,15 @@ export default defineConfig(() => {
       }),
       mockServerPlugin(),
     ],
+    server: {
+      proxy: {
+        '/proxy-edge': {
+          target: env.VITE_S3_BASE_URL,
+          changeOrigin: true,
+          rewrite: path => path.replace(/^\/proxy-edge/, ''),
+        },
+      },
+    },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
