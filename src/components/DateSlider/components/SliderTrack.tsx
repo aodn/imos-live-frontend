@@ -86,7 +86,7 @@ const Scales = memo(
         {scales.map((scale, index) => (
           <div
             key={index}
-            className="absolute bg-gray-600 transform -translate-x-0.5 top-0"
+            className="absolute bg-imos-white transform -translate-x-0.5 top-0"
             style={{ left: `${scale.position}%`, ...getSize(scale.type) }}
             aria-hidden="true"
           />
