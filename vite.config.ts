@@ -1,14 +1,34 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react-swc';
 import path from 'path';
-import { defineConfig, Plugin } from 'vite';
+import { defineConfig, loadEnv, Plugin, UserConfig } from 'vite';
 import svgr from 'vite-plugin-svgr';
 import { meta, data as gslaData, inputBitmap, overlayBitmap } from './test-data/gsla';
 import { locations, data as buoyData } from './test-data/buoy';
 import { visualizer } from 'rollup-plugin-visualizer';
 
 // https://vite.dev/config/
-export default defineConfig(() => {
+export default defineConfig(({ mode }) => {
+  const { VITE_S3_BASE_URL } = loadEnv(mode, process.cwd(), '');
+
+  let define: UserConfig['define'] = {};
+  let server: UserConfig['server'] = {};
+  if (mode === 'development') {
+    define = { 'import.meta.env.VITE_S3_BASE_URL': '"/s3-edge-proxy"' };
+    server = {
+      ...server,
+      proxy: {
+        '/s3-edge-proxy': {
+          target: VITE_S3_BASE_URL,
+          changeOrigin: true,
+          rewrite: path => {
+            return path.replace(/^\/s3-edge-proxy/, '');
+          },
+        },
+      },
+    };
+  }
+
   return {
     plugins: [
       react(),
@@ -22,6 +42,7 @@ export default defineConfig(() => {
       }),
       mockServerPlugin(),
     ],
+    server,
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
@@ -42,6 +63,7 @@ export default defineConfig(() => {
         },
       },
     },
+    define,
   };
 });
 
