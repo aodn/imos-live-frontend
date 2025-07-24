@@ -19,4 +19,3 @@ export * from './getFirstAndLast';
 export * from './addIdToFeatures';
 export * from './sleep';
 export * from './processOceanCurrentDetails';
-export * from './geBaseUrl';
