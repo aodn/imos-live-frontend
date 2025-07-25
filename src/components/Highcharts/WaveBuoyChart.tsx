@@ -1,4 +1,4 @@
-import { BuoyItemContent, WaveBuoyPositionFeature } from '@/types';
+import { BuoyDataVariants, BuoyItemContent, WaveBuoyPositionFeature } from '@/types';
 import { LineChart } from './LineChart';
 import {
   createMergedCollectionWithAllParameters,
@@ -111,20 +111,22 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
         const wavePeriodPoint = dataLookup.WPFM?.data.find(
           d => Array.isArray(d) && d[0] === point.x,
         );
-
+        const sswmdName = dataLookup.SSWMD.standard_name;
+        const wpfmName = dataLookup.WPFM.standard_name;
         const wavePeriod =
           wavePeriodPoint && Array.isArray(wavePeriodPoint) ? wavePeriodPoint[1] : null;
 
         const direction = point.options?.direction || point.y;
-        tooltipHTML += `<span style="color:${point.color}">●</span> <b>${point.series.name}:</b> ${direction?.toFixed(1)}° (to)<br/><span style="color:${point.color}">●</span> <b>${dataLookup.WPFM?.name}:</b> ${wavePeriod} s<br/>`;
+        tooltipHTML += `<span style="color:${point.color}">●</span> <b>${sswmdName}:</b> ${direction?.toFixed(1)}° (to)<br/><span style="color:${point.color}">●</span> <b>${wpfmName}:</b> ${wavePeriod} s<br/>`;
       } else {
-        tooltipHTML += `<span style="color:${point.color}">●</span> <b>${point.series.name}:</b> ${point.y?.toFixed(2)} m<br/>`;
+        const variantName = dataLookup[point.series.name as BuoyDataVariants].standard_name;
+        tooltipHTML += `<span style="color:${point.color}">●</span> <b>${variantName}:</b> ${point.y?.toFixed(2)} m<br/>`;
       }
 
       tooltipHTML += '</div>';
       return tooltipHTML;
     },
-    [dataLookup.WPFM?.data, dataLookup.WPFM?.name],
+    [dataLookup],
   );
 
   const yAxisConfig = useMemo(() => {
