@@ -9,14 +9,16 @@ import { visualizer } from 'rollup-plugin-visualizer';
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
-  const { VITE_S3_BASE_URL } = loadEnv(mode, process.cwd(), '');
+  const { VITE_S3_BASE_URL, VITE_STATS_ENABLED } = loadEnv(mode, process.cwd(), '');
+
+  const plugins: UserConfig['plugins'] = [react(), tailwindcss(), svgr(), mockServerPlugin()];
 
   let define: UserConfig['define'] = {};
   let server: UserConfig['server'] = {};
+
   if (mode === 'development') {
     define = { 'import.meta.env.VITE_S3_BASE_URL': '"/s3-edge-proxy"' };
     server = {
-      ...server,
       proxy: {
         '/s3-edge-proxy': {
           target: VITE_S3_BASE_URL,
@@ -29,19 +31,20 @@ export default defineConfig(({ mode }) => {
     };
   }
 
-  return {
-    plugins: [
-      react(),
-      tailwindcss(),
-      svgr(),
+  if (VITE_STATS_ENABLED === 'true') {
+    plugins.push(
       visualizer({
-        filename: 'dist/stats.html', // where the report will be saved
-        open: true, // auto-open in browser after build
+        filename: 'dist/stats.html',
+        template: 'treemap',
         gzipSize: true,
         brotliSize: true,
+        open: true,
       }),
-      mockServerPlugin(),
-    ],
+    );
+  }
+
+  return {
+    plugins,
     server,
     resolve: {
       alias: {
