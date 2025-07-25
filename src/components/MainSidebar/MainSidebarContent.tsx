@@ -8,6 +8,7 @@ import { useMapUIStore } from '@/store';
 import { useShallow } from 'zustand/shallow';
 import { ReactNode, useMemo, useState } from 'react';
 import { cn, normalizeLayerSets } from '@/utils';
+import { Button } from '../Button';
 
 export type HeaderData = {
   image: ImageType;
@@ -85,6 +86,31 @@ export const MainSidebarContent: React.FC<MainSidebarProps> = ({ className = '' 
         title="OC Products"
         className="mt-4 md:px-8 hidden"
       />
+
+      {import.meta.env.VITE_FEEDBACK_ENABLED && <UserFeedback />}
+    </div>
+  );
+};
+
+const UserFeedback: React.FC = () => {
+  return (
+    <div className="md:px-2 mt-4">
+      <div className="md:rounded-lg md:shadow-lg bg-white md:border border-b border-gray-300 p-4 flex items-start gap-2">
+        <span className="text-xs text-gray-700 mb-2">
+          Have you identified a bug, or have suggestions for new features? Please submit an issue
+          using the provided templates.
+        </span>
+        <Button
+          size="sm"
+          variant="default"
+          asChild={true}
+          onClick={() =>
+            window.open('https://github.com/aodn/imos-live-frontend/issues/new/choose')
+          }
+        >
+          <span className="text-xs font-medium">Contribute</span>
+        </Button>
+      </div>
     </div>
   );
 };

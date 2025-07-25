@@ -32,6 +32,7 @@ jobs:
           NODE_ENV: production
           VITE_S3_BASE_URL: ${{ vars.S3_BASE_URL }}
           VITE_MAPBOX_KEY: ${{ vars.MAPBOX_KEY }}
+          VITE_FEEDBACK_ENABLED: true
 
       - uses: actions/upload-artifact@v4
         with:
