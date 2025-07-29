@@ -55,7 +55,6 @@ export function useEventHanlders(
   const handleMouseDown = useCallback(
     (handle: DragHandle) => (e: React.MouseEvent) => {
       e.stopPropagation();
-      e.preventDefault();
       setIsDragging(handle);
       setDragStarted(false);
       setLastInteractionType('mouse');
@@ -67,7 +66,6 @@ export function useEventHanlders(
   const handleTouchStart = useCallback(
     (handle: DragHandle) => (e: React.TouchEvent) => {
       e.stopPropagation();
-      e.preventDefault();
       setIsDragging(handle);
       setDragStarted(false);
       setLastInteractionType('mouse'); // Treat touch as mouse interaction for UI purposes
