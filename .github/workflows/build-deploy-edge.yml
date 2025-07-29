@@ -5,6 +5,10 @@ on:
     branches:
       - main
 
+concurrency:
+  group: build-deploy-edge
+  cancel-in-progress: true
+
 permissions:
   id-token: write
   contents: read
