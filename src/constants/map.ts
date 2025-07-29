@@ -5,7 +5,7 @@ export const OVERLAY_SOURCE_ID = 'gsla-overlay-source';
 
 export const WAVE_BUOYS_LAYER_ID = 'wave-buoys-layer';
 export const WAVE_BUOYS_SOURCE_ID = 'wave-buoys-source';
-export const WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID = 'wave-buoys-clusster-label-layer';
+export const WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID = 'wave-buoys-cluster-label-layer';
 export const UNCLUSTERED_WAVE_BUOYS_LAYER_ID = 'unclustered_wave-buoys-layer';
 
 export const ZOOM_LIMIT_TEMP_POINTS_SOURCE_ID = 'zoom-limit-temp-points-source';

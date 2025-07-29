@@ -9,7 +9,6 @@ import { addLayerInOrder, addOrUpdateImageSource } from '@/helpers';
 import { vectorLayer } from '@/layers';
 import { processMetaData, tryCatch, buildGSLADatasetFullPath, buildGSLADatasetPath } from '@/utils';
 import { useEffect, useState } from 'react';
-import { useDidMountEffect } from './useDidMountEffect';
 import { useParticleLayerVisibility } from './useParticleLayerVisibility';
 import { useParticleLayerRef } from './useParticleLayerRef';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
@@ -80,9 +79,4 @@ export function useParticleLayer(
     if (!map || !loadComplete || !particleLayer.current) return;
     particleLayer.current.vectorField?.setParticleNum(numParticles);
   }, [loadComplete, numParticles]);
-
-  useDidMountEffect(() => {
-    if (!map.current || !loadComplete || !particleLayer.current) return;
-    setDataByDataset();
-  }, [loadComplete, dataset]);
 }

@@ -1,6 +1,7 @@
 {
   "version": 8,
   "name": "Terrain",
+  "glyphs": "mapbox://fonts/mapbox/{fontstack}/{range}.pbf",
   "sources": {
     "composite": {
       "url": "mapbox://mapbox.mapbox-terrain-v2,mapbox.country-boundaries-v1,mapbox.mapbox-bathymetry-v2",

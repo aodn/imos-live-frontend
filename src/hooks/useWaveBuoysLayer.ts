@@ -6,7 +6,6 @@ import {
   WAVE_BUOYS_SOURCE_ID,
 } from '@/constants';
 import { addLayerInOrder, addOrUpdateGeoJsonSource } from '@/helpers';
-import { useDidMountEffect } from './useDidMountEffect';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
 import { useMapboxLayerRef } from './useMapboxLayerRef';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
@@ -102,6 +101,7 @@ export function useWaveBuoysLayer(
       ),
     style,
   );
+
   const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [style, dataset]);
 
   useMapboxLayerVisibility(
@@ -110,11 +110,6 @@ export function useWaveBuoysLayer(
     [waveBuoysLayer, unClusteredWaveBuoysLayer, clusterLabelLayer],
     circle && !isError,
   );
-
-  useDidMountEffect(() => {
-    if (!map.current || !loadComplete) return;
-    setDataByDataset();
-  }, [loadComplete, dataset]);
 
   return { waveBuoysLayer };
 }

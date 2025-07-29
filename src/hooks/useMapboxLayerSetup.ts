@@ -15,7 +15,13 @@ export function useMapboxLayerSetup(
       setLoadComplete(true);
     };
 
-    map.current.on('style.load', setupLayer);
+    if (map.current.isStyleLoaded()) {
+      setupLayer();
+    } else {
+      // Otherwise wait for style to load
+      map.current.on('style.load', setupLayer);
+    }
+
     return () => {
       // eslint-disable-next-line
       map.current?.off('style.load', setupLayer);
