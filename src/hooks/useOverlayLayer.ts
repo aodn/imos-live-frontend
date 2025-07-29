@@ -6,7 +6,7 @@ import {
 } from '@/constants';
 import { addLayerInOrder, addOrUpdateImageSource } from '@/helpers';
 import { imageLayer } from '@/layers';
-import { processMetaData, tryCatch, buildGSLADatasetFullPath, buildGSLADatasetPath } from '@/utils';
+import { processMetaData, tryCatch, buildGSLADatasetPath, buildGSLADatasetFullPath } from '@/utils';
 import { useDidMountEffect } from './useDidMountEffect';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
 import { useMapboxLayerRef } from './useMapboxLayerRef';
