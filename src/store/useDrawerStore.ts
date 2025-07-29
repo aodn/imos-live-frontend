@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { ReactNode } from 'react';
 import { DrawerProps } from '@/components';
+import { getViewportSize } from '@/utils';
 
 type DrawerConfig = {
   isOpen: boolean;
@@ -25,13 +26,16 @@ type DrawerStore = {
   closeLeftDrawer: () => void;
 };
 
+const { widthBreakpoint } = getViewportSize();
+const isSmallScreen = ['sm', 'md'].includes(widthBreakpoint || '');
+
 export const useDrawerStore = create<DrawerStore>(set => ({
   bottomDrawer: {
     isOpen: false,
     content: null,
     direction: 'bottom',
     snapMode: 'snap',
-    snapPoints: ['60%', '90%'],
+    snapPoints: isSmallScreen ? ['85%', '100%'] : ['60%', '90%'],
   },
 
   leftDrawer: {
@@ -41,7 +45,11 @@ export const useDrawerStore = create<DrawerStore>(set => ({
     snapPoints: ['100%'],
   },
 
-  openBottomDrawer: (content, snapPoints = ['60%', '90%'], snapMode = 'snap') =>
+  openBottomDrawer: (
+    content,
+    snapPoints = isSmallScreen ? ['85%', '100%'] : ['60%', '90%'],
+    snapMode = 'snap',
+  ) =>
     set(state => ({
       bottomDrawer: {
         ...state.bottomDrawer,
