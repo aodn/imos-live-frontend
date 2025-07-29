@@ -12,7 +12,6 @@ import { FeatureCollection, GeoJsonProperties, Geometry } from 'geojson';
 import { useMapboxLayerRef } from './useMapboxLayerRef';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
-import { useDidMountEffect } from './useDidMountEffect';
 import { sleep } from '@/utils';
 
 export function useDistanceMeasurementLayers(
@@ -66,16 +65,7 @@ export function useDistanceMeasurementLayers(
     style,
   );
 
-  const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [style]);
-
-  useDidMountEffect(() => {
-    if (!map.current || !loadComplete) return;
-    addOrUpdateGeoJsonSource({
-      map: map.current!,
-      id: MEASURE_POINTS_SOURCE_ID,
-      data: measurePointsGeojson,
-    });
-  }, [measurePointsGeojson]);
+  const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [measurePointsGeojson, style]);
 
   useMapboxLayerVisibility(
     map,

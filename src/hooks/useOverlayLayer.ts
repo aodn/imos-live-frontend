@@ -50,6 +50,7 @@ export function useOverlayLayer(
       latRange,
     );
   };
+
   const setupLayer = async () => {
     if (!overlayLayer.current) return;
     await setDataByDataset();
