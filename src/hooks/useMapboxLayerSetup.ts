@@ -20,7 +20,7 @@ export function useMapboxLayerSetup(
       setLoadComplete(false);
 
       try {
-        // Wait for style to be fully loaded
+        // wait for style to be fully loaded
         if (!map.current?.isStyleLoaded()) {
           await new Promise<void>(resolve => {
             const checkLoaded = () => {
@@ -44,7 +44,7 @@ export function useMapboxLayerSetup(
       }
     };
 
-    // Setup immediately if style is already loaded
+    // setupLayer immediately if style is already loaded
     if (map.current.isStyleLoaded()) {
       setupLayer();
     }
