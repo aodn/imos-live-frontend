@@ -6,8 +6,7 @@ import {
 } from '@/constants';
 import { addLayerInOrder, addOrUpdateImageSource } from '@/helpers';
 import { imageLayer } from '@/layers';
-import { processMetaData, tryCatch, buildGSLADatasetPath, buildGSLADatasetFullPath } from '@/utils';
-import { useDidMountEffect } from './useDidMountEffect';
+import { processMetaData, tryCatch, buildGSLADatasetFullPath, buildGSLADatasetPath } from '@/utils';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
 import { useMapboxLayerRef } from './useMapboxLayerRef';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
@@ -51,6 +50,7 @@ export function useOverlayLayer(
       latRange,
     );
   };
+
   const setupLayer = async () => {
     if (!overlayLayer.current) return;
     await setDataByDataset();
@@ -71,11 +71,6 @@ export function useOverlayLayer(
   const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [style, dataset]);
 
   useMapboxLayerVisibility(map, loadComplete, [overlayLayer], overlay && !isError);
-
-  useDidMountEffect(() => {
-    if (!map.current || !loadComplete) return;
-    setDataByDataset();
-  }, [loadComplete, dataset]);
 
   return { loadComplete, overlayLayer };
 }
