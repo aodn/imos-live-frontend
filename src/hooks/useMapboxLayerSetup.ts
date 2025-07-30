@@ -1,4 +1,4 @@
-import { useEffect, useState, DependencyList } from 'react';
+import { useEffect, useState, DependencyList, useRef } from 'react';
 
 export function useMapboxLayerSetup(
   map: React.RefObject<mapboxgl.Map | null>,
@@ -6,7 +6,13 @@ export function useMapboxLayerSetup(
   deps: DependencyList = [],
 ) {
   const [loadComplete, setLoadComplete] = useState(false);
-  const [isSettingUp, setIsSettingUp] = useState(false);
+  const isSettingUpRef = useRef(false);
+
+  const setupLayerFnRef = useRef(setupLayerFn);
+
+  useEffect(() => {
+    setupLayerFnRef.current = setupLayerFn;
+  }, [setupLayerFn]);
 
   useEffect(() => {
     if (!map.current) return;
@@ -14,9 +20,9 @@ export function useMapboxLayerSetup(
     let cancelled = false;
 
     const setupLayer = async () => {
-      if (isSettingUp || cancelled) return;
+      if (isSettingUpRef.current || cancelled) return;
 
-      setIsSettingUp(true);
+      isSettingUpRef.current = true;
       setLoadComplete(false);
 
       try {
@@ -34,13 +40,13 @@ export function useMapboxLayerSetup(
         }
 
         if (!cancelled) {
-          await setupLayerFn();
+          await setupLayerFnRef.current();
           setLoadComplete(true);
         }
       } catch (error) {
         console.error('Error setting up layer:', error);
       } finally {
-        setIsSettingUp(false);
+        isSettingUpRef.current = false;
       }
     };
 
@@ -50,7 +56,7 @@ export function useMapboxLayerSetup(
     }
 
     const handleStyleData = () => {
-      if (map.current?.isStyleLoaded() && !isSettingUp) {
+      if (map.current?.isStyleLoaded() && !isSettingUpRef.current) {
         setupLayer();
       }
     };
@@ -66,7 +72,7 @@ export function useMapboxLayerSetup(
       map.current?.off('style.load', setupLayer);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSettingUp, ...deps]);
+  }, [...deps]);
 
   return { loadComplete };
 }
