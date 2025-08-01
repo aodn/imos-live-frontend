@@ -25,11 +25,18 @@ export function useParticleOverlayLayersClickHandlers({
   distanceMeasurement,
 }: UseMapClickHandlersOptions) {
   const { showToast } = useToast();
-  const { data: oceanCurrentData, error } = useAsync(getOceanCurrentData, {
+  const {
+    data: oceanCurrentData,
+    error,
+    refetch,
+  } = useAsync(getOceanCurrentData, {
     args: [dataset],
-    immediate: !!dataset,
+    immediate: false,
   });
 
+  useEffect(() => {
+    refetch(dataset);
+  }, [dataset, refetch]);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleMapClick = useCallback(
     debounce((e: mapboxgl.MapMouseEvent) => {

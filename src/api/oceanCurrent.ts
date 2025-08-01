@@ -13,6 +13,7 @@ export type OceanCurrentDataResponse = {
 };
 
 export const getOceanCurrentData = async (date: string): Promise<OceanCurrentDataResponse> => {
+  console.log(buildGSLADatasetPath(date, GSLA_DATA_NAME));
   const response = await s3Api.get<OceanCurrentDataResponse>(
     buildGSLADatasetPath(date, GSLA_DATA_NAME),
   );
