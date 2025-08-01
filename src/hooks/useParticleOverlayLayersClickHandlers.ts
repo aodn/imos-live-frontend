@@ -35,6 +35,7 @@ export function useParticleOverlayLayersClickHandlers({
   });
 
   useEffect(() => {
+    if (!dataset) return;
     refetch(dataset);
   }, [dataset, refetch]);
   // eslint-disable-next-line react-hooks/exhaustive-deps
