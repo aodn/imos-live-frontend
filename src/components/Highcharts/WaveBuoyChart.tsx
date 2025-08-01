@@ -36,6 +36,8 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
         queryKey: [buoy, date],
         queryFn: () => getWaveBuoyDetails(date, buoy),
         enabled: !!date,
+        staleTime: 0,
+        gcTime: 0,
       };
     }),
   });

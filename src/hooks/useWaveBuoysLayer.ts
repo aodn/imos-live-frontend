@@ -45,6 +45,8 @@ export function useWaveBuoysLayer(
       const buoyData = await queryClient.fetchQuery({
         queryKey: ['wave_buoy_locations', dataset],
         queryFn: () => getWaveBuoyLocations(dataset),
+        gcTime: 0,
+        staleTime: 0,
       });
       await addOrUpdateGeoJsonSource({
         map: map.current!,

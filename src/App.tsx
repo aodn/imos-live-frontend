@@ -8,9 +8,9 @@ function App() {
     defaultOptions: {
       queries: {
         //eventhough over staltime, react query will not refetch, unless manually trigger or by refetchOnWindowFocus, refetchOnReconnect.
-        staleTime: 60 * 60 * 1000,
+        staleTime: 0,
         // How long the cache exists before get removed
-        gcTime: 60 * 60 * 1000,
+        gcTime: 0,
         retry: 2,
         refetchOnWindowFocus: true,
         refetchOnReconnect: true,
