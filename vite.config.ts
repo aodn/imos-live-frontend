@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react-swc';
 import path from 'path';
 import { defineConfig, loadEnv, Plugin, UserConfig } from 'vite';
 import svgr from 'vite-plugin-svgr';
-import { meta, data as gslaData, inputBitmap, overlayBitmap } from './test-data/gsla';
+import { meta, genRandomData as gslaData, inputBitmap, overlayBitmap } from './test-data/gsla';
 import { locations, data as buoyData } from './test-data/buoy';
 import { visualizer } from 'rollup-plugin-visualizer';
 
