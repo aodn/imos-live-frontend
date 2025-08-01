@@ -38,6 +38,7 @@ export function useParticleOverlayLayersClickHandlers({
     if (!dataset) return;
     refetch(dataset);
   }, [dataset, refetch]);
+
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleMapClick = useCallback(
     debounce((e: mapboxgl.MapMouseEvent) => {
