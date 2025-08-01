@@ -14,8 +14,10 @@ import {
   waveBuoyCluserLabelLayerConfig,
   waveBuoysLayerConfig,
 } from '@/config';
-import { useState } from 'react';
 import { useToast } from '@/components';
+import { getWaveBuoyLocations } from '@/api';
+import { useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
 export function useWaveBuoysLayer(
   map: React.RefObject<mapboxgl.Map | null>,
@@ -23,28 +25,36 @@ export function useWaveBuoysLayer(
   style: string,
   dataset: string,
 ) {
-  const { showToast } = useToast();
   const [isError, setIsError] = useState(false);
+  const { showToast } = useToast();
 
-  const setDataByDataset = async () => {
-    try {
-      await addOrUpdateGeoJsonSource({
-        map: map.current!,
-        id: WAVE_BUOYS_SOURCE_ID,
-        data: dataset,
-        enableCluser: true,
-        clusterRadius: 40,
-      });
+  const queryClient = useQueryClient();
 
-      setIsError(false);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
+  useEffect(() => {
+    if (isError)
       showToast({
         type: 'error',
         title: 'Error occurred',
-        message: 'Failed to get wave Buoys of this date',
+        message: 'Failed to get buoys locations',
         duration: 6000,
       });
+  }, [isError, showToast]);
+
+  const setDataByDataset = async () => {
+    try {
+      const buoyData = await queryClient.fetchQuery({
+        queryKey: ['wave_buoy_locations', dataset],
+        queryFn: () => getWaveBuoyLocations(dataset),
+      });
+      await addOrUpdateGeoJsonSource({
+        map: map.current!,
+        id: WAVE_BUOYS_SOURCE_ID,
+        data: buoyData,
+        enableCluser: true,
+        clusterRadius: 40,
+      });
+      setIsError(false);
+    } catch {
       setIsError(true);
     }
   };
@@ -52,6 +62,7 @@ export function useWaveBuoysLayer(
   const setupLayer = async () => {
     if (!waveBuoysLayer?.current || !clusterLabelLayer?.current) return;
     await setDataByDataset();
+    await new Promise(resolve => setTimeout(resolve, 100));
     if (!map.current!.getLayer(WAVE_BUOYS_LAYER_ID)) {
       addLayerInOrder(map, waveBuoysLayer.current, WAVE_BUOYS_LAYER_ID);
     }

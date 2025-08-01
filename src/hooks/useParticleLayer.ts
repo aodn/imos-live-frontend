@@ -7,13 +7,14 @@ import {
 } from '@/constants';
 import { addLayerInOrder, addOrUpdateImageSource } from '@/helpers';
 import { vectorLayer } from '@/layers';
-import { processMetaData, tryCatch, buildGSLADatasetFullPath, buildGSLADatasetPath } from '@/utils';
-import { useEffect, useState } from 'react';
+import { processMetaData, buildGSLADatasetFullPath, buildGSLADatasetPath } from '@/utils';
+import { useEffect } from 'react';
 import { useParticleLayerVisibility } from './useParticleLayerVisibility';
 import { useParticleLayerRef } from './useParticleLayerRef';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useToast } from '@/components';
 import { getMetaData } from '@/api';
+import { useQuery } from '@tanstack/react-query';
 
 export function useParticleLayer(
   map: React.RefObject<mapboxgl.Map | null>,
@@ -23,26 +24,29 @@ export function useParticleLayer(
   numParticles: number,
 ) {
   const { showToast } = useToast();
-  const [isError, setIsError] = useState(false);
 
-  const setDataByDataset = async () => {
-    const meta = await tryCatch(getMetaData(buildGSLADatasetPath(dataset, GSLA_META_NAME)), () => {
+  const { data: meta, isError } = useQuery({
+    queryKey: [GSLA_META_NAME, dataset],
+    queryFn: () => getMetaData(buildGSLADatasetPath(dataset, GSLA_META_NAME)),
+    enabled: !!dataset,
+  });
+
+  useEffect(() => {
+    if (isError)
       showToast({
         type: 'error',
         title: 'Error occurred',
-        message: 'Failed to get GSLA ocean current data of this date',
+        message: 'Failed to get GSLA anamly sea level data of this date',
         duration: 6000,
       });
-      setIsError(true);
-    });
+  }, [isError, showToast]);
 
+  const setDataByDataset = async () => {
     if (!meta) return;
 
     const { maxBounds, bounds, lonRange, latRange, uRange, vRange } = processMetaData(meta);
 
     map.current!.setMaxBounds(maxBounds);
-
-    setIsError(false);
 
     particleLayer.current!.metadata = {
       bounds,
