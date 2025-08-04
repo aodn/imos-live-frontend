@@ -24,6 +24,7 @@ export function useOverlayLayer(
 ) {
   const { showToast } = useToast();
 
+  //cached by browser.
   const { data: meta, isError } = useQuery({
     queryKey: [GSLA_META_NAME, dataset],
     queryFn: () => getMetaData(buildGSLADatasetPath(dataset, GSLA_META_NAME)),

@@ -10,6 +10,7 @@ import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
 import { useMapboxLayerRef } from './useMapboxLayerRef';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import {
+  cacheConfig,
   unclusteredWaveBuoysLayerConfig,
   waveBuoyCluserLabelLayerConfig,
   waveBuoysLayerConfig,
@@ -45,8 +46,7 @@ export function useWaveBuoysLayer(
       const buoyData = await queryClient.fetchQuery({
         queryKey: ['wave_buoy_locations', dataset],
         queryFn: () => getWaveBuoyLocations(dataset),
-        gcTime: 0,
-        staleTime: 0,
+        ...cacheConfig(dataset),
       });
       await addOrUpdateGeoJsonSource({
         map: map.current!,

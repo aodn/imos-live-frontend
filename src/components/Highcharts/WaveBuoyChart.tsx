@@ -23,6 +23,7 @@ import {
 import { getWaveBuoyDetails } from '@/api';
 import { LatestObservation } from './LatestObservation';
 import { useQueries } from '@tanstack/react-query';
+import { cacheConfig } from '@/config';
 
 type WaveBuoyChartProps = {
   waveBuoysData: Omit<WaveBuoyPositionFeature, 'type'>[];
@@ -41,8 +42,7 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
         queryKey: [buoy, date],
         queryFn: () => getWaveBuoyDetails(date, buoy),
         enabled: !!date,
-        staleTime: 0,
-        gcTime: 0,
+        ...cacheConfig(date),
       };
     }),
   });
