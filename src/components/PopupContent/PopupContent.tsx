@@ -20,14 +20,14 @@ export const PopupContent = ({
   return (
     <div className="w-50 md:w-80 bg-white rounded-lg shadow-lg overflow-hidden">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-2 py-4 flex justify-between items-center">
-        <h4 className="text-base">
+      <div className="relative bg-imos-light  text-black p-2  flex justify-between items-center ">
+        <h4 className="text-base text-center w-full">
           ({lat.toFixed(2)}, {lng.toFixed(2)})
         </h4>
         {onClose && (
           <button
             onClick={onClose}
-            className="text-white hover:text-gray-200 text-xl  w-6 h-6 flex items-center justify-center cursor-pointer"
+            className="absolute top-1 right-1 text-black hover:text-gray-200 text-xl  w-6 h-6 flex items-center justify-center cursor-pointer"
           >
             ×
           </button>
