@@ -69,6 +69,17 @@ const sidebarComponent = {
   },
 };
 
+const buoys = {
+  HOBARITO: {
+    name: 'HOBARITO',
+    coordinates: [147.33, -42.88] satisfies LngLat,
+  },
+  DARWIN: {
+    name: 'DARWIN',
+    coordinates: [130.78, -12.1] satisfies LngLat,
+  },
+};
+
 test.beforeEach(async ({ page }) => {
   await page.clock.setFixedTime(new Date('2025-08-01T00:00:00.000Z'));
   await page.route('*/**/GSLA/2025-07-23/gsla_data.json', async route => {
@@ -76,6 +87,84 @@ test.beforeEach(async ({ page }) => {
   });
   await page.route('*/**/GSLA/2025-07-24/gsla_data.json', async route => {
     await route.fulfill({ json: genData([2, 3, 4]) });
+  });
+  await page.route('*/**/BUOY/buoy_locations/buoy_locations_2025-07-23.geojson', async route => {
+    const buoyLocations = {
+      type: 'FeatureCollection',
+      metadata: {},
+      features: [
+        {
+          type: 'Feature',
+          properties: {
+            date: '2025-07-23',
+            buoy: buoys.HOBARITO.name,
+            year: 2025,
+            timestamp: '2025-07-23T00:10:00',
+          },
+          geometry: {
+            coordinates: buoys.HOBARITO.coordinates,
+            type: 'Point',
+          },
+        },
+      ],
+    };
+    await route.fulfill({ json: buoyLocations });
+  });
+
+  await page.route('*/**/BUOY/buoy_locations/buoy_locations_2025-07-24.geojson', async route => {
+    const buoyLocations = {
+      type: 'FeatureCollection',
+      metadata: {},
+      features: [
+        {
+          type: 'Feature',
+          properties: {
+            date: '2025-07-24',
+            buoy: buoys.DARWIN.name,
+            year: 2025,
+            timestamp: '2025-07-24T00:10:00',
+          },
+          geometry: {
+            coordinates: buoys.DARWIN.coordinates,
+            type: 'Point',
+          },
+        },
+      ],
+    };
+    await route.fulfill({ json: buoyLocations });
+  });
+
+  await page.route('*/**/BUOY/buoy_details/*.geojson', async route => {
+    const dateMatch = route
+      .request()
+      .url()
+      .match(/BUOY\/buoy_details\/([^_]+)_(\d{4}-\d{2}-\d{2})\.geojson/);
+    if (dateMatch) {
+      const buoyName = dateMatch[1];
+      const dataDate = new Date(dateMatch[2]);
+      await route.fulfill({
+        json: genBuoyData(
+          { name: buoyName, dataDate },
+          {
+            sswmd: (date: Date) => {
+              const dateTime = new Date(date);
+              dateTime.setHours(0, 0, 0, 0);
+              return [[dateTime.getTime(), 180]];
+            },
+            wpfm: (date: Date) => {
+              const dateTime = new Date(date);
+              dateTime.setHours(0, 0, 0, 0);
+              return [[dateTime.getTime(), 40]];
+            },
+            wssh: (date: Date) => {
+              const dateTime = new Date(date);
+              dateTime.setHours(0, 0, 0, 0);
+              return [[dateTime.getTime(), 80]];
+            },
+          },
+        ),
+      });
+    }
   });
 });
 
@@ -163,96 +252,7 @@ test.describe('Anomaly sea levels and Ocean Current', () => {
 });
 
 test.describe('Wave Buoys', () => {
-  const buoys = {
-    HOBARITO: {
-      name: 'HOBARITO',
-      coordinates: [147.33, -42.88] satisfies LngLat,
-    },
-    DARWIN: {
-      name: 'DARWIN',
-      coordinates: [130.78, -12.1] satisfies LngLat,
-    },
-  };
   test.beforeEach(async ({ page }) => {
-    await page.route('*/**/BUOY/buoy_locations/buoy_locations_2025-07-23.geojson', async route => {
-      const buoyLocations = {
-        type: 'FeatureCollection',
-        metadata: {},
-        features: [
-          {
-            type: 'Feature',
-            properties: {
-              date: '2025-07-23',
-              buoy: buoys.HOBARITO.name,
-              year: 2025,
-              timestamp: '2025-07-23T00:10:00',
-            },
-            geometry: {
-              coordinates: buoys.HOBARITO.coordinates,
-              type: 'Point',
-            },
-          },
-        ],
-      };
-      await route.fulfill({ json: buoyLocations });
-    });
-
-    await page.route('*/**/BUOY/buoy_locations/buoy_locations_2025-07-24.geojson', async route => {
-      const buoyLocations = {
-        type: 'FeatureCollection',
-        metadata: {},
-        features: [
-          {
-            type: 'Feature',
-            properties: {
-              date: '2025-07-24',
-              buoy: buoys.DARWIN.name,
-              year: 2025,
-              timestamp: '2025-07-24T00:10:00',
-            },
-            geometry: {
-              coordinates: buoys.DARWIN.coordinates,
-              type: 'Point',
-            },
-          },
-        ],
-      };
-      await route.fulfill({ json: buoyLocations });
-    });
-
-    await page.route('*/**/BUOY/buoy_details/*.geojson', async route => {
-      const dateMatch = route
-        .request()
-        .url()
-        .match(/BUOY\/buoy_details\/([^_]+)_(\d{4}-\d{2}-\d{2})\.geojson/);
-      if (dateMatch) {
-        const buoyName = dateMatch[1];
-        const dataDate = new Date(dateMatch[2]);
-        await route.fulfill({
-          json: genBuoyData(
-            { name: buoyName, dataDate },
-            {
-              sswmd: (date: Date) => {
-                const dateTime = new Date(date);
-                dateTime.setHours(0, 0, 0, 0);
-                return [[dateTime.getTime(), 180]];
-              },
-              wpfm: (date: Date) => {
-                const dateTime = new Date(date);
-                dateTime.setHours(0, 0, 0, 0);
-                return [[dateTime.getTime(), 40]];
-              },
-              wssh: (date: Date) => {
-                const dateTime = new Date(date);
-                dateTime.setHours(0, 0, 0, 0);
-                return [[dateTime.getTime(), 80]];
-              },
-            },
-          ),
-        });
-      }
-    });
-
     await page.goto('/');
     await sidebarComponent.selectProduct(page, 'Wave buoys product');
   });
@@ -313,4 +313,17 @@ test.describe('Wave Buoys', () => {
 
     await page.waitForTimeout(5000);
   });
+});
+
+test('User can select all the three products ( Ocean Current, Anomaly sea levels, Wave Buoys )', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await sidebarComponent.selectProduct(page, 'GSLA Ocean current product');
+  await sidebarComponent.selectProduct(page, 'GSLA Anomaly sea levels');
+  await sidebarComponent.selectProduct(page, 'Wave buoys product');
+
+  await mapComponent.waitUntilLayerLoaded(page, PARTICLE_LAYER_ID);
+  await mapComponent.waitUntilLayerLoaded(page, OVERLAY_LAYER_ID);
+  await mapComponent.waitUntilLayerLoaded(page, WAVE_BUOYS_LAYER_ID);
 });
