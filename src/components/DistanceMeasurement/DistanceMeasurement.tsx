@@ -15,8 +15,13 @@ export const DistanceMeasurement = ({
     setMeasurePointsGeojson({ type: 'FeatureCollection', features: [] });
   };
   return (
-    <div className="absolute top-10 left-10 z-10 bg-slate-400 shadow-sm  px-4 py-2 rounded flex flex-col gap-y-4">
-      <p>Total distance: {distance}</p>
+    <div
+      className="absolute top-10 left-10 z-10 bg-slate-400 shadow-sm  px-4 py-2 rounded flex flex-col gap-y-4"
+      aria-label="Distance measurement"
+    >
+      <p>
+        Total distance: <span>{distance}</span>
+      </p>
       <Button onClick={clearMeasurements} size="sm">
         clear
       </Button>

@@ -1,8 +1,12 @@
 import { promises } from 'fs';
 import path from 'path';
 
-const inputBitmapFile = promises.readFile(path.resolve(__dirname, 'GSLA', 'gsla_input.png'));
-const overlayBitmapFile = promises.readFile(path.resolve(__dirname, 'GSLA', 'gsla_overlay.png'));
+const inputBitmapFile = promises.readFile(
+  path.resolve(import.meta.dirname, 'GSLA', 'gsla_input.png'),
+);
+const overlayBitmapFile = promises.readFile(
+  path.resolve(import.meta.dirname, 'GSLA', 'gsla_overlay.png'),
+);
 type GSLAMeta = {
   latRange: [number, number];
   lonRange: [number, number];
@@ -10,7 +14,7 @@ type GSLAMeta = {
   vRange: [number, number];
 };
 
-type GSLADatapoint = [number, number, number];
+type GSLADatapoint = [uspeed: number, vspeed: number, gsla: number];
 type GSLAData = {
   width: number;
   height: number;
@@ -32,15 +36,23 @@ export const meta = (): GSLAMeta => {
     vRange: [-1.1879510879516602, 1.6246776580810547],
   };
 };
-export const data = (): GSLAData => {
+export const genRandomData = (): GSLAData => {
+  return rasterDataGenerator(() => [Math.random(), Math.random(), Math.random()]);
+};
+
+export const genData = (dataPointValue: GSLADatapoint): GSLAData => {
+  return rasterDataGenerator(() => dataPointValue);
+};
+
+function rasterDataGenerator(nextValue: () => GSLADatapoint): GSLAData {
   const width = 301,
     height = 251;
-  const genRandomData = (): GSLAData['data'] => {
+  const randomizer = (): GSLAData['data'] => {
     const data: GSLADatapoint[][] = [];
     for (let i = 0; i < height; i++) {
       const row: GSLADatapoint[] = [];
       for (let j = 0; j < width; j++) {
-        row.push([Math.random(), Math.random(), Math.random()]);
+        row.push(nextValue());
       }
       data.push(row);
     }
@@ -52,6 +64,6 @@ export const data = (): GSLAData => {
     height,
     latRange: LAT_RANGE,
     lonRange: LON_RANGE,
-    data: genRandomData(),
+    data: randomizer(),
   };
-};
+}
