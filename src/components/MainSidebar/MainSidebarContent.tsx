@@ -34,8 +34,7 @@ type MainSidebarProps = {
 };
 
 export const MainSidebarContent: React.FC<MainSidebarProps> = ({ className = '' }) => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery] = useState('');
 
   const { overlay, particles, circle, setOverlay, setCircle, setParticles } = useMapUIStore(
     useShallow(s => ({
