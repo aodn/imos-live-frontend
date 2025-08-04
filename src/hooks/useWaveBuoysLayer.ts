@@ -64,7 +64,6 @@ export function useWaveBuoysLayer(
   const setupLayer = async () => {
     if (!waveBuoysLayer?.current || !clusterLabelLayer?.current) return;
     await setDataByDataset();
-    await new Promise(resolve => setTimeout(resolve, 100));
     if (!map.current!.getLayer(WAVE_BUOYS_LAYER_ID)) {
       addLayerInOrder(map, waveBuoysLayer.current, WAVE_BUOYS_LAYER_ID);
     }
