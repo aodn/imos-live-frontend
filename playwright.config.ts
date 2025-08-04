@@ -50,10 +50,11 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'npm run dev:mock',
+    command: 'npm run dev',
     url: imosLiveBaseURL,
     env: {
       VITE_PLAYWRIGHT_BUILD: 'true',
+      MOCKDATA: 'true',
     },
   },
 });
