@@ -1,4 +1,5 @@
 import {
+  MEASURE_POINTS_LAYER_ID,
   OVERLAY_LAYER_ID,
   PARTICLE_LAYER_ID,
   UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
@@ -315,15 +316,47 @@ test.describe('Wave Buoys', () => {
   });
 });
 
-test('User can select all the three products ( Ocean Current, Anomaly sea levels, Wave Buoys )', async ({
-  page,
-}) => {
-  await page.goto('/');
-  await sidebarComponent.selectProduct(page, 'GSLA Ocean current product');
-  await sidebarComponent.selectProduct(page, 'GSLA Anomaly sea levels');
-  await sidebarComponent.selectProduct(page, 'Wave buoys product');
+test.describe('Measurement', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+  });
+  test('User can measure distance', async ({ page }) => {
+    await page.getByRole('menuitem', { name: 'Measurement' }).click();
+    await page.getByRole('switch').click();
 
-  await mapComponent.waitUntilLayerLoaded(page, PARTICLE_LAYER_ID);
-  await mapComponent.waitUntilLayerLoaded(page, OVERLAY_LAYER_ID);
-  await mapComponent.waitUntilLayerLoaded(page, WAVE_BUOYS_LAYER_ID);
+    await mapComponent.waitUntilLayerLoaded(page, MEASURE_POINTS_LAYER_ID);
+
+    // get bounding box of the map to ensure the click points are within the map bounds
+    const bbox = await page.getByRole('region', { name: 'Map' }).boundingBox();
+    expect(bbox).toBeDefined();
+
+    const measurementPopup = page.getByLabel('Distance measurement');
+    // click at two points to create a measurement
+    await page.getByRole('region', { name: 'Map' }).click({ position: { x: bbox!.x, y: bbox!.y } });
+    await expect(measurementPopup).not.toBeVisible();
+    await page
+      .getByRole('region', { name: 'Map' })
+      .click({ position: { x: bbox!.x + 10, y: bbox!.y } });
+    await expect(measurementPopup).toBeVisible();
+
+    await expect(measurementPopup.getByText(/^\d+(\.\d+)? km$/)).toBeVisible();
+    await measurementPopup.getByRole('button', { name: 'clear' }).click();
+    await expect(measurementPopup).not.toBeVisible();
+  });
+});
+
+test.describe('Ocean Current, Anomaly sea levels and Wave Buoys', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+  });
+
+  test('User can select all the three products', async ({ page }) => {
+    await sidebarComponent.selectProduct(page, 'GSLA Ocean current product');
+    await sidebarComponent.selectProduct(page, 'GSLA Anomaly sea levels');
+    await sidebarComponent.selectProduct(page, 'Wave buoys product');
+
+    await mapComponent.waitUntilLayerLoaded(page, PARTICLE_LAYER_ID);
+    await mapComponent.waitUntilLayerLoaded(page, OVERLAY_LAYER_ID);
+    await mapComponent.waitUntilLayerLoaded(page, WAVE_BUOYS_LAYER_ID);
+  });
 });
