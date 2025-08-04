@@ -11,12 +11,20 @@ import { type Map } from 'mapbox-gl';
 import { genBuoyData } from '../test-data/buoy';
 import { genData } from '../test-data/gsla';
 
-type PopupContent = Partial<{
+type OceanCurrentPopupContent = {
   speed: string;
   direction: string;
   bearing: string;
+};
+
+type SeaLevelAnomalyPopupContent = {
   gsla: string;
-}>;
+};
+
+type PopupContent =
+  | OceanCurrentPopupContent
+  | SeaLevelAnomalyPopupContent
+  | (OceanCurrentPopupContent & SeaLevelAnomalyPopupContent);
 
 const mapComponent = {
   waitUntilIdle: async (page: Page) => {
@@ -43,13 +51,18 @@ const mapComponent = {
   },
   expectPopupToHaveContent: async (page: Page, content: PopupContent) => {
     await mapComponent.openPopup(page);
-
-    if (content.speed) await expect(page.getByLabel('Particle speed')).toContainText(content.speed);
-    if (content.direction)
-      await expect(page.getByLabel('Particle direction')).toContainText(content.direction);
-    if (content.bearing)
-      await expect(page.getByLabel('Particle bearing')).toContainText(content.bearing);
-    if (content.gsla) await expect(page.getByLabel('Particle gsla')).toContainText(content.gsla);
+    if ('speed' in content) {
+      await expect(page.getByLabel('Ocean surface current details')).toBeVisible();
+      await expect(page.getByLabel('Ocean surface current details')).toContainText(
+        `Ocean surface current:${content.bearing}degrees (${content.direction}) @ ${content.speed} m/s`,
+      );
+    }
+    if ('gsla' in content) {
+      await expect(page.getByLabel('Sea level anomaly details')).toBeVisible();
+      await expect(page.getByLabel('Sea level anomaly details')).toContainText(
+        `Sea level anomaly:${content.gsla} m`,
+      );
+    }
 
     await mapComponent.closePopup(page);
   },
@@ -59,13 +72,13 @@ type LngLat = [number, number];
 type Product = 'GSLA Ocean current product' | 'GSLA Anomaly sea levels' | 'Wave buoys product';
 
 const sidebarComponent = {
-  selectProduct: async (page: Page, productName: Product) => {
-    await page.getByLabel(productName).getByRole('button', { name: 'Add to map' }).click();
-    await expect(
-      page.getByLabel(productName).getByRole('button', { name: 'Add to map' }),
-    ).not.toBeVisible();
+  deselectProduct: async (page: Page, productName: Product) => {
+    await page.getByLabel(productName).getByRole('button', { name: 'Remove from map' }).click();
     await expect(
       page.getByLabel(productName).getByRole('button', { name: 'Remove from map' }),
+    ).not.toBeVisible();
+    await expect(
+      page.getByLabel(productName).getByRole('button', { name: 'Add to map' }),
     ).toBeVisible();
   },
 };
@@ -83,13 +96,13 @@ const buoys = {
 
 test.beforeEach(async ({ page }) => {
   await page.clock.setFixedTime(new Date('2025-08-01T00:00:00.000Z'));
-  await page.route('*/**/GSLA/2025-07-23/gsla_data.json', async route => {
+  await page.route('*/**/GSLA/2025-07-23/gsla_data.json*', async route => {
     await route.fulfill({ json: genData([1, 2, 3]) });
   });
-  await page.route('*/**/GSLA/2025-07-24/gsla_data.json', async route => {
+  await page.route('*/**/GSLA/2025-07-24/gsla_data.json*', async route => {
     await route.fulfill({ json: genData([2, 3, 4]) });
   });
-  await page.route('*/**/BUOY/buoy_locations/buoy_locations_2025-07-23.geojson', async route => {
+  await page.route('*/**/BUOY/buoy_locations/buoy_locations_2025-07-23.geojson*', async route => {
     const buoyLocations = {
       type: 'FeatureCollection',
       metadata: {},
@@ -112,7 +125,7 @@ test.beforeEach(async ({ page }) => {
     await route.fulfill({ json: buoyLocations });
   });
 
-  await page.route('*/**/BUOY/buoy_locations/buoy_locations_2025-07-24.geojson', async route => {
+  await page.route('*/**/BUOY/buoy_locations/buoy_locations_2025-07-24.geojson*', async route => {
     const buoyLocations = {
       type: 'FeatureCollection',
       metadata: {},
@@ -135,7 +148,7 @@ test.beforeEach(async ({ page }) => {
     await route.fulfill({ json: buoyLocations });
   });
 
-  await page.route('*/**/BUOY/buoy_details/*.geojson', async route => {
+  await page.route('*/**/BUOY/buoy_details/*.geojson*', async route => {
     const dateMatch = route
       .request()
       .url()
@@ -172,15 +185,16 @@ test.beforeEach(async ({ page }) => {
 test.describe('Ocean Current', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await sidebarComponent.selectProduct(page, 'GSLA Ocean current product');
+    await sidebarComponent.deselectProduct(page, 'GSLA Anomaly sea levels');
+    await sidebarComponent.deselectProduct(page, 'Wave buoys product');
   });
 
   test('User can see the current value from a map particle of different days', async ({ page }) => {
     await mapComponent.waitUntilLayerLoaded(page, PARTICLE_LAYER_ID);
     await mapComponent.expectPopupToHaveContent(page, {
-      speed: '1.00 m/s',
+      speed: '1.00',
       direction: 'E',
-      bearing: '2.00°',
+      bearing: '2.00',
     });
 
     await page.getByRole('slider', { name: 'point handle' }).click();
@@ -190,9 +204,9 @@ test.describe('Ocean Current', () => {
     await mapComponent.openPopup(page);
 
     await mapComponent.expectPopupToHaveContent(page, {
-      speed: '2.00 m/s',
+      speed: '2.00',
       direction: 'E',
-      bearing: '3.00°',
+      bearing: '3.00',
     });
   });
 });
@@ -200,13 +214,14 @@ test.describe('Ocean Current', () => {
 test.describe('Anomaly sea levels', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await sidebarComponent.selectProduct(page, 'GSLA Anomaly sea levels');
+    await sidebarComponent.deselectProduct(page, 'GSLA Ocean current product');
+    await sidebarComponent.deselectProduct(page, 'Wave buoys product');
   });
 
   test('User can see the current value from a map particle of different days', async ({ page }) => {
     await mapComponent.waitUntilLayerLoaded(page, OVERLAY_LAYER_ID);
     await mapComponent.expectPopupToHaveContent(page, {
-      gsla: '3.00 m',
+      gsla: '3.00',
     });
 
     await page.getByRole('slider', { name: 'point handle' }).click();
@@ -216,7 +231,7 @@ test.describe('Anomaly sea levels', () => {
     await mapComponent.openPopup(page);
 
     await mapComponent.expectPopupToHaveContent(page, {
-      gsla: '4.55 m',
+      gsla: '4.00',
     });
   });
 });
@@ -224,17 +239,16 @@ test.describe('Anomaly sea levels', () => {
 test.describe('Anomaly sea levels and Ocean Current', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await sidebarComponent.selectProduct(page, 'GSLA Anomaly sea levels');
-    await sidebarComponent.selectProduct(page, 'GSLA Ocean current product');
+    await sidebarComponent.deselectProduct(page, 'Wave buoys product');
   });
 
   test('User can see the current value from a map particle of different days', async ({ page }) => {
     await mapComponent.waitUntilLayerLoaded(page, OVERLAY_LAYER_ID);
     await mapComponent.expectPopupToHaveContent(page, {
-      gsla: '3.00 m',
-      speed: '1.00 m/s',
+      gsla: '3.00',
+      speed: '1.00',
       direction: 'E',
-      bearing: '2.00°',
+      bearing: '2.00',
     });
 
     await page.getByRole('slider', { name: 'point handle' }).click();
@@ -244,10 +258,10 @@ test.describe('Anomaly sea levels and Ocean Current', () => {
     await mapComponent.openPopup(page);
 
     await mapComponent.expectPopupToHaveContent(page, {
-      gsla: '4.55 m',
-      speed: '2.00 m/s',
+      gsla: '4.00',
+      speed: '2.00',
       direction: 'E',
-      bearing: '3.00°',
+      bearing: '3.00',
     });
   });
 });
@@ -255,7 +269,8 @@ test.describe('Anomaly sea levels and Ocean Current', () => {
 test.describe('Wave Buoys', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await sidebarComponent.selectProduct(page, 'Wave buoys product');
+    await sidebarComponent.deselectProduct(page, 'GSLA Ocean current product');
+    await sidebarComponent.deselectProduct(page, 'GSLA Anomaly sea levels');
   });
 
   test('User can see the see the bouy`s historical by clicking at the buoy', async ({ page }) => {
@@ -311,8 +326,6 @@ test.describe('Wave Buoys', () => {
       },
       { layer: UNCLUSTERED_WAVE_BUOYS_LAYER_ID, expectedBuoyName: buoys.DARWIN.name },
     );
-
-    await page.waitForTimeout(5000);
   });
 });
 
@@ -350,11 +363,7 @@ test.describe('Ocean Current, Anomaly sea levels and Wave Buoys', () => {
     await page.goto('/');
   });
 
-  test('User can select all the three products', async ({ page }) => {
-    await sidebarComponent.selectProduct(page, 'GSLA Ocean current product');
-    await sidebarComponent.selectProduct(page, 'GSLA Anomaly sea levels');
-    await sidebarComponent.selectProduct(page, 'Wave buoys product');
-
+  test('All the products are selected by default', async ({ page }) => {
     await mapComponent.waitUntilLayerLoaded(page, PARTICLE_LAYER_ID);
     await mapComponent.waitUntilLayerLoaded(page, OVERLAY_LAYER_ID);
     await mapComponent.waitUntilLayerLoaded(page, WAVE_BUOYS_LAYER_ID);
