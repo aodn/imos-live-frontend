@@ -8,7 +8,7 @@ import { NumParticles, useMapUIStore } from '@/store';
 import { useShallow } from 'zustand/shallow';
 import { Switch } from '../Switch';
 
-export type Label = 'Layers' | 'Maps' | 'Measurement';
+export type Label = 'Options' | 'Maps' | 'Measurement';
 
 export type MenuItem = {
   icon: React.FC<IconProps>;
@@ -106,7 +106,7 @@ export function FeaturesMenu({
       </div>
       {!!activeItem && (
         <div className="mt-2 p-2">
-          {activeItem === 'Layers' && (
+          {activeItem === 'Options' && (
             <div>
               <Dropdown
                 label="number of particles"
