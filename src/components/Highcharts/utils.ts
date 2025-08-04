@@ -12,7 +12,7 @@ import Highcharts from 'highcharts/highstock'; // Use highstock
 import boost from 'highcharts/modules/boost';
 import exportData from 'highcharts/modules/export-data';
 import offlineExporting from 'highcharts/modules/offline-exporting';
-import { buoyDataDirectionVariant, colors, directionColors } from './config';
+import { buoyDataDirectionVariant, colors, directionColors, VariantReadableName } from './config';
 import { BuoyItemContent, BuoyDataVariants } from '@/types';
 
 export const DEFAULT_THEME = {
@@ -654,7 +654,10 @@ export function processDirectionData(data: BuoyItemContent<BuoyDataVariants>): S
   });
 
   return {
-    name: buoyDataDirectionVariant,
+    name:
+      buoyDataDirectionVariant in VariantReadableName
+        ? VariantReadableName[buoyDataDirectionVariant]
+        : buoyDataDirectionVariant,
     type: 'scatter',
     data: processedData,
     color: directionColors.direction,

@@ -31,7 +31,13 @@ export const noneDirectionVariants: BuoyDataVariants[] = [
 
 export const buoyDataDirectionVariant = 'SSWMD';
 export const buoyDataInfoVariant: BuoyDataVariants[] = ['WSSH', 'SSWMD', 'WPFM'];
-export const obseravtionVariants = ['WSSH', 'SSWMD', 'WPFM'];
+export const obseravtionVariants = buoyDataInfoVariant;
+
+export enum VariantReadableName {
+  WSSH = 'wave height',
+  SSWMD = 'wave direction',
+  WPFM = 'wave pertiod',
+}
 
 export const directionColors = {
   direction: '#FF5722',

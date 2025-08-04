@@ -1,4 +1,4 @@
-import { BuoyDataVariants, BuoyItemContent, WaveBuoyPositionFeature } from '@/types';
+import { BuoyItemContent, WaveBuoyPositionFeature } from '@/types';
 import { LineChart } from './LineChart';
 import {
   createMergedCollectionWithAllParameters,
@@ -9,7 +9,12 @@ import {
 import { useAsync } from '@/hooks';
 import { useCallback, useMemo } from 'react';
 import { SeriesData } from './type';
-import { buoyDataDirectionVariant, buoyDataInfoVariant, noneDirectionVariants } from './config';
+import {
+  buoyDataDirectionVariant,
+  buoyDataInfoVariant,
+  noneDirectionVariants,
+  VariantReadableName,
+} from './config';
 import {
   calculateDataRange,
   generateDynamicButtons,
@@ -67,10 +72,15 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
 
     const regularSeries = noneDirectionVariants.map(variant => {
       const d = properties[variant];
+
       return {
         ...d,
-        name: variant,
         ...seriesStyle.find(s => s.name === variant),
+        //update name from variant like SSMD... to like wave height..., this is to update legend label to readable name.
+        name:
+          variant in VariantReadableName
+            ? VariantReadableName[variant as keyof typeof VariantReadableName]
+            : variant,
         yAxis: 0,
       };
     });
@@ -94,11 +104,11 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
     return Math.floor(buttonCount / 2);
   }, [dynamicButtons]);
 
-  const subtitle = useMemo(
-    () =>
-      `Position:  ( lng: ${geometry.coordinates[0].toFixed(2)} lat: ${geometry.coordinates[1].toFixed(2)} )`,
-    [geometry.coordinates],
-  );
+  const title = useMemo(() => {
+    return (
+      buoy + ' ' + `( ${geometry.coordinates[1].toFixed(2)}, ${geometry.coordinates[0].toFixed(2)})`
+    );
+  }, [buoy, geometry.coordinates]);
 
   const tooltipFormatter = useCallback(
     (context: any) => {
@@ -107,20 +117,20 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
 
       let tooltipHTML = `<div style="font-size: 12px;"><b>Time:</b> ${datetime}<br/>`;
 
-      if (point.series.name === buoyDataDirectionVariant) {
+      if (point.series.name === VariantReadableName[buoyDataDirectionVariant]) {
+        //display wave direciton and period
         const wavePeriodPoint = dataLookup.WPFM?.data.find(
           d => Array.isArray(d) && d[0] === point.x,
         );
-        const sswmdName = dataLookup.SSWMD.standard_name;
-        const wpfmName = dataLookup.WPFM.standard_name;
+
         const wavePeriod =
           wavePeriodPoint && Array.isArray(wavePeriodPoint) ? wavePeriodPoint[1] : null;
 
         const direction = point.options?.direction || point.y;
-        tooltipHTML += `<span style="color:${point.color}">●</span> <b>${sswmdName}:</b> ${direction?.toFixed(1)}° (to)<br/><span style="color:${point.color}">●</span> <b>${wpfmName}:</b> ${wavePeriod} s<br/>`;
+        tooltipHTML += `<span style="color:${point.color}">●</span> <b>${VariantReadableName.SSWMD}:</b> ${direction?.toFixed(1)}° (to)<br/><span style="color:${point.color}">●</span> <b>${VariantReadableName.WPFM}:</b> ${wavePeriod} s<br/>`;
       } else {
-        const variantName = dataLookup[point.series.name as BuoyDataVariants].standard_name;
-        tooltipHTML += `<span style="color:${point.color}">●</span> <b>${variantName}:</b> ${point.y?.toFixed(2)} m<br/>`;
+        //display wave height
+        tooltipHTML += `<span style="color:${point.color}">●</span> <b>${VariantReadableName.WSSH}:</b> ${point.y?.toFixed(2)} m<br/>`;
       }
 
       tooltipHTML += '</div>';
@@ -180,18 +190,16 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
         width={'100%'}
         height={500}
         series={seriseData!}
-        subtitle={subtitle}
-        title={data?.metadata.location}
+        title={title}
         turboThreshold={4000}
         rangeSelector={{
-          enabled: true,
+          enabled: false,
           selected: defaultSelected,
           buttonPosition: {
             align: 'left',
             x: 0,
             y: 0,
           },
-
           inputPosition: {
             align: 'right',
             x: 0,
