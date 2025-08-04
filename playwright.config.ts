@@ -41,6 +41,7 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
 
+    //  If enabled, update github runner to install firefox browsers otherwise tests will fail
     // {
     //   name: 'firefox',
     //   use: { ...devices['Desktop Firefox'] },
