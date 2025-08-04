@@ -18,10 +18,12 @@ export const PopupContent = ({
   onClose,
 }: PopupContentProps) => {
   return (
-    <div className="w-56 bg-white rounded-lg shadow-lg overflow-hidden">
+    <div className="w-50 md:w-80 bg-white rounded-lg shadow-lg overflow-hidden">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-4 flex justify-between items-center">
-        <h4 className="font-semibold text-base">Location Info</h4>
+      <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-2 py-4 flex justify-between items-center">
+        <h4 className="text-base">
+          ({lat.toFixed(2)}, {lng.toFixed(2)})
+        </h4>
         {onClose && (
           <button
             onClick={onClose}
@@ -33,38 +35,19 @@ export const PopupContent = ({
       </div>
 
       {/* Body */}
-      <div className="p-4 space-y-3">
-        <div className="flex justify-between items-center">
-          <span className="text-gray-600 font-medium">Coordinates:</span>
-          <span className="text-gray-900 font-mono text-sm">
-            {lat.toFixed(2)}, {lng.toFixed(2)}
-          </span>
-        </div>
-
-        {speed !== undefined && (
-          <div className="flex justify-between items-center">
-            <span className="text-gray-600 font-medium">Speed:</span>
-            <span className="text-gray-900 ">{speed.toFixed(2)} m/s</span>
-          </div>
-        )}
-
-        {direction !== undefined && (
-          <div className="flex justify-between items-center">
-            <span className="text-gray-600 font-medium">Direction:</span>
-            <span className="text-gray-900 ">{direction}</span>
-          </div>
-        )}
-
-        {degree !== undefined && (
-          <div className="flex justify-between items-center">
-            <span className="text-gray-600 font-medium">Bearing:</span>
-            <span className="text-gray-900 ">{degree.toFixed(2)}°</span>
+      <div className="p-2 space-y-2">
+        {speed !== undefined && degree !== undefined && (
+          <div className="flex-col md:flex-row flex justify-between md:items-center">
+            <span className="text-gray-600 text-left">Ocean surface current:</span>
+            <span className="text-gray-900 text-left">
+              {degree.toFixed(2)}degrees ({direction}) @ {speed.toFixed(2)} m/s
+            </span>
           </div>
         )}
 
         {gsla !== undefined && (
-          <div className="flex justify-between items-center">
-            <span className="text-gray-600 font-medium">GSLA:</span>
+          <div className="flex-col md:flex-row flex justify-between md:items-center">
+            <span className="text-gray-600 ">Sea level anomaly:</span>
             <span className="text-gray-900 ">{gsla.toFixed(2)} m</span>
           </div>
         )}
