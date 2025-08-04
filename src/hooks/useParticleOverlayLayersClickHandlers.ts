@@ -3,7 +3,8 @@ import { useToast } from '@/components';
 import { showPopup } from '@/helpers';
 import { debounce, processOceanCurrentDetails } from '@/utils';
 import { RefObject, useCallback, useEffect } from 'react';
-import { useAsync } from './useAsync';
+import { GSLA_DATA_NAME } from '@/constants';
+import { useQuery } from '@tanstack/react-query';
 
 type UseMapClickHandlersOptions = {
   map: RefObject<mapboxgl.Map | null>;
@@ -25,19 +26,23 @@ export function useParticleOverlayLayersClickHandlers({
   distanceMeasurement,
 }: UseMapClickHandlersOptions) {
   const { showToast } = useToast();
-  const {
-    data: oceanCurrentData,
-    error,
-    refetch,
-  } = useAsync(getOceanCurrentData, {
-    args: [dataset],
-    immediate: false,
+
+  //cached by browser
+  const { data: oceanCurrentData, isError } = useQuery({
+    queryKey: [GSLA_DATA_NAME, dataset],
+    queryFn: () => getOceanCurrentData(dataset),
+    enabled: !!dataset,
   });
 
   useEffect(() => {
-    if (!dataset) return;
-    refetch(dataset);
-  }, [dataset, refetch]);
+    if (isError)
+      showToast({
+        type: 'error',
+        title: 'Error occurred',
+        message: 'Failed to get ocean current details',
+        duration: 6000,
+      });
+  }, [isError, showToast]);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleMapClick = useCallback(
@@ -68,17 +73,6 @@ export function useParticleOverlayLayersClickHandlers({
     }, 400),
     [oceanCurrentData, distanceMeasurement, overlay, particles],
   );
-
-  useEffect(() => {
-    if (!error) return;
-
-    showToast({
-      type: 'error',
-      title: 'Error occurred',
-      message: 'Failed to get ocean current details',
-      duration: 6000,
-    });
-  }, [error, showToast]);
 
   useEffect(() => {
     if (!map?.current) return;
