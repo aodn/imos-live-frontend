@@ -17,7 +17,7 @@ type Story = StoryObj<typeof meta>;
 export const Primary: Story = {
   args: {
     features: [
-      { icon: LayersIcon, label: 'Layers' },
+      { icon: LayersIcon, label: 'Options' },
       { icon: MapsIcon, label: 'Maps' },
       { icon: MeasuresIcon, label: 'Measurement' },
     ],

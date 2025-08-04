@@ -1,4 +1,3 @@
-import { Search } from './Search';
 import { Header } from './Header';
 import { ImageType } from '@/types';
 import { LayerProducts } from './LayerProducts';
@@ -35,7 +34,7 @@ type MainSidebarProps = {
 };
 
 export const MainSidebarContent: React.FC<MainSidebarProps> = ({ className = '' }) => {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery] = useState('');
 
   const { overlay, particles, circle, setOverlay, setCircle, setParticles } = useMapUIStore(
     useShallow(s => ({
@@ -73,10 +72,10 @@ export const MainSidebarContent: React.FC<MainSidebarProps> = ({ className = '' 
     <div className={cn('h-full pb-4', className)}>
       <Header className="hidden md:flex" image={headerData.image} title={headerData.title} />
 
-      <Search className="mt-4 md:px-2" fn={s => setSearchQuery(s)} />
+      {/* <Search className="mt-4 md:px-2" fn={s => setSearchQuery(s)} /> */}
 
       <LayerSets
-        title="Featured Functions"
+        title="Featured Data"
         layersDatasets={filteredLayerSets}
         className="md:px-2 mt-4"
       />

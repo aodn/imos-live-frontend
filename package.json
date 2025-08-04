@@ -6,6 +6,7 @@
   "scripts": {
     "dev:mock": "MOCKDATA=true vite",
     "dev": "vite",
+    "test:e2e": "playwright test",
     "build": "tsc -b && vite build",
     "build:stats": "VITE_STATS_ENABLED=true npm run build",
     "lint": "eslint .",
@@ -43,6 +44,7 @@
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
     "@eslint/js": "^9.21.0",
+    "@playwright/test": "^1.54.1",
     "@storybook/addon-essentials": "^8.6.12",
     "@storybook/addon-onboarding": "^8.6.12",
     "@storybook/blocks": "^8.6.12",

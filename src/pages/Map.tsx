@@ -85,7 +85,7 @@ export const Map = () => {
             children={
               <FeaturesMenu
                 features={[
-                  { icon: LayersIcon, label: 'Layers' },
+                  { icon: LayersIcon, label: 'Options' },
                   { icon: MapsIcon, label: 'Maps' },
                   { icon: MeasuresIcon, label: 'Measurement' },
                 ]}

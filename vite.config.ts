@@ -3,8 +3,8 @@ import react from '@vitejs/plugin-react-swc';
 import path from 'path';
 import { defineConfig, loadEnv, Plugin, UserConfig } from 'vite';
 import svgr from 'vite-plugin-svgr';
-import { meta, data as gslaData, inputBitmap, overlayBitmap } from './test-data/gsla';
-import { locations, data as buoyData } from './test-data/buoy';
+import { meta, genRandomData as gslaData, inputBitmap, overlayBitmap } from './test-data/gsla';
+import { locations, genBuoyRandomData } from './test-data/buoy';
 import { visualizer } from 'rollup-plugin-visualizer';
 
 // https://vite.dev/config/
@@ -87,7 +87,14 @@ const mockServerPlugin = (): Plugin => {
           if (url.endsWith('gsla_meta.json')) res.end(JSON.stringify(meta()));
           if (url.endsWith('gsla_data.json')) res.end(JSON.stringify(gslaData()));
           if (url.includes('BUOY/buoy_locations')) res.end(JSON.stringify(locations()));
-          if (url.includes('BUOY/buoy_details')) res.end(JSON.stringify(buoyData()));
+          if (url.includes('BUOY/buoy_details')) {
+            const dateMatch = url.match(/BUOY\/buoy_details\/([^_]+)_(\d{4}-\d{2}-\d{2})\.geojson/);
+            if (dateMatch) {
+              const buoyName = dateMatch[1];
+              const dataDate = new Date(dateMatch[2]);
+              res.end(JSON.stringify(genBuoyRandomData({ name: buoyName, dataDate })));
+            }
+          }
 
           if (url.endsWith('gsla_overlay.png')) res.end(await overlayBitmap());
           if (url.endsWith('gsla_input.png')) res.end(await inputBitmap());

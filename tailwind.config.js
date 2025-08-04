@@ -13,6 +13,7 @@ export default {
         'imos-black': '#000',
         'imos-red': '#e53935',
         'imos-grey': '#232936',
+        'imos-light': '#c5d8e7',
       },
     },
   },
