@@ -2,13 +2,13 @@ type RangeType = [number, number];
 
 type CoordinatesType = [range: RangeType, range: RangeType, range: RangeType, range: RangeType];
 
-export async function addOrUpdateImageSource(
+export function addOrUpdateImageSource(
   map: mapboxgl.Map,
   id: string,
   url: string,
   lonRange: RangeType,
   latRange: RangeType,
-): Promise<void> {
+) {
   const source = map.getSource(id);
 
   const coordinates: CoordinatesType = [
@@ -23,15 +23,4 @@ export async function addOrUpdateImageSource(
   } else {
     map.addSource(id, { type: 'image', url, coordinates });
   }
-
-  return new Promise(resolve => {
-    const onSourceData = (e: mapboxgl.MapSourceDataEvent) => {
-      if (e.sourceId === id && e.isSourceLoaded) {
-        map.off('sourcedata', onSourceData);
-        resolve();
-      }
-    };
-
-    map.on('sourcedata', onSourceData);
-  });
 }

@@ -15,12 +15,12 @@ import {
   WaterSurfaceIcon,
   WaveIcon,
   SatelliteIcon,
-  Header as MapHeader,
 } from '@/components';
 import { useDrawerStore, useMapUIStore } from '@/store';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useEffect, useMemo, useRef } from 'react';
 import { useViewportSize } from '@/hooks';
+import { Header as MapHeader } from '@/components';
 import { useShallow } from 'zustand/shallow';
 import logImage from '@/assets/imos_logo_with_title.png';
 

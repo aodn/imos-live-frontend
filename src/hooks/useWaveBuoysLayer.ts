@@ -10,15 +10,12 @@ import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
 import { useMapboxLayerRef } from './useMapboxLayerRef';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import {
-  cacheConfig,
   unclusteredWaveBuoysLayerConfig,
   waveBuoyCluserLabelLayerConfig,
   waveBuoysLayerConfig,
 } from '@/config';
+import { useState } from 'react';
 import { useToast } from '@/components';
-import { getWaveBuoyLocations } from '@/api';
-import { useEffect, useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 
 export function useWaveBuoysLayer(
   map: React.RefObject<mapboxgl.Map | null>,
@@ -26,37 +23,28 @@ export function useWaveBuoysLayer(
   style: string,
   dataset: string,
 ) {
-  const [isError, setIsError] = useState(false);
   const { showToast } = useToast();
-
-  const queryClient = useQueryClient();
-
-  useEffect(() => {
-    if (isError)
-      showToast({
-        type: 'error',
-        title: 'Error occurred',
-        message: 'Failed to get buoys locations',
-        duration: 6000,
-      });
-  }, [isError, showToast]);
+  const [isError, setIsError] = useState(false);
 
   const setDataByDataset = async () => {
     try {
-      const buoyData = await queryClient.fetchQuery({
-        queryKey: ['wave_buoy_locations', dataset],
-        queryFn: () => getWaveBuoyLocations(dataset),
-        ...cacheConfig(dataset),
-      });
       await addOrUpdateGeoJsonSource({
         map: map.current!,
         id: WAVE_BUOYS_SOURCE_ID,
-        data: buoyData,
+        data: dataset,
         enableCluser: true,
         clusterRadius: 40,
       });
+
       setIsError(false);
-    } catch {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      showToast({
+        type: 'error',
+        title: 'Error occurred',
+        message: 'Failed to get wave Buoys of this date',
+        duration: 6000,
+      });
       setIsError(true);
     }
   };
