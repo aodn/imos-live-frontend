@@ -79,15 +79,11 @@ export function LatestObservation({
         </div>
 
         <div className={cn('grid w-full', gridColsClass(numOfCols))}>
-          {observationData?.map((field, index) => (
+          {observationData?.map((field, index, values) => (
             <div
               key={field.label || '' + index}
-              className={cn('col-span-1 border-r border-t border-b', {
-                'border-r-0': (index + 1) % numOfCols === 0,
-                'border-t-0': index < numOfCols,
-                'border-b-0':
-                  Math.ceil(observationData.length / numOfCols) - 1 ===
-                  Math.floor(index / numOfCols),
+              className={cn('col-span-1', {
+                'border-r': values.length !== index + 1,
               })}
             >
               {
