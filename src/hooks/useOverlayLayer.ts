@@ -12,9 +12,9 @@ import { useMapboxLayerRef } from './useMapboxLayerRef';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { overlayLayerConfig } from '@/config';
 import { useToast } from '@/components';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { getMetaData } from '@/api';
-import { useQuery } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 
 export function useOverlayLayer(
   map: React.RefObject<mapboxgl.Map | null>,
@@ -23,13 +23,8 @@ export function useOverlayLayer(
   dataset: string,
 ) {
   const { showToast } = useToast();
-
-  //cached by browser.
-  const { data: meta, isError } = useQuery({
-    queryKey: [GSLA_META_NAME, dataset],
-    queryFn: () => getMetaData(buildGSLADatasetPath(dataset, GSLA_META_NAME)),
-    enabled: !!dataset,
-  });
+  const [isError, setIsError] = useState(false);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (isError)
@@ -42,19 +37,29 @@ export function useOverlayLayer(
   }, [isError, showToast]);
 
   const setDataByDataset = async () => {
-    if (!meta) return;
+    try {
+      const meta = await queryClient.fetchQuery({
+        queryKey: [GSLA_META_NAME, dataset],
+        queryFn: () => getMetaData(buildGSLADatasetPath(dataset, GSLA_META_NAME)),
+      });
 
-    const { maxBounds, lonRange, latRange } = processMetaData(meta);
+      if (!meta) return;
 
-    map.current!.setMaxBounds(maxBounds);
+      const { maxBounds, lonRange, latRange } = processMetaData(meta);
 
-    await addOrUpdateImageSource(
-      map.current!,
-      OVERLAY_SOURCE_ID,
-      buildGSLADatasetFullPath(dataset, GSLA_SEA_LEVEL_NAME),
-      lonRange,
-      latRange,
-    );
+      map.current!.setMaxBounds(maxBounds);
+
+      await addOrUpdateImageSource(
+        map.current!,
+        OVERLAY_SOURCE_ID,
+        buildGSLADatasetFullPath(dataset, GSLA_SEA_LEVEL_NAME),
+        lonRange,
+        latRange,
+      );
+      setIsError(false);
+    } catch {
+      setIsError(true);
+    }
   };
 
   const setupLayer = async () => {
