@@ -8,6 +8,7 @@ import {
 import { VectoryLayerInterface } from '@/layers';
 import { expect, Page, test } from '@playwright/test';
 import { type Map } from 'mapbox-gl';
+import dayjs from 'dayjs';
 import { genBuoyData } from '../test-data/buoy';
 import { genData } from '../test-data/gsla';
 
@@ -66,6 +67,31 @@ const mapComponent = {
 
     await mapComponent.closePopup(page);
   },
+  clickOnBuoy: async (page: Page, buoyName: string) => {
+    const point = await page.evaluate(
+      ({ layer, buoyName }) => {
+        const map = (window as any).map as Map | undefined;
+        if (!map) throw new Error('Map not found');
+
+        const buoy = map
+          ?.queryRenderedFeatures(undefined as any, { layers: [layer] })
+          ?.find(f => f.properties?.buoy === buoyName);
+        if (!buoy) throw new Error('No features found');
+
+        const coordinates = buoy.geometry.type === 'Point' && buoy.geometry.coordinates;
+        if (!coordinates) throw new Error('Coordinates not found');
+        if (coordinates.length !== 2) throw new Error('Invalid coordinates length');
+
+        return map.project(coordinates as LngLat);
+      },
+      { layer: UNCLUSTERED_WAVE_BUOYS_LAYER_ID, buoyName },
+    );
+
+    await page.getByRole('region', { name: 'Map' }).click({ position: { x: point.x, y: point.y } });
+    await expect(
+      page.getByLabel('Interactive chart', { exact: true }).getByText(buoyName),
+    ).toBeVisible();
+  },
 };
 
 type LngLat = [number, number];
@@ -94,36 +120,42 @@ const buoys = {
   },
 };
 
+const currentDate = new Date('2025-08-01T00:00:00.000Z');
+
 test.beforeEach(async ({ page }) => {
-  await page.clock.setFixedTime(new Date('2025-08-01T00:00:00.000Z'));
-  await page.route('*/**/GSLA/2025-07-23/gsla_data.json*', async route => {
+  const defaultDaySelected = '2025-07-23';
+  await page.clock.setFixedTime(currentDate);
+  await page.route('*/**/GSLA/' + defaultDaySelected + '/gsla_data.json*', async route => {
     await route.fulfill({ json: genData([1, 2, 3]) });
   });
   await page.route('*/**/GSLA/2025-07-24/gsla_data.json*', async route => {
     await route.fulfill({ json: genData([2, 3, 4]) });
   });
-  await page.route('*/**/BUOY/buoy_locations/buoy_locations_2025-07-23.geojson*', async route => {
-    const buoyLocations = {
-      type: 'FeatureCollection',
-      metadata: {},
-      features: [
-        {
-          type: 'Feature',
-          properties: {
-            date: '2025-07-23',
-            buoy: buoys.HOBARITO.name,
-            year: 2025,
-            timestamp: '2025-07-23T00:10:00',
+  await page.route(
+    '*/**/BUOY/buoy_locations/buoy_locations_' + defaultDaySelected + '.geojson*',
+    async route => {
+      const buoyLocations = {
+        type: 'FeatureCollection',
+        metadata: {},
+        features: [
+          {
+            type: 'Feature',
+            properties: {
+              date: defaultDaySelected,
+              buoy: buoys.HOBARITO.name,
+              year: 2025,
+              timestamp: defaultDaySelected + 'T00:10:00',
+            },
+            geometry: {
+              coordinates: buoys.HOBARITO.coordinates,
+              type: 'Point',
+            },
           },
-          geometry: {
-            coordinates: buoys.HOBARITO.coordinates,
-            type: 'Point',
-          },
-        },
-      ],
-    };
-    await route.fulfill({ json: buoyLocations });
-  });
+        ],
+      };
+      await route.fulfill({ json: buoyLocations });
+    },
+  );
 
   await page.route('*/**/BUOY/buoy_locations/buoy_locations_2025-07-24.geojson*', async route => {
     const buoyLocations = {
@@ -149,6 +181,7 @@ test.beforeEach(async ({ page }) => {
   });
 
   await page.route('*/**/BUOY/buoy_details/*.geojson*', async route => {
+    const defaultDateSelected = dayjs(defaultDaySelected);
     const dateMatch = route
       .request()
       .url()
@@ -156,6 +189,45 @@ test.beforeEach(async ({ page }) => {
     if (dateMatch) {
       const buoyName = dateMatch[1];
       const dataDate = new Date(dateMatch[2]);
+      const isLatestObservation = defaultDateSelected.isSame(dayjs(dataDate), 'day');
+      if (isLatestObservation) {
+        await route.fulfill({
+          json: genBuoyData(
+            { name: buoyName, dataDate },
+            {
+              sswmd: (date: Date) => {
+                const values: [number, number][] = [];
+                const dateTime = new Date(date);
+                dateTime.setHours(0, 0, 0, 0);
+                values.push([dateTime.getTime(), 170]);
+                dateTime.setHours(10, 0, 0, 0);
+                values.push([dateTime.getTime(), 1]);
+                return values;
+              },
+              wpfm: (date: Date) => {
+                const values: [number, number][] = [];
+                const dateTime = new Date(date);
+                dateTime.setHours(0, 0, 0, 0);
+                values.push([dateTime.getTime(), 30]);
+                dateTime.setHours(10, 0, 0, 0);
+                values.push([dateTime.getTime(), 1]);
+                return values;
+              },
+              wssh: (date: Date) => {
+                const values: [number, number][] = [];
+                const dateTime = new Date(date);
+                dateTime.setHours(0, 0, 0, 0);
+                values.push([dateTime.getTime(), 70]);
+                dateTime.setHours(10, 0, 0, 0);
+                values.push([dateTime.getTime(), 1]);
+                return values;
+              },
+            },
+          ),
+        });
+        return;
+      }
+
       await route.fulfill({
         json: genBuoyData(
           { name: buoyName, dataDate },
@@ -178,7 +250,9 @@ test.beforeEach(async ({ page }) => {
           },
         ),
       });
+      return;
     }
+    await route.continue();
   });
 });
 
@@ -273,28 +347,24 @@ test.describe('Wave Buoys', () => {
     await sidebarComponent.deselectProduct(page, 'GSLA Anomaly sea levels');
   });
 
+  test('User can read the latest observation of a specific buoy', async ({ page }) => {
+    await mapComponent.waitUntilLayerLoaded(page, WAVE_BUOYS_LAYER_ID);
+    await mapComponent.clickOnBuoy(page, buoys.HOBARITO.name);
+
+    const latestObservation = page.getByTestId('latest-observation-timestamp');
+    await expect(latestObservation).toContainText('7/23/2025, 10:00:00 AM');
+
+    await expect(page.getByTestId('latest-observation-label')).toHaveText([
+      'sea surface wave spectral significant height (m)',
+      'spectral sea surface wave mean direction (Degrees)',
+      'sea surface wave spectral mean period (s)',
+    ]);
+    await expect(page.getByTestId('latest-observation-value')).toHaveText(['1', '1', '1']);
+  });
+
   test('User can see the see the bouy`s historical by clicking at the buoy', async ({ page }) => {
     await mapComponent.waitUntilLayerLoaded(page, WAVE_BUOYS_LAYER_ID);
-
-    const point = await page.evaluate(layer => {
-      const map = (window as any).map as Map | undefined;
-      if (!map) throw new Error('Map not found');
-
-      const features = map?.queryRenderedFeatures(undefined as any, { layers: [layer] });
-      if (!features || features.length === 0) throw new Error('No features found');
-      const [buoy] = features;
-
-      const coordinates = buoy.geometry.type === 'Point' && buoy.geometry.coordinates;
-      if (!coordinates) throw new Error('Coordinates not found');
-      if (coordinates.length !== 2) throw new Error('Invalid coordinates length');
-
-      return map.project(coordinates as LngLat);
-    }, UNCLUSTERED_WAVE_BUOYS_LAYER_ID);
-
-    await page.getByRole('region', { name: 'Map' }).click({ position: { x: point.x, y: point.y } });
-    await expect(
-      page.getByLabel('Interactive chart', { exact: true }).getByText('HOBARITO'),
-    ).toBeVisible();
+    await mapComponent.clickOnBuoy(page, buoys.HOBARITO.name);
   });
 
   test('User can see the see the bouys location of different days', async ({ page }) => {

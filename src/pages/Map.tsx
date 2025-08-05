@@ -78,7 +78,7 @@ export const Map = () => {
           <MapControlPanel ref={mapRef} className="absolute top-10 left-0 z-10 hidden md:block" />
           <DateSelectionBar className="absolute bottom-2 left-1/2 -translate-x-1/2 w-full pointer-events-none" />
           <FloatingPanel
-            wrapperClassName="w-14 md:w-fit bg-emerald-300  rounded-xl"
+            wrapperClassName="w-14 md:w-fit bg-imos-light rounded-xl"
             boundary="parent"
             collapsible
             initialOpen={!isSmallScreen}

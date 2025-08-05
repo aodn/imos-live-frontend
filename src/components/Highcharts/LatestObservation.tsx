@@ -71,7 +71,7 @@ export function LatestObservation({
           <h2 className="text-sm font-medium text-gray-800">
             <span>Latest Observations</span>
             {observationData[0]?.timeStamp && (
-              <span className="text-xs font-light ml-2">
+              <span className="text-xs font-light ml-2" data-testid="latest-observation-timestamp">
                 {toLocalDateTime(observationData[0].timeStamp)}
               </span>
             )}
@@ -79,23 +79,27 @@ export function LatestObservation({
         </div>
 
         <div className={cn('grid w-full', gridColsClass(numOfCols))}>
-          {observationData?.map((field, index) => (
+          {observationData?.map((field, index, values) => (
             <div
               key={field.label || '' + index}
-              className={cn('col-span-1 border-r border-t border-b', {
-                'border-r-0': (index + 1) % numOfCols === 0,
-                'border-t-0': index < numOfCols,
-                'border-b-0':
-                  Math.ceil(observationData.length / numOfCols) - 1 ===
-                  Math.floor(index / numOfCols),
+              className={cn('col-span-1', {
+                'border-r': values.length !== index + 1,
               })}
             >
               {
                 <div className="px-3 py-2">
-                  <div className="text-xs text-gray-600 mb-1">
+                  <div
+                    className="text-xs text-gray-600 mb-1"
+                    data-testid="latest-observation-label"
+                  >
                     {field.label} {field.unit && `(${field.unit})`}
                   </div>
-                  <div className="text-sm font-medium text-gray-900">{field.value}</div>
+                  <div
+                    className="text-sm font-medium text-gray-900"
+                    data-testid="latest-observation-value"
+                  >
+                    {field.value}
+                  </div>
                 </div>
               }
             </div>
