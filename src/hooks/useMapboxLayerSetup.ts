@@ -18,10 +18,10 @@ export function useMapboxLayerSetup(
     if (!map.current) return;
 
     let cancelled = false;
-    isSettingUpRef.current = false;
 
     const setupLayer = async () => {
       if (isSettingUpRef.current || cancelled) return;
+
       isSettingUpRef.current = true;
       setLoadComplete(false);
 
@@ -38,6 +38,7 @@ export function useMapboxLayerSetup(
             map.current?.on('idle', checkLoaded);
           });
         }
+
         if (!cancelled) {
           await setupLayerFnRef.current();
           setLoadComplete(true);

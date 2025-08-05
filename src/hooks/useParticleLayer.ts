@@ -8,13 +8,13 @@ import {
 import { addLayerInOrder, addOrUpdateImageSource } from '@/helpers';
 import { vectorLayer } from '@/layers';
 import { processMetaData, buildGSLADatasetFullPath, buildGSLADatasetPath } from '@/utils';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useParticleLayerVisibility } from './useParticleLayerVisibility';
 import { useParticleLayerRef } from './useParticleLayerRef';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useToast } from '@/components';
 import { getMetaData } from '@/api';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 
 export function useParticleLayer(
   map: React.RefObject<mapboxgl.Map | null>,
@@ -24,48 +24,43 @@ export function useParticleLayer(
   numParticles: number,
 ) {
   const { showToast } = useToast();
-  const [isError, setIsError] = useState(false);
-  const queryClient = useQueryClient();
+
+  //cached by browser
+  const { data: meta, isError } = useQuery({
+    queryKey: [GSLA_META_NAME, dataset],
+    queryFn: () => getMetaData(buildGSLADatasetPath(dataset, GSLA_META_NAME)),
+    enabled: !!dataset,
+  });
 
   useEffect(() => {
     if (isError)
       showToast({
         type: 'error',
         title: 'Error occurred',
-        message: 'Failed to get GSLA ocean current data of this date',
+        message: 'Failed to get GSLA anamly sea level data of this date',
         duration: 6000,
       });
   }, [isError, showToast]);
 
   const setDataByDataset = async () => {
-    try {
-      const meta = await queryClient.fetchQuery({
-        queryKey: [GSLA_META_NAME, dataset],
-        queryFn: () => getMetaData(buildGSLADatasetPath(dataset, GSLA_META_NAME)),
-      });
+    if (!meta) return;
 
-      if (!meta) return;
+    const { maxBounds, bounds, lonRange, latRange, uRange, vRange } = processMetaData(meta);
 
-      const { maxBounds, bounds, lonRange, latRange, uRange, vRange } = processMetaData(meta);
+    map.current!.setMaxBounds(maxBounds);
 
-      map.current!.setMaxBounds(maxBounds);
+    particleLayer.current!.metadata = {
+      bounds,
+      range: [uRange, vRange],
+    };
 
-      particleLayer.current!.metadata = {
-        bounds,
-        range: [uRange, vRange],
-      };
-
-      await addOrUpdateImageSource(
-        map.current!,
-        PARTICLE_SOURCE_ID,
-        buildGSLADatasetFullPath(dataset, GSLA_PARTICLE_NAME),
-        lonRange,
-        latRange,
-      );
-      setIsError(false);
-    } catch {
-      setIsError(true);
-    }
+    await addOrUpdateImageSource(
+      map.current!,
+      PARTICLE_SOURCE_ID,
+      buildGSLADatasetFullPath(dataset, GSLA_PARTICLE_NAME),
+      lonRange,
+      latRange,
+    );
   };
 
   const setupLayer = async () => {
