@@ -71,7 +71,7 @@ export function LatestObservation({
           <h2 className="text-sm font-medium text-gray-800">
             <span>Latest Observations</span>
             {observationData[0]?.timeStamp && (
-              <span className="text-xs font-light ml-2">
+              <span className="text-xs font-light ml-2" data-testid="latest-observation-timestamp">
                 {toLocalDateTime(observationData[0].timeStamp)}
               </span>
             )}
@@ -92,10 +92,18 @@ export function LatestObservation({
             >
               {
                 <div className="px-3 py-2">
-                  <div className="text-xs text-gray-600 mb-1">
+                  <div
+                    className="text-xs text-gray-600 mb-1"
+                    data-testid="latest-observation-label"
+                  >
                     {field.label} {field.unit && `(${field.unit})`}
                   </div>
-                  <div className="text-sm font-medium text-gray-900">{field.value}</div>
+                  <div
+                    className="text-sm font-medium text-gray-900"
+                    data-testid="latest-observation-value"
+                  >
+                    {field.value}
+                  </div>
                 </div>
               }
             </div>
