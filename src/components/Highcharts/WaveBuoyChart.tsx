@@ -48,7 +48,7 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
   });
 
   const isLoading = queryResults.some(query => query.isLoading);
-  const isError = queryResults.some(query => query.isError);
+  const isError = queryResults.every(query => query.isError);
   const multiData = queryResults.filter(query => query.isSuccess).map(query => query.data);
 
   const data = createMergedCollectionWithAllParameters(multiData || []);
