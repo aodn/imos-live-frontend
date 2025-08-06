@@ -1,7 +1,7 @@
 import { clusterMaxZoom } from '@/config';
 import { addIdToFeatures } from '@/utils';
 
-export async function addOrUpdateGeoJsonSource({
+export function addOrUpdateGeoJsonSource({
   map,
   id,
   data,
@@ -13,7 +13,7 @@ export async function addOrUpdateGeoJsonSource({
   data: GeoJSON.FeatureCollection | GeoJSON.Feature;
   enableCluser?: boolean;
   clusterRadius?: number;
-}): Promise<void> {
+}) {
   if (!data) {
     throw Error('No wave buoys data soruce');
   }
@@ -40,15 +40,4 @@ export async function addOrUpdateGeoJsonSource({
   } else {
     map.addSource(id, sourceOptions);
   }
-
-  return new Promise(resolve => {
-    const onSourceData = (e: mapboxgl.MapSourceDataEvent) => {
-      if (e.sourceId === id && e.isSourceLoaded) {
-        map.off('sourcedata', onSourceData);
-        resolve();
-      }
-    };
-
-    map.on('sourcedata', onSourceData);
-  });
 }

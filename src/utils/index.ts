@@ -19,3 +19,4 @@ export * from './addIdToFeatures';
 export * from './processOceanCurrentDetails';
 export * from './getViewPortSize';
 export * from './appendCacheBuster';
+export * from './sleep';
