@@ -27,6 +27,7 @@ export const processOceanCurrentDetails = (
 
   const colIndex = Math.floor(((lng - minLon) / (maxLng - minLon)) * gslaData.width);
   const rowIndex = Math.floor(((maxLat - lat) / (maxLat - minLat)) * gslaData.height);
+  //degree from gslaData is in standard mathematical (Cartesian) polar coordinates
   const [speed, degree, gsla] = gslaData.data[rowIndex][colIndex];
   if (!speed && !degree && !gsla) return null;
 

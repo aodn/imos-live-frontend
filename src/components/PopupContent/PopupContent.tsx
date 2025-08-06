@@ -19,7 +19,7 @@ export const PopupContent = ({
 }: PopupContentProps) => {
   return (
     <div
-      className="w-50 md:w-80 bg-white rounded-lg shadow-lg overflow-hidden"
+      className="w-50 md:w-90 bg-white rounded-lg shadow-lg overflow-hidden"
       aria-label="Current value from coordinates"
     >
       {/* Header */}
@@ -45,7 +45,7 @@ export const PopupContent = ({
             className="flex-col md:flex-row flex justify-between md:items-center"
             aria-label="Ocean surface current details"
           >
-            <span className="text-gray-600 text-left">Ocean surface current direction:</span>
+            <span className="text-gray-600 text-left">Ocean geostrophic current direction:</span>
             <span className="text-gray-900 text-left">
               {degree.toFixed(2)} ({direction})° @ {speed.toFixed(2)} m/s
             </span>

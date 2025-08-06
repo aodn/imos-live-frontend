@@ -20,9 +20,9 @@ export const featuredDataset: LayersDataset[] = [
   {
     image: {
       src: occeanCurrentImage,
-      alt: 'GSLA Ocean current',
+      alt: 'GSLA Ocean geostrophic current',
     },
-    title: 'GSLA Ocean current',
+    title: 'GSLA Ocean geostrophic current',
     icon: <WaveIcon size="lg" />,
     description:
       'Gridded sea level (GSL) and surface geostrophic velocity (UCUR,VCUR) for the Australasian region.' +
