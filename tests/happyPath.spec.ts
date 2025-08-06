@@ -92,8 +92,10 @@ const mapComponent = {
     );
   },
   openPopup: async (page: Page) => {
-    await page.getByRole('region', { name: 'Map' }).click();
-    await expect(page.getByLabel('Current value from coordinates')).toBeVisible();
+    await expect(async () => {
+      await page.getByRole('region', { name: 'Map' }).click();
+      await expect(page.getByLabel('Current value from coordinates')).toBeVisible();
+    }).toPass();
   },
   closePopup: async (page: Page) => {
     await page.getByRole('button', { name: 'Close popup' }).click();
