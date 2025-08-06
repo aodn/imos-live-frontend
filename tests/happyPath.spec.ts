@@ -75,7 +75,7 @@ const mapComponent = {
     if ('speed' in content) {
       await expect(page.getByLabel('Ocean surface current details')).toBeVisible();
       await expect(page.getByLabel('Ocean surface current details')).toContainText(
-        `Ocean surface current:${content.bearing}degrees (${content.direction}) @ ${content.speed} m/s`,
+        `Ocean geostrophic current direction:${content.bearing}° (${content.direction}) @ ${content.speed} m/s`,
       );
     }
     if ('gsla' in content) {
