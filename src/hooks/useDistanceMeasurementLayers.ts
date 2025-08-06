@@ -12,6 +12,7 @@ import { FeatureCollection, GeoJsonProperties, Geometry } from 'geojson';
 import { useMapboxLayerRef } from './useMapboxLayerRef';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
+import { sleep } from '@/utils';
 
 export function useDistanceMeasurementLayers(
   map: React.RefObject<mapboxgl.Map | null>,
@@ -48,8 +49,9 @@ export function useDistanceMeasurementLayers(
   );
 
   const setupLayer = useCallback(async () => {
+    await sleep(100);
     if (measurePointsLayer.current) {
-      await addOrUpdateGeoJsonSource({
+      addOrUpdateGeoJsonSource({
         map: map.current!,
         id: MEASURE_POINTS_SOURCE_ID,
         data: measurePointsGeojson,

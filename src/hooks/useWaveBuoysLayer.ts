@@ -83,7 +83,7 @@ export function useWaveBuoysLayer(
     } catch {
       return setIsError(true);
     }
-    await addOrUpdateGeoJsonSource({
+    addOrUpdateGeoJsonSource({
       map: map.current!,
       id: WAVE_BUOYS_SOURCE_ID,
       data: buoyData,
