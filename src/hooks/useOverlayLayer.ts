@@ -12,7 +12,7 @@ import { useMapboxLayerRef } from './useMapboxLayerRef';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { overlayLayerConfig } from '@/config';
 import { useToast } from '@/components';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { getMetaData } from '@/api';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -26,17 +26,16 @@ export function useOverlayLayer(
   const [isError, setIsError] = useState(false);
   const queryClient = useQueryClient();
 
-  useEffect(() => {
-    if (isError)
-      showToast({
-        type: 'error',
-        title: 'Error occurred',
-        message: 'Failed to get GSLA anamly sea level data of this date',
-        duration: 6000,
-      });
-  }, [isError, showToast]);
+  const overlayLayer = useMapboxLayerRef(
+    () =>
+      imageLayer(
+        { id: OVERLAY_LAYER_ID, source: OVERLAY_SOURCE_ID, ...overlayLayerConfig },
+        overlay,
+      ),
+    style,
+  );
 
-  const setDataByDataset = async () => {
+  const setDataByDataset = useCallback(async () => {
     try {
       const meta = await queryClient.fetchQuery({
         queryKey: [GSLA_META_NAME, dataset],
@@ -60,28 +59,29 @@ export function useOverlayLayer(
     } catch {
       setIsError(true);
     }
-  };
+  }, [dataset, map, queryClient]);
 
-  const setupLayer = async () => {
+  const setupLayer = useCallback(async () => {
     if (!overlayLayer.current) return;
     await setDataByDataset();
     if (!map.current?.getLayer(OVERLAY_LAYER_ID)) {
       addLayerInOrder(map, overlayLayer.current, OVERLAY_LAYER_ID);
     }
-  };
-
-  const overlayLayer = useMapboxLayerRef(
-    () =>
-      imageLayer(
-        { id: OVERLAY_LAYER_ID, source: OVERLAY_SOURCE_ID, ...overlayLayerConfig },
-        overlay,
-      ),
-    style,
-  );
+  }, [map, overlayLayer, setDataByDataset]);
 
   const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [style, dataset]);
 
   useMapboxLayerVisibility(map, loadComplete, [overlayLayer], overlay && !isError);
+
+  useEffect(() => {
+    if (isError)
+      showToast({
+        type: 'error',
+        title: 'Error occurred',
+        message: 'Failed to get GSLA anamly sea level data of this date',
+        duration: 6000,
+      });
+  }, [isError, showToast]);
 
   return { loadComplete, overlayLayer };
 }
