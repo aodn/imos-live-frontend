@@ -45,9 +45,9 @@ export const PopupContent = ({
             className="flex-col md:flex-row flex justify-between md:items-center"
             aria-label="Ocean surface current details"
           >
-            <span className="text-gray-600 text-left">Ocean surface current:</span>
+            <span className="text-gray-600 text-left">Ocean surface current direction:</span>
             <span className="text-gray-900 text-left">
-              {degree.toFixed(2)}degrees ({direction}) @ {speed.toFixed(2)} m/s
+              {degree.toFixed(2)} ({direction})° @ {speed.toFixed(2)} m/s
             </span>
           </div>
         )}

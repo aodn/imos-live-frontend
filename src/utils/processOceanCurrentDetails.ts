@@ -33,18 +33,27 @@ export const processOceanCurrentDetails = (
   return {
     speed,
     speedUnit: 'm/s',
-    degree,
+    degree: toCompassStandard(degree),
     direction: compassDirectionFrom(degree),
     gsla,
     gslaUnit: 'm/s',
   };
 };
 
-const compassDirections = ['E', 'NE', 'N', 'NW', 'W', 'SW', 'S', 'SE'] as const;
+const compassDirections = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'] as const;
 type CompassDirection = (typeof compassDirections)[number];
 
-function compassDirectionFrom(degree: number): CompassDirection {
-  const normalizedDegree = ((degree % 360) + 360) % 360;
+/**
+ * convert degree from standard mathematical (Cartesian) polar coordinates to compass bearings.
+ * @param degree standard mathematical (Cartesian) polar coordinates: 0°=east   90°=north   180°=west   270°=south
+ * @returns degree in compass bearings: 0°=north   90°=east  180°=south  270°=west
+ */
+function toCompassStandard(degree: number) {
+  return (450 - degree + 360) % 360;
+}
 
-  return compassDirections[Math.round(normalizedDegree / 45) % 8];
+function compassDirectionFrom(degree: number): CompassDirection {
+  const compassDegree = toCompassStandard(degree);
+  const index = Math.round(compassDegree / 45) % 8;
+  return compassDirections[index];
 }
