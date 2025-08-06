@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import {
   GSLA_META_NAME,
   GSLA_PARTICLE_NAME,
@@ -8,7 +7,7 @@ import {
 import { addLayerInOrder, addOrUpdateImageSource } from '@/helpers';
 import { vectorLayer } from '@/layers';
 import { processMetaData, buildGSLADatasetFullPath, buildGSLADatasetPath } from '@/utils';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useParticleLayerVisibility } from './useParticleLayerVisibility';
 import { useParticleLayerRef } from './useParticleLayerRef';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
@@ -27,17 +26,12 @@ export function useParticleLayer(
   const [isError, setIsError] = useState(false);
   const queryClient = useQueryClient();
 
-  useEffect(() => {
-    if (isError)
-      showToast({
-        type: 'error',
-        title: 'Error occurred',
-        message: 'Failed to get GSLA anamly ocean current data of this date',
-        duration: 6000,
-      });
-  }, [isError, showToast]);
+  const particleLayer = useParticleLayerRef(
+    () => vectorLayer(PARTICLE_LAYER_ID, PARTICLE_SOURCE_ID, particles),
+    style,
+  );
 
-  const setDataByDataset = async () => {
+  const setDataByDataset = useCallback(async () => {
     try {
       const meta = await queryClient.fetchQuery({
         queryKey: [GSLA_META_NAME, dataset],
@@ -66,20 +60,15 @@ export function useParticleLayer(
     } catch {
       setIsError(true);
     }
-  };
+  }, [dataset, map, particleLayer, queryClient]);
 
-  const setupLayer = async () => {
+  const setupLayer = useCallback(async () => {
     if (!particleLayer.current) return;
     await setDataByDataset();
     if (!map.current!.getLayer(PARTICLE_LAYER_ID)) {
       addLayerInOrder(map, particleLayer.current, PARTICLE_LAYER_ID);
     }
-  };
-
-  const particleLayer = useParticleLayerRef(
-    () => vectorLayer(PARTICLE_LAYER_ID, PARTICLE_SOURCE_ID, particles),
-    style,
-  );
+  }, [map, particleLayer, setDataByDataset]);
 
   const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [style, dataset]);
 
@@ -88,5 +77,16 @@ export function useParticleLayer(
   useEffect(() => {
     if (!map || !loadComplete || !particleLayer.current) return;
     particleLayer.current.vectorField?.setParticleNum(numParticles);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadComplete, numParticles]);
+
+  useEffect(() => {
+    if (isError)
+      showToast({
+        type: 'error',
+        title: 'Error occurred',
+        message: 'Failed to get GSLA anamly ocean current data of this date',
+        duration: 6000,
+      });
+  }, [isError, showToast]);
 }

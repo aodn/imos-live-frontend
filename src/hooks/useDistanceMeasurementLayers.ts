@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import {
   MEASURE_LINES_LAYER_ID,
   MEASURE_LINES_SOURCE_ID,
@@ -25,22 +25,6 @@ export function useDistanceMeasurementLayers(
     features: [],
   });
 
-  const setupLayer = async () => {
-    if (measurePointsLayer.current) {
-      await addOrUpdateGeoJsonSource({
-        map: map.current!,
-        id: MEASURE_POINTS_SOURCE_ID,
-        data: measurePointsGeojson,
-      });
-      if (!map.current?.getLayer(MEASURE_POINTS_LAYER_ID))
-        addLayerInOrder(map, measurePointsLayer.current, MEASURE_POINTS_LAYER_ID);
-    }
-    if (measureLineLayer.current) {
-      if (!map.current?.getLayer(MEASURE_LINES_LAYER_ID))
-        addLayerInOrder(map, measureLineLayer.current, MEASURE_LINES_LAYER_ID);
-    }
-  };
-
   const measurePointsLayer = useMapboxLayerRef(
     () =>
       circleLayer(
@@ -62,6 +46,22 @@ export function useDistanceMeasurementLayers(
       ),
     style,
   );
+
+  const setupLayer = useCallback(async () => {
+    if (measurePointsLayer.current) {
+      await addOrUpdateGeoJsonSource({
+        map: map.current!,
+        id: MEASURE_POINTS_SOURCE_ID,
+        data: measurePointsGeojson,
+      });
+      if (!map.current?.getLayer(MEASURE_POINTS_LAYER_ID))
+        addLayerInOrder(map, measurePointsLayer.current, MEASURE_POINTS_LAYER_ID);
+    }
+    if (measureLineLayer.current) {
+      if (!map.current?.getLayer(MEASURE_LINES_LAYER_ID))
+        addLayerInOrder(map, measureLineLayer.current, MEASURE_LINES_LAYER_ID);
+    }
+  }, [map, measureLineLayer, measurePointsGeojson, measurePointsLayer]);
 
   const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [measurePointsGeojson, style]);
 
