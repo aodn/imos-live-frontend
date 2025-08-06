@@ -42,8 +42,8 @@ export function useMapboxLayerSetup(
           await setupLayerFnRef.current();
           setLoadComplete(true);
         }
-      } catch (error) {
-        console.error('Error setting up layer:', error);
+        // eslint-disable-next-line no-empty
+      } catch {
       } finally {
         isSettingUpRef.current = false;
       }

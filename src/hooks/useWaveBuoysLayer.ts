@@ -71,23 +71,25 @@ export function useWaveBuoysLayer(
   );
 
   const setDataByDataset = useCallback(async () => {
+    let buoyData;
     try {
-      const buoyData = await queryClient.fetchQuery({
+      buoyData = await queryClient.fetchQuery({
         queryKey: ['wave_buoy_locations', dataset],
         queryFn: () => getWaveBuoyLocations(dataset),
         ...cacheConfig(dataset),
       });
-      await addOrUpdateGeoJsonSource({
-        map: map.current!,
-        id: WAVE_BUOYS_SOURCE_ID,
-        data: buoyData,
-        enableCluser: true,
-        clusterRadius: 40,
-      });
+
       setIsError(false);
     } catch {
-      setIsError(true);
+      return setIsError(true);
     }
+    await addOrUpdateGeoJsonSource({
+      map: map.current!,
+      id: WAVE_BUOYS_SOURCE_ID,
+      data: buoyData,
+      enableCluser: true,
+      clusterRadius: 40,
+    });
   }, [dataset, map, queryClient]);
 
   const setupLayer = useCallback(async () => {
