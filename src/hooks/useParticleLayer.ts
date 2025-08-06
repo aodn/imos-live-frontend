@@ -33,9 +33,11 @@ export function useParticleLayer(
         type: 'error',
         title: 'Error occurred',
         message: 'Failed to get GSLA ocean current data of this date',
+        message: 'Failed to get GSLA ocean current data of this date',
         duration: 6000,
       });
-  }, [isError, showToast]);
+    setIsError(true);
+  });
 
   const setDataByDataset = async () => {
     try {

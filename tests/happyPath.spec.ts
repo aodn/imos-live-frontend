@@ -35,12 +35,32 @@ const mapComponent = {
     });
   },
   waitUntilLayerLoaded: async (page: Page, layerID: string) => {
-    await page.waitForFunction(layerID => {
-      const map = (window as any).map as Map | undefined;
-      const layer = map?.getLayer(layerID) as VectoryLayerInterface;
-      return layer;
-    }, layerID);
     await mapComponent.waitUntilIdle(page);
+    expect(
+      await page.waitForFunction(layerID => {
+        const map = (window as any).map as Map | undefined;
+        const layer = map?.getLayer(layerID) as VectoryLayerInterface;
+        return layer;
+      }, layerID),
+    ).toBeDefined();
+  },
+  waitUntilLayerNotLoaded: async (page: Page, layerID: string) => {
+    await mapComponent.waitUntilIdle(page);
+    expect(
+      await page.waitForFunction(layerID => {
+        const map = (window as any).map as Map | undefined;
+        const layer = map?.getLayer(layerID);
+        if (!layer) return true;
+        if ('visible' in layer) {
+          return layer.visible === false;
+        }
+        if ('layout' in layer && layer.layout && 'visibility' in layer.layout) {
+          return layer.layout.visibility === 'none';
+        }
+
+        throw new Error('Unknown layer type');
+      }, layerID),
+    ).toBeTruthy();
   },
   openPopup: async (page: Page) => {
     await page.getByRole('region', { name: 'Map' }).click();
@@ -437,5 +457,19 @@ test.describe('Ocean Current, Anomaly sea levels and Wave Buoys', () => {
     await mapComponent.waitUntilLayerLoaded(page, PARTICLE_LAYER_ID);
     await mapComponent.waitUntilLayerLoaded(page, OVERLAY_LAYER_ID);
     await mapComponent.waitUntilLayerLoaded(page, WAVE_BUOYS_LAYER_ID);
+  });
+
+  test('User can deselect all the products', async ({ page }) => {
+    await mapComponent.waitUntilLayerLoaded(page, PARTICLE_LAYER_ID);
+    await mapComponent.waitUntilLayerLoaded(page, OVERLAY_LAYER_ID);
+    await mapComponent.waitUntilLayerLoaded(page, WAVE_BUOYS_LAYER_ID);
+
+    await sidebarComponent.deselectProduct(page, 'GSLA Ocean current product');
+    await sidebarComponent.deselectProduct(page, 'GSLA Anomaly sea levels');
+    await sidebarComponent.deselectProduct(page, 'Wave buoys product');
+
+    await mapComponent.waitUntilLayerNotLoaded(page, PARTICLE_LAYER_ID);
+    await mapComponent.waitUntilLayerNotLoaded(page, OVERLAY_LAYER_ID);
+    await mapComponent.waitUntilLayerNotLoaded(page, WAVE_BUOYS_LAYER_ID);
   });
 });
