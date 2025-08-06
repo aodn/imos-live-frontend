@@ -115,7 +115,10 @@ const mapComponent = {
 };
 
 type LngLat = [number, number];
-type Product = 'GSLA Ocean current product' | 'GSLA Anomaly sea levels' | 'Wave buoys product';
+type Product =
+  | 'GSLA Ocean geostrophic current product'
+  | 'GSLA Anomaly sea levels'
+  | 'Wave buoys product';
 
 const sidebarComponent = {
   deselectProduct: async (page: Page, productName: Product) => {
@@ -308,7 +311,7 @@ test.describe('Ocean Current', () => {
 test.describe('Anomaly sea levels', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await sidebarComponent.deselectProduct(page, 'GSLA Ocean current product');
+    await sidebarComponent.deselectProduct(page, 'GSLA Ocean geostrophic current product');
     await sidebarComponent.deselectProduct(page, 'Wave buoys product');
   });
 
@@ -363,7 +366,7 @@ test.describe('Anomaly sea levels and Ocean Current', () => {
 test.describe('Wave Buoys', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await sidebarComponent.deselectProduct(page, 'GSLA Ocean current product');
+    await sidebarComponent.deselectProduct(page, 'GSLA Ocean geostrophic current product');
     await sidebarComponent.deselectProduct(page, 'GSLA Anomaly sea levels');
   });
 
@@ -464,7 +467,7 @@ test.describe('Ocean Current, Anomaly sea levels and Wave Buoys', () => {
     await mapComponent.waitUntilLayerLoaded(page, OVERLAY_LAYER_ID);
     await mapComponent.waitUntilLayerLoaded(page, WAVE_BUOYS_LAYER_ID);
 
-    await sidebarComponent.deselectProduct(page, 'GSLA Ocean current product');
+    await sidebarComponent.deselectProduct(page, 'GSLA Ocean geostrophic current product');
     await sidebarComponent.deselectProduct(page, 'GSLA Anomaly sea levels');
     await sidebarComponent.deselectProduct(page, 'Wave buoys product');
 
