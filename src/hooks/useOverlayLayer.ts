@@ -49,7 +49,7 @@ export function useOverlayLayer(
 
       map.current!.setMaxBounds(maxBounds);
 
-      await addOrUpdateImageSource(
+      addOrUpdateImageSource(
         map.current!,
         OVERLAY_SOURCE_ID,
         buildGSLADatasetFullPath(dataset, GSLA_SEA_LEVEL_NAME),

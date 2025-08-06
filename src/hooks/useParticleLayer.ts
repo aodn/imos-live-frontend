@@ -55,7 +55,7 @@ export function useParticleLayer(
         range: [uRange, vRange],
       };
 
-      await addOrUpdateImageSource(
+      addOrUpdateImageSource(
         map.current!,
         PARTICLE_SOURCE_ID,
         buildGSLADatasetFullPath(dataset, GSLA_PARTICLE_NAME),
