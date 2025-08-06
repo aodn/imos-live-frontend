@@ -6,7 +6,6 @@ import {
   toLocalDateTime,
   toWaveBuoyChartData,
 } from '@/utils';
-import { useAsync } from '@/hooks';
 import { useCallback, useMemo } from 'react';
 import { SeriesData } from './type';
 import {
@@ -23,6 +22,8 @@ import {
 } from './utils';
 import { getWaveBuoyDetails } from '@/api';
 import { LatestObservation } from './LatestObservation';
+import { useQueries } from '@tanstack/react-query';
+import { cacheConfig } from '@/config';
 
 type WaveBuoyChartProps = {
   waveBuoysData: Omit<WaveBuoyPositionFeature, 'type'>[];
@@ -35,14 +36,20 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
   const { dateString, buoy, geometry } = toWaveBuoyChartData(waveBuoysData);
   const latestSevendays = getLast7Dates(dateString);
 
-  const {
-    data: multiData,
-    loading,
-    error,
-  } = useAsync(getWaveBuoyDetails, {
-    immediate: true,
-    multipleArgs: latestSevendays.map((d): [string, string] => [d, buoy]),
+  const queryResults = useQueries({
+    queries: latestSevendays.map(date => {
+      return {
+        queryKey: [buoy, date],
+        queryFn: () => getWaveBuoyDetails(date, buoy),
+        enabled: !!date,
+        ...cacheConfig(date),
+      };
+    }),
   });
+
+  const isLoading = queryResults.some(query => query.isLoading);
+  const isError = queryResults.every(query => query.isError);
+  const multiData = queryResults.filter(query => query.isSuccess).map(query => query.data);
 
   const data = createMergedCollectionWithAllParameters(multiData || []);
 
@@ -181,8 +188,8 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
     ];
   }, [showDirection]);
 
-  if (error) return <div>error</div>;
-  if (loading) return <div>loading</div>;
+  if (isError) return <div>error</div>;
+  if (isLoading) return <div>loading</div>;
 
   return (
     <div className="w-full">

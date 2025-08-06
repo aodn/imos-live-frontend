@@ -1,6 +1,5 @@
-import { getWaveBuoyLocations } from '@/api';
 import { clusterMaxZoom } from '@/config';
-import { tryCatch, addIdToFeatures } from '@/utils';
+import { addIdToFeatures } from '@/utils';
 
 export async function addOrUpdateGeoJsonSource({
   map,
@@ -11,34 +10,23 @@ export async function addOrUpdateGeoJsonSource({
 }: {
   map: mapboxgl.Map;
   id: string;
-  data: string | GeoJSON.FeatureCollection | GeoJSON.Feature;
+  data: GeoJSON.FeatureCollection | GeoJSON.Feature;
   enableCluser?: boolean;
   clusterRadius?: number;
-}) {
-  let dataSource: GeoJSON.FeatureCollection | GeoJSON.Feature | undefined;
-
-  if (typeof data === 'string') {
-    dataSource = await tryCatch(getWaveBuoyLocations(data));
-  } else {
-    dataSource = data;
-  }
-
-  if (!dataSource) {
+}): Promise<void> {
+  if (!data) {
     throw Error('No wave buoys data soruce');
   }
 
-  if ('features' in dataSource) {
-    addIdToFeatures(dataSource.features);
+  if ('features' in data) {
+    addIdToFeatures(data.features);
   }
 
   const source = map.getSource(id);
-  if (source && source.type === 'geojson') {
-    return source.setData(dataSource);
-  }
 
   const sourceOptions = {
     type: 'geojson' as const,
-    data: dataSource,
+    data: data,
     cluster: enableCluser,
     clusterMaxZoom: clusterMaxZoom,
     ...(clusterRadius ? { clusterRadius } : {}),
@@ -47,5 +35,20 @@ export async function addOrUpdateGeoJsonSource({
     promoteId: '_id',
   };
 
-  map.addSource(id, sourceOptions);
+  if (source && source.type === 'geojson') {
+    source.setData(data);
+  } else {
+    map.addSource(id, sourceOptions);
+  }
+
+  return new Promise(resolve => {
+    const onSourceData = (e: mapboxgl.MapSourceDataEvent) => {
+      if (e.sourceId === id && e.isSourceLoaded) {
+        map.off('sourcedata', onSourceData);
+        resolve();
+      }
+    };
+
+    map.on('sourcedata', onSourceData);
+  });
 }
