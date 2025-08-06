@@ -44,6 +44,10 @@ export const genData = (dataPointValue: GSLADatapoint): GSLAData => {
   return rasterDataGenerator(() => dataPointValue);
 };
 
+export function toCompassStandard(degree: number) {
+  return (450 - degree + 360) % 360;
+}
+
 function rasterDataGenerator(nextValue: () => GSLADatapoint): GSLAData {
   const width = 301,
     height = 251;

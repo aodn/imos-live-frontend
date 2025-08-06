@@ -10,7 +10,7 @@ import { expect, Page, test } from '@playwright/test';
 import { type Map } from 'mapbox-gl';
 import dayjs from 'dayjs';
 import { genBuoyData } from '../test-data/buoy';
-import { genData } from '../test-data/gsla';
+import { genData, toCompassStandard } from '../test-data/gsla';
 
 type OceanCurrentPopupContent = {
   speed: string;
@@ -75,7 +75,7 @@ const mapComponent = {
     if ('speed' in content) {
       await expect(page.getByLabel('Ocean surface current details')).toBeVisible();
       await expect(page.getByLabel('Ocean surface current details')).toContainText(
-        `Ocean surface current:${content.bearing}degrees (${content.direction}) @ ${content.speed} m/s`,
+        `Ocean geostrophic current direction:${content.bearing} (${content.direction})° @ ${content.speed} m/s`,
       );
     }
     if ('gsla' in content) {
@@ -115,7 +115,10 @@ const mapComponent = {
 };
 
 type LngLat = [number, number];
-type Product = 'GSLA Ocean current product' | 'GSLA Anomaly sea levels' | 'Wave buoys product';
+type Product =
+  | 'GSLA Ocean geostrophic current product'
+  | 'GSLA Anomaly sea levels'
+  | 'Wave buoys product';
 
 const sidebarComponent = {
   deselectProduct: async (page: Page, productName: Product) => {
@@ -288,7 +291,7 @@ test.describe('Ocean Current', () => {
     await mapComponent.expectPopupToHaveContent(page, {
       speed: '1.00',
       direction: 'E',
-      bearing: '2.00',
+      bearing: `${toCompassStandard(2.0).toFixed(2)}`,
     });
 
     await page.getByRole('slider', { name: 'point handle' }).click();
@@ -300,7 +303,7 @@ test.describe('Ocean Current', () => {
     await mapComponent.expectPopupToHaveContent(page, {
       speed: '2.00',
       direction: 'E',
-      bearing: '3.00',
+      bearing: `${toCompassStandard(3.0).toFixed(2)}`,
     });
   });
 });
@@ -308,7 +311,7 @@ test.describe('Ocean Current', () => {
 test.describe('Anomaly sea levels', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await sidebarComponent.deselectProduct(page, 'GSLA Ocean current product');
+    await sidebarComponent.deselectProduct(page, 'GSLA Ocean geostrophic current product');
     await sidebarComponent.deselectProduct(page, 'Wave buoys product');
   });
 
@@ -342,7 +345,7 @@ test.describe('Anomaly sea levels and Ocean Current', () => {
       gsla: '3.00',
       speed: '1.00',
       direction: 'E',
-      bearing: '2.00',
+      bearing: `${toCompassStandard(2.0).toFixed(2)}`,
     });
 
     await page.getByRole('slider', { name: 'point handle' }).click();
@@ -355,7 +358,7 @@ test.describe('Anomaly sea levels and Ocean Current', () => {
       gsla: '4.00',
       speed: '2.00',
       direction: 'E',
-      bearing: '3.00',
+      bearing: `${toCompassStandard(3.0).toFixed(2)}`,
     });
   });
 });
@@ -363,7 +366,7 @@ test.describe('Anomaly sea levels and Ocean Current', () => {
 test.describe('Wave Buoys', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await sidebarComponent.deselectProduct(page, 'GSLA Ocean current product');
+    await sidebarComponent.deselectProduct(page, 'GSLA Ocean geostrophic current product');
     await sidebarComponent.deselectProduct(page, 'GSLA Anomaly sea levels');
   });
 
@@ -464,7 +467,7 @@ test.describe('Ocean Current, Anomaly sea levels and Wave Buoys', () => {
     await mapComponent.waitUntilLayerLoaded(page, OVERLAY_LAYER_ID);
     await mapComponent.waitUntilLayerLoaded(page, WAVE_BUOYS_LAYER_ID);
 
-    await sidebarComponent.deselectProduct(page, 'GSLA Ocean current product');
+    await sidebarComponent.deselectProduct(page, 'GSLA Ocean geostrophic current product');
     await sidebarComponent.deselectProduct(page, 'GSLA Anomaly sea levels');
     await sidebarComponent.deselectProduct(page, 'Wave buoys product');
 
