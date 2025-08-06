@@ -10,7 +10,7 @@ import { expect, Page, test } from '@playwright/test';
 import { type Map } from 'mapbox-gl';
 import dayjs from 'dayjs';
 import { genBuoyData } from '../test-data/buoy';
-import { genData } from '../test-data/gsla';
+import { genData, toCompassStandard } from '../test-data/gsla';
 
 type OceanCurrentPopupContent = {
   speed: string;
@@ -75,7 +75,7 @@ const mapComponent = {
     if ('speed' in content) {
       await expect(page.getByLabel('Ocean surface current details')).toBeVisible();
       await expect(page.getByLabel('Ocean surface current details')).toContainText(
-        `Ocean geostrophic current direction:${content.bearing}° (${content.direction}) @ ${content.speed} m/s`,
+        `Ocean geostrophic current direction:${content.bearing} (${content.direction})° @ ${content.speed} m/s`,
       );
     }
     if ('gsla' in content) {
@@ -288,7 +288,7 @@ test.describe('Ocean Current', () => {
     await mapComponent.expectPopupToHaveContent(page, {
       speed: '1.00',
       direction: 'E',
-      bearing: '2.00',
+      bearing: `${toCompassStandard(2.0).toFixed(2)}`,
     });
 
     await page.getByRole('slider', { name: 'point handle' }).click();
@@ -300,7 +300,7 @@ test.describe('Ocean Current', () => {
     await mapComponent.expectPopupToHaveContent(page, {
       speed: '2.00',
       direction: 'E',
-      bearing: '3.00',
+      bearing: `${toCompassStandard(3.0).toFixed(2)}`,
     });
   });
 });
@@ -342,7 +342,7 @@ test.describe('Anomaly sea levels and Ocean Current', () => {
       gsla: '3.00',
       speed: '1.00',
       direction: 'E',
-      bearing: '2.00',
+      bearing: `${toCompassStandard(2.0).toFixed(2)}`,
     });
 
     await page.getByRole('slider', { name: 'point handle' }).click();
@@ -355,7 +355,7 @@ test.describe('Anomaly sea levels and Ocean Current', () => {
       gsla: '4.00',
       speed: '2.00',
       direction: 'E',
-      bearing: '3.00',
+      bearing: `${toCompassStandard(3.0).toFixed(2)}`,
     });
   });
 });
