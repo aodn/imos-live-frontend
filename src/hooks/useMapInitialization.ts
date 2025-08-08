@@ -2,12 +2,8 @@ import { useEffect, useRef } from 'react';
 import mapboxgl, { LngLat } from 'mapbox-gl';
 import { maxZoom } from '@/config';
 
-export function useMapInitialization(
-  style: string,
-  center: LngLat,
-  zoom: number,
-  map: React.RefObject<mapboxgl.Map | null>,
-) {
+export function useMapInitialization(style: string, center: LngLat, zoom: number) {
+  const map = useRef<mapboxgl.Map | null>(null);
   const mapContainer = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
