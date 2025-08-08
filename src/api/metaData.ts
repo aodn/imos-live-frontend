@@ -8,8 +8,8 @@ export type RangeType = [number, number];
 export type MetaType = {
   latRange: RangeType;
   lonRange: RangeType;
-  raw_latRange?: RangeType;
-  raw_lonRange?: RangeType;
+  rawLatRange?: RangeType;
+  rawLonRange?: RangeType;
   uRange: RangeType;
   vRange: RangeType;
 };
