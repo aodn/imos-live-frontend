@@ -44,7 +44,7 @@ export function useOverlayLayer(
 
       if (!meta) return;
 
-      const { maxBounds, lonRange, latRange } = processMetaData(meta);
+      const { maxBounds, lonRange, latRange, raw_latRange, raw_lonRange } = processMetaData(meta);
 
       map.current!.setMaxBounds(maxBounds);
 
@@ -52,8 +52,8 @@ export function useOverlayLayer(
         map.current!,
         OVERLAY_SOURCE_ID,
         buildGSLADatasetFullPath(dataset, GSLA_SEA_LEVEL_NAME),
-        lonRange,
-        latRange,
+        raw_lonRange || lonRange,
+        raw_latRange || latRange,
       );
       setIsError(false);
     } catch {

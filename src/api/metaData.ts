@@ -2,9 +2,14 @@ import { s3Api } from './instance';
 
 export type RangeType = [number, number];
 
+//latRange, lonRange are adjusted with offset. raw_latRange and raw_lonRange without offest adjustment.
+//latRange, lonRange used for map, and particle layer bounds.
+//raw_latRange and raw_lonRange are used for overlay layer bounds. It is because the overlay.png image generated based on raw_latRange and raw_lonRange.
 export type MetaType = {
   latRange: RangeType;
   lonRange: RangeType;
+  raw_latRange?: RangeType;
+  raw_lonRange?: RangeType;
   uRange: RangeType;
   vRange: RangeType;
 };
