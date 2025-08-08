@@ -8,7 +8,7 @@ export function useMapboxLayerVisibility(
   visible: boolean,
 ) {
   useEffect(() => {
-    if (!map.current || !loadComplete) return;
+    if (!loadComplete) return;
 
     layers.forEach(layerRef => {
       let layer: Layer | null;

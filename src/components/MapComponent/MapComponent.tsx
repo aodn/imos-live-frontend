@@ -34,7 +34,7 @@ export const MapComponent = memo(() => {
 
   useParticleLayer(map, particles, style, dataset, numParticles);
 
-  useWaveBuoysLayer(map, circle, style, dataset);
+  useWaveBuoysLayer(map);
 
   //3. add click event listners to map and layers.
   const {
