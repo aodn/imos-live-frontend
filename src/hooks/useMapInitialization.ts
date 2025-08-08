@@ -30,7 +30,7 @@ export function useMapInitialization(
 
     map.current.touchZoomRotate.disableRotation();
 
-    if (import.meta.env.VITE_PLAYWRIGHT_BUILD) (window as any).map = map.current;
+    if (import.meta.env.VITE_EXPOSE_MAPBOX) (window as any).map = map.current;
 
     return () => {
       if (map.current) {
