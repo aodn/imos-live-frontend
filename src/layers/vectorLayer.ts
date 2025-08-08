@@ -19,14 +19,10 @@ export interface VectoryLayerInterface extends mapboxgl.CustomLayerInterface {
   onResize: () => void;
 }
 
-export const vectorLayer = (
-  id: string,
-  sourceId: string,
-  visible: boolean,
-): VectoryLayerInterface => ({
+export const vectorLayer = (id: string, sourceId: string): VectoryLayerInterface => ({
   id,
   sourceId,
-  visible,
+  visible: false,
   metadata: undefined,
   vectorField: undefined, // Initialize vectorField
 

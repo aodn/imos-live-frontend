@@ -9,5 +9,6 @@ export function useMapResize(
     const observer = new ResizeObserver(() => map.current?.resize());
     observer.observe(mapContainer.current);
     return () => observer.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mapContainer]);
 }

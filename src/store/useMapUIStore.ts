@@ -18,7 +18,6 @@ export interface MapUIState {
   distanceMeasurement: boolean;
   dataset: string;
   datasets: string[];
-  isMapReady: boolean;
   setCenter: (center: LngLat) => void;
   setZoom: (zoom: number) => void;
   setStyle: (style: StyleTitle) => void;
@@ -28,7 +27,6 @@ export interface MapUIState {
   setNumParticles: (n: NumParticles) => void;
   setDistanceMeasurement: (v: boolean) => void;
   setDataset: (d: string) => void;
-  setMapReady: (v: boolean) => void;
   refreshDatasets: () => void;
 }
 
@@ -44,7 +42,6 @@ export const useMapUIStore = create<MapUIState>(set => ({
   datasets: getLast7DatesEnding3DaysAgo(),
   dataset: INITIAL_DATASET,
   isMapReady: false,
-  setMapReady: isMapReady => set({ isMapReady }),
   setCenter: center => set({ center }),
   setZoom: zoom => set({ zoom }),
   setStyle: style => set({ style }),

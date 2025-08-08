@@ -12,5 +12,6 @@ export function useMapStyle(map: React.RefObject<mapboxgl.Map | null>) {
 
   useEffect(() => {
     map.current?.setStyle(styles.find(s => s.title === style)?.source || (styles[0].source as any));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [style]);
 }

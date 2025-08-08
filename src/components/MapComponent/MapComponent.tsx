@@ -23,17 +23,17 @@ mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_KEY;
 const WaveBuoyChart = lazy(() => import('../Highcharts/WaveBuoyChart'));
 
 export const MapComponent = memo(() => {
-  const { style, overlay, circle, particles, distanceMeasurement, numParticles, dataset } =
-    useMapUIStore(useShallow(selectAllStates));
+  const { overlay, circle, particles, distanceMeasurement, dataset } = useMapUIStore(
+    useShallow(selectAllStates),
+  );
 
   //1. map initialization.
   const { map, mapContainer } = useMapInitialization();
 
   //2. create layer, set data to layer and add layer to map.
-  useOverlayLayer(map, overlay, style, dataset);
-
-  useParticleLayer(map, particles, style, dataset, numParticles);
-
+  const { measurePointsGeojson, setMeasurePointsGeojson } = useDistanceMeasurementLayers(map);
+  useOverlayLayer(map);
+  useParticleLayer(map);
   useWaveBuoysLayer(map);
 
   //3. add click event listners to map and layers.
@@ -64,7 +64,6 @@ export const MapComponent = memo(() => {
     distanceMeasurement,
   });
 
-  const { measurePointsGeojson, setMeasurePointsGeojson } = useDistanceMeasurementLayers(map);
   const { distance, setDistance } = useDistanceMeasurementLayersClickHandler(
     map,
     distanceMeasurement,

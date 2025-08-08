@@ -1,52 +1,58 @@
+import { getMetaData } from '@/api';
+import { useToast } from '@/components';
+import { overlayLayerConfig } from '@/config';
 import {
   GSLA_META_NAME,
   GSLA_SEA_LEVEL_NAME,
   OVERLAY_LAYER_ID,
   OVERLAY_SOURCE_ID,
 } from '@/constants';
-import { addLayerInOrder, addOrUpdateImageSource } from '@/helpers';
+import { addLayerInOrder, addOrUpdateImageSource, CoordinatesType } from '@/helpers';
 import { imageLayer } from '@/layers';
-import { processMetaData, buildGSLADatasetFullPath, buildGSLADatasetPath } from '@/utils';
-import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
-import { useMapboxLayerRef } from './useMapboxLayerRef';
-import { useMapboxLayerSetup } from './useMapboxLayerSetup';
-import { overlayLayerConfig } from '@/config';
-import { useToast } from '@/components';
-import { useCallback, useEffect, useState } from 'react';
-import { getMetaData } from '@/api';
-import { useQueryClient } from '@tanstack/react-query';
+import { useMapUIStore } from '@/store';
+import { buildGSLADatasetFullPath, buildGSLADatasetPath, processMetaData } from '@/utils';
+import { useQuery } from '@tanstack/react-query';
+import { Layer } from 'mapbox-gl';
+import { useEffect, useMemo } from 'react';
+import { useShallow } from 'zustand/shallow';
 
-export function useOverlayLayer(
-  map: React.RefObject<mapboxgl.Map | null>,
-  overlay: boolean,
-  style: string,
-  dataset: string,
-) {
+export function useOverlayLayer(map: React.RefObject<mapboxgl.Map | null>) {
   const { showToast } = useToast();
-  const [isError, setIsError] = useState(false);
-  const queryClient = useQueryClient();
-
-  const overlayLayer = useMapboxLayerRef(
+  const { overlay, dataset, setOverlay } = useMapUIStore(
+    useShallow(s => ({
+      overlay: s.overlay,
+      dataset: s.dataset,
+      setOverlay: s.setOverlay,
+    })),
+  );
+  const gslaQuery = useQuery({
+    queryKey: [GSLA_META_NAME, dataset],
+    queryFn: () => getMetaData(buildGSLADatasetPath(dataset, GSLA_META_NAME)),
+  });
+  const overlayLayer = useMemo(
     () =>
       imageLayer(
         { id: OVERLAY_LAYER_ID, source: OVERLAY_SOURCE_ID, ...overlayLayerConfig },
         overlay,
       ),
-    style,
+    [overlay],
   );
 
-  const setDataByDataset = useCallback(async () => {
+  useEffect(() => {
+    const layer = map.current?.getLayer(overlayLayer.id);
+    if (!layer) return;
+    if (overlayLayer.layout === layer.layout) return;
+    if (overlayLayer.layout && 'visibility' in overlayLayer.layout) {
+      map.current?.setLayoutProperty(overlayLayer.id, 'visibility', overlayLayer.layout.visibility);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [overlayLayer]);
+
+  const addLayersBackAfterStyleChanges = async (layer: Layer) => {
     try {
-      const meta = await queryClient.fetchQuery({
-        queryKey: [GSLA_META_NAME, dataset],
-        queryFn: () => getMetaData(buildGSLADatasetPath(dataset, GSLA_META_NAME)),
-      });
-
-      if (!meta) return;
-
-      const { maxBounds, lonRange, latRange, rawLatRange, rawLonRange } = processMetaData(meta);
-
-      map.current!.setMaxBounds(maxBounds);
+      const data = await gslaQuery.promise;
+      if (!data) return;
+      const { lonRange, latRange } = processMetaData(data);
 
       addOrUpdateImageSource(
         map.current!,
@@ -55,33 +61,49 @@ export function useOverlayLayer(
         rawLonRange || lonRange,
         rawLatRange || latRange,
       );
-      setIsError(false);
-    } catch {
-      setIsError(true);
-    }
-  }, [dataset, map, queryClient]);
-
-  const setupLayer = useCallback(async () => {
-    if (!overlayLayer.current) return;
-    await setDataByDataset();
-    if (!map.current?.getLayer(OVERLAY_LAYER_ID)) {
-      addLayerInOrder(map, overlayLayer.current);
-    }
-  }, [map, overlayLayer, setDataByDataset]);
-
-  const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [style, dataset]);
-
-  useMapboxLayerVisibility(map, loadComplete, [overlayLayer], overlay && !isError);
-
-  useEffect(() => {
-    if (isError)
+      addLayerInOrder(map, layer);
+    } catch (error) {
+      console.error('Error adding layers back after style changes:', error);
       showToast({
         type: 'error',
         title: 'Error occurred',
         message: 'Failed to get GSLA anamly sea level data of this date',
         duration: 6000,
       });
-  }, [isError, showToast]);
+    }
+  };
 
-  return { loadComplete, overlayLayer };
+  useEffect(() => {
+    const currentMap = map.current;
+    const handleStyleLoad = () => addLayersBackAfterStyleChanges(overlayLayer);
+    currentMap?.on('style.load', handleStyleLoad);
+    return () => {
+      currentMap?.off('style.load', handleStyleLoad);
+      return;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map, overlayLayer]);
+
+  useEffect(() => {
+    if (!gslaQuery.data) return;
+    const gslaSource = map.current?.getSource(OVERLAY_SOURCE_ID);
+    if (!gslaSource || gslaSource.type !== 'image') return;
+
+    const { lonRange, latRange } = processMetaData(gslaQuery.data);
+    const coordinates: CoordinatesType = [
+      [lonRange[0], latRange[1]],
+      [lonRange[1], latRange[1]],
+      [lonRange[1], latRange[0]],
+      [lonRange[0], latRange[0]],
+    ];
+    gslaSource.updateImage({
+      url: buildGSLADatasetFullPath(dataset, GSLA_SEA_LEVEL_NAME),
+      coordinates,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gslaQuery.data, dataset]);
+
+  useEffect(() => {
+    if (gslaQuery.isError && overlay) setOverlay(false);
+  }, [gslaQuery.isError, overlay, setOverlay]);
 }

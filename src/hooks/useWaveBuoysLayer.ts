@@ -16,18 +16,13 @@ import { addLayerInOrder, addOrUpdateGeoJsonSource } from '@/helpers';
 import { circleLayer, symbolLayer } from '@/layers';
 import { useMapUIStore } from '@/store';
 import { useQuery } from '@tanstack/react-query';
+import { Layer } from 'mapbox-gl';
 import { useEffect, useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
-import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
 
 export function useWaveBuoysLayer(map: React.RefObject<mapboxgl.Map | null>) {
-  const {
-    isMapReady,
-    circle: isBuoyWavesLayerEnabled,
-    dataset,
-  } = useMapUIStore(
+  const { circle: isBuoyWavesLayerEnabled, dataset } = useMapUIStore(
     useShallow(s => ({
-      isMapReady: s.isMapReady,
       circle: s.circle,
       dataset: s.dataset,
     })),
@@ -35,30 +30,43 @@ export function useWaveBuoysLayer(map: React.RefObject<mapboxgl.Map | null>) {
 
   const waveBuoysLayer = useMemo(
     () =>
-      circleLayer({
-        id: WAVE_BUOYS_LAYER_ID,
-        source: WAVE_BUOYS_SOURCE_ID,
-        ...waveBuoysLayerConfig,
-      }),
-    [],
+      circleLayer(
+        {
+          id: WAVE_BUOYS_LAYER_ID,
+          source: WAVE_BUOYS_SOURCE_ID,
+          ...waveBuoysLayerConfig,
+        },
+        isBuoyWavesLayerEnabled,
+      ),
+    [isBuoyWavesLayerEnabled],
   );
   const unClusteredWaveBuoysLayer = useMemo(
     () =>
-      circleLayer({
-        id: UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
-        source: WAVE_BUOYS_SOURCE_ID,
-        ...unclusteredWaveBuoysLayerConfig,
-      }),
-    [],
+      circleLayer(
+        {
+          id: UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
+          source: WAVE_BUOYS_SOURCE_ID,
+          ...unclusteredWaveBuoysLayerConfig,
+        },
+        isBuoyWavesLayerEnabled,
+      ),
+    [isBuoyWavesLayerEnabled],
   );
   const clusterLabelLayer = useMemo(
     () =>
-      symbolLayer({
-        id: WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID,
-        source: WAVE_BUOYS_SOURCE_ID,
-        ...waveBuoyCluserLabelLayerConfig,
-      }),
-    [],
+      symbolLayer(
+        {
+          id: WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID,
+          source: WAVE_BUOYS_SOURCE_ID,
+          ...waveBuoyCluserLabelLayerConfig,
+        },
+        isBuoyWavesLayerEnabled,
+      ),
+    [isBuoyWavesLayerEnabled],
+  );
+  const buoyLayers = useMemo(
+    () => [waveBuoysLayer, unClusteredWaveBuoysLayer, clusterLabelLayer],
+    [waveBuoysLayer, unClusteredWaveBuoysLayer, clusterLabelLayer],
   );
 
   const { showToast } = useToast();
@@ -69,46 +77,56 @@ export function useWaveBuoysLayer(map: React.RefObject<mapboxgl.Map | null>) {
     enabled: isBuoyWavesLayerEnabled && dataset !== '',
   });
 
-  useMapboxLayerVisibility(
-    map,
-    isMapReady,
-    [waveBuoysLayer, unClusteredWaveBuoysLayer, clusterLabelLayer],
-    isBuoyWavesLayerEnabled && !buoyQuery.isError,
-  );
+  useEffect(() => {
+    buoyLayers.forEach(buoyLayer => {
+      const layer = map.current?.getLayer(buoyLayer.id);
+      if (!layer) return;
+      if (buoyLayer.layout === layer.layout) return;
+      if (buoyLayer.layout && 'visibility' in buoyLayer.layout) {
+        map.current?.setLayoutProperty(
+          buoyLayer.id,
+          'visibility',
+          isBuoyWavesLayerEnabled ? 'visible' : 'none',
+        );
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [buoyLayers, isBuoyWavesLayerEnabled]);
+
+  const addLayersBackAfterStyleChanges = async (layers: Layer[]) => {
+    try {
+      const data = await buoyQuery.promise;
+      if (!data) return;
+      addOrUpdateGeoJsonSource({
+        map: map.current!,
+        id: WAVE_BUOYS_SOURCE_ID,
+        data,
+        enableCluser: true,
+        clusterRadius: 40,
+      });
+
+      layers.forEach(layer => addLayerInOrder(map, layer));
+    } catch (error) {
+      console.error('Error adding layers back after style changes:', error);
+      showToast({
+        type: 'error',
+        title: 'Error occurred',
+        message: 'Failed to get buoys locations',
+        duration: 6000,
+      });
+    }
+  };
 
   useEffect(() => {
-    const addLayersBackAfterStyleChanges = async () => {
-      try {
-        const data = await buoyQuery.promise;
-        if (!data) return;
-        addOrUpdateGeoJsonSource({
-          map: map.current!,
-          id: WAVE_BUOYS_SOURCE_ID,
-          data,
-          enableCluser: true,
-          clusterRadius: 40,
-        });
-
-        addLayerInOrder(map, waveBuoysLayer);
-        addLayerInOrder(map, unClusteredWaveBuoysLayer);
-        addLayerInOrder(map, clusterLabelLayer);
-      } catch (error) {
-        console.error('Error adding layers back after style changes:', error);
-        showToast({
-          type: 'error',
-          title: 'Error occurred',
-          message: 'Failed to get buoys locations',
-          duration: 6000,
-        });
-      }
-    };
-
-    map.current?.on('style.load', addLayersBackAfterStyleChanges);
+    const currentMap = map.current;
+    const handleStyleLoad = () => addLayersBackAfterStyleChanges(buoyLayers);
+    currentMap?.on('style.load', handleStyleLoad);
     return () => {
-      map.current?.off('style.load', addLayersBackAfterStyleChanges);
+      currentMap?.off('style.load', handleStyleLoad);
       return;
     };
-  }, [map]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map, buoyLayers]);
 
   useEffect(() => {
     if (!buoyQuery.data) return;
@@ -117,6 +135,7 @@ export function useWaveBuoysLayer(map: React.RefObject<mapboxgl.Map | null>) {
     if (!waveBuoysSource || waveBuoysSource.type !== 'geojson') return;
 
     waveBuoysSource.setData(buoyQuery.data);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [buoyQuery.data]);
-  return { waveBuoysLayer };
 }

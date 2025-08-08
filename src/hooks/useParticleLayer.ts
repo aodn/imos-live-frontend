@@ -1,50 +1,43 @@
+import { getMetaData } from '@/api';
+import { useToast } from '@/components';
 import {
   GSLA_META_NAME,
   GSLA_PARTICLE_NAME,
   PARTICLE_LAYER_ID,
   PARTICLE_SOURCE_ID,
 } from '@/constants';
-import { addLayerInOrder, addOrUpdateImageSource } from '@/helpers';
-import { vectorLayer } from '@/layers';
-import { processMetaData, buildGSLADatasetFullPath, buildGSLADatasetPath } from '@/utils';
-import { useCallback, useEffect, useState } from 'react';
-import { useParticleLayerVisibility } from './useParticleLayerVisibility';
-import { useParticleLayerRef } from './useParticleLayerRef';
-import { useMapboxLayerSetup } from './useMapboxLayerSetup';
-import { useToast } from '@/components';
-import { getMetaData } from '@/api';
-import { useQueryClient } from '@tanstack/react-query';
+import { addLayerInOrder, addOrUpdateImageSource, CoordinatesType } from '@/helpers';
+import { vectorLayer, VectoryLayerInterface } from '@/layers';
+import { useMapUIStore } from '@/store';
+import { buildGSLADatasetFullPath, buildGSLADatasetPath, processMetaData } from '@/utils';
+import { useQuery } from '@tanstack/react-query';
+import { useEffect, useMemo } from 'react';
+import { useShallow } from 'zustand/shallow';
 
-export function useParticleLayer(
-  map: React.RefObject<mapboxgl.Map | null>,
-  particles: boolean,
-  style: string,
-  dataset: string,
-  numParticles: number,
-) {
+export function useParticleLayer(map: React.RefObject<mapboxgl.Map | null>) {
   const { showToast } = useToast();
-  const [isError, setIsError] = useState(false);
-  const queryClient = useQueryClient();
-
-  const particleLayer = useParticleLayerRef(
-    () => vectorLayer(PARTICLE_LAYER_ID, PARTICLE_SOURCE_ID, particles),
-    style,
+  const { particles, dataset, numParticles } = useMapUIStore(
+    useShallow(s => ({
+      particles: s.particles,
+      dataset: s.dataset,
+      numParticles: s.numParticles,
+    })),
   );
 
-  const setDataByDataset = useCallback(async () => {
+  const currentParticleQuery = useQuery({
+    queryKey: [GSLA_META_NAME, dataset],
+    queryFn: () => getMetaData(buildGSLADatasetPath(dataset, GSLA_META_NAME)),
+    enabled: !!dataset && particles,
+  });
+  const particleLayer = useMemo(() => vectorLayer(PARTICLE_LAYER_ID, PARTICLE_SOURCE_ID), []);
+
+  const addLayersBackAfterStyleChanges = async (layer: VectoryLayerInterface) => {
     try {
-      const meta = await queryClient.fetchQuery({
-        queryKey: [GSLA_META_NAME, dataset],
-        queryFn: () => getMetaData(buildGSLADatasetPath(dataset, GSLA_META_NAME)),
-      });
+      const data = await currentParticleQuery.promise;
+      if (!data) return;
 
-      if (!meta) return;
-
-      const { maxBounds, bounds, lonRange, latRange, uRange, vRange } = processMetaData(meta);
-
-      map.current!.setMaxBounds(maxBounds);
-
-      particleLayer.current!.metadata = {
+      const { bounds, lonRange, latRange, uRange, vRange } = processMetaData(data);
+      layer.metadata = {
         bounds,
         range: [uRange, vRange],
       };
@@ -56,37 +49,55 @@ export function useParticleLayer(
         lonRange,
         latRange,
       );
-      setIsError(false);
-    } catch {
-      setIsError(true);
-    }
-  }, [dataset, map, particleLayer, queryClient]);
 
-  const setupLayer = useCallback(async () => {
-    if (!particleLayer.current) return;
-    await setDataByDataset();
-    if (!map.current!.getLayer(PARTICLE_LAYER_ID)) {
-      addLayerInOrder(map, particleLayer.current);
-    }
-  }, [map, particleLayer, setDataByDataset]);
-
-  const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [style, dataset]);
-
-  useParticleLayerVisibility(map, loadComplete, particleLayer, particles && !isError);
-
-  useEffect(() => {
-    if (!map || !loadComplete || !particleLayer.current) return;
-    particleLayer.current.vectorField?.setParticleNum(numParticles);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loadComplete, numParticles]);
-
-  useEffect(() => {
-    if (isError)
+      addLayerInOrder(map, layer);
+    } catch (error) {
+      console.error('Error adding layers back after style changes:', error);
       showToast({
         type: 'error',
         title: 'Error occurred',
-        message: 'Failed to get GSLA anamly ocean current data of this date',
+        message: 'Failed to get buoys locations',
         duration: 6000,
       });
-  }, [isError, showToast]);
+    }
+  };
+
+  useEffect(() => {
+    particleLayer.setVisible(particles && !currentParticleQuery.isError);
+  }, [particleLayer, particles, currentParticleQuery.isError]);
+
+  useEffect(() => {
+    const currentMap = map.current;
+    const handleStyleLoad = () => addLayersBackAfterStyleChanges(particleLayer);
+    currentMap?.on('style.load', handleStyleLoad);
+    return () => {
+      currentMap?.off('style.load', handleStyleLoad);
+      return;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map, particleLayer]);
+
+  useEffect(() => {
+    particleLayer.vectorField?.setParticleNum(numParticles);
+  }, [particleLayer, numParticles]);
+
+  useEffect(() => {
+    if (!currentParticleQuery.data) return;
+
+    const particleSource = map.current?.getSource(PARTICLE_SOURCE_ID);
+    if (!particleSource || particleSource.type !== 'image') return;
+
+    const { lonRange, latRange } = processMetaData(currentParticleQuery.data);
+    const coordinates: CoordinatesType = [
+      [lonRange[0], latRange[1]],
+      [lonRange[1], latRange[1]],
+      [lonRange[1], latRange[0]],
+      [lonRange[0], latRange[0]],
+    ];
+    particleSource.updateImage({
+      url: buildGSLADatasetFullPath(dataset, GSLA_PARTICLE_NAME),
+      coordinates,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentParticleQuery.data, dataset]);
 }

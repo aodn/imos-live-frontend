@@ -1,15 +1,19 @@
 import { maxZoom } from '@/config';
 import { useMapUIStore } from '@/store';
-import mapboxgl from 'mapbox-gl';
+import mapboxgl, { LngLatBoundsLike } from 'mapbox-gl';
 import { useEffect, useRef } from 'react';
 import { useShallow } from 'zustand/shallow';
 
+const maxBounds: LngLatBoundsLike = [
+  [89.90022172949003, -60.0997150997151],
+  [180.09977827050997, 10.0997150997151],
+]; // Australia + New Zealand
+
 export function useMapInitialization() {
-  const { center, zoom, setIsMapReady } = useMapUIStore(
+  const { center, zoom } = useMapUIStore(
     useShallow(s => ({
       center: s.center,
       zoom: s.zoom,
-      setIsMapReady: s.setMapReady,
     })),
   );
 
@@ -29,11 +33,13 @@ export function useMapInitialization() {
       attributionControl: false,
       dragRotate: false,
       touchZoomRotate: false,
+      maxBounds,
+      bounds: maxBounds,
     });
 
     if (import.meta.env.VITE_EXPOSE_MAPBOX) (window as any).map = map.current;
-    map.current.on('load', () => setIsMapReady(true));
     return () => map.current?.remove();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return { map, mapContainer };
