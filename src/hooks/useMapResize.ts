@@ -5,12 +5,9 @@ export function useMapResize(
   mapContainer: React.RefObject<HTMLDivElement | null>,
 ) {
   useEffect(() => {
-    if (!map.current) return;
-    const observer = new ResizeObserver(() => {
-      map.current?.resize();
-    });
-    if (mapContainer.current) {
-      observer.observe(mapContainer.current);
-    }
-  }, [map, mapContainer]);
+    if (!mapContainer.current) return;
+    const observer = new ResizeObserver(() => map.current?.resize());
+    observer.observe(mapContainer.current);
+    return () => observer.disconnect();
+  }, [mapContainer]);
 }
