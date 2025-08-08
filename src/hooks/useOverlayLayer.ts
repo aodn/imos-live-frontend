@@ -52,8 +52,8 @@ export function useOverlayLayer(
         map.current!,
         OVERLAY_SOURCE_ID,
         buildGSLADatasetFullPath(dataset, GSLA_SEA_LEVEL_NAME),
-        rawLatRange || lonRange,
-        rawLonRange || latRange,
+        rawLonRange || lonRange,
+        rawLatRange || latRange,
       );
       setIsError(false);
     } catch {
