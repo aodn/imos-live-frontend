@@ -30,37 +30,23 @@ export function useDistanceMeasurementLayers(map: React.RefObject<mapboxgl.Map |
 
   const measurePointsLayer = useMemo(
     () =>
-      circleLayer(
-        { id: MEASURE_POINTS_LAYER_ID, source: MEASURE_POINTS_SOURCE_ID, ...measurePointsConfig },
-        distanceMeasurement,
-      ),
-    [distanceMeasurement],
+      circleLayer({
+        id: MEASURE_POINTS_LAYER_ID,
+        source: MEASURE_POINTS_SOURCE_ID,
+        ...measurePointsConfig,
+      }),
+    [],
   );
 
   const measureLineLayer = useMemo(
     () =>
-      lineLayer(
-        {
-          id: MEASURE_LINES_LAYER_ID,
-          source: MEASURE_LINES_SOURCE_ID,
-          ...measureLinesConfig,
-        },
-        distanceMeasurement,
-      ),
-    [distanceMeasurement],
+      lineLayer({
+        id: MEASURE_LINES_LAYER_ID,
+        source: MEASURE_LINES_SOURCE_ID,
+        ...measureLinesConfig,
+      }),
+    [],
   );
-
-  useEffect(() => {
-    if (!isMapReady) return;
-
-    addOrUpdateGeoJsonSource({
-      map: map.current!,
-      id: MEASURE_POINTS_SOURCE_ID,
-      data: measurePointsGeojson,
-    });
-    if (!map.current?.getLayer(measurePointsLayer.id)) addLayerInOrder(map, measurePointsLayer);
-    if (!map.current?.getLayer(measureLineLayer.id)) addLayerInOrder(map, measureLineLayer);
-  }, [isMapReady, measurePointsGeojson, measurePointsLayer, measureLineLayer]);
 
   useMapboxLayerVisibility(
     map,
@@ -68,6 +54,31 @@ export function useDistanceMeasurementLayers(map: React.RefObject<mapboxgl.Map |
     [measurePointsLayer, measureLineLayer],
     distanceMeasurement,
   );
+
+  useEffect(() => {
+    const addLayersBackAfterStyleChanges = async () => {
+      addOrUpdateGeoJsonSource({
+        map: map.current!,
+        id: MEASURE_POINTS_SOURCE_ID,
+        data: measurePointsGeojson,
+      });
+      addLayerInOrder(map, measurePointsLayer);
+      addLayerInOrder(map, measureLineLayer);
+    };
+
+    map.current?.on('style.load', addLayersBackAfterStyleChanges);
+    return () => {
+      map.current?.off('style.load', addLayersBackAfterStyleChanges);
+      return;
+    };
+  }, [map, measurePointsGeojson]);
+
+  useEffect(() => {
+    const measureSource = map.current?.getSource(MEASURE_POINTS_SOURCE_ID);
+    if (!measureSource || measureSource.type !== 'geojson') return;
+
+    measureSource.setData(measurePointsGeojson);
+  }, [measurePointsGeojson]);
 
   return { measurePointsGeojson, setMeasurePointsGeojson };
 }
