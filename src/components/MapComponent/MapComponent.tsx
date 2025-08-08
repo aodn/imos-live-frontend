@@ -1,22 +1,21 @@
-import { memo, useEffect, lazy, Suspense } from 'react';
-import { styles } from '@/styles';
 import {
-  useMapStyle,
-  useMapInitialization,
-  useOverlayLayer,
-  useWaveBuoysLayer,
-  useParticleLayer,
-  useWaveBuoysLayerClickHandler,
-  useParticleOverlayLayersClickHandlers,
   useDistanceMeasurementLayers,
   useDistanceMeasurementLayersClickHandler,
+  useMapInitialization,
   useMapResize,
+  useMapStyle,
+  useOverlayLayer,
+  useParticleLayer,
+  useParticleOverlayLayersClickHandlers,
+  useWaveBuoysLayer,
+  useWaveBuoysLayerClickHandler,
 } from '@/hooks';
-import mapboxgl from 'mapbox-gl';
-import { DistanceMeasurement } from '../DistanceMeasurement';
 import { selectAllStates, useMapUIStore } from '@/store';
-import { useShallow } from 'zustand/shallow';
 import { cn } from '@/utils';
+import mapboxgl from 'mapbox-gl';
+import { lazy, memo, Suspense, useEffect } from 'react';
+import { useShallow } from 'zustand/shallow';
+import { DistanceMeasurement } from '../DistanceMeasurement';
 import { MapControlPanel } from '../MapControlPanel';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_KEY;
@@ -24,24 +23,11 @@ mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_KEY;
 const WaveBuoyChart = lazy(() => import('../Highcharts/WaveBuoyChart'));
 
 export const MapComponent = memo(() => {
-  const {
-    center,
-    zoom,
-    style,
-    overlay,
-    circle,
-    particles,
-    distanceMeasurement,
-    numParticles,
-    dataset,
-  } = useMapUIStore(useShallow(selectAllStates));
+  const { style, overlay, circle, particles, distanceMeasurement, numParticles, dataset } =
+    useMapUIStore(useShallow(selectAllStates));
 
   //1. map initialization.
-  const { map, mapContainer } = useMapInitialization(
-    (styles.find(s => s.title === style)?.source || styles[0].source) as any,
-    center,
-    zoom,
-  );
+  const { map, mapContainer } = useMapInitialization();
 
   //2. create layer, set data to layer and add layer to map.
   useOverlayLayer(map, overlay, style, dataset);
@@ -92,7 +78,7 @@ export const MapComponent = memo(() => {
   );
 
   //4. enable to toggle style.
-  useMapStyle(map, style);
+  useMapStyle(map);
 
   //5. enable map resize when its parent div size udpate.
   useMapResize(map, mapContainer);

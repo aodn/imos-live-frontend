@@ -1,15 +1,23 @@
-import { useEffect, useRef } from 'react';
-import mapboxgl, { LngLat } from 'mapbox-gl';
 import { maxZoom } from '@/config';
+import { useMapUIStore } from '@/store';
+import mapboxgl from 'mapbox-gl';
+import { useEffect, useRef } from 'react';
+import { useShallow } from 'zustand/shallow';
 
-export function useMapInitialization(style: string, center: LngLat, zoom: number) {
+export function useMapInitialization() {
+  const { center, zoom, setIsMapReady } = useMapUIStore(
+    useShallow(s => ({
+      center: s.center,
+      zoom: s.zoom,
+      setIsMapReady: s.setMapReady,
+    })),
+  );
+
   const map = useRef<mapboxgl.Map | null>(null);
   const mapContainer = useRef<HTMLDivElement | null>(null);
-
   useEffect(() => {
     map.current = new mapboxgl.Map({
       container: mapContainer.current!,
-      style,
       center: center,
       zoom: zoom,
       minZoom: 1,
@@ -24,6 +32,7 @@ export function useMapInitialization(style: string, center: LngLat, zoom: number
     });
 
     if (import.meta.env.VITE_EXPOSE_MAPBOX) (window as any).map = map.current;
+    map.current.on('load', () => setIsMapReady(true));
     return () => map.current?.remove();
   }, []);
 
