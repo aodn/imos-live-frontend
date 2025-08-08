@@ -66,7 +66,7 @@ export function useParticleLayer(
     if (!particleLayer.current) return;
     await setDataByDataset();
     if (!map.current!.getLayer(PARTICLE_LAYER_ID)) {
-      addLayerInOrder(map, particleLayer.current, PARTICLE_LAYER_ID);
+      addLayerInOrder(map, particleLayer.current);
     }
   }, [map, particleLayer, setDataByDataset]);
 

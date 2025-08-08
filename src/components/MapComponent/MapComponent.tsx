@@ -36,12 +36,6 @@ export const MapComponent = memo(() => {
 
   useWaveBuoysLayer(map, circle, style, dataset);
 
-  const { measurePointsGeojson, setMeasurePointsGeojson } = useDistanceMeasurementLayers(
-    map,
-    distanceMeasurement,
-    style,
-  );
-
   //3. add click event listners to map and layers.
   const {
     clickedPointData: waveBuoysLayerClickedPointData,
@@ -70,6 +64,7 @@ export const MapComponent = memo(() => {
     distanceMeasurement,
   });
 
+  const { measurePointsGeojson, setMeasurePointsGeojson } = useDistanceMeasurementLayers(map);
   const { distance, setDistance } = useDistanceMeasurementLayersClickHandler(
     map,
     distanceMeasurement,

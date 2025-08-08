@@ -65,7 +65,7 @@ export function useOverlayLayer(
     if (!overlayLayer.current) return;
     await setDataByDataset();
     if (!map.current?.getLayer(OVERLAY_LAYER_ID)) {
-      addLayerInOrder(map, overlayLayer.current, OVERLAY_LAYER_ID);
+      addLayerInOrder(map, overlayLayer.current);
     }
   }, [map, overlayLayer, setDataByDataset]);
 

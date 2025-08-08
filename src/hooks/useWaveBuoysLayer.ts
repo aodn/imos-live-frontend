@@ -96,13 +96,13 @@ export function useWaveBuoysLayer(
     if (!waveBuoysLayer?.current || !clusterLabelLayer?.current) return;
     await setDataByDataset();
     if (!map.current!.getLayer(WAVE_BUOYS_LAYER_ID)) {
-      addLayerInOrder(map, waveBuoysLayer.current, WAVE_BUOYS_LAYER_ID);
+      addLayerInOrder(map, waveBuoysLayer.current);
     }
     if (!map.current!.getLayer(UNCLUSTERED_WAVE_BUOYS_LAYER_ID)) {
-      addLayerInOrder(map, unClusteredWaveBuoysLayer.current, UNCLUSTERED_WAVE_BUOYS_LAYER_ID);
+      addLayerInOrder(map, unClusteredWaveBuoysLayer.current);
     }
     if (!map.current!.getLayer(WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID)) {
-      addLayerInOrder(map, clusterLabelLayer.current, WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID);
+      addLayerInOrder(map, clusterLabelLayer.current);
     }
   }, [clusterLabelLayer, map, setDataByDataset, unClusteredWaveBuoysLayer, waveBuoysLayer]);
 

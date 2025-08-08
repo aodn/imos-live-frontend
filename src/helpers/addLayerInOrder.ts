@@ -2,15 +2,13 @@ import { layersOrder } from '@/config';
 import { VectoryLayerInterface } from '@/layers';
 import { Layer } from 'mapbox-gl';
 
-//ensure layers are in correct order.
 export function addLayerInOrder(
   map: React.RefObject<mapboxgl.Map | null>,
   layer: Layer | VectoryLayerInterface | null,
-  layerId: string,
 ) {
   if (!layer) return;
 
-  if (!map.current?.getLayer(layerId)) {
+  if (!map.current?.getLayer(layer.id)) {
     map.current?.addLayer(layer);
   }
 

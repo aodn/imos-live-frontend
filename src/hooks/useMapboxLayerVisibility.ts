@@ -4,14 +4,19 @@ import { useEffect } from 'react';
 export function useMapboxLayerVisibility(
   map: React.RefObject<mapboxgl.Map | null>,
   loadComplete: boolean,
-  layers: React.RefObject<Layer | null>[],
+  layers: (React.RefObject<Layer | null> | Layer)[],
   visible: boolean,
 ) {
   useEffect(() => {
     if (!map.current || !loadComplete) return;
 
     layers.forEach(layerRef => {
-      const layer = layerRef.current;
+      let layer: Layer | null;
+      if ('current' in layerRef) {
+        layer = layerRef.current;
+      } else {
+        layer = layerRef;
+      }
       if (!layer) return;
 
       const layerId = layer.id;
