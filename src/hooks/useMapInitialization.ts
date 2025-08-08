@@ -7,10 +7,8 @@ export function useMapInitialization(style: string, center: LngLat, zoom: number
   const mapContainer = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (map.current) return;
-
     map.current = new mapboxgl.Map({
-      container: mapContainer.current as HTMLElement,
+      container: mapContainer.current!,
       style,
       center: center,
       zoom: zoom,
@@ -22,19 +20,11 @@ export function useMapInitialization(style: string, center: LngLat, zoom: number
       pitchWithRotate: false,
       attributionControl: false,
       dragRotate: false,
+      touchZoomRotate: false,
     });
 
-    map.current.touchZoomRotate.disableRotation();
-
     if (import.meta.env.VITE_EXPOSE_MAPBOX) (window as any).map = map.current;
-
-    return () => {
-      if (map.current) {
-        map.current.remove();
-        map.current = null;
-      }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => map.current?.remove();
   }, []);
 
   return { map, mapContainer };
