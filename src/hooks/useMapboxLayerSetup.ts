@@ -42,8 +42,11 @@ export function useMapboxLayerSetup(
           await setupLayerFnRef.current();
           setLoadComplete(true);
         }
-        // eslint-disable-next-line no-empty
-      } catch {
+      } catch (err) {
+        if (import.meta.env.MODE !== 'production') {
+          //this error is expected when select custom style, but not affect application running.
+          console.error('Ignored error:', err);
+        }
       } finally {
         isSettingUpRef.current = false;
       }
