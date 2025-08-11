@@ -16,7 +16,7 @@ export const DistanceMeasurement = ({
   };
   return (
     <div
-      className="absolute top-10 left-10 z-10 bg-imos-light shadow-sm  px-4 py-2 rounded flex flex-col gap-y-4"
+      className="absolute top-10 left-1/2 -translate-x-1/2 z-10 frosted  px-4 py-2 rounded flex flex-col gap-y-4"
       aria-label="Distance measurement"
     >
       <p>

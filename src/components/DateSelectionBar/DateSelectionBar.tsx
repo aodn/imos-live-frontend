@@ -1,11 +1,5 @@
 import { TriangleIcon } from '../Icons';
-import {
-  DateSlider,
-  dateSliderStyles,
-  PointSelection,
-  SelectionResult,
-  SliderExposedMethod,
-} from '../DateSlider';
+import { DateSlider, PointSelection, SelectionResult, SliderExposedMethod } from '../DateSlider';
 import { getLast7DatesEnding3DaysAgo, dateToUTC, toDateFormatString, cn } from '@/utils';
 import { useMapUIStore } from '@/store';
 import { memo, useCallback, useMemo, useRef } from 'react';
@@ -50,8 +44,8 @@ export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
         endDate={endDate}
         initialPoint={dateToUTC(dataset)}
         pointHandleIcon={<TriangleIcon size="xxl" color="imos-white" />}
-        sliderClassName={dateSliderStyles.frosted}
-        timeUnitSlectionClassName={dateSliderStyles.frosted}
+        sliderClassName="frosted"
+        timeUnitSlectionClassName="frosted"
         trackActiveClassName="hidden"
         onChange={handleSelect as (v: SelectionResult) => void}
         scrollable={true}
