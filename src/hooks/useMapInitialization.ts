@@ -35,9 +35,10 @@ export function useMapInitialization() {
       touchZoomRotate: false,
       maxBounds,
       bounds: maxBounds,
+      testMode: import.meta.env.VITE_AUTOMATED_TEST_RUNNING,
     });
 
-    if (import.meta.env.VITE_EXPOSE_MAPBOX) (window as any).map = map.current;
+    if (import.meta.env.VITE_AUTOMATED_TEST_RUNNING) (window as any).map = map.current;
     return () => map.current?.remove();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
