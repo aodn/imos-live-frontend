@@ -79,7 +79,7 @@ export function useParticleLayer(map: React.RefObject<mapboxgl.Map | null>) {
 
   useEffect(() => {
     particleLayer.vectorField?.setParticleNum(numParticles);
-  }, [particleLayer, numParticles]);
+  }, [particleLayer.vectorField?.setParticleNum, numParticles]);
 
   useEffect(() => {
     if (!currentParticleQuery.data) return;
