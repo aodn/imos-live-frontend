@@ -1,116 +1,96 @@
-import { memo, useEffect, lazy, Suspense } from 'react';
-import { styles } from '@/styles';
 import {
-  useMapStyle,
-  useMapInitialization,
-  useOverlayLayer,
-  useWaveBuoysLayer,
-  useParticleLayer,
-  useWaveBuoysLayerClickHandler,
-  useParticleOverlayLayersClickHandlers,
   useDistanceMeasurementLayers,
   useDistanceMeasurementLayersClickHandler,
+  useMapInitialization,
   useMapResize,
+  useMapStyle,
+  useOverlayLayer,
+  useParticleLayer,
+  useParticleOverlayLayersClickHandlers,
+  useWaveBuoysLayer,
+  useWaveBuoysLayerClickHandler,
 } from '@/hooks';
-import mapboxgl from 'mapbox-gl';
-import { DistanceMeasurement } from '../DistanceMeasurement';
 import { selectAllStates, useMapUIStore } from '@/store';
-import { useShallow } from 'zustand/shallow';
 import { cn } from '@/utils';
+import mapboxgl from 'mapbox-gl';
+import { lazy, memo, Suspense, useEffect } from 'react';
+import { useShallow } from 'zustand/shallow';
+import { DistanceMeasurement } from '../DistanceMeasurement';
+import { MapControlPanel } from '../MapControlPanel';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_KEY;
 
 const WaveBuoyChart = lazy(() => import('../Highcharts/WaveBuoyChart'));
 
-export const MapComponent = memo(
-  ({ ref, className }: { ref: React.RefObject<mapboxgl.Map | null>; className?: string }) => {
-    const {
-      center,
-      zoom,
-      style,
-      overlay,
-      circle,
-      particles,
-      distanceMeasurement,
-      numParticles,
-      dataset,
-    } = useMapUIStore(useShallow(selectAllStates));
+export const MapComponent = memo(() => {
+  const { overlay, circle, particles, distanceMeasurement, dataset } = useMapUIStore(
+    useShallow(selectAllStates),
+  );
 
-    //1. map initialization.
-    const { map, mapContainer } = useMapInitialization(
-      (styles.find(s => s.title === style)?.source || styles[0].source) as any,
-      center,
-      zoom,
-      ref,
-    );
+  //1. map initialization.
+  const { map, mapContainer } = useMapInitialization();
 
-    //2. create layer, set data to layer and add layer to map.
-    useOverlayLayer(map, overlay, style, dataset);
+  //2. create layer, set data to layer and add layer to map.
+  const { measurePointsGeojson, setMeasurePointsGeojson } = useDistanceMeasurementLayers(map);
+  useOverlayLayer(map);
+  useParticleLayer(map);
+  useWaveBuoysLayer(map);
 
-    useParticleLayer(map, particles, style, dataset, numParticles);
+  //3. add click event listners to map and layers.
+  const {
+    clickedPointData: waveBuoysLayerClickedPointData,
+    openDrawer,
+    waveBuoysLayerClicked,
+    tempPointsEventPrevent,
+  } = useWaveBuoysLayerClickHandler(map, circle, distanceMeasurement);
 
-    useWaveBuoysLayer(map, circle, style, dataset);
+  useEffect(() => {
+    if (waveBuoysLayerClickedPointData) {
+      openDrawer(
+        <Suspense fallback={<div>Loading...</div>}>
+          <WaveBuoyChart waveBuoysData={waveBuoysLayerClickedPointData} showDirection={true} />
+        </Suspense>,
+      );
+    }
+  }, [waveBuoysLayerClickedPointData, openDrawer]);
 
-    const { measurePointsGeojson, setMeasurePointsGeojson } = useDistanceMeasurementLayers(
-      map,
-      distanceMeasurement,
-      style,
-    );
+  useParticleOverlayLayersClickHandlers({
+    map,
+    dataset,
+    overlay,
+    particles,
+    waveBuoysLayerClicked,
+    tempPointsEventPrevent,
+    distanceMeasurement,
+  });
 
-    //3. add click event listners to map and layers.
-    const {
-      clickedPointData: waveBuoysLayerClickedPointData,
-      openDrawer,
-      waveBuoysLayerClicked,
-      tempPointsEventPrevent,
-    } = useWaveBuoysLayerClickHandler(map, circle, distanceMeasurement);
+  const { distance, setDistance } = useDistanceMeasurementLayersClickHandler(
+    map,
+    distanceMeasurement,
+    measurePointsGeojson,
+    setMeasurePointsGeojson,
+  );
 
-    useEffect(() => {
-      if (waveBuoysLayerClickedPointData) {
-        openDrawer(
-          <Suspense fallback={<div>Loading...</div>}>
-            <WaveBuoyChart waveBuoysData={waveBuoysLayerClickedPointData} showDirection={true} />
-          </Suspense>,
-        );
-      }
-    }, [waveBuoysLayerClickedPointData, openDrawer]);
+  //4. enable to toggle style.
+  useMapStyle(map);
 
-    useParticleOverlayLayersClickHandlers({
-      map,
-      dataset,
-      overlay,
-      particles,
-      waveBuoysLayerClicked,
-      tempPointsEventPrevent,
-      distanceMeasurement,
-    });
+  //5. enable map resize when its parent div size udpate.
+  useMapResize(map, mapContainer);
 
-    const { distance, setDistance } = useDistanceMeasurementLayersClickHandler(
-      map,
-      distanceMeasurement,
-      measurePointsGeojson,
-      setMeasurePointsGeojson,
-    );
+  return (
+    <>
+      <div ref={mapContainer} className={cn('w-full h-full')} />
+      {distance && (
+        <DistanceMeasurement
+          distance={distance}
+          setDistance={setDistance}
+          setMeasurePointsGeojson={setMeasurePointsGeojson}
+        />
+      )}
 
-    //4. enable to toggle style.
-    useMapStyle(map, style);
-
-    //5. enable map resize when its parent div size udpate.
-    useMapResize(map, mapContainer);
-
-    return (
-      <>
-        <div ref={mapContainer} className={cn('w-full h-full', className)} />
-        {distance && (
-          <DistanceMeasurement
-            distance={distance}
-            setDistance={setDistance}
-            setMeasurePointsGeojson={setMeasurePointsGeojson}
-          />
-        )}
-      </>
-    );
-  },
-);
+      <MapControlPanel ref={map} className="absolute top-10 left-0 z-10 hidden md:block" />
+    </>
+  );
+});
 
 MapComponent.displayName = 'MapComponent';

@@ -14,10 +14,6 @@ export function addOrUpdateGeoJsonSource({
   enableCluser?: boolean;
   clusterRadius?: number;
 }) {
-  if (!data) {
-    throw Error('No wave buoys data soruce');
-  }
-
   if ('features' in data) {
     addIdToFeatures(data.features);
   }

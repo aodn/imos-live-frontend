@@ -5,7 +5,7 @@ export function createLayer<
 >(type: Layer['type']) {
   return (
     { id, source, paint, layout, filter, ...args }: Omit<T, 'type'>,
-    visible: boolean,
+    visible = false,
   ): Layer => ({
     id,
     source,

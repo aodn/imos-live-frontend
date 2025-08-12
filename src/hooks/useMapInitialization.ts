@@ -1,23 +1,29 @@
-import { useEffect, useRef } from 'react';
-import mapboxgl, { LngLat } from 'mapbox-gl';
 import { maxZoom } from '@/config';
+import { useMapUIStore } from '@/store';
+import mapboxgl, { LngLatBoundsLike } from 'mapbox-gl';
+import { useEffect, useRef } from 'react';
+import { useShallow } from 'zustand/shallow';
 
-export function useMapInitialization(
-  style: string,
-  center: LngLat,
-  zoom: number,
-  map: React.RefObject<mapboxgl.Map | null>,
-) {
+const maxBounds: LngLatBoundsLike = [
+  [89.90022172949003, -60.0997150997151],
+  [180.09977827050997, 10.0997150997151],
+]; // Australia + New Zealand
+
+export function useMapInitialization() {
+  const { center, zoom, setCenter, setZoom } = useMapUIStore(
+    useShallow(s => ({
+      center: s.center,
+      zoom: s.zoom,
+      setCenter: s.setCenter,
+      setZoom: s.setZoom,
+    })),
+  );
+
+  const map = useRef<mapboxgl.Map | null>(null);
   const mapContainer = useRef<HTMLDivElement | null>(null);
-
   useEffect(() => {
-    if (map.current) return;
-
     map.current = new mapboxgl.Map({
-      container: mapContainer.current as HTMLElement,
-      style,
-      center: center,
-      zoom: zoom,
+      container: mapContainer.current!,
       minZoom: 1,
       maxZoom: maxZoom,
       antialias: true,
@@ -26,18 +32,22 @@ export function useMapInitialization(
       pitchWithRotate: false,
       attributionControl: false,
       dragRotate: false,
+      touchZoomRotate: false,
+      maxBounds,
+      bounds: maxBounds,
+      testMode: import.meta.env.VITE_AUTOMATED_TEST_RUNNING,
     });
+    map.current.setZoom(zoom);
+    map.current.setCenter(center);
+    if (import.meta.env.VITE_AUTOMATED_TEST_RUNNING) (window as any).map = map.current;
 
-    map.current.touchZoomRotate.disableRotation();
-
-    if (import.meta.env.VITE_PLAYWRIGHT_BUILD) (window as any).map = map.current;
-
-    return () => {
-      if (map.current) {
-        map.current.remove();
-        map.current = null;
-      }
+    const handleMapMove = () => {
+      setCenter(map.current!.getCenter());
+      setZoom(map.current!.getZoom());
     };
+    map.current.on('moveend', handleMapMove);
+    map.current.on('zoomend', handleMapMove);
+    return () => map.current?.remove();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

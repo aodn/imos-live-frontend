@@ -53,7 +53,7 @@ export default defineConfig({
     command: 'npm run dev',
     url: imosLiveBaseURL,
     env: {
-      VITE_PLAYWRIGHT_BUILD: 'true',
+      VITE_AUTOMATED_TEST_RUNNING: 'true',
       MOCKDATA: 'true',
     },
   },

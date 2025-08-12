@@ -1,6 +1,11 @@
 type RangeType = [number, number];
 
-type CoordinatesType = [range: RangeType, range: RangeType, range: RangeType, range: RangeType];
+export type CoordinatesType = [
+  range: RangeType,
+  range: RangeType,
+  range: RangeType,
+  range: RangeType,
+];
 
 export function addOrUpdateImageSource(
   map: mapboxgl.Map,

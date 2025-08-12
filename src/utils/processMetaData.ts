@@ -10,7 +10,7 @@ export type ProcessedMetaType = MetaType & {
 };
 
 export function processMetaData(meta: MetaType): ProcessedMetaType {
-  const { rawLatRange, rawLonRange, lonRange, latRange, uRange, vRange } = meta;
+  const { lonRange, latRange, uRange, vRange, rawLatRange, rawLonRange } = meta;
 
   //fours lines shape a rectangle, lon x, lat y.
   const bounds: BoundsType = [lonRange[0], latRange[1], lonRange[1], latRange[0]];
@@ -23,11 +23,11 @@ export function processMetaData(meta: MetaType): ProcessedMetaType {
   return {
     bounds,
     maxBounds,
-    lonRange,
-    latRange,
-    rawLatRange,
-    rawLonRange,
+    lonRange: rawLonRange || lonRange,
+    latRange: rawLatRange || latRange,
     uRange,
     vRange,
+    rawLatRange,
+    rawLonRange,
   };
 }

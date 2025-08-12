@@ -1,18 +1,20 @@
-import { useEffect, useMemo } from 'react';
+import { useMapUIStore } from '@/store';
 import { styles } from '@/styles';
+import { useEffect } from 'react';
+import { useShallow } from 'zustand/shallow';
 
-export function useMapStyle(map: React.RefObject<mapboxgl.Map | null>, style: string) {
-  const selectedStyle = useMemo(() => {
-    return styles.find(s => s.title === style)?.source || styles[0].source;
-  }, [style]);
+export function useMapStyle(map: React.RefObject<mapboxgl.Map | null>) {
+  const { style } = useMapUIStore(
+    useShallow(s => ({
+      style: s.style,
+    })),
+  );
 
   useEffect(() => {
-    if (!map.current) return;
-
-    const applyStyle = () => map.current?.setStyle(selectedStyle as any);
-
-    applyStyle();
-
+    map.current?.setStyle(
+      styles.find(s => s.title === style)?.source || (styles[0].source as any),
+      { diff: false } as any,
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedStyle]);
+  }, [style]);
 }
