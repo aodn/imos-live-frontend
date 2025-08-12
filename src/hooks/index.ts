@@ -16,7 +16,6 @@ export * from './useDropdownOutsideClick';
 export * from './useDropdownPosition';
 export * from './useElementSize';
 export * from './useRAFDFn';
-export * from './useMapView';
 export * from './useSliderDateSyncWithUrl';
 export * from './useViewPortSize';
 export * from './useCurrentPage';

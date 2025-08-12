@@ -10,10 +10,12 @@ const maxBounds: LngLatBoundsLike = [
 ]; // Australia + New Zealand
 
 export function useMapInitialization() {
-  const { center, zoom } = useMapUIStore(
+  const { center, zoom, setCenter, setZoom } = useMapUIStore(
     useShallow(s => ({
       center: s.center,
       zoom: s.zoom,
+      setCenter: s.setCenter,
+      setZoom: s.setZoom,
     })),
   );
 
@@ -22,8 +24,6 @@ export function useMapInitialization() {
   useEffect(() => {
     map.current = new mapboxgl.Map({
       container: mapContainer.current!,
-      center: center,
-      zoom: zoom,
       minZoom: 1,
       maxZoom: maxZoom,
       antialias: true,
@@ -37,8 +37,16 @@ export function useMapInitialization() {
       bounds: maxBounds,
       testMode: import.meta.env.VITE_AUTOMATED_TEST_RUNNING,
     });
-
+    map.current.setZoom(zoom);
+    map.current.setCenter(center);
     if (import.meta.env.VITE_AUTOMATED_TEST_RUNNING) (window as any).map = map.current;
+
+    const handleMapMove = () => {
+      setCenter(map.current!.getCenter());
+      setZoom(map.current!.getZoom());
+    };
+    map.current.on('moveend', handleMapMove);
+    map.current.on('zoomend', handleMapMove);
     return () => map.current?.remove();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
