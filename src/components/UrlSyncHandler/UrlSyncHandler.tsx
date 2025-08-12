@@ -2,7 +2,8 @@ import { useZustandUrlSync } from '@/hooks';
 import { useMapUIStore } from '@/store';
 import { useShallow } from 'zustand/shallow';
 
-// responsible for updating query parameters in url when state udpates.
+// responsible for updating query parameters in url when state udpates. the logic that set query params from
+// url to zustand state is processed in useMapUIStore.
 export const UrlSyncHandler = () => {
   const {
     center,
