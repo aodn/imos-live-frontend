@@ -2,8 +2,7 @@ import { useZustandUrlSync } from '@/hooks';
 import { useMapUIStore } from '@/store';
 import { useShallow } from 'zustand/shallow';
 
-// responsible for sync query paramenters with zustand store states and when states update also
-// update corresponding query parameters.
+// responsible for updating query parameters in url when state udpates.
 export const UrlSyncHandler = () => {
   const {
     center,
@@ -15,15 +14,6 @@ export const UrlSyncHandler = () => {
     distanceMeasurement,
     circle,
     dataset,
-    setCenter,
-    setZoom,
-    setStyle,
-    setOverlay,
-    setCircle,
-    setParticles,
-    setNumParticles,
-    setDistanceMeasurement,
-    setDataset,
   } = useMapUIStore(
     useShallow(s => ({
       center: s.center,
@@ -35,15 +25,6 @@ export const UrlSyncHandler = () => {
       distanceMeasurement: s.distanceMeasurement,
       circle: s.circle,
       dataset: s.dataset,
-      setCenter: s.setCenter,
-      setZoom: s.setZoom,
-      setStyle: s.setStyle,
-      setOverlay: s.setOverlay,
-      setCircle: s.setCircle,
-      setParticles: s.setParticles,
-      setNumParticles: s.setNumParticles,
-      setDistanceMeasurement: s.setDistanceMeasurement,
-      setDataset: s.setDataset,
     })),
   );
 
@@ -70,39 +51,6 @@ export const UrlSyncHandler = () => {
       circle: circle,
       dataset: dataset,
     }),
-    setState: (key, value) => {
-      switch (key) {
-        case 'center':
-          setCenter(value);
-          break;
-        case 'zoom':
-          setZoom(value);
-          break;
-        case 'style':
-          setStyle(value);
-          break;
-        case 'overlay':
-          setOverlay(value);
-          break;
-        case 'particles':
-          setParticles(value);
-          break;
-        case 'numParticles':
-          setNumParticles(value);
-          break;
-        case 'distanceMeasurement':
-          setDistanceMeasurement(value);
-          break;
-        case 'circle':
-          setCircle(value);
-          break;
-        case 'dataset':
-          setDataset(value);
-          break;
-        default:
-          break;
-      }
-    },
   });
 
   return null;
