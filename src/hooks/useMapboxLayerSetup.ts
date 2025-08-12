@@ -57,19 +57,10 @@ export function useMapboxLayerSetup(
       setupLayer();
     }
 
-    const handleStyleData = () => {
-      if (map.current?.isStyleLoaded() && !isSettingUpRef.current) {
-        setupLayer();
-      }
-    };
-
-    //when style change or style loaded, set up layer.
-    map.current.on('styledata', handleStyleData);
     map.current.on('style.load', setupLayer);
 
     return () => {
       cancelled = true;
-      map.current?.off('styledata', handleStyleData);
       // eslint-disable-next-line react-hooks/exhaustive-deps
       map.current?.off('style.load', setupLayer);
     };

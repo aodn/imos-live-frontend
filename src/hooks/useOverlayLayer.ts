@@ -15,6 +15,7 @@ import { useToast } from '@/components';
 import { useCallback, useEffect, useState } from 'react';
 import { getMetaData } from '@/api';
 import { useQueryClient } from '@tanstack/react-query';
+import { useDidMountEffect } from './useDidMountEffect';
 
 export function useOverlayLayer(
   map: React.RefObject<mapboxgl.Map | null>,
@@ -69,9 +70,14 @@ export function useOverlayLayer(
     }
   }, [map, overlayLayer, setDataByDataset]);
 
-  const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [style, dataset]);
+  const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [style]);
 
   useMapboxLayerVisibility(map, loadComplete, [overlayLayer], overlay && !isError);
+
+  useDidMountEffect(() => {
+    if (!map.current || !loadComplete) return;
+    setDataByDataset();
+  }, [loadComplete, dataset]);
 
   useEffect(() => {
     if (isError)

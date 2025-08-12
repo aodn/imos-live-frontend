@@ -19,6 +19,7 @@ import { useToast } from '@/components';
 import { getWaveBuoyLocations } from '@/api';
 import { useCallback, useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useDidMountEffect } from './useDidMountEffect';
 
 export function useWaveBuoysLayer(
   map: React.RefObject<mapboxgl.Map | null>,
@@ -106,7 +107,7 @@ export function useWaveBuoysLayer(
     }
   }, [clusterLabelLayer, map, setDataByDataset, unClusteredWaveBuoysLayer, waveBuoysLayer]);
 
-  const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [style, dataset]);
+  const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [style]);
 
   useMapboxLayerVisibility(
     map,
@@ -114,6 +115,11 @@ export function useWaveBuoysLayer(
     [waveBuoysLayer, unClusteredWaveBuoysLayer, clusterLabelLayer],
     circle && !isError,
   );
+
+  useDidMountEffect(() => {
+    if (!map.current || !loadComplete) return;
+    setDataByDataset();
+  }, [loadComplete, dataset]);
 
   useEffect(() => {
     if (isError)

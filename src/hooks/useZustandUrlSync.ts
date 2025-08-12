@@ -1,3 +1,4 @@
+import { isSame } from '@/utils';
 import { useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
@@ -20,6 +21,7 @@ const serialize = (value: any): string => {
     return String(value);
   }
 };
+
 const deserialize = (value: string, originalValue: any): any => {
   if (!value) return originalValue;
   if (typeof originalValue === 'boolean') return value === '1';
@@ -32,11 +34,7 @@ const deserialize = (value: string, originalValue: any): any => {
     try {
       return JSON.parse(value);
     } catch {
-      try {
-        return JSON.parse(value);
-      } catch {
-        return originalValue;
-      }
+      return originalValue;
     }
   }
   return value;
@@ -68,6 +66,7 @@ export function useZustandUrlSync<T extends Record<string, any>>({
       const urlValue = searchParams.get(key as string);
       if (urlValue !== null) {
         const deserializedValue = deserialize(urlValue, currentState[key]);
+        if (isSame(deserializedValue, currentState[key])) return;
         setState(key, deserializedValue);
       }
     });

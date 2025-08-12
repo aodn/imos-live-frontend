@@ -14,6 +14,7 @@ import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useToast } from '@/components';
 import { getMetaData } from '@/api';
 import { useQueryClient } from '@tanstack/react-query';
+import { useDidMountEffect } from './useDidMountEffect';
 
 export function useParticleLayer(
   map: React.RefObject<mapboxgl.Map | null>,
@@ -70,7 +71,7 @@ export function useParticleLayer(
     }
   }, [map, particleLayer, setDataByDataset]);
 
-  const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [style, dataset]);
+  const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [style]);
 
   useParticleLayerVisibility(map, loadComplete, particleLayer, particles && !isError);
 
@@ -79,6 +80,11 @@ export function useParticleLayer(
     particleLayer.current.vectorField?.setParticleNum(numParticles);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadComplete, numParticles]);
+
+  useDidMountEffect(() => {
+    if (!map.current || !loadComplete) return;
+    setDataByDataset();
+  }, [loadComplete, dataset]);
 
   useEffect(() => {
     if (isError)
