@@ -9,7 +9,12 @@ export function useMapStyle(map: React.RefObject<mapboxgl.Map | null>, style: st
   useEffect(() => {
     if (!map.current) return;
 
-    const applyStyle = () => map.current?.setStyle(selectedStyle as any);
+    const applyStyle = () =>
+      map.current?.setStyle(selectedStyle as any, {
+        diff: false,
+        localFontFamily: '',
+        localIdeographFontFamily: '',
+      });
 
     applyStyle();
 

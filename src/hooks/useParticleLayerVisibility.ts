@@ -4,11 +4,11 @@ import { useEffect } from 'react';
 export function useParticleLayerVisibility(
   map: React.RefObject<mapboxgl.Map | null>,
   loadComplete: boolean,
-  layer: React.RefObject<VectoryLayerInterface | null>,
+  layer: VectoryLayerInterface | null,
   visible: boolean,
 ) {
   useEffect(() => {
-    if (!map.current || !loadComplete || !layer.current) return;
-    layer.current.setVisible(visible);
+    if (!map.current || !loadComplete || !layer) return;
+    layer.setVisible(visible);
   }, [layer, loadComplete, map, visible]);
 }

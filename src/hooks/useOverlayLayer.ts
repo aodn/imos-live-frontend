@@ -8,32 +8,31 @@ import { addLayerInOrder, addOrUpdateImageSource } from '@/helpers';
 import { imageLayer } from '@/layers';
 import { processMetaData, buildGSLADatasetFullPath, buildGSLADatasetPath } from '@/utils';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
-import { useMapboxLayerRef } from './useMapboxLayerRef';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { overlayLayerConfig } from '@/config';
 import { useToast } from '@/components';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getMetaData } from '@/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { useDidMountEffect } from './useDidMountEffect';
+import { useShallow } from 'zustand/shallow';
+import { selectOverlayLayerStates, useMapUIStore } from '@/store';
 
-export function useOverlayLayer(
-  map: React.RefObject<mapboxgl.Map | null>,
-  overlay: boolean,
-  style: string,
-  dataset: string,
-) {
+export function useOverlayLayer(map: React.RefObject<mapboxgl.Map | null>) {
   const { showToast } = useToast();
   const [isError, setIsError] = useState(false);
   const queryClient = useQueryClient();
 
-  const overlayLayer = useMapboxLayerRef(
+  const { style, overlay, dataset } = useMapUIStore(useShallow(selectOverlayLayerStates));
+
+  const overlayLayer = useMemo(
     () =>
       imageLayer(
         { id: OVERLAY_LAYER_ID, source: OVERLAY_SOURCE_ID, ...overlayLayerConfig },
         overlay,
       ),
-    style,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [style],
   );
 
   const setDataByDataset = useCallback(async () => {
@@ -63,10 +62,10 @@ export function useOverlayLayer(
   }, [dataset, map, queryClient]);
 
   const setupLayer = useCallback(async () => {
-    if (!overlayLayer.current) return;
+    if (!overlayLayer) return;
     await setDataByDataset();
     if (!map.current?.getLayer(OVERLAY_LAYER_ID)) {
-      addLayerInOrder(map, overlayLayer.current, OVERLAY_LAYER_ID);
+      addLayerInOrder(map, overlayLayer, OVERLAY_LAYER_ID);
     }
   }, [map, overlayLayer, setDataByDataset]);
 

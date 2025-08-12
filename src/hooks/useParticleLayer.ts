@@ -7,29 +7,29 @@ import {
 import { addLayerInOrder, addOrUpdateImageSource } from '@/helpers';
 import { vectorLayer } from '@/layers';
 import { processMetaData, buildGSLADatasetFullPath, buildGSLADatasetPath } from '@/utils';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParticleLayerVisibility } from './useParticleLayerVisibility';
-import { useParticleLayerRef } from './useParticleLayerRef';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useToast } from '@/components';
 import { getMetaData } from '@/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { useDidMountEffect } from './useDidMountEffect';
+import { useMapUIStore, selectParticleLayerStates } from '@/store';
+import { useShallow } from 'zustand/shallow';
 
-export function useParticleLayer(
-  map: React.RefObject<mapboxgl.Map | null>,
-  particles: boolean,
-  style: string,
-  dataset: string,
-  numParticles: number,
-) {
+export function useParticleLayer(map: React.RefObject<mapboxgl.Map | null>) {
   const { showToast } = useToast();
   const [isError, setIsError] = useState(false);
   const queryClient = useQueryClient();
 
-  const particleLayer = useParticleLayerRef(
+  const { particles, style, dataset, numParticles } = useMapUIStore(
+    useShallow(selectParticleLayerStates),
+  );
+
+  const particleLayer = useMemo(
     () => vectorLayer(PARTICLE_LAYER_ID, PARTICLE_SOURCE_ID, particles),
-    style,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [style],
   );
 
   const setDataByDataset = useCallback(async () => {
@@ -45,7 +45,7 @@ export function useParticleLayer(
 
       map.current!.setMaxBounds(maxBounds);
 
-      particleLayer.current!.metadata = {
+      particleLayer!.metadata = {
         bounds,
         range: [uRange, vRange],
       };
@@ -64,10 +64,10 @@ export function useParticleLayer(
   }, [dataset, map, particleLayer, queryClient]);
 
   const setupLayer = useCallback(async () => {
-    if (!particleLayer.current) return;
+    if (!particleLayer) return;
     await setDataByDataset();
     if (!map.current!.getLayer(PARTICLE_LAYER_ID)) {
-      addLayerInOrder(map, particleLayer.current, PARTICLE_LAYER_ID);
+      addLayerInOrder(map, particleLayer, PARTICLE_LAYER_ID);
     }
   }, [map, particleLayer, setDataByDataset]);
 
@@ -76,8 +76,8 @@ export function useParticleLayer(
   useParticleLayerVisibility(map, loadComplete, particleLayer, particles && !isError);
 
   useEffect(() => {
-    if (!map || !loadComplete || !particleLayer.current) return;
-    particleLayer.current.vectorField?.setParticleNum(numParticles);
+    if (!map || !loadComplete || !particleLayer) return;
+    particleLayer.vectorField?.setParticleNum(numParticles);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadComplete, numParticles]);
 

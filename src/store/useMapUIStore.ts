@@ -120,3 +120,27 @@ export const selectAllStates = (s: MapUIState) => ({
   numParticles: s.numParticles,
   dataset: s.dataset,
 });
+
+export const selectOverlayLayerStates = (s: MapUIState) => ({
+  style: s.style,
+  overlay: s.overlay,
+  dataset: s.dataset,
+});
+
+export const selectParticleLayerStates = (s: MapUIState) => ({
+  style: s.style,
+  particles: s.particles,
+  dataset: s.dataset,
+  numParticles: s.numParticles,
+});
+
+export const selectWaveBuoyLayerStates = (s: MapUIState) => ({
+  style: s.style,
+  circle: s.circle,
+  dataset: s.dataset,
+});
+
+export const selectDistanceMeasurementLayerStates = (s: MapUIState) => ({
+  style: s.style,
+  distanceMeasurement: s.distanceMeasurement,
+});

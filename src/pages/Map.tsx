@@ -2,7 +2,6 @@ import {
   MapComponent,
   FloatingPanel,
   Sidebar,
-  MapControlPanel,
   MainSidebarContent,
   FeaturesMenu,
   LayersIcon,
@@ -18,7 +17,7 @@ import {
 } from '@/components';
 import { useDrawerStore, useMapUIStore } from '@/store';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useViewportSize } from '@/hooks';
 import { Header as MapHeader } from '@/components';
 import { useShallow } from 'zustand/shallow';
@@ -26,7 +25,6 @@ import logImage from '@/assets/imos_logo_with_title.png';
 
 export const Map = () => {
   const refreshDatasets = useMapUIStore(s => s.refreshDatasets);
-  const mapRef = useRef<mapboxgl.Map | null>(null);
   const { widthBreakpoint } = useViewportSize();
   const isSmallScreen = ['sm', 'md'].includes(widthBreakpoint || '');
 
@@ -74,8 +72,7 @@ export const Map = () => {
               { Icon: SatelliteIcon, label: 'circle' },
             ]}
           />
-          <MapComponent ref={mapRef} key={isSmallScreen ? 'mobile' : 'desktop'} />
-          <MapControlPanel ref={mapRef} className="absolute top-10 left-0 z-10 hidden md:block" />
+          <MapComponent key={isSmallScreen ? 'mobile' : 'desktop'} />
           <DateSelectionBar className="absolute bottom-2 left-1/2 -translate-x-1/2 w-full pointer-events-none" />
           <FloatingPanel
             wrapperClassName="w-14 md:w-fit bg-imos-light rounded-xl"

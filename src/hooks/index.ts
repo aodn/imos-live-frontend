@@ -6,7 +6,6 @@ export * from './useParticleLayer';
 export * from './useOverlayLayer';
 export * from './useWaveBuoysLayer';
 export * from './useMapboxLayerVisibility';
-export * from './useMapboxLayerRef';
 export * from './useMapboxLayerSetup';
 export * from './useWaveBuoysLayerClickHandler';
 export * from './useParticleOverlayLayersClickHandlers';

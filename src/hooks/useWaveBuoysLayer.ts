@@ -7,7 +7,6 @@ import {
 } from '@/constants';
 import { addLayerInOrder, addOrUpdateGeoJsonSource } from '@/helpers';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
-import { useMapboxLayerRef } from './useMapboxLayerRef';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import {
   cacheConfig,
@@ -17,22 +16,20 @@ import {
 } from '@/config';
 import { useToast } from '@/components';
 import { getWaveBuoyLocations } from '@/api';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useDidMountEffect } from './useDidMountEffect';
+import { selectWaveBuoyLayerStates, useMapUIStore } from '@/store';
+import { useShallow } from 'zustand/shallow';
 
-export function useWaveBuoysLayer(
-  map: React.RefObject<mapboxgl.Map | null>,
-  circle: boolean,
-  style: string,
-  dataset: string,
-) {
+export function useWaveBuoysLayer(map: React.RefObject<mapboxgl.Map | null>) {
   const [isError, setIsError] = useState(false);
   const { showToast } = useToast();
-
   const queryClient = useQueryClient();
 
-  const waveBuoysLayer = useMapboxLayerRef(
+  const { style, circle, dataset } = useMapUIStore(useShallow(selectWaveBuoyLayerStates));
+
+  const waveBuoysLayer = useMemo(
     () =>
       circleLayer(
         {
@@ -42,10 +39,11 @@ export function useWaveBuoysLayer(
         },
         circle,
       ),
-    style,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [style],
   );
 
-  const unClusteredWaveBuoysLayer = useMapboxLayerRef(
+  const unClusteredWaveBuoysLayer = useMemo(
     () =>
       circleLayer(
         {
@@ -55,10 +53,11 @@ export function useWaveBuoysLayer(
         },
         circle,
       ),
-    style,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [style],
   );
 
-  const clusterLabelLayer = useMapboxLayerRef(
+  const clusterLabelLayer = useMemo(
     () =>
       symbolLayer(
         {
@@ -68,7 +67,8 @@ export function useWaveBuoysLayer(
         },
         circle,
       ),
-    style,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [style],
   );
 
   const setDataByDataset = useCallback(async () => {
@@ -94,16 +94,16 @@ export function useWaveBuoysLayer(
   }, [dataset, map, queryClient]);
 
   const setupLayer = useCallback(async () => {
-    if (!waveBuoysLayer?.current || !clusterLabelLayer?.current) return;
+    if (!waveBuoysLayer || !clusterLabelLayer) return;
     await setDataByDataset();
     if (!map.current!.getLayer(WAVE_BUOYS_LAYER_ID)) {
-      addLayerInOrder(map, waveBuoysLayer.current, WAVE_BUOYS_LAYER_ID);
+      addLayerInOrder(map, waveBuoysLayer, WAVE_BUOYS_LAYER_ID);
     }
     if (!map.current!.getLayer(UNCLUSTERED_WAVE_BUOYS_LAYER_ID)) {
-      addLayerInOrder(map, unClusteredWaveBuoysLayer.current, UNCLUSTERED_WAVE_BUOYS_LAYER_ID);
+      addLayerInOrder(map, unClusteredWaveBuoysLayer, UNCLUSTERED_WAVE_BUOYS_LAYER_ID);
     }
     if (!map.current!.getLayer(WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID)) {
-      addLayerInOrder(map, clusterLabelLayer.current, WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID);
+      addLayerInOrder(map, clusterLabelLayer, WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID);
     }
   }, [clusterLabelLayer, map, setDataByDataset, unClusteredWaveBuoysLayer, waveBuoysLayer]);
 
