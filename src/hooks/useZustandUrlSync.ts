@@ -1,4 +1,4 @@
-import { isSame } from '@/utils';
+import { deserialize, isSame, serialize } from '@/utils';
 import { useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
@@ -7,37 +7,6 @@ type SyncConfig<T> = {
   getState: () => T;
   setState: (key: keyof T, value: any) => void;
   debounceMs?: number;
-};
-
-const serialize = (value: any): string => {
-  if (value === null || value === undefined) return '';
-  if (typeof value === 'string') return value;
-  if (typeof value === 'boolean') return value ? '1' : '0';
-  if (typeof value === 'number') return String(value);
-
-  try {
-    return JSON.stringify(value);
-  } catch {
-    return String(value);
-  }
-};
-
-const deserialize = (value: string, originalValue: any): any => {
-  if (!value) return originalValue;
-  if (typeof originalValue === 'boolean') return value === '1';
-  if (typeof originalValue === 'number') {
-    const num = Number(value);
-    return isNaN(num) ? originalValue : num;
-  }
-  if (typeof originalValue === 'string') return value;
-  if (typeof originalValue === 'object' && originalValue !== null) {
-    try {
-      return JSON.parse(value);
-    } catch {
-      return originalValue;
-    }
-  }
-  return value;
 };
 
 export function useZustandUrlSync<T extends Record<string, any>>({
@@ -65,8 +34,8 @@ export function useZustandUrlSync<T extends Record<string, any>>({
     keys.forEach(key => {
       const urlValue = searchParams.get(key as string);
       if (urlValue !== null) {
-        const deserializedValue = deserialize(urlValue, currentState[key]);
-        if (isSame(deserializedValue, currentState[key])) return;
+        const deserializedValue = deserialize(urlValue, typeof currentState[key]);
+        if (deserializedValue !== undefined && isSame(deserializedValue, currentState[key])) return;
         setState(key, deserializedValue);
       }
     });

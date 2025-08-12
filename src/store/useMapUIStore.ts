@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { StyleTitle } from '@/styles';
-import { getLast7DatesEnding3DaysAgo } from '@/utils';
+import { deserialize, getLast7DatesEnding3DaysAgo } from '@/utils';
 import { LngLat } from 'mapbox-gl';
 
 export type NumParticles = 1000 | 10000 | 100000;
@@ -51,24 +51,6 @@ const mapUIStateTypes: Record<keyof MapUIState, string> = {
   setDistanceMeasurement: 'function',
   setDataset: 'function',
   refreshDatasets: 'function',
-};
-
-const deserialize = (value: string | null, originalValueType: any): any => {
-  if (!value) return undefined;
-  if (originalValueType === 'boolean') return value === '1';
-  if (originalValueType === 'number') {
-    const num = Number(value);
-    return isNaN(num) ? originalValueType : num;
-  }
-  if (originalValueType === 'string') return value;
-  if (originalValueType === 'object' && originalValueType !== null) {
-    try {
-      return JSON.parse(value);
-    } catch {
-      return undefined;
-    }
-  }
-  return value;
 };
 
 export function getUrlState<T extends keyof MapUIState>(keys: T[]) {

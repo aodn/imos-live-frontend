@@ -21,3 +21,4 @@ export * from './getViewPortSize';
 export * from './appendCacheBuster';
 export * from './sleep';
 export * from './isSame';
+export * from './serilizationUtil';
