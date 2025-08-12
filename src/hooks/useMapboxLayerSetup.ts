@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import { DependencyList, useEffect, useState } from 'react';
 
 export function useMapboxLayerSetup(
   map: React.RefObject<mapboxgl.Map | null>,
   setupLayerFn: () => Promise<void>,
-  deps: any[] = [],
+  deps: DependencyList = [],
 ) {
   const [loadComplete, setLoadComplete] = useState(false);
 
