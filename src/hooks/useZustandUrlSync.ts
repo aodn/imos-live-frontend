@@ -35,7 +35,7 @@ export function useZustandUrlSync<T extends Record<string, any>>({
       const urlValue = searchParams.get(key as string);
       if (urlValue !== null) {
         const deserializedValue = deserialize(urlValue, typeof currentState[key]);
-        if (deserializedValue !== undefined && isSame(deserializedValue, currentState[key])) return;
+        if (deserializedValue === undefined || isSame(deserializedValue, currentState[key])) return;
         setState(key, deserializedValue);
       }
     });
