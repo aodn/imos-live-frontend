@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { StyleTitle } from '@/styles';
 import { getLast7DatesEnding3DaysAgo } from '@/utils';
 import { LngLat } from 'mapbox-gl';
+import { createJSONStorage, persist, StateStorage } from 'zustand/middleware';
 
 export type NumParticles = 1000 | 10000 | 100000;
 
@@ -30,34 +31,61 @@ export interface MapUIState {
   refreshDatasets: () => void;
 }
 
-export const useMapUIStore = create<MapUIState>(set => ({
-  center: new LngLat(133.7751, -25.2744),
-  zoom: 3,
-  style: 'ESRIWorldImagery',
-  overlay: true,
-  circle: true,
-  particles: true,
-  numParticles: 10000,
-  distanceMeasurement: false,
-  datasets: getLast7DatesEnding3DaysAgo(),
-  dataset: INITIAL_DATASET,
-  isMapReady: false,
-  setCenter: center => set({ center }),
-  setZoom: zoom => set({ zoom }),
-  setStyle: style => set({ style }),
-  setOverlay: overlay => {
-    set({ overlay });
+const hashStorage: StateStorage = {
+  getItem: (key): string => {
+    const searchParams = new URLSearchParams(location.hash.slice(1));
+    const storedValue = searchParams.get(key) ?? '';
+    return JSON.parse(storedValue);
   },
-  setCircle: circle => set({ circle }),
-  setParticles: particles => set({ particles }),
-  setNumParticles: numParticles => set({ numParticles }),
-  setDistanceMeasurement: distanceMeasurement => set({ distanceMeasurement }),
-  setDataset: dataset => set({ dataset }),
-  refreshDatasets: () => {
-    const newDatasets = getLast7DatesEnding3DaysAgo();
-    set(prev => ({ ...prev, datasets: newDatasets }));
+  setItem: (key, newValue): void => {
+    const searchParams = new URLSearchParams(location.hash.slice(1));
+    searchParams.set(key, JSON.stringify(newValue));
+    location.hash = searchParams.toString();
   },
-}));
+  removeItem: (key): void => {
+    const searchParams = new URLSearchParams(location.hash.slice(1));
+    searchParams.delete(key);
+    location.hash = searchParams.toString();
+  },
+};
+
+const storageOptions = {
+  name: 'url-sync', // unique name
+  storage: createJSONStorage<MapUIState>(() => hashStorage),
+};
+
+export const useMapUIStore = create(
+  persist<MapUIState>(
+    set => ({
+      center: new LngLat(133.7751, -25.2744),
+      zoom: 3,
+      style: 'ESRIWorldImagery',
+      overlay: true,
+      circle: true,
+      particles: true,
+      numParticles: 10000,
+      distanceMeasurement: false,
+      datasets: getLast7DatesEnding3DaysAgo(),
+      dataset: INITIAL_DATASET,
+      setCenter: center => set({ center }),
+      setZoom: zoom => set({ zoom }),
+      setStyle: style => set({ style }),
+      setOverlay: overlay => {
+        set({ overlay });
+      },
+      setCircle: circle => set({ circle }),
+      setParticles: particles => set({ particles }),
+      setNumParticles: numParticles => set({ numParticles }),
+      setDistanceMeasurement: distanceMeasurement => set({ distanceMeasurement }),
+      setDataset: dataset => set({ dataset }),
+      refreshDatasets: () => {
+        const newDatasets = getLast7DatesEnding3DaysAgo();
+        set(prev => ({ ...prev, datasets: newDatasets }));
+      },
+    }),
+    storageOptions,
+  ),
+);
 
 export const selectAllStates = (s: MapUIState) => ({
   center: s.center,

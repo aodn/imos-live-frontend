@@ -13,7 +13,6 @@ import {
   MeasuresIcon,
   SatelliteIcon,
   Sidebar,
-  UrlSyncHandler,
   WaterSurfaceIcon,
   WaveIcon,
 } from '@/components';
@@ -91,8 +90,6 @@ export const Map = () => {
             initialPosition={{ x: 10, y: 20 }}
           />
         </div>
-
-        <UrlSyncHandler />
       </div>
     ),
     [

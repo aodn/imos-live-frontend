@@ -12,7 +12,6 @@ export * from './useDistanceMeasurementLayersClickHandler';
 export * from './useResizeObserver';
 export * from './useToggle';
 export * from './useDrag';
-export * from './useZustandUrlSync';
 export * from './useDropdownOutsideClick';
 export * from './useDropdownPosition';
 export * from './useElementSize';
