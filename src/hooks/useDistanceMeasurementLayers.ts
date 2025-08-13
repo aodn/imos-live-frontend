@@ -9,9 +9,11 @@ import { addLayerInOrder, addOrUpdateGeoJsonSource } from '@/helpers';
 import { circleLayer, lineLayer } from '@/layers';
 import { useMapUIStore } from '@/store';
 import { FeatureCollection, GeoJsonProperties, Geometry } from 'geojson';
-import { Layer } from 'mapbox-gl';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
+import { useMapboxLayerSetup } from './useMapboxLayerSetup';
+import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
+import { useDidMountEffect } from './useDidMountEffect';
 
 export function useDistanceMeasurementLayers(map: React.RefObject<mapboxgl.Map | null>) {
   const { distanceMeasurement } = useMapUIStore(
@@ -58,53 +60,34 @@ export function useDistanceMeasurementLayers(map: React.RefObject<mapboxgl.Map |
     [measurePointsLayer, measureLineLayer],
   );
 
-  const addLayersBackAfterStyleChanges = useCallback(
-    (layers: Layer[]) => {
-      addOrUpdateGeoJsonSource({
-        map: map.current!,
-        id: MEASURE_POINTS_SOURCE_ID,
-        data: measurePointsGeojson,
-      });
-      layers.forEach(layer => addLayerInOrder(map, layer));
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    },
-    [measurePointsGeojson, layers],
+  const setupLayer = useCallback(async () => {
+    addOrUpdateGeoJsonSource({
+      map: map.current!,
+      id: MEASURE_POINTS_SOURCE_ID,
+      data: measurePointsGeojson,
+    });
+    layers.forEach(layer => {
+      if (!map.current?.getLayer(layer.id)) addLayerInOrder(map, layer);
+    });
+  }, [layers, map, measurePointsGeojson]);
+
+  const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [measurePointsGeojson]);
+
+  useMapboxLayerVisibility(
+    map,
+    loadComplete,
+    [measurePointsLayer, measureLineLayer],
+    distanceMeasurement,
   );
 
-  useEffect(() => {
-    layers.forEach(mlayer => {
-      const layer = map.current?.getLayer(mlayer.id);
-      if (!layer) return;
-      if (mlayer.layout === layer.layout) return;
-      if (mlayer.layout && 'visibility' in mlayer.layout) {
-        map.current?.setLayoutProperty(
-          mlayer.id,
-          'visibility',
-          distanceMeasurement ? 'visible' : 'none',
-        );
-      }
+  useDidMountEffect(() => {
+    if (!map.current || !loadComplete) return;
+    addOrUpdateGeoJsonSource({
+      map: map.current!,
+      id: MEASURE_POINTS_SOURCE_ID,
+      data: measurePointsGeojson,
     });
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [layers, distanceMeasurement]);
-
-  useEffect(() => {
-    const currentMap = map.current;
-    const handleStyleLoad = () => addLayersBackAfterStyleChanges(layers);
-    currentMap?.on('style.load', handleStyleLoad);
-    return () => {
-      currentMap?.off('style.load', handleStyleLoad);
-      return;
-    };
-  }, [map, layers, addLayersBackAfterStyleChanges]);
-
-  useEffect(() => {
-    const measureSource = map.current?.getSource(MEASURE_POINTS_SOURCE_ID);
-    if (!measureSource || measureSource.type !== 'geojson') return;
-
-    measureSource.setData(measurePointsGeojson);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [measurePointsGeojson]);
+  }, [loadComplete, measurePointsGeojson]);
 
   return { measurePointsGeojson, setMeasurePointsGeojson };
 }

@@ -7,28 +7,32 @@ import {
   OVERLAY_LAYER_ID,
   OVERLAY_SOURCE_ID,
 } from '@/constants';
-import { addLayerInOrder, addOrUpdateImageSource, CoordinatesType } from '@/helpers';
+import { addLayerInOrder, addOrUpdateImageSource } from '@/helpers';
 import { imageLayer } from '@/layers';
 import { useMapUIStore } from '@/store';
 import { buildGSLADatasetFullPath, buildGSLADatasetPath, processMetaData } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
-import { Layer } from 'mapbox-gl';
-import { useEffect, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
+import { useMapboxLayerSetup } from './useMapboxLayerSetup';
+import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
+import { useDidMountEffect } from './useDidMountEffect';
 
 export function useOverlayLayer(map: React.RefObject<mapboxgl.Map | null>) {
   const { showToast } = useToast();
-  const { overlay, dataset, setOverlay } = useMapUIStore(
+  const [isError, setIsError] = useState(false);
+  const { overlay, dataset } = useMapUIStore(
     useShallow(s => ({
       overlay: s.overlay,
       dataset: s.dataset,
-      setOverlay: s.setOverlay,
     })),
   );
+
   const gslaQuery = useQuery({
     queryKey: [GSLA_META_NAME, dataset],
     queryFn: () => getMetaData(buildGSLADatasetPath(dataset, GSLA_META_NAME)),
   });
+
   const overlayLayer = useMemo(
     () =>
       imageLayer(
@@ -38,17 +42,7 @@ export function useOverlayLayer(map: React.RefObject<mapboxgl.Map | null>) {
     [overlay],
   );
 
-  useEffect(() => {
-    const layer = map.current?.getLayer(overlayLayer.id);
-    if (!layer) return;
-    if (overlayLayer.layout === layer.layout) return;
-    if (overlayLayer.layout && 'visibility' in overlayLayer.layout) {
-      map.current?.setLayoutProperty(overlayLayer.id, 'visibility', overlayLayer.layout.visibility);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [overlayLayer]);
-
-  const addLayersBackAfterStyleChanges = async (layer: Layer) => {
+  const setDataByDataset = useCallback(async () => {
     try {
       const data = await gslaQuery.promise;
       if (!data) return;
@@ -61,9 +55,10 @@ export function useOverlayLayer(map: React.RefObject<mapboxgl.Map | null>) {
         lonRange,
         latRange,
       );
-      addLayerInOrder(map, layer);
+      setIsError(false);
     } catch (error) {
       console.error('Error adding layers back after style changes:', error);
+      setIsError(true);
       showToast({
         type: 'error',
         title: 'Error occurred',
@@ -71,39 +66,20 @@ export function useOverlayLayer(map: React.RefObject<mapboxgl.Map | null>) {
         duration: 6000,
       });
     }
-  };
+  }, [dataset, gslaQuery.promise, map, showToast]);
 
-  useEffect(() => {
-    const currentMap = map.current;
-    const handleStyleLoad = () => addLayersBackAfterStyleChanges(overlayLayer);
-    currentMap?.on('style.load', handleStyleLoad);
-    return () => {
-      currentMap?.off('style.load', handleStyleLoad);
-      return;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [map, overlayLayer]);
+  const setupLayer = useCallback(async () => {
+    if (!overlayLayer) return;
+    await setDataByDataset();
+    addLayerInOrder(map, overlayLayer);
+  }, [map, overlayLayer, setDataByDataset]);
 
-  useEffect(() => {
-    if (!gslaQuery.data) return;
-    const gslaSource = map.current?.getSource(OVERLAY_SOURCE_ID);
-    if (!gslaSource || gslaSource.type !== 'image') return;
+  const { loadComplete } = useMapboxLayerSetup(map, setupLayer, []);
 
-    const { lonRange, latRange } = processMetaData(gslaQuery.data);
-    const coordinates: CoordinatesType = [
-      [lonRange[0], latRange[1]],
-      [lonRange[1], latRange[1]],
-      [lonRange[1], latRange[0]],
-      [lonRange[0], latRange[0]],
-    ];
-    gslaSource.updateImage({
-      url: buildGSLADatasetFullPath(dataset, GSLA_SEA_LEVEL_NAME),
-      coordinates,
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gslaQuery.data, dataset]);
+  useMapboxLayerVisibility(map, loadComplete, [overlayLayer], overlay && !isError);
 
-  useEffect(() => {
-    if (gslaQuery.isError && overlay) setOverlay(false);
-  }, [gslaQuery.isError, overlay, setOverlay]);
+  useDidMountEffect(() => {
+    if (!map.current || !loadComplete) return;
+    setDataByDataset();
+  }, [loadComplete, dataset]);
 }
