@@ -4,7 +4,6 @@ import { getLast7DatesEnding3DaysAgo, dateToUTC, toDateFormatString, cn } from '
 import { useMapUIStore } from '@/store';
 import { memo, useCallback, useMemo, useRef } from 'react';
 import { useShallow } from 'zustand/shallow';
-import { useSliderDateSyncWithUrl } from '@/hooks';
 
 type DateSelectionBarProps = { className?: string };
 
@@ -17,8 +16,6 @@ export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
   );
 
   const dateSliderMethodRef = useRef<SliderExposedMethod>(null);
-
-  useSliderDateSyncWithUrl(dataset, dateSliderMethodRef);
 
   const lastSevenDays = useMemo(() => getLast7DatesEnding3DaysAgo('yyyy-mm-dd'), []);
   const startDate = useMemo(() => new Date(lastSevenDays[0]), [lastSevenDays]);
