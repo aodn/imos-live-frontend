@@ -45,7 +45,7 @@ export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
         timeUnitSlectionClassName="frosted"
         trackActiveClassName="hidden"
         onChange={handleSelect as (v: SelectionResult) => void}
-        scrollable={true}
+        scrollable
         scaleUnitConfig={{
           width: { short: 1, medium: 2, long: 2 },
           height: { short: 18, medium: 36, long: 60 },
@@ -53,8 +53,8 @@ export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
         sliderHeight={110}
         sliderWidth={'fill'}
         imperativeHandleRef={dateSliderMethodRef}
-        pointLabelPersistent={true}
-        isTimeLabelPerDay={true}
+        pointLabelPersistent
+        isTimeLabelPerDay
         withEndLabel={false}
       />
     </div>

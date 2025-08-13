@@ -7,6 +7,7 @@ import { CollapsibleComponent, TriggerArgs } from '../Collapsible';
 import { cn } from '@/utils';
 import { useViewportSize } from '@/hooks';
 import { ReactNode } from 'react';
+import { ColorScaleBar } from '../ColorScaleBar';
 
 export type LayerCardProps = LayersDataset & {
   firstButtonLabel: string;
@@ -23,6 +24,7 @@ export const LayerCard = ({
   visible,
   layerId,
   icon,
+  variant,
 }: LayerCardProps) => {
   const { widthBreakpoint } = useViewportSize();
   const isSmallScreen = ['sm', 'md'].includes(widthBreakpoint || '');
@@ -50,11 +52,11 @@ export const LayerCard = ({
         )}
         disable={!isSmallScreen}
       >
-        <div className="flex flex-col md:flex-row md:p-4 pb-4 gap-y-4 md:gap-y-0 md:gap-x-6  overflow-hidden">
-          <div className="flex-1 min-w-30 rounded-lg overflow-hidden aspect-square">
+        <div className="grid grid-cols-1 md:grid-cols-2 md:p-4 pb-4 gap-y-4 md:gap-x-6  overflow-hidden">
+          <div className="col-span-2 md:col-span-1 min-w-30 rounded-lg overflow-hidden aspect-square">
             <Image alt={image.alt} src={image.src} fill imageClassName="object-cover" />
           </div>
-          <div className="flex-1  flex flex-col justify-between">
+          <div className="col-span-2 md:col-span-1 flex flex-col justify-between">
             <div>
               <h3 className="font-semibold mb-2 hidden md:block">{title}</h3>
               <p className="text-sm mb-3 leading-relaxed md:line-clamp-7" title={description}>
@@ -75,6 +77,13 @@ export const LayerCard = ({
               </Button>
             )}
           </div>
+
+          {(variant === 'gsla-ocean-geostrophic-current' ||
+            variant === 'gsla-anomaly-sea-levels') && (
+            <div className="col-span-2">
+              <ColorScaleBar className="w-full" variant={variant} />
+            </div>
+          )}
         </div>
       </CollapsibleComponent>
     </>

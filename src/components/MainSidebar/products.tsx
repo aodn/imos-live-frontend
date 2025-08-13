@@ -1,4 +1,11 @@
-import { OVERLAY_LAYER_ID, PARTICLE_LAYER_ID, WAVE_BUOYS_LAYER_ID } from '@/constants';
+import {
+  GSLA_ANOMALY_SEA_LEVELS_PRODUCT_VARIANT,
+  GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT,
+  OVERLAY_LAYER_ID,
+  PARTICLE_LAYER_ID,
+  WAVE_BUOYS_LAYER_ID,
+  WAVE_BUOYS_PRODUCT_VARIANT,
+} from '@/constants';
 import { WaterSurfaceIcon, WaveIcon, RadarIcon, SatelliteIcon } from '../Icons';
 import { LayersDataset } from './MainSidebarContent';
 import occeanCurrentImage from '@/assets/layer_test_1.jpg';
@@ -32,6 +39,7 @@ export const featuredDataset: LayersDataset[] = [
     layerId: PARTICLE_LAYER_ID,
     addToMap: () => console.log('Add to map clicked'),
     visible: false,
+    variant: GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT,
   },
   {
     image: {
@@ -49,6 +57,7 @@ export const featuredDataset: LayersDataset[] = [
     layerId: OVERLAY_LAYER_ID,
     addToMap: () => console.log('Add to map clicked'),
     visible: false,
+    variant: GSLA_ANOMALY_SEA_LEVELS_PRODUCT_VARIANT,
   },
   {
     image: {
@@ -62,6 +71,7 @@ export const featuredDataset: LayersDataset[] = [
     layerId: WAVE_BUOYS_LAYER_ID,
     addToMap: () => console.log('Add to map clicked'),
     visible: false,
+    variant: WAVE_BUOYS_PRODUCT_VARIANT,
   },
 ];
 

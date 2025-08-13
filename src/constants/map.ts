@@ -25,3 +25,7 @@ export const GSLA_SEA_LEVEL_NAME = 'gsla_overlay.png';
 export const GSLA_PARTICLE_NAME = 'gsla_input.png';
 export const GSLA_META_NAME = 'gsla_meta.json';
 export const GSLA_DATA_NAME = 'gsla_data.json';
+
+export const GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT = 'gsla-ocean-geostrophic-current';
+export const GSLA_ANOMALY_SEA_LEVELS_PRODUCT_VARIANT = 'gsla-anomaly-sea-levels';
+export const WAVE_BUOYS_PRODUCT_VARIANT = 'wave-buoys';
