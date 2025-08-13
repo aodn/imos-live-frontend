@@ -1,7 +1,7 @@
-import { create } from 'zustand';
 import { StyleTitle } from '@/styles';
 import { getLast7DatesEnding3DaysAgo } from '@/utils';
 import { LngLat } from 'mapbox-gl';
+import { create } from 'zustand';
 import { createJSONStorage, persist, StateStorage } from 'zustand/middleware';
 
 export type NumParticles = 1000 | 10000 | 100000;
@@ -31,26 +31,34 @@ export interface MapUIState {
   refreshDatasets: () => void;
 }
 
+const stateKeysToExcludeFromUrl = ['datasets'];
 const hashStorage: StateStorage = {
-  getItem: (key): string => {
-    const searchParams = new URLSearchParams(location.hash.slice(1));
-    const storedValue = searchParams.get(key) ?? '';
-    return JSON.parse(storedValue);
+  getItem: () => {
+    const url = new URL(location.href);
+    const restoredState: Record<string, string> = {};
+    for (const [key, value] of url.searchParams.entries()) {
+      restoredState[key] = JSON.parse(value);
+    }
+    return JSON.stringify({ state: restoredState });
   },
-  setItem: (key, newValue): void => {
-    const searchParams = new URLSearchParams(location.hash.slice(1));
-    searchParams.set(key, JSON.stringify(newValue));
-    location.hash = searchParams.toString();
+  setItem: (_key, newValue) => {
+    const { state } = JSON.parse(newValue);
+    const url = new URL(location.href);
+    for (const [k, v] of Object.entries(state)) {
+      if (stateKeysToExcludeFromUrl.includes(k)) continue;
+      url.searchParams.set(k, JSON.stringify(v));
+    }
+    window.history.replaceState({}, '', url.toString());
   },
-  removeItem: (key): void => {
-    const searchParams = new URLSearchParams(location.hash.slice(1));
-    searchParams.delete(key);
-    location.hash = searchParams.toString();
+  removeItem: key => {
+    const url = new URL(location.href);
+    url.searchParams.delete(key);
+    window.history.replaceState({}, '', url.toString());
   },
 };
 
 const storageOptions = {
-  name: 'url-sync', // unique name
+  name: 'url-sync',
   storage: createJSONStorage<MapUIState>(() => hashStorage),
 };
 
