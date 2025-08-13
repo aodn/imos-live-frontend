@@ -75,7 +75,7 @@ export function useParticleLayer(map: React.RefObject<mapboxgl.Map | null>) {
     }
   }, [map, particleLayer, setDataByDataset]);
 
-  const { loadComplete } = useMapboxLayerSetup(map, setupLayer, []);
+  const { loadComplete } = useMapboxLayerSetup(map, setupLayer);
 
   useParticleLayerVisibility(map, loadComplete, particleLayer, particles && !isError);
 
