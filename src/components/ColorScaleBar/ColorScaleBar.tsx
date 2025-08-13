@@ -1,13 +1,12 @@
 import {
   GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT,
   GSLA_ANOMALY_SEA_LEVELS_PRODUCT_VARIANT,
+  OVERLAY_LAYER_COLORS,
 } from '@/constants';
 import { vectorConfig } from '@/config';
+import { cn } from '@/utils';
 
 interface ColorScaleBarProps {
-  title?: string;
-  min?: number;
-  max?: number;
   height?: number;
   tickCount?: number;
   className?: string;
@@ -17,42 +16,32 @@ interface ColorScaleBarProps {
 }
 
 export const ColorScaleBar = ({
-  title = 'Height anomaly (m)',
-  min = -0.6,
-  max = 0.6,
-  height = 20,
+  height = 16,
   tickCount = 7,
   variant,
   className,
 }: ColorScaleBarProps) => {
-  // Predefined color schemes
-  const colorSchemes = {
-    height: [
-      '#000080', // Dark blue
-      '#0000FF', // Blue
-      '#00FFFF', // Cyan
-      '#00FF00', // Green
-      '#FFFF00', // Yellow
-      '#FFA500', // Orange
-      '#FF0000', // Red
-    ],
-  };
-
   const variants = {
     [GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT]: {
       colors: Object.values(vectorConfig.colours),
+      title: 'ocean current speed (m/s)',
+      range: [0, 1],
     },
     [GSLA_ANOMALY_SEA_LEVELS_PRODUCT_VARIANT]: {
-      colors: colorSchemes.height,
+      colors: OVERLAY_LAYER_COLORS,
+      title: 'anomaly sea level (m)',
+      range: [-0.6, 0.6],
     },
   };
-
+  //TODO: 1. set OVERLAY_LAYER_COLORS to cmap in hvplot.quadmesh so that plot in these colors.
+  // 2. get min, max of both anomaly sea levels and occean current speed saved in meta_data.json in python script.
   const generateGradient = () => {
-    const colors = variants[variant]?.colors ?? colorSchemes.height;
+    const colors = variants[variant]?.colors;
     return `linear-gradient(to right, ${colors.join(', ')})`;
   };
 
   const generateTicks = () => {
+    const [min, max] = variants[variant].range;
     const ticks = [];
     const step = (max - min) / (tickCount - 1);
 
@@ -62,8 +51,10 @@ export const ColorScaleBar = ({
 
       ticks.push(
         <div
-          key={i}
-          className="absolute flex flex-col items-center"
+          key={`ColorScaleBar-ticks-${i}`}
+          className={cn('absolute flex flex-col items-center', {
+            hidden: i === 0 || i === tickCount - 1,
+          })}
           style={{ left: `${position}%`, transform: 'translateX(-50%)' }}
         >
           <span className="text-xs text-black font-medium">{value.toFixed(1)}</span>
@@ -86,7 +77,7 @@ export const ColorScaleBar = ({
         />
         <div className="relative mt-1 ">{generateTicks()}</div>
       </div>
-      <div className="text-black text-sm font-medium  text-center mt-6">{title}</div>
+      <div className="text-black text-sm text-center mt-6">{variants[variant].title}</div>
     </div>
   );
 };

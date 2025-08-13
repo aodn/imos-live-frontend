@@ -29,3 +29,16 @@ export const GSLA_DATA_NAME = 'gsla_data.json';
 export const GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT = 'gsla-ocean-geostrophic-current';
 export const GSLA_ANOMALY_SEA_LEVELS_PRODUCT_VARIANT = 'gsla-anomaly-sea-levels';
 export const WAVE_BUOYS_PRODUCT_VARIANT = 'wave-buoys';
+
+//this is the same colors that used to plot gsla anomaly sea level to gsla_overlay.png.
+export const OVERLAY_LAYER_COLORS = [
+  '#440154',
+  '#482777',
+  '#3f4a8a',
+  '#31678e',
+  '#26838f',
+  '#1f9d8a',
+  '#6cce5a',
+  '#b6de2b',
+  '#fee825',
+];
