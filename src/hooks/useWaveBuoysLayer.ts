@@ -26,15 +26,10 @@ export function useWaveBuoysLayer(map: React.RefObject<mapboxgl.Map | null>) {
   const [isError, setIsError] = useState(false);
   const { showToast } = useToast();
 
-  const {
-    circle: isBuoyWavesLayerEnabled,
-    dataset,
-    style,
-  } = useMapUIStore(
+  const { circle: isBuoyWavesLayerEnabled, dataset } = useMapUIStore(
     useShallow(s => ({
       circle: s.circle,
       dataset: s.dataset,
-      style: s.style,
     })),
   );
 
@@ -117,7 +112,7 @@ export function useWaveBuoysLayer(map: React.RefObject<mapboxgl.Map | null>) {
     buoyLayers.forEach(layer => addLayerInOrder(map, layer));
   }, [buoyLayers, map, setDataByDataset]);
 
-  const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [style]);
+  const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [waveBuoysLayer]);
 
   useMapboxLayerVisibility(
     map,
