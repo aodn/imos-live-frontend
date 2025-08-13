@@ -128,7 +128,12 @@ describe('useOverlayLayer', () => {
   it('should initialize with overlay enabled and setup layer on load', () => {
     renderHook(() => useOverlayLayer(mockMap as any));
 
-    expect(useMapboxLayerSetup).toHaveBeenCalledWith(mockMap, expect.any(Function), []);
+    expect(useMapboxLayerSetup).toHaveBeenCalledWith(mockMap, expect.any(Function), [
+      {
+        id: 'gsla-overlay-layer',
+        source: 'gsla-overlay-source',
+      },
+    ]);
 
     expect(useMapboxLayerVisibility).toHaveBeenCalledWith(
       mockMap,
