@@ -21,10 +21,11 @@ import { useDidMountEffect } from './useDidMountEffect';
 export function useOverlayLayer(map: React.RefObject<mapboxgl.Map | null>) {
   const { showToast } = useToast();
   const [isError, setIsError] = useState(false);
-  const { overlay, dataset } = useMapUIStore(
+  const { overlay, dataset, style } = useMapUIStore(
     useShallow(s => ({
       overlay: s.overlay,
       dataset: s.dataset,
+      style: s.style,
     })),
   );
 
@@ -74,7 +75,7 @@ export function useOverlayLayer(map: React.RefObject<mapboxgl.Map | null>) {
     addLayerInOrder(map, overlayLayer);
   }, [map, overlayLayer, setDataByDataset]);
 
-  const { loadComplete } = useMapboxLayerSetup(map, setupLayer, []);
+  const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [style]);
 
   useMapboxLayerVisibility(map, loadComplete, [overlayLayer], overlay && !isError);
 
