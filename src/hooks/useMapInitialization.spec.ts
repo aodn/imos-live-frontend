@@ -1,3 +1,7 @@
+/**
+ * @vitest-environment jsdom
+ */
+
 import { renderHook, act } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi, Mock } from 'vitest';
 import { useMapInitialization } from './useMapInitialization';
