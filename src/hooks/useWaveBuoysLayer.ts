@@ -16,17 +16,29 @@ import { addLayerInOrder, addOrUpdateGeoJsonSource } from '@/helpers';
 import { circleLayer, symbolLayer } from '@/layers';
 import { useMapUIStore } from '@/store';
 import { useQuery } from '@tanstack/react-query';
-import { Layer } from 'mapbox-gl';
-import { useEffect, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
+import { useDidMountEffect } from './useDidMountEffect';
+import { useMapboxLayerSetup } from './useMapboxLayerSetup';
+import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
 
 export function useWaveBuoysLayer(map: React.RefObject<mapboxgl.Map | null>) {
+  const [isError, setIsError] = useState(false);
+  const { showToast } = useToast();
+
   const { circle: isBuoyWavesLayerEnabled, dataset } = useMapUIStore(
     useShallow(s => ({
       circle: s.circle,
       dataset: s.dataset,
     })),
   );
+
+  const buoyQuery = useQuery({
+    queryKey: ['wave_buoy_locations', dataset],
+    queryFn: () => getWaveBuoyLocations(dataset),
+    ...cacheConfig(dataset),
+    enabled: isBuoyWavesLayerEnabled && dataset !== '',
+  });
 
   const waveBuoysLayer = useMemo(
     () =>
@@ -69,31 +81,7 @@ export function useWaveBuoysLayer(map: React.RefObject<mapboxgl.Map | null>) {
     [waveBuoysLayer, unClusteredWaveBuoysLayer, clusterLabelLayer],
   );
 
-  const { showToast } = useToast();
-  const buoyQuery = useQuery({
-    queryKey: ['wave_buoy_locations', dataset],
-    queryFn: () => getWaveBuoyLocations(dataset),
-    ...cacheConfig(dataset),
-    enabled: isBuoyWavesLayerEnabled && dataset !== '',
-  });
-
-  useEffect(() => {
-    buoyLayers.forEach(buoyLayer => {
-      const layer = map.current?.getLayer(buoyLayer.id);
-      if (!layer) return;
-      if (buoyLayer.layout === layer.layout) return;
-      if (buoyLayer.layout && 'visibility' in buoyLayer.layout) {
-        map.current?.setLayoutProperty(
-          buoyLayer.id,
-          'visibility',
-          isBuoyWavesLayerEnabled ? 'visible' : 'none',
-        );
-      }
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [buoyLayers, isBuoyWavesLayerEnabled]);
-
-  const addLayersBackAfterStyleChanges = async (layers: Layer[]) => {
+  const setDataByDataset = useCallback(async () => {
     try {
       const data = await buoyQuery.promise;
       if (!data) return;
@@ -105,9 +93,10 @@ export function useWaveBuoysLayer(map: React.RefObject<mapboxgl.Map | null>) {
         clusterRadius: 40,
       });
 
-      layers.forEach(layer => addLayerInOrder(map, layer));
+      setIsError(false);
     } catch (error) {
       console.error('Error adding layers back after style changes:', error);
+      setIsError(true);
       showToast({
         type: 'error',
         title: 'Error occurred',
@@ -115,27 +104,25 @@ export function useWaveBuoysLayer(map: React.RefObject<mapboxgl.Map | null>) {
         duration: 6000,
       });
     }
-  };
+  }, [buoyQuery.promise, map, showToast]);
 
-  useEffect(() => {
-    const currentMap = map.current;
-    const handleStyleLoad = () => addLayersBackAfterStyleChanges(buoyLayers);
-    currentMap?.on('style.load', handleStyleLoad);
-    return () => {
-      currentMap?.off('style.load', handleStyleLoad);
-      return;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [map, buoyLayers]);
+  const setupLayer = useCallback(async () => {
+    if (buoyLayers.some(layer => !layer)) return;
+    await setDataByDataset();
+    buoyLayers.forEach(layer => addLayerInOrder(map, layer));
+  }, [buoyLayers, map, setDataByDataset]);
 
-  useEffect(() => {
-    if (!buoyQuery.data) return;
+  const { loadComplete } = useMapboxLayerSetup(map, setupLayer, []);
 
-    const waveBuoysSource = map.current?.getSource(WAVE_BUOYS_SOURCE_ID);
-    if (!waveBuoysSource || waveBuoysSource.type !== 'geojson') return;
+  useMapboxLayerVisibility(
+    map,
+    loadComplete,
+    [waveBuoysLayer, unClusteredWaveBuoysLayer, clusterLabelLayer],
+    isBuoyWavesLayerEnabled && !isError,
+  );
 
-    waveBuoysSource.setData(buoyQuery.data);
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [buoyQuery.data]);
+  useDidMountEffect(() => {
+    if (!map.current || !loadComplete) return;
+    setDataByDataset();
+  }, [loadComplete, dataset]);
 }
