@@ -112,7 +112,7 @@ export function useWaveBuoysLayer(map: React.RefObject<mapboxgl.Map | null>) {
     buoyLayers.forEach(layer => addLayerInOrder(map, layer));
   }, [buoyLayers, map, setDataByDataset]);
 
-  const { loadComplete } = useMapboxLayerSetup(map, setupLayer);
+  const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [waveBuoysLayer]);
 
   useMapboxLayerVisibility(
     map,

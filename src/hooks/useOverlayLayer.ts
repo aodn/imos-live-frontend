@@ -74,7 +74,7 @@ export function useOverlayLayer(map: React.RefObject<mapboxgl.Map | null>) {
     addLayerInOrder(map, overlayLayer);
   }, [map, overlayLayer, setDataByDataset]);
 
-  const { loadComplete } = useMapboxLayerSetup(map, setupLayer);
+  const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [overlayLayer]);
 
   useMapboxLayerVisibility(map, loadComplete, [overlayLayer], overlay && !isError);
 
