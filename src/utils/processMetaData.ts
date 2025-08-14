@@ -4,7 +4,7 @@ type MaxBoundsType = [range: RangeType, range: RangeType];
 
 type BoundsType = [number, number, number, number];
 
-export type ProcessedMetaType = MetaType & {
+export type ProcessedMetaType = Pick<MetaType, 'lonRange' | 'latRange' | 'uRange' | 'vRange'> & {
   bounds: BoundsType;
   maxBounds: MaxBoundsType;
 };
@@ -27,7 +27,5 @@ export function processMetaData(meta: MetaType): ProcessedMetaType {
     latRange: rawLatRange || latRange,
     uRange,
     vRange,
-    rawLatRange,
-    rawLonRange,
   };
 }
