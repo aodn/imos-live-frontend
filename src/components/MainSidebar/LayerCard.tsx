@@ -1,13 +1,17 @@
-import { WAVE_BUOYS_LAYER_ID } from '@/constants';
+import { GSLA_META_NAME, WAVE_BUOYS_LAYER_ID } from '@/constants';
 import { Button } from '../Button';
 import { ArrowDownIcon, MapLayersIcon } from '../Icons';
 import { Image } from '../Image';
 import { LayersDataset } from './MainSidebarContent';
 import { CollapsibleComponent, TriggerArgs } from '../Collapsible';
-import { cn } from '@/utils';
+import { buildGSLADatasetPath, cn } from '@/utils';
 import { useViewportSize } from '@/hooks';
-import { ReactNode } from 'react';
+import { ReactNode, useMemo } from 'react';
 import { ColorScaleBar } from '../ColorScaleBar';
+import { getMetaData } from '@/api';
+import { useMapUIStore } from '@/store';
+import { useQuery } from '@tanstack/react-query';
+import { useShallow } from 'zustand/shallow';
 
 export type LayerCardProps = LayersDataset & {
   firstButtonLabel: string;
@@ -28,6 +32,24 @@ export const LayerCard = ({
 }: LayerCardProps) => {
   const { widthBreakpoint } = useViewportSize();
   const isSmallScreen = ['sm', 'md'].includes(widthBreakpoint || '');
+
+  const { dataset } = useMapUIStore(
+    useShallow(s => ({
+      dataset: s.dataset,
+    })),
+  );
+
+  //react query with same querykey will only be called once even put in multiple components.
+  const { data, isLoading, isError } = useQuery({
+    queryKey: [GSLA_META_NAME, dataset],
+    queryFn: () => getMetaData(buildGSLADatasetPath(dataset, GSLA_META_NAME)),
+    enabled: variant !== 'wave-buoys',
+  });
+
+  const colorScaleRange = useMemo(() => {
+    if (variant === 'gsla-anomaly-sea-levels') return data?.gslaRange;
+    if (variant === 'gsla-ocean-geostrophic-current') return data?.speedRange;
+  }, [data?.gslaRange, data?.speedRange, variant]);
 
   const handleClick = () => {
     if (visible) addToMap(false);
@@ -78,12 +100,20 @@ export const LayerCard = ({
             )}
           </div>
 
-          {(variant === 'gsla-ocean-geostrophic-current' ||
-            variant === 'gsla-anomaly-sea-levels') && (
-            <div className="col-span-2">
-              <ColorScaleBar className="w-full" variant={variant} />
-            </div>
-          )}
+          {!isLoading &&
+            !isError &&
+            colorScaleRange &&
+            (variant === 'gsla-ocean-geostrophic-current' ||
+              variant === 'gsla-anomaly-sea-levels') && (
+              <div className="col-span-2">
+                <ColorScaleBar
+                  className="w-full"
+                  variant={variant}
+                  min={colorScaleRange[0]}
+                  max={colorScaleRange[1]}
+                />
+              </div>
+            )}
         </div>
       </CollapsibleComponent>
     </>

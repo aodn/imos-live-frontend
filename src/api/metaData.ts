@@ -12,6 +12,8 @@ export type MetaType = {
   rawLonRange?: RangeType;
   uRange: RangeType;
   vRange: RangeType;
+  speedRange: RangeType;
+  gslaRange: RangeType;
 };
 
 export const getMetaData = async (url: string): Promise<MetaType> => {
