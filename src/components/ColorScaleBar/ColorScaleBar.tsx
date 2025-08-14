@@ -43,7 +43,7 @@ const variants = {
 };
 
 export const ColorScaleBar = ({
-  height = 16,
+  height = 80,
   tickCount = 7,
   variant,
   className,
@@ -81,9 +81,7 @@ export const ColorScaleBar = ({
       tickElements.push(
         <div
           key={`ColorScaleBar-ticks-${i}`}
-          className={cn('absolute flex flex-col items-center', {
-            // hidden: i === 0 || i === tickCount - 1,
-          })}
+          className={cn('absolute flex flex-col items-center')}
           style={{ left: `${position}%`, transform: 'translateX(-50%)' }}
         >
           <span className="text-xs text-black font-medium">{value.toFixed(1)}</span>
@@ -94,19 +92,61 @@ export const ColorScaleBar = ({
     return tickElements;
   }, [props, tickCount]);
 
+  const scaleUnits = useMemo(() => {
+    const tickElements = [];
+
+    for (let i = 0; i < tickCount; i++) {
+      const position = (i / (tickCount - 1)) * 100;
+
+      tickElements.push(
+        <div
+          key={`ColorScaleBar-ticks-${i}`}
+          className={cn('absolute flex flex-col items-center')}
+          style={{ left: `${position}%`, transform: 'translateX(-50%)' }}
+        >
+          <span className="h-[6px] bg-black w-0.5" />
+        </div>,
+      );
+    }
+
+    return tickElements;
+  }, [tickCount]);
+
   return (
-    <div className={className}>
+    <div
+      className={className}
+      style={{
+        height: `${height}px`,
+      }}
+    >
       <div className="w-full">
         <div
           className="rounded-sm w-full"
           style={{
-            height: `${height}px`,
+            height: `${height * 0.2}px`,
             background: gradient,
           }}
         />
-        <div className="relative mt-1">{ticks}</div>
+        <div
+          style={{
+            height: `${height * 0.1}px`,
+          }}
+          className="relative mx-4"
+        >
+          {scaleUnits}
+        </div>
+        <div className="relative  mx-4" style={{ height: `${height * 0.3}px` }}>
+          {ticks}
+        </div>
       </div>
-      <div className="text-black text-sm text-center mt-6">{config.title}</div>
+      <div
+        className="text-black text-sm text-center flex flex-col"
+        style={{
+          height: `${height * 0.4}px`,
+        }}
+      >
+        <span> {config.title}</span>
+      </div>
     </div>
   );
 };

@@ -12,6 +12,7 @@ import { getMetaData } from '@/api';
 import { useMapUIStore } from '@/store';
 import { useQuery } from '@tanstack/react-query';
 import { useShallow } from 'zustand/shallow';
+import { Skeleton } from '../Skeleton';
 
 export type LayerCardProps = LayersDataset & {
   firstButtonLabel: string;
@@ -50,6 +51,9 @@ export const LayerCard = ({
     if (variant === 'gsla-anomaly-sea-levels') return data?.gslaRange;
     if (variant === 'gsla-ocean-geostrophic-current') return data?.speedRange;
   }, [data?.gslaRange, data?.speedRange, variant]);
+
+  const enableColorScaleBar =
+    variant === 'gsla-ocean-geostrophic-current' || variant === 'gsla-anomaly-sea-levels';
 
   const handleClick = () => {
     if (visible) addToMap(false);
@@ -99,21 +103,21 @@ export const LayerCard = ({
               </Button>
             )}
           </div>
-
-          {!isLoading &&
-            !isError &&
-            colorScaleRange &&
-            (variant === 'gsla-ocean-geostrophic-current' ||
-              variant === 'gsla-anomaly-sea-levels') && (
-              <div className="col-span-2">
+          {enableColorScaleBar && (
+            <div className="col-span-2 md:mt-4">
+              {!isLoading && !isError && colorScaleRange && (
                 <ColorScaleBar
                   className="w-full"
+                  height={80}
                   variant={variant}
+                  tickCount={isSmallScreen ? 5 : 7}
                   min={colorScaleRange[0]}
                   max={colorScaleRange[1]}
                 />
-              </div>
-            )}
+              )}
+              {isLoading && <Skeleton className="h-20 w-full" />}
+            </div>
+          )}
         </div>
       </CollapsibleComponent>
     </>
