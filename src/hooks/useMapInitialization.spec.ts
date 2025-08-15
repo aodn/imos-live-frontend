@@ -21,6 +21,9 @@ const mockMap = {
   removeSource: vi.fn(),
   getSource: vi.fn(),
   getLayer: vi.fn(),
+  touchZoomRotate: {
+    disableRotation: vi.fn(),
+  },
 };
 
 vi.mock('mapbox-gl', () => ({
@@ -84,6 +87,7 @@ describe('useMapInitialization', () => {
       }),
     );
 
+    expect(mockMap.touchZoomRotate.disableRotation).toHaveBeenCalled();
     expect(mockMap.setZoom).toHaveBeenCalledWith(3);
     expect(mockMap.setCenter).toHaveBeenCalledWith({ lng: 133.7751, lat: -25.2744 });
   });
