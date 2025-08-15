@@ -34,24 +34,35 @@ export default {
 };
 
 // Memoized selection display component
-const SelectionDisplay = memo(({ selection }: { selection?: SelectionResult }) => (
-  <div style={{ marginTop: 24, fontFamily: 'monospace' }}>
-    <strong>Selection Output:</strong>
-    <pre
-      style={{
-        backgroundColor: '#f8f9fa',
-        padding: '12px',
-        borderRadius: '4px',
-        border: '1px solid #e9ecef',
-        fontSize: '12px',
-        overflow: 'auto',
-        maxHeight: '200px',
-      }}
-    >
-      {JSON.stringify(selection, null, 2)}
-    </pre>
-  </div>
-));
+const SelectionDisplay = memo(({ selection }: { selection?: SelectionResult }) => {
+  if (!selection) return '';
+  let result = '';
+  if ('range' in selection && 'point' in selection) {
+    result = `start: ${selection.range.start} \nend: ${selection.range.end} \npoint: ${selection.point}`;
+  } else if ('range' in selection) {
+    result = `start: ${selection.range.start} \nend: ${selection.range.end}`;
+  } else if ('point' in selection) {
+    result = `point: ${selection.point}`;
+  }
+  return (
+    <div style={{ marginTop: 24, fontFamily: 'monospace' }}>
+      <strong>Selection Output:</strong>
+      <pre
+        style={{
+          backgroundColor: '#f8f9fa',
+          padding: '12px',
+          borderRadius: '4px',
+          border: '1px solid #e9ecef',
+          fontSize: '12px',
+          overflow: 'auto',
+          maxHeight: '200px',
+        }}
+      >
+        {result}
+      </pre>
+    </div>
+  );
+});
 
 SelectionDisplay.displayName = 'SelectionDisplay';
 
@@ -214,7 +225,7 @@ export const PointMode = Template.bind({});
 PointMode.args = {
   viewMode: 'point',
   startDate: new Date('2019-01-01'),
-  endDate: new Date('2019-01-08'),
+  endDate: new Date('2019-02-08'),
   initialTimeUnit: 'day' as TimeUnit,
   initialPoint: new Date('2019-01-01'),
   sliderWidth: 600,
@@ -297,7 +308,7 @@ YearlyOverview.args = {
   timeUnitSlectionClassName: 'bg-gray-700 p-3 rounded-lg border border-indigo-200',
   scaleUnitConfig: {
     gap: 60,
-    width: { short: 2, medium: 4, long: 8 },
+    width: { short: 1, medium: 1, long: 1 },
     height: { short: 10, medium: 20, long: 40 },
   },
 };

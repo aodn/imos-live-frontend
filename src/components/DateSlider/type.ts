@@ -68,6 +68,7 @@ export type SliderProps = {
   pointLabelPersistent?: boolean;
   isTimeLabelPerDay?: boolean;
   withEndLabel?: boolean;
+  freeSelectionOnTrackClick?: boolean; //if true, the datetime can be freely selected when click on track, if false, the selection will be limited to datetime per scale units.
 };
 
 export type ScaleType = 'short' | 'medium' | 'long';

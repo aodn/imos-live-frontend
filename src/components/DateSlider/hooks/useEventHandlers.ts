@@ -1,6 +1,11 @@
 import { useCallback, useEffect } from 'react';
 import { DragHandle, ViewMode } from '../type';
-import { getPercentageFromMouseEvent, getPercentageFromTouchEvent } from '../utils';
+import {
+  getAllScaleUnitsPercentage,
+  getPercentageFromMouseEvent,
+  getPercentageFromTouchEvent,
+} from '../utils';
+import { clampToLowerBound, snapToClosestStep } from '@/utils';
 
 export function useEventHanlders(
   rangeStartRef: React.RefObject<number>,
@@ -19,6 +24,7 @@ export function useEventHanlders(
   dragStarted: boolean,
   isContainerDragging: boolean,
   totalScaleUnits: number,
+  freeSelectionOnTrackClick: boolean,
 ) {
   const findClosestHandle = useCallback(
     (percentage: number): DragHandle => {
@@ -45,6 +51,7 @@ export function useEventHanlders(
       const distanceToStart = Math.abs(percentage - rangeStartRef.current);
       const distanceToEnd = Math.abs(percentage - rangeEndRef.current);
       const closestHandle = distanceToStart < distanceToEnd ? 'start' : 'end';
+
       updateHandlePosition(closestHandle, percentage);
       requestHandleFocus(closestHandle, 'mouse');
     },
@@ -115,18 +122,25 @@ export function useEventHanlders(
       }
 
       const percentage = getPercentageFromMouseEvent(e, trackRef);
+      const clampedPercentage = clampToLowerBound(
+        percentage,
+        getAllScaleUnitsPercentage(totalScaleUnits),
+      );
 
       switch (viewMode) {
         case 'range':
-          handleRangeClick(percentage);
+          handleRangeClick(freeSelectionOnTrackClick ? percentage : clampedPercentage);
           break;
         case 'point':
-          updateHandlePosition('point', percentage);
+          updateHandlePosition('point', freeSelectionOnTrackClick ? percentage : clampedPercentage);
           requestHandleFocus('point', 'mouse');
           break;
         case 'combined': {
           const closestHandle = findClosestHandle(percentage);
-          updateHandlePosition(closestHandle, percentage);
+          updateHandlePosition(
+            closestHandle,
+            freeSelectionOnTrackClick ? percentage : clampedPercentage,
+          );
           requestHandleFocus(closestHandle, 'mouse');
           break;
         }
@@ -138,8 +152,10 @@ export function useEventHanlders(
       isContainerDragging,
       sliderRef,
       trackRef,
+      totalScaleUnits,
       viewMode,
       handleRangeClick,
+      freeSelectionOnTrackClick,
       updateHandlePosition,
       requestHandleFocus,
       findClosestHandle,
@@ -187,8 +203,9 @@ export function useEventHanlders(
   const handleHandleKeyDown = useCallback(
     (handle: DragHandle) => (e: React.KeyboardEvent) => {
       const step = (1 / totalScaleUnits) * 100;
-      const largeStep = step * 5;
       let newPercentage: number | undefined;
+
+      const scaleUnitsPercentags = getAllScaleUnitsPercentage(totalScaleUnits);
 
       const currentPosition =
         handle === 'start'
@@ -201,20 +218,12 @@ export function useEventHanlders(
         case 'ArrowLeft':
         case 'ArrowDown':
           e.preventDefault();
-          newPercentage = currentPosition - step;
+          newPercentage = snapToClosestStep(currentPosition - step, scaleUnitsPercentags);
           break;
         case 'ArrowRight':
         case 'ArrowUp':
           e.preventDefault();
-          newPercentage = currentPosition + step;
-          break;
-        case 'PageDown':
-          e.preventDefault();
-          newPercentage = currentPosition - largeStep;
-          break;
-        case 'PageUp':
-          e.preventDefault();
-          newPercentage = currentPosition + largeStep;
+          newPercentage = snapToClosestStep(currentPosition + step, scaleUnitsPercentags);
           break;
         case 'Home':
           e.preventDefault();
