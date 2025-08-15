@@ -15,15 +15,9 @@ export const LayerSets = ({ layersDatasets, title, className }: LayerSetsProps) 
         {layersDatasets.map(dataset => (
           <div key={dataset.layerId} aria-label={`${dataset.title} product`}>
             <LayerCard
-              image={dataset.image}
-              title={dataset.title}
-              description={dataset.description}
-              addToMap={dataset.addToMap}
+              {...dataset}
               firstButtonLabel="Add to map"
               secondButtonLabel="Remove from map"
-              layerId={dataset.layerId}
-              visible={dataset.visible}
-              icon={dataset.icon}
             />
           </div>
         ))}

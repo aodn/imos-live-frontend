@@ -8,6 +8,11 @@ import { useShallow } from 'zustand/shallow';
 import { ReactNode, useMemo, useState } from 'react';
 import { cn, normalizeLayerSets } from '@/utils';
 import { Button } from '../Button';
+import {
+  GSLA_ANOMALY_SEA_LEVELS_PRODUCT_VARIANT,
+  GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT,
+  WAVE_BUOYS_PRODUCT_VARIANT,
+} from '@/constants';
 
 export type HeaderData = {
   image: ImageType;
@@ -21,6 +26,10 @@ export type LayersDataset = {
   addToMap: (v: boolean) => void;
   layerId: string;
   visible: boolean;
+  variant?:
+    | typeof GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT
+    | typeof GSLA_ANOMALY_SEA_LEVELS_PRODUCT_VARIANT
+    | typeof WAVE_BUOYS_PRODUCT_VARIANT;
 };
 
 export type LayerProducts = {

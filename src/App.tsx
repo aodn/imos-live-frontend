@@ -8,9 +8,8 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       //even though over staltime, react query will not refetch, unless manually trigger or by refetchOnWindowFocus, refetchOnReconnect.
-      staleTime: 0,
-      // How long the cache exists before get removed
-      gcTime: 0,
+      staleTime: 60 * 1000, //how long the data will become stale.
+      gcTime: 5 * 60 * 1000, //how long the data will be removed from cache memory. this should be longer than staltime.
       retry: 2,
       refetchOnWindowFocus: true,
       refetchOnReconnect: true,
@@ -18,10 +17,11 @@ const queryClient = new QueryClient({
     },
   },
 });
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      {/* this will be excluded them during a production build*/}
+      {/* this will be excluded during a production build*/}
       <ReactQueryDevtools initialIsOpen={false} buttonPosition="top-right" />
       <ToastProvider>
         <Routes>

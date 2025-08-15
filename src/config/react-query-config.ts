@@ -8,7 +8,9 @@ import { getDate3DaysAgo, isSameDay } from '@/utils';
  */
 export function cacheConfig(dataset: string, duration?: number) {
   return {
-    gcTime: isSameDay(getDate3DaysAgo(), new Date(dataset)) ? (duration ?? 60) : 60 * 60 * 1000,
-    staleTime: isSameDay(getDate3DaysAgo(), new Date(dataset)) ? (duration ?? 60) : 60 * 60 * 1000,
+    gcTime: isSameDay(getDate3DaysAgo(), new Date(dataset)) ? (duration ?? 1000) : 60 * 60 * 1000,
+    staleTime: isSameDay(getDate3DaysAgo(), new Date(dataset))
+      ? (duration ?? 1000)
+      : 60 * 60 * 1000,
   };
 }
