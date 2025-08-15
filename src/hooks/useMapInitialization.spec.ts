@@ -75,7 +75,6 @@ describe('useMapInitialization', () => {
         pitchWithRotate: false,
         attributionControl: false,
         dragRotate: false,
-        touchZoomRotate: false,
         maxBounds: [
           [89.90022172949003, -60.0997150997151],
           [180.09977827050997, 10.0997150997151],
