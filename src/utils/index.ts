@@ -20,3 +20,5 @@ export * from './processOceanCurrentDetails';
 export * from './getViewPortSize';
 export * from './appendCacheBuster';
 export * from './sleep';
+export * from './snapToClosestStep';
+export * from './clampToLowerBound';

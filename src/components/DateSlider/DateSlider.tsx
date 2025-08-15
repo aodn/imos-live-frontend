@@ -29,7 +29,7 @@ import {
 
 const DEFAULT_SCALE_CONFIG = {
   gap: 36,
-  width: { short: 1, medium: 2, long: 2 },
+  width: { short: 1, medium: 1, long: 1 },
   height: { short: 8, medium: 16, long: 64 },
 } as const;
 
@@ -39,8 +39,8 @@ export const DateSlider = memo(
     startDate: propStartDate,
     endDate: propEndDate,
     initialTimeUnit,
-    initialRange,
-    initialPoint,
+    initialRange: propInitialRange,
+    initialPoint: propInitialPoint,
     wrapperClassName,
     trackActiveClassName,
     trackBaseClassName,
@@ -60,13 +60,24 @@ export const DateSlider = memo(
     pointLabelPersistent,
     isTimeLabelPerDay = false,
     withEndLabel = true,
+    freeSelectionOnTrackClick = false,
   }: SliderProps) => {
     const [dimensions, setDimensions] = useState({ parent: 0, slider: 0 });
     const [timeUnit, setTimeUnit] = useState<TimeUnit>(initialTimeUnit);
 
     const startDate = useMemo(() => toLocalDate(propStartDate), [propStartDate]);
     const endDate = useMemo(() => toLocalDate(propEndDate), [propEndDate]);
-
+    const initialPoint = useMemo(() => {
+      if (!propInitialPoint) return undefined;
+      return toLocalDate(propInitialPoint);
+    }, [propInitialPoint]);
+    const initialRange = useMemo(() => {
+      if (!propInitialRange) return undefined;
+      return {
+        start: toLocalDate(propInitialRange?.start),
+        end: toLocalDate(propInitialRange?.end),
+      };
+    }, [propInitialRange]);
     const totalScaleUnits = useMemo(
       () => getPeriodTimeScales(startDate, endDate, timeUnit),
       [startDate, endDate, timeUnit],
@@ -288,6 +299,7 @@ export const DateSlider = memo(
       dragStarted,
       isContainerDragging,
       totalScaleUnits,
+      freeSelectionOnTrackClick,
     );
 
     const debouncedOnChange = useMemo(

@@ -34,6 +34,7 @@ export const generateNewDateByAddingScaleUnit = (
 
 export const getPeriodTimeScales = (start: Date, end: Date, unit: TimeUnit): number => {
   const msDiff = end.getTime() - start.getTime();
+
   switch (unit) {
     case 'day':
       return Math.floor(msDiff / (1000 * 60 * 60 * 24));
@@ -278,4 +279,15 @@ export const createSelectionResult = (
         point: pointLabel,
       };
   }
+};
+
+/**
+ *
+ * @param totalScaleUnits number
+ * @returns number[], for example percentage is like 36.12 instead of 0.3612
+ */
+export const getAllScaleUnitsPercentage = (totalScaleUnits: number) => {
+  return Array(totalScaleUnits)
+    .fill(null)
+    .map((_, i) => (i / totalScaleUnits) * 100);
 };
