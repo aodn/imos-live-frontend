@@ -21,6 +21,7 @@ export function useMapInitialization() {
 
   const map = useRef<mapboxgl.Map | null>(null);
   const mapContainer = useRef<HTMLDivElement | null>(null);
+
   useEffect(() => {
     map.current = new mapboxgl.Map({
       container: mapContainer.current!,
@@ -32,13 +33,15 @@ export function useMapInitialization() {
       pitchWithRotate: false,
       attributionControl: false,
       dragRotate: false,
-      touchZoomRotate: false,
       maxBounds,
       bounds: maxBounds,
       testMode: import.meta.env.VITE_AUTOMATED_TEST_RUNNING,
     });
+
+    map.current.touchZoomRotate.disableRotation();
     map.current.setZoom(zoom);
     map.current.setCenter(center);
+
     if (import.meta.env.VITE_AUTOMATED_TEST_RUNNING) (window as any).map = map.current;
 
     const handleMapMove = () => {
