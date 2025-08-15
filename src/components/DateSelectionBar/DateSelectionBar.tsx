@@ -40,7 +40,7 @@ export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
         startDate={startDate}
         endDate={endDate}
         initialPoint={dateToUTC(dataset)}
-        pointHandleIcon={<TriangleIcon size="xxl" color="imos-white" />}
+        pointHandleIcon={<TriangleIcon size="xxl" className="text-slate-700! text-shadow" />}
         sliderClassName="frosted"
         timeUnitSlectionClassName="frosted"
         trackActiveClassName="hidden"
