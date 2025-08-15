@@ -218,12 +218,16 @@ export function useEventHanlders(
         case 'ArrowLeft':
         case 'ArrowDown':
           e.preventDefault();
-          newPercentage = snapToClosestStep(currentPosition - step, scaleUnitsPercentags);
+          newPercentage = freeSelectionOnTrackClick
+            ? currentPosition - step
+            : snapToClosestStep(currentPosition - step, scaleUnitsPercentags);
           break;
         case 'ArrowRight':
         case 'ArrowUp':
           e.preventDefault();
-          newPercentage = snapToClosestStep(currentPosition + step, scaleUnitsPercentags);
+          newPercentage = freeSelectionOnTrackClick
+            ? currentPosition + step
+            : snapToClosestStep(currentPosition + step, scaleUnitsPercentags);
           break;
         case 'Home':
           e.preventDefault();
@@ -245,6 +249,7 @@ export function useEventHanlders(
       rangeStartRef,
       rangeEndRef,
       pointPositionRef,
+      freeSelectionOnTrackClick,
       setLastInteractionType,
       updateHandlePosition,
     ],
