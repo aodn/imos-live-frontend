@@ -1,6 +1,6 @@
 import { useRef, useState, useCallback, memo } from 'react';
 import { DateSlider } from './DateSlider';
-import type { SliderProps, TimeUnit, SelectionResult, DragHandle } from './type';
+import type { SliderProps, TimeUnit, SelectionResult } from './type';
 import { FaDotCircle, FaArrowsAltH } from 'react-icons/fa';
 import { Button } from '../Button';
 import type { StoryFn } from '@storybook/react';
@@ -65,14 +65,14 @@ const ControlButtons = memo(
     viewMode: SliderProps['viewMode'];
   }) => {
     const handleSetDateTime = useCallback(
-      (date: Date, target?: DragHandle) => {
+      (date: Date, target?: 'point' | 'rangeStart' | 'rangeEnd') => {
         sliderRef.current?.setDateTime(date, target);
       },
       [sliderRef],
     );
 
     const handleFocusHandle = useCallback(
-      (handle: DragHandle) => {
+      (handle: 'point' | 'rangeStart' | 'rangeEnd') => {
         sliderRef.current?.focusHandle(handle);
       },
       [sliderRef],
@@ -96,21 +96,21 @@ const ControlButtons = memo(
         {(viewMode === 'range' || viewMode === 'combined') && (
           <>
             <Button
-              onClick={() => handleSetDateTime(new Date('2021-06-01'), 'start')}
+              onClick={() => handleSetDateTime(new Date('2021-06-01'), 'rangeStart')}
               size="sm"
               style={buttonStyle}
             >
               Set Range Start to 2021-06-01
             </Button>
             <Button
-              onClick={() => handleSetDateTime(new Date('2021-09-01'), 'end')}
+              onClick={() => handleSetDateTime(new Date('2021-09-01'), 'rangeEnd')}
               size="sm"
               style={buttonStyle}
             >
               Set Range End to 2021-09-01
             </Button>
             <Button
-              onClick={() => handleFocusHandle('start')}
+              onClick={() => handleFocusHandle('rangeStart')}
               variant="outline"
               size="sm"
               style={buttonStyle}
@@ -118,7 +118,7 @@ const ControlButtons = memo(
               Focus Start Handle
             </Button>
             <Button
-              onClick={() => handleFocusHandle('end')}
+              onClick={() => handleFocusHandle('rangeEnd')}
               variant="outline"
               size="sm"
               style={buttonStyle}
@@ -205,8 +205,9 @@ RangeMode.args = {
   sliderWidth: 800,
   sliderHeight: 120,
   trackActiveClassName: 'bg-blue-400/20',
-  trackBaseClassName: 'bg-gray-200/20',
+  trackBaseClassName: 'bg-gray-400',
   minGapScaleUnits: 1,
+  timeUnitSlectionClassName: 'bg-gray-700 p-3 rounded-lg border border-indigo-200',
 };
 
 export const PointMode = Template.bind({});
@@ -219,7 +220,8 @@ PointMode.args = {
   sliderWidth: 600,
   sliderHeight: 90,
   trackActiveClassName: 'bg-green-400/20',
-  trackBaseClassName: 'bg-gray-100/20',
+  trackBaseClassName: 'bg-gray-400',
+  timeUnitSlectionClassName: 'bg-gray-700 p-3 rounded-lg border border-indigo-200',
 };
 
 export const CombinedMode = Template.bind({});
@@ -236,8 +238,9 @@ CombinedMode.args = {
   sliderWidth: 900,
   sliderHeight: 140,
   trackActiveClassName: 'bg-purple-400/20',
-  trackBaseClassName: 'bg-gray-300/20',
+  trackBaseClassName: 'bg-gray-300',
   minGapScaleUnits: 2,
+  timeUnitSlectionClassName: 'bg-gray-700 p-3 rounded-lg border border-indigo-200',
 };
 
 export const FixedTRackWidthSlider = Template.bind({});
@@ -254,13 +257,14 @@ FixedTRackWidthSlider.args = {
   isTrackFixedWidth: true,
   sliderHeight: 100,
   trackActiveClassName: 'bg-orange-400/20',
-  trackBaseClassName: 'bg-gray-200/20',
+  trackBaseClassName: 'bg-gray-400',
+  timeUnitSlectionClassName: 'bg-gray-700 p-3 rounded-lg border border-indigo-200',
 };
 
 export const CustomStyles = Template.bind({});
 CustomStyles.args = {
   viewMode: 'combined',
-  startDate: new Date('2020-10-05'),
+  startDate: new Date('2020-10-01'),
   endDate: new Date('2025-11-11'),
   initialTimeUnit: 'month' as TimeUnit,
   initialRange: {
@@ -273,8 +277,8 @@ CustomStyles.args = {
   wrapperClassName: 'rounded-xl shadow-lg bg-white border-2 border-indigo-200',
   sliderClassName: 'rounded-lg border border-gray-300 bg-gradient-to-r from-indigo-50 to-purple-50',
   trackActiveClassName: 'bg-gradient-to-r from-indigo-400/30 to-purple-400/30',
-  trackBaseClassName: 'bg-gray-100 border border-gray-200',
-  timeUnitSlectionClassName: 'bg-indigo-50 p-3 rounded-lg border border-indigo-200',
+  trackBaseClassName: 'bg-gray-400 border border-gray-200',
+  timeUnitSlectionClassName: 'bg-gray-700 p-3 rounded-lg border border-indigo-200',
   minGapScaleUnits: 1,
   trackPaddingX: 48,
 };
@@ -289,7 +293,8 @@ YearlyOverview.args = {
   sliderWidth: 800,
   sliderHeight: 100,
   trackActiveClassName: 'bg-rose-400/20',
-  trackBaseClassName: 'bg-gray-200/20',
+  trackBaseClassName: 'bg-gray-700',
+  timeUnitSlectionClassName: 'bg-gray-700 p-3 rounded-lg border border-indigo-200',
   scaleUnitConfig: {
     gap: 60,
     width: { short: 2, medium: 4, long: 8 },
