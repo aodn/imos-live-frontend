@@ -1,13 +1,16 @@
 import { useCallback, useEffect } from 'react';
-import { DragHandle, ViewMode } from '../type';
+import { DragHandle, TimeUnit, ViewMode } from '../type';
 import {
-  getAllScaleUnitsPercentage,
+  getAllScalesPercentage,
   getPercentageFromMouseEvent,
   getPercentageFromTouchEvent,
 } from '../utils';
 import { clampToLowerBound, snapToClosestStep } from '@/utils';
 
 export function useEventHanlders(
+  startDate: Date,
+  endDate: Date,
+  timeUnit: TimeUnit,
   rangeStartRef: React.RefObject<number>,
   rangeEndRef: React.RefObject<number>,
   pointPositionRef: React.RefObject<number>,
@@ -108,13 +111,11 @@ export function useEventHanlders(
         percentage = getPercentageFromMouseEvent(e, trackRef);
       }
 
+      //snap the selection stick to the scales.
       const clampedPercentage = clampToLowerBound(
         percentage,
-        getAllScaleUnitsPercentage(totalScaleUnits),
+        getAllScalesPercentage(startDate, endDate, timeUnit, totalScaleUnits),
       );
-      console.log(totalScaleUnits, getAllScaleUnitsPercentage(totalScaleUnits));
-      //getAllScaleUnitsPercentage is the issue, it did not give correct percentage for like in month unit, 1 Oct - 10 Nov, now there are three scales,
-      //last one is 100 for ending, but second one should not be 50, better need Date.getTime() to deciade each scale unit percentage.
 
       switch (viewMode) {
         case 'range':
@@ -140,9 +141,12 @@ export function useEventHanlders(
       dragStarted,
       isContainerDragging,
       sliderRef,
-      trackRef,
+      startDate,
+      endDate,
+      timeUnit,
       totalScaleUnits,
       viewMode,
+      trackRef,
       handleRangeClick,
       freeSelectionOnTrackClick,
       updateHandlePosition,
@@ -165,7 +169,12 @@ export function useEventHanlders(
       const step = (1 / totalScaleUnits) * 100;
       let newPercentage: number | undefined;
 
-      const scaleUnitsPercentags = getAllScaleUnitsPercentage(totalScaleUnits);
+      const scaleUnitsPercentags = getAllScalesPercentage(
+        startDate,
+        endDate,
+        timeUnit,
+        totalScaleUnits,
+      );
 
       const currentPosition =
         handle === 'start'
@@ -206,6 +215,9 @@ export function useEventHanlders(
     },
     [
       totalScaleUnits,
+      startDate,
+      endDate,
+      timeUnit,
       rangeStartRef,
       rangeEndRef,
       pointPositionRef,

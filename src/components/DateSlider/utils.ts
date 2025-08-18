@@ -32,21 +32,31 @@ export const generateNewDateByAddingScaleUnit = (
   return newDate;
 };
 
-export const getPeriodTimeScales = (start: Date, end: Date, unit: TimeUnit): number => {
+/**
+ * calculate total number of scales for different combination of start date, end date and unit as 'day'|'month'|'year'.
+ * when unit is day, if there are 49 hours between start and end, the number of scales will be Math.round(49 / 24 )=3.
+ * when unit is month, if 2 months from start to end, the number of scales will be 2.
+ * when unit is year, if 2 years from start to end, the number of scales will be 2.
+ * @param start Date
+ * @param end Date
+ * @param unit 'day'|'month'|'year'
+ * @returns
+ */
+export const getTotalScales = (start: Date, end: Date, unit: TimeUnit): number => {
   const msDiff = end.getTime() - start.getTime();
 
   switch (unit) {
     case 'day':
-      return Math.floor(msDiff / (1000 * 60 * 60 * 24));
+      return Math.ceil(msDiff / (1000 * 60 * 60 * 24));
     case 'month':
       return (
         (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth() + 1)
-      ); //end.getMonth() - start.getMonth() to end.getMonth() - start.getMonth() + 1
+      );
     case 'year':
-      return end.getFullYear() - start.getFullYear() + 1; // +1
+      return end.getFullYear() - start.getFullYear() + 1;
   }
 };
-//TODO: investigate why scales units not correct position in track.
+
 export const getRepresentativeDate = (
   date: Date,
   unit: TimeUnit,
@@ -65,7 +75,6 @@ export const getRepresentativeDate = (
 };
 
 // Display Formatting
-
 export const formatDateForDisplay = (
   date: Date,
   unit: TimeUnit,
@@ -157,7 +166,7 @@ export const generateScalesWithInfo = (
     scaleCounts[type]++;
     scales.push({ date: end, position: 100, type });
   }
-
+  console.log({ scales });
   return { scales, numberOfScales: scaleCounts };
 };
 
@@ -232,7 +241,6 @@ export const getPercentageFromMouseEvent = (
   return clampPercent(((e.clientX - rect.left) / rect.width) * 100);
 };
 
-// New function to handle touch events
 export const getPercentageFromTouchEvent = (
   e: React.TouchEvent<Element> | TouchEvent,
   trackRef: React.RefObject<HTMLDivElement | null>,
@@ -285,12 +293,34 @@ export const createSelectionResult = (
 };
 
 /**
- *
- * @param totalScaleUnits number
- * @returns number[], for example percentage is like 36.12 instead of 0.3612
+ * get all scales position in percentage.
+ * @param start
+ * @param end
+ * @param unit
+ * @param totalUnits
+ * @returns @returns number[], for example percentage is like 36.12 instead of 0.3612
  */
-export const getAllScaleUnitsPercentage = (totalScaleUnits: number) => {
-  return Array(totalScaleUnits)
-    .fill(null)
-    .map((_, i) => (i / totalScaleUnits) * 100);
+export const getAllScalesPercentage = (
+  start: Date,
+  end: Date,
+  unit: TimeUnit,
+  totalUnits: number,
+): number[] => {
+  const scales: number[] = [];
+
+  const startTime = start.getTime();
+  const endTime = end.getTime();
+  const totalTimeSpan = endTime - startTime;
+  for (let i = 0; i < totalUnits; i++) {
+    const current = generateNewDateByAddingScaleUnit(start, i, unit);
+    if (current > end) break;
+
+    // Calculate position based on actual time elapsed
+    const currentTime = current.getTime();
+    const position = totalTimeSpan === 0 ? 0 : ((currentTime - startTime) / totalTimeSpan) * 100;
+
+    scales.push(position);
+  }
+
+  return scales;
 };

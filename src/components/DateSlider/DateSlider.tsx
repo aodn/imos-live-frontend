@@ -12,7 +12,7 @@ import { useDrag, useElementSize, useResizeObserver, useRAFDFn } from '@/hooks';
 import { SliderProps, DragHandle, SelectionResult, TimeUnit } from './type';
 import { useDragState, useFocusManagement, usePositionState, useEventHanlders } from './hooks';
 import {
-  getPeriodTimeScales,
+  getTotalScales,
   generateScalesWithInfo,
   generateTrackWidth,
   generateTimeLabelsWithPositions,
@@ -66,11 +66,14 @@ export const DateSlider = memo(
     const [timeUnit, setTimeUnit] = useState<TimeUnit>(initialTimeUnit);
 
     const startDate = useMemo(() => toLocalDate(propStartDate), [propStartDate]);
+
     const endDate = useMemo(() => toLocalDate(propEndDate), [propEndDate]);
+
     const initialPoint = useMemo(() => {
       if (!propInitialPoint) return undefined;
       return toLocalDate(propInitialPoint);
     }, [propInitialPoint]);
+
     const initialRange = useMemo(() => {
       if (!propInitialRange) return undefined;
       return {
@@ -78,8 +81,9 @@ export const DateSlider = memo(
         end: toLocalDate(propInitialRange?.end),
       };
     }, [propInitialRange]);
+
     const totalScaleUnits = useMemo(
-      () => getPeriodTimeScales(startDate, endDate, timeUnit),
+      () => getTotalScales(startDate, endDate, timeUnit),
       [startDate, endDate, timeUnit],
     );
 
@@ -124,7 +128,7 @@ export const DateSlider = memo(
       () => generateScalesWithInfo(startDate, endDate, timeUnit, totalScaleUnits),
       [endDate, startDate, timeUnit, totalScaleUnits],
     );
-    console.log(scales); //investigate why scales and totalScaleUnits are different in length
+
     const trackWidth = useMemo(() => {
       const safeGap =
         (sliderContainerWidth -
@@ -283,6 +287,9 @@ export const DateSlider = memo(
       handleTrackTouch,
       handleHandleKeyDown,
     } = useEventHanlders(
+      startDate,
+      endDate,
+      timeUnit,
       rangeStartRef,
       rangeEndRef,
       pointPositionRef,
