@@ -58,74 +58,63 @@ export function useEventHanlders(
     [rangeStartRef, rangeEndRef, updateHandlePosition, requestHandleFocus],
   );
 
-  // Mouse event handlers
-  const handleMouseDown = useCallback(
-    (handle: DragHandle) => (e: React.MouseEvent) => {
+  const handleStart = useCallback(
+    (handle: DragHandle) => (e: React.MouseEvent | React.TouchEvent) => {
       e.stopPropagation();
       setIsDragging(handle);
       setDragStarted(false);
-      setLastInteractionType('mouse');
+      setLastInteractionType('mouse'); // treat both as "mouse" for UI purposes
     },
     [setIsDragging, setDragStarted, setLastInteractionType],
   );
 
-  // Touch event handlers
-  const handleTouchStart = useCallback(
-    (handle: DragHandle) => (e: React.TouchEvent) => {
-      e.stopPropagation();
-      setIsDragging(handle);
-      setDragStarted(false);
-      setLastInteractionType('mouse'); // Treat touch as mouse interaction for UI purposes
-    },
-    [setIsDragging, setDragStarted, setLastInteractionType],
-  );
-
-  const handleMouseMove = useCallback(
-    (e: globalThis.MouseEvent) => {
+  const handleMove = useCallback(
+    (e: globalThis.MouseEvent | globalThis.TouchEvent) => {
       if (!isDragging) return;
+
+      if ('touches' in e) {
+        // TouchEvent
+        e.preventDefault(); // prevent scrolling when touch event
+      }
+
       requestAnimationFrame(() => {
-        const percentage = getPercentageFromMouseEvent(e, trackRef);
+        const percentage =
+          'touches' in e
+            ? getPercentageFromTouchEvent(e, trackRef)
+            : getPercentageFromMouseEvent(e, trackRef);
+
         updateHandlePosition(isDragging, percentage);
       });
     },
     [isDragging, trackRef, updateHandlePosition],
   );
 
-  const handleTouchMove = useCallback(
-    (e: globalThis.TouchEvent) => {
-      if (!isDragging) return;
-      e.preventDefault(); // Prevent scrolling while dragging
-      requestAnimationFrame(() => {
-        const percentage = getPercentageFromTouchEvent(e, trackRef);
-        updateHandlePosition(isDragging, percentage);
-      });
-    },
-    [isDragging, trackRef, updateHandlePosition],
-  );
-
-  const handleMouseUp = useCallback(() => {
+  const handleEnd = useCallback(() => {
     if (isDragging) {
       handleDragComplete();
     }
   }, [isDragging, handleDragComplete]);
 
-  const handleTouchEnd = useCallback(() => {
-    if (isDragging) {
-      handleDragComplete();
-    }
-  }, [isDragging, handleDragComplete]);
-
-  const handleTrackClick = useCallback(
-    (e: React.MouseEvent) => {
+  const handleTrackInteraction = useCallback(
+    (e: React.MouseEvent | React.TouchEvent) => {
       if (isDragging || dragStarted || isContainerDragging || !sliderRef.current) {
         return;
       }
 
-      const percentage = getPercentageFromMouseEvent(e, trackRef);
+      let percentage: number;
+      if ('touches' in e) {
+        percentage = getPercentageFromTouchEvent(e, trackRef);
+      } else {
+        percentage = getPercentageFromMouseEvent(e, trackRef);
+      }
+
       const clampedPercentage = clampToLowerBound(
         percentage,
         getAllScaleUnitsPercentage(totalScaleUnits),
       );
+      console.log(totalScaleUnits, getAllScaleUnitsPercentage(totalScaleUnits));
+      //getAllScaleUnitsPercentage is the issue, it did not give correct percentage for like in month unit, 1 Oct - 10 Nov, now there are three scales,
+      //last one is 100 for ending, but second one should not be 50, better need Date.getTime() to deciade each scale unit percentage.
 
       switch (viewMode) {
         case 'range':
@@ -162,43 +151,14 @@ export function useEventHanlders(
     ],
   );
 
-  const handleTrackTouch = useCallback(
-    (e: React.TouchEvent) => {
-      if (isDragging || dragStarted || isContainerDragging || !sliderRef.current) {
-        return;
-      }
-
-      const percentage = getPercentageFromTouchEvent(e, trackRef);
-
-      switch (viewMode) {
-        case 'range':
-          handleRangeClick(percentage);
-          break;
-        case 'point':
-          updateHandlePosition('point', percentage);
-          requestHandleFocus('point', 'mouse');
-          break;
-        case 'combined': {
-          const closestHandle = findClosestHandle(percentage);
-          updateHandlePosition(closestHandle, percentage);
-          requestHandleFocus(closestHandle, 'mouse');
-          break;
-        }
-      }
-    },
-    [
-      isDragging,
-      dragStarted,
-      isContainerDragging,
-      sliderRef,
-      trackRef,
-      viewMode,
-      handleRangeClick,
-      updateHandlePosition,
-      requestHandleFocus,
-      findClosestHandle,
-    ],
-  );
+  const handleMouseDown = handleStart;
+  const handleTouchStart = handleStart;
+  const handleMouseMove = handleMove;
+  const handleTouchMove = handleMove;
+  const handleMouseUp = handleEnd;
+  const handleTouchEnd = handleEnd;
+  const handleTrackClick = handleTrackInteraction;
+  const handleTrackTouch = handleTrackInteraction;
 
   const handleHandleKeyDown = useCallback(
     (handle: DragHandle) => (e: React.KeyboardEvent) => {

@@ -39,12 +39,14 @@ export const getPeriodTimeScales = (start: Date, end: Date, unit: TimeUnit): num
     case 'day':
       return Math.floor(msDiff / (1000 * 60 * 60 * 24));
     case 'month':
-      return (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+      return (
+        (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth() + 1)
+      ); //end.getMonth() - start.getMonth() to end.getMonth() - start.getMonth() + 1
     case 'year':
-      return end.getFullYear() - start.getFullYear();
+      return end.getFullYear() - start.getFullYear() + 1; // +1
   }
 };
-
+//TODO: investigate why scales units not correct position in track.
 export const getRepresentativeDate = (
   date: Date,
   unit: TimeUnit,
@@ -117,7 +119,8 @@ export const generateScalesWithInfo = (
   const endTime = end.getTime();
   const totalTimeSpan = endTime - startTime;
 
-  for (let i = 0; i <= totalUnits; i++) {
+  for (let i = 0; i < totalUnits; i++) {
+    //i <= totalUnits to i < totalUnits
     const current = generateNewDateByAddingScaleUnit(start, i, unit);
     if (current > end) break;
 

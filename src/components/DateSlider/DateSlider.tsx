@@ -124,7 +124,7 @@ export const DateSlider = memo(
       () => generateScalesWithInfo(startDate, endDate, timeUnit, totalScaleUnits),
       [endDate, startDate, timeUnit, totalScaleUnits],
     );
-
+    console.log(scales); //investigate why scales and totalScaleUnits are different in length
     const trackWidth = useMemo(() => {
       const safeGap =
         (sliderContainerWidth -
