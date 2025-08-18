@@ -166,7 +166,6 @@ export const generateScalesWithInfo = (
     scaleCounts[type]++;
     scales.push({ date: end, position: 100, type });
   }
-  console.log({ scales });
   return { scales, numberOfScales: scaleCounts };
 };
 
