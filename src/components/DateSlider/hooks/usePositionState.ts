@@ -1,7 +1,7 @@
 import { clampPercent } from '@/utils';
 import { useCallback, useState, useRef, useEffect } from 'react';
 import { SliderProps, TimeUnit } from '../type';
-import { getPeriodTimeScales } from '../utils';
+import { getTotalScales } from '../utils';
 
 export function usePositionState(
   initialRange: SliderProps['initialRange'],
@@ -27,7 +27,7 @@ export function usePositionState(
       const targetDate = valueMap[type];
       if (!targetDate) return defaultMap[type];
 
-      const diff = getPeriodTimeScales(startDate, targetDate, timeUnit);
+      const diff = getTotalScales(startDate, targetDate, timeUnit);
       return clampPercent((diff / totalScaleUnits) * 100);
     },
     [initialRange, initialPoint, startDate, timeUnit, totalScaleUnits],

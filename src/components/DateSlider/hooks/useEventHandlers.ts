@@ -1,13 +1,16 @@
 import { useCallback, useEffect } from 'react';
-import { DragHandle, ViewMode } from '../type';
+import { DragHandle, TimeUnit, ViewMode } from '../type';
 import {
-  getAllScaleUnitsPercentage,
+  getAllScalesPercentage,
   getPercentageFromMouseEvent,
   getPercentageFromTouchEvent,
 } from '../utils';
 import { clampToLowerBound, snapToClosestStep } from '@/utils';
 
 export function useEventHanlders(
+  startDate: Date,
+  endDate: Date,
+  timeUnit: TimeUnit,
   rangeStartRef: React.RefObject<number>,
   rangeEndRef: React.RefObject<number>,
   pointPositionRef: React.RefObject<number>,
@@ -58,73 +61,60 @@ export function useEventHanlders(
     [rangeStartRef, rangeEndRef, updateHandlePosition, requestHandleFocus],
   );
 
-  // Mouse event handlers
-  const handleMouseDown = useCallback(
-    (handle: DragHandle) => (e: React.MouseEvent) => {
+  const handleStart = useCallback(
+    (handle: DragHandle) => (e: React.MouseEvent | React.TouchEvent) => {
       e.stopPropagation();
       setIsDragging(handle);
       setDragStarted(false);
-      setLastInteractionType('mouse');
+      setLastInteractionType('mouse'); // treat both as "mouse" for UI purposes
     },
     [setIsDragging, setDragStarted, setLastInteractionType],
   );
 
-  // Touch event handlers
-  const handleTouchStart = useCallback(
-    (handle: DragHandle) => (e: React.TouchEvent) => {
-      e.stopPropagation();
-      setIsDragging(handle);
-      setDragStarted(false);
-      setLastInteractionType('mouse'); // Treat touch as mouse interaction for UI purposes
-    },
-    [setIsDragging, setDragStarted, setLastInteractionType],
-  );
-
-  const handleMouseMove = useCallback(
-    (e: globalThis.MouseEvent) => {
+  const handleMove = useCallback(
+    (e: globalThis.MouseEvent | globalThis.TouchEvent) => {
       if (!isDragging) return;
+
+      if ('touches' in e) {
+        // TouchEvent
+        e.preventDefault(); // prevent scrolling when touch event
+      }
+
       requestAnimationFrame(() => {
-        const percentage = getPercentageFromMouseEvent(e, trackRef);
+        const percentage =
+          'touches' in e
+            ? getPercentageFromTouchEvent(e, trackRef)
+            : getPercentageFromMouseEvent(e, trackRef);
+
         updateHandlePosition(isDragging, percentage);
       });
     },
     [isDragging, trackRef, updateHandlePosition],
   );
 
-  const handleTouchMove = useCallback(
-    (e: globalThis.TouchEvent) => {
-      if (!isDragging) return;
-      e.preventDefault(); // Prevent scrolling while dragging
-      requestAnimationFrame(() => {
-        const percentage = getPercentageFromTouchEvent(e, trackRef);
-        updateHandlePosition(isDragging, percentage);
-      });
-    },
-    [isDragging, trackRef, updateHandlePosition],
-  );
-
-  const handleMouseUp = useCallback(() => {
+  const handleEnd = useCallback(() => {
     if (isDragging) {
       handleDragComplete();
     }
   }, [isDragging, handleDragComplete]);
 
-  const handleTouchEnd = useCallback(() => {
-    if (isDragging) {
-      handleDragComplete();
-    }
-  }, [isDragging, handleDragComplete]);
-
-  const handleTrackClick = useCallback(
-    (e: React.MouseEvent) => {
+  const handleTrackInteraction = useCallback(
+    (e: React.MouseEvent | React.TouchEvent) => {
       if (isDragging || dragStarted || isContainerDragging || !sliderRef.current) {
         return;
       }
 
-      const percentage = getPercentageFromMouseEvent(e, trackRef);
+      let percentage: number;
+      if ('touches' in e) {
+        percentage = getPercentageFromTouchEvent(e, trackRef);
+      } else {
+        percentage = getPercentageFromMouseEvent(e, trackRef);
+      }
+
+      //snap the selection stick to the scales.
       const clampedPercentage = clampToLowerBound(
         percentage,
-        getAllScaleUnitsPercentage(totalScaleUnits),
+        getAllScalesPercentage(startDate, endDate, timeUnit, totalScaleUnits),
       );
 
       switch (viewMode) {
@@ -151,9 +141,12 @@ export function useEventHanlders(
       dragStarted,
       isContainerDragging,
       sliderRef,
-      trackRef,
+      startDate,
+      endDate,
+      timeUnit,
       totalScaleUnits,
       viewMode,
+      trackRef,
       handleRangeClick,
       freeSelectionOnTrackClick,
       updateHandlePosition,
@@ -162,50 +155,26 @@ export function useEventHanlders(
     ],
   );
 
-  const handleTrackTouch = useCallback(
-    (e: React.TouchEvent) => {
-      if (isDragging || dragStarted || isContainerDragging || !sliderRef.current) {
-        return;
-      }
-
-      const percentage = getPercentageFromTouchEvent(e, trackRef);
-
-      switch (viewMode) {
-        case 'range':
-          handleRangeClick(percentage);
-          break;
-        case 'point':
-          updateHandlePosition('point', percentage);
-          requestHandleFocus('point', 'mouse');
-          break;
-        case 'combined': {
-          const closestHandle = findClosestHandle(percentage);
-          updateHandlePosition(closestHandle, percentage);
-          requestHandleFocus(closestHandle, 'mouse');
-          break;
-        }
-      }
-    },
-    [
-      isDragging,
-      dragStarted,
-      isContainerDragging,
-      sliderRef,
-      trackRef,
-      viewMode,
-      handleRangeClick,
-      updateHandlePosition,
-      requestHandleFocus,
-      findClosestHandle,
-    ],
-  );
+  const handleMouseDown = handleStart;
+  const handleTouchStart = handleStart;
+  const handleMouseMove = handleMove;
+  const handleTouchMove = handleMove;
+  const handleMouseUp = handleEnd;
+  const handleTouchEnd = handleEnd;
+  const handleTrackClick = handleTrackInteraction;
+  const handleTrackTouch = handleTrackInteraction;
 
   const handleHandleKeyDown = useCallback(
     (handle: DragHandle) => (e: React.KeyboardEvent) => {
       const step = (1 / totalScaleUnits) * 100;
       let newPercentage: number | undefined;
 
-      const scaleUnitsPercentags = getAllScaleUnitsPercentage(totalScaleUnits);
+      const scaleUnitsPercentags = getAllScalesPercentage(
+        startDate,
+        endDate,
+        timeUnit,
+        totalScaleUnits,
+      );
 
       const currentPosition =
         handle === 'start'
@@ -246,6 +215,9 @@ export function useEventHanlders(
     },
     [
       totalScaleUnits,
+      startDate,
+      endDate,
+      timeUnit,
       rangeStartRef,
       rangeEndRef,
       pointPositionRef,
