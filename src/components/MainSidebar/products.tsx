@@ -8,9 +8,9 @@ import {
 } from '@/constants';
 import { WaterSurfaceIcon, WaveIcon, RadarIcon, SatelliteIcon } from '../Icons';
 import { LayersDataset } from './MainSidebarContent';
-import occeanCurrentImage from '@/assets/layer_test_1.jpg';
-import anomalySeaLevelImage from '@/assets/layer_test_2.jpg';
-import waveBuoysImage from '@/assets/layer_test_3.jpg';
+import occeanCurrentImage from '@/assets/ocean-current.webp';
+import anomalySeaLevelImage from '@/assets/sea-levels.webp';
+import waveBuoysImage from '@/assets/wave-buoys.webp';
 import loggImage from '@/assets/imos_logo_with_title.png';
 
 export const headerData = {
