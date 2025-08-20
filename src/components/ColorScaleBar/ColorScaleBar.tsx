@@ -2,7 +2,7 @@ import {
   GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT,
   GSLA_ANOMALY_SEA_LEVELS_PRODUCT_VARIANT,
 } from '@/constants';
-import { gslaOverlayImageColors, vectorConfig } from '@/config';
+import { gslaAnomalySeaLevelsRange, gslaOverlayImageColors, vectorConfig } from '@/config';
 import { cn } from '@/utils';
 import { useMemo } from 'react';
 
@@ -35,13 +35,13 @@ const variants = {
     colors: Object.values(vectorConfig.colours),
     title: 'ocean current speed (m/s)',
     min: 0,
-    max: 7,
+    max: vectorConfig.maxSpeed,
   },
   [GSLA_ANOMALY_SEA_LEVELS_PRODUCT_VARIANT]: {
     colors: gslaOverlayImageColors,
     title: 'anomaly sea level (m)',
-    min: -1.2,
-    max: 1.2,
+    min: gslaAnomalySeaLevelsRange[0],
+    max: gslaAnomalySeaLevelsRange[1],
   },
 };
 
@@ -108,7 +108,9 @@ export const ColorScaleBar = ({
       tickElements.push(
         <div
           key={`ColorScaleBar-ticks-${i}`}
-          className={cn('absolute flex flex-col items-center')}
+          className={cn('absolute flex flex-col items-center', {
+            hidden: i === 0 || i === tickCount - 1,
+          })}
           style={{ left: `${position}%`, transform: 'translateX(-50%)' }}
         >
           <span className="h-[6px] bg-black w-0.5" />
@@ -128,7 +130,7 @@ export const ColorScaleBar = ({
     >
       <div className="w-full">
         <div
-          className="rounded-sm w-full"
+          className="w-full"
           style={{
             height: `${height * 0.2}px`,
             background: gradient,
@@ -138,7 +140,7 @@ export const ColorScaleBar = ({
           style={{
             height: `${height * 0.1}px`,
           }}
-          className="relative mx-1"
+          className="relative "
         >
           {scaleUnits}
         </div>

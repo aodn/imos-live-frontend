@@ -52,6 +52,7 @@ export function useOverlayLayer(map: React.RefObject<mapboxgl.Map | null>) {
         map.current!,
         OVERLAY_SOURCE_ID,
         buildGSLADatasetFullPath(dataset, GSLA_SEA_LEVEL_NAME),
+        // `${GSLA_SEA_LEVEL_NAME}`,
         lonRange,
         latRange,
       );

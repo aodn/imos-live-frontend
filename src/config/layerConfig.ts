@@ -146,6 +146,7 @@ export const layersOrder = [
   MEASURE_POINTS_LAYER_ID,
 ];
 
+//this is from Gabriela.Semolinipilo@csiro.au and this should be same in python script when generate the overlay image.
 export const GSLA_OVERLAY_IMAGE_COLORS_SOURCE = [
   [0, 0, 0.482],
   [0, 0, 0.50218],
@@ -216,3 +217,6 @@ export const GSLA_OVERLAY_IMAGE_COLORS_SOURCE = [
 export const gslaOverlayImageColors = GSLA_OVERLAY_IMAGE_COLORS_SOURCE.map(([r, g, b]) =>
   rgbToHex(r, g, b),
 );
+
+//this should be same in python script when generate the overlay image
+export const gslaAnomalySeaLevelsRange = [-1.2, 1.2];
