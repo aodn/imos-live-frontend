@@ -265,6 +265,7 @@ function VectorField(map, gl) {
    * @private
    */
   function drawParticles() {
+    //vs, fs is used here.
     gl.useProgram(programInfo.program);
 
     const arrays = {
@@ -304,6 +305,7 @@ function VectorField(map, gl) {
    * @param {number} opacity - Opacity between 0–1.
    */
   function drawTexture(texture, opacity) {
+    //vsQuad, fsScreen is used here
     gl.useProgram(screenProgramInfo.program);
 
     const arrays = {
@@ -389,7 +391,7 @@ function VectorField(map, gl) {
     );
 
     gl.viewport(0, 0, particleRes, particleRes);
-
+    //vsQuad, fsUpdate is used here
     gl.useProgram(updateProgramInfo.program);
 
     const arrays = {
