@@ -1,18 +1,13 @@
-import { GSLA_META_NAME, WAVE_BUOYS_LAYER_ID } from '@/constants';
+import { WAVE_BUOYS_LAYER_ID } from '@/constants';
 import { Button } from '../Button';
 import { ArrowDownIcon, MapLayersIcon } from '../Icons';
 import { Image } from '../Image';
 import { LayersDataset } from './MainSidebarContent';
 import { CollapsibleComponent, TriggerArgs } from '../Collapsible';
-import { buildGSLADatasetPath, cn } from '@/utils';
+import { cn } from '@/utils';
 import { useViewportSize } from '@/hooks';
-import { ReactNode, useMemo } from 'react';
+import { ReactNode } from 'react';
 import { ColorScaleBar } from '../ColorScaleBar';
-import { getMetaData } from '@/api';
-import { useMapUIStore } from '@/store';
-import { useQuery } from '@tanstack/react-query';
-import { useShallow } from 'zustand/shallow';
-import { Skeleton } from '../Skeleton';
 
 export type LayerCardProps = LayersDataset & {
   firstButtonLabel: string;
@@ -33,24 +28,6 @@ export const LayerCard = ({
 }: LayerCardProps) => {
   const { widthBreakpoint } = useViewportSize();
   const isSmallScreen = ['sm', 'md'].includes(widthBreakpoint || '');
-
-  const { dataset } = useMapUIStore(
-    useShallow(s => ({
-      dataset: s.dataset,
-    })),
-  );
-
-  //react query with same querykey will only be called once even put in multiple components.
-  const { data, isLoading, isError } = useQuery({
-    queryKey: [GSLA_META_NAME, dataset],
-    queryFn: () => getMetaData(buildGSLADatasetPath(dataset, GSLA_META_NAME)),
-    enabled: variant !== 'wave-buoys',
-  });
-
-  const colorScaleRange = useMemo(() => {
-    if (variant === 'gsla-anomaly-sea-levels') return data?.gslaRange;
-    if (variant === 'gsla-ocean-geostrophic-current') return data?.speedRange;
-  }, [data?.gslaRange, data?.speedRange, variant]);
 
   const enableColorScaleBar =
     variant === 'gsla-ocean-geostrophic-current' || variant === 'gsla-anomaly-sea-levels';
@@ -105,17 +82,14 @@ export const LayerCard = ({
           </div>
           {enableColorScaleBar && (
             <div className="col-span-2 md:mt-4">
-              {!isLoading && !isError && colorScaleRange && (
+              {
                 <ColorScaleBar
                   className="w-full"
                   height={80}
                   variant={variant}
                   tickCount={isSmallScreen ? 5 : 7}
-                  min={colorScaleRange[0]}
-                  max={colorScaleRange[1]}
                 />
-              )}
-              {isLoading && <Skeleton className="h-20 w-full" />}
+              }
             </div>
           )}
         </div>

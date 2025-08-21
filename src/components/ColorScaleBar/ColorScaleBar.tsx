@@ -1,9 +1,8 @@
 import {
   GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT,
   GSLA_ANOMALY_SEA_LEVELS_PRODUCT_VARIANT,
-  GSLA_OVERLAY_IMAGE_VIRIDIS_COLORS,
 } from '@/constants';
-import { vectorConfig } from '@/config';
+import { gslaAnomalySeaLevelsRange, gslaOverlayImageColors, vectorConfig } from '@/config';
 import { cn } from '@/utils';
 import { useMemo } from 'react';
 
@@ -11,8 +10,8 @@ type BaseColorScaleBarProps = {
   height?: number;
   tickCount?: number;
   className?: string;
-  min: number;
-  max: number;
+  min?: number;
+  max?: number;
 };
 
 type PredefinedVariant =
@@ -35,16 +34,20 @@ const variants = {
   [GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT]: {
     colors: Object.values(vectorConfig.colours),
     title: 'ocean current speed (m/s)',
+    min: 0,
+    max: vectorConfig.maxSpeed,
   },
   [GSLA_ANOMALY_SEA_LEVELS_PRODUCT_VARIANT]: {
-    colors: GSLA_OVERLAY_IMAGE_VIRIDIS_COLORS,
+    colors: gslaOverlayImageColors,
     title: 'anomaly sea level (m)',
+    min: gslaAnomalySeaLevelsRange[0],
+    max: gslaAnomalySeaLevelsRange[1],
   },
 };
 
 export const ColorScaleBar = ({
   height = 80,
-  tickCount = 7,
+  tickCount = 5,
   variant,
   className,
   ...props
@@ -55,12 +58,16 @@ export const ColorScaleBar = ({
       return {
         colors: customProps.colors,
         title: customProps.title,
+        min: props.min ?? 0,
+        max: props.max ?? 1,
       };
     } else {
       const variantConfig = variants[variant];
       return {
         colors: variantConfig.colors,
         title: variantConfig.title,
+        min: variantConfig.min,
+        max: variantConfig.max,
       };
     }
   }, [variant, props]);
@@ -69,8 +76,8 @@ export const ColorScaleBar = ({
     return `linear-gradient(to right, ${config.colors.join(', ')})`;
   }, [config.colors]);
 
-  const ticks = useMemo(() => {
-    const { min, max } = props;
+  const scaleLabels = useMemo(() => {
+    const { min, max } = config;
     const tickElements = [];
     const step = (max - min) / (tickCount - 1);
 
@@ -90,7 +97,7 @@ export const ColorScaleBar = ({
     }
 
     return tickElements;
-  }, [props, tickCount]);
+  }, [config, tickCount]);
 
   const scaleUnits = useMemo(() => {
     const tickElements = [];
@@ -101,7 +108,9 @@ export const ColorScaleBar = ({
       tickElements.push(
         <div
           key={`ColorScaleBar-ticks-${i}`}
-          className={cn('absolute flex flex-col items-center')}
+          className={cn('absolute flex flex-col items-center', {
+            hidden: i === 0 || i === tickCount - 1,
+          })}
           style={{ left: `${position}%`, transform: 'translateX(-50%)' }}
         >
           <span className="h-[6px] bg-black w-0.5" />
@@ -121,7 +130,7 @@ export const ColorScaleBar = ({
     >
       <div className="w-full">
         <div
-          className="rounded-sm w-full"
+          className="w-full"
           style={{
             height: `${height * 0.2}px`,
             background: gradient,
@@ -131,12 +140,12 @@ export const ColorScaleBar = ({
           style={{
             height: `${height * 0.1}px`,
           }}
-          className="relative mx-4"
+          className="relative "
         >
           {scaleUnits}
         </div>
-        <div className="relative  mx-4" style={{ height: `${height * 0.3}px` }}>
-          {ticks}
+        <div className="relative  mx-2" style={{ height: `${height * 0.3}px` }}>
+          {scaleLabels}
         </div>
       </div>
       <div

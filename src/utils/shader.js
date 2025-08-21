@@ -41,11 +41,13 @@ void main() {
 const fs = `
 precision highp float;
 
+// uniforms are constants, these variables are set by the CPU to GPU, from js to shader.
 uniform sampler2D u_vector;
 uniform vec2 u_vector_res;
 uniform vec2 u_vector_min;
 uniform vec2 u_vector_max;
 uniform sampler2D u_color_ramp;
+uniform float u_max_speed;
 
 uniform vec4 u_bounds;
 uniform vec4 u_data_bounds;
@@ -109,13 +111,18 @@ void main() {
     }
 
     vec2 velocity = mix(u_vector_min, u_vector_max, lookup_vector(pos_lookup));
-    float speed_t = length(velocity) / length(u_vector_max);
+
+    float max_speed = (u_max_speed > 0.0) ? u_max_speed : length(u_vector_max);
+
+    // length(velocity) = √(u² + v²).
+    float speed_t = length(velocity) / max_speed;
 
     // color ramp is encoded in a 16x16 texture
     vec2 ramp_pos = vec2(
         fract(16.0 * speed_t),
         floor(16.0 * speed_t) / 16.0);
-        
+
+    // set correct color from gradient to particle     
     gl_FragColor = texture2D(u_color_ramp, ramp_pos);
 }
 `;

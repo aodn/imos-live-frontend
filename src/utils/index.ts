@@ -22,3 +22,4 @@ export * from './appendCacheBuster';
 export * from './sleep';
 export * from './snapToClosestStep';
 export * from './clampToLowerBound';
+export * from './rgbToHex';

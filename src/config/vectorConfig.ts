@@ -1,4 +1,8 @@
 export const vectorConfig = {
+  // this is to set all dataset in the same maxSpeed. the maxSpeed determines how particles speed normilized in [0,1] then visualized corresponding color in graident colors ramp.
+  // This should be the same to the maxSpeed of color legend (ColorScaleBar).
+  maxSpeed: 7.0, //this has to be a float number and if maxSpeed is not larger than 0, it will use dataset's own max speed to visualize the particles.
+
   // Number of particles
   nParticles: 10000,
 
@@ -25,17 +29,6 @@ export const vectorConfig = {
   pointSize: 1.2,
 
   // Colour gradient, the colours object is a pair of normilised speed with values (0-1) and hex colour strings.
-  // The commented out one is the one used by early demonstrations
-  // colours: {
-  //   0.0: "#3288bd",
-  //   0.1: "#66c2a5",
-  //   0.2: "#abdda4",
-  //   0.3: "#e6f598",
-  //   0.4: "#fee08b",
-  //   0.5: "#fdae61",
-  //   0.6: "#f46d43",
-  //   1.0: "#d53e4f",
-  // },
   colours: {
     0.0: '#40E0D0',
     0.33: '#FF8C00',
