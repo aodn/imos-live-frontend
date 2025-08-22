@@ -1,4 +1,8 @@
-import { WAVE_BUOYS_LAYER_ID } from '@/constants';
+import {
+  GSLA_ANOMALY_SEA_LEVELS_PRODUCT_VARIANT,
+  GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT,
+  WAVE_BUOYS_LAYER_ID,
+} from '@/constants';
 import { Button } from '../Button';
 import { ArrowDownIcon, MapLayersIcon } from '../Icons';
 import { Image } from '../Image';
@@ -8,6 +12,7 @@ import { cn } from '@/utils';
 import { useViewportSize } from '@/hooks';
 import { ReactNode } from 'react';
 import { ColorScaleBar } from '../ColorScaleBar';
+import { vectorConfig, gslaOverlayImageColors, gslaAnomalySeaLevelsRange } from '@/config';
 
 export type LayerCardProps = LayersDataset & {
   firstButtonLabel: string;
@@ -28,6 +33,21 @@ export const LayerCard = ({
 }: LayerCardProps) => {
   const { widthBreakpoint } = useViewportSize();
   const isSmallScreen = ['sm', 'md'].includes(widthBreakpoint || '');
+
+  const variants = {
+    [GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT]: {
+      colors: Object.values(vectorConfig.colours),
+      title: 'ocean current speed (m/s)',
+      min: 0,
+      max: vectorConfig.maxSpeed,
+    },
+    [GSLA_ANOMALY_SEA_LEVELS_PRODUCT_VARIANT]: {
+      colors: gslaOverlayImageColors,
+      title: 'anomaly sea level (m)',
+      min: gslaAnomalySeaLevelsRange[0],
+      max: gslaAnomalySeaLevelsRange[1],
+    },
+  };
 
   const enableColorScaleBar =
     variant === 'gsla-ocean-geostrophic-current' || variant === 'gsla-anomaly-sea-levels';
@@ -86,8 +106,8 @@ export const LayerCard = ({
                 <ColorScaleBar
                   className="w-full"
                   height={80}
-                  variant={variant}
                   tickCount={isSmallScreen ? 5 : 7}
+                  {...variants[variant]}
                 />
               }
             </div>
