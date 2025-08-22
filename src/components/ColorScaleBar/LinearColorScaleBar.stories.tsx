@@ -1,10 +1,10 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { ColorScaleBar } from './ColorScaleBar';
+import { LinearColorScaleBar } from './LinearColorScaleBar';
 import { gslaOverlayImageColors, gslaAnomalySeaLevelsRange } from '@/config';
 
 const meta = {
-  title: 'Components/ColorScaleBar',
-  component: ColorScaleBar,
+  title: 'Components/LinearColorScaleBar',
+  component: LinearColorScaleBar,
   parameters: {
     layout: 'centered',
     docs: {
@@ -15,7 +15,7 @@ const meta = {
   },
   tags: ['autodocs'],
   argTypes: {},
-} satisfies Meta<typeof ColorScaleBar>;
+} satisfies Meta<typeof LinearColorScaleBar>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;

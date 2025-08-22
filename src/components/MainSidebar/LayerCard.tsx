@@ -10,9 +10,10 @@ import { LayersDataset } from './MainSidebarContent';
 import { CollapsibleComponent, TriggerArgs } from '../Collapsible';
 import { cn } from '@/utils';
 import { useViewportSize } from '@/hooks';
-import { ReactNode } from 'react';
-import { ColorScaleBar } from '../ColorScaleBar';
+import { ReactNode, useMemo } from 'react';
+import { LinearColorScaleBar, LogColorScaleBar } from '../ColorScaleBar';
 import { vectorConfig, gslaOverlayImageColors, gslaAnomalySeaLevelsRange } from '@/config';
+import speedColormap from '@/config/speed_colormap.json';
 
 export type LayerCardProps = LayersDataset & {
   firstButtonLabel: string;
@@ -34,23 +35,37 @@ export const LayerCard = ({
   const { widthBreakpoint } = useViewportSize();
   const isSmallScreen = ['sm', 'md'].includes(widthBreakpoint || '');
 
-  const variants = {
-    [GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT]: {
-      colors: Object.values(vectorConfig.colours),
-      title: 'ocean current speed (m/s)',
-      min: 0,
-      max: vectorConfig.maxSpeed,
-    },
-    [GSLA_ANOMALY_SEA_LEVELS_PRODUCT_VARIANT]: {
-      colors: gslaOverlayImageColors,
-      title: 'anomaly sea level (m)',
-      min: gslaAnomalySeaLevelsRange[0],
-      max: gslaAnomalySeaLevelsRange[1],
-    },
-  };
+  const variants = useMemo(
+    () => ({
+      [GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT]: {
+        colors: speedColormap as [number, number, number][],
+        title: 'ocean current speed (m/s)',
+        min: 0.01,
+        max: vectorConfig.maxSpeed,
+      },
+      [GSLA_ANOMALY_SEA_LEVELS_PRODUCT_VARIANT]: {
+        colors: gslaOverlayImageColors,
+        title: 'anomaly sea level (m)',
+        min: gslaAnomalySeaLevelsRange[0],
+        max: gslaAnomalySeaLevelsRange[1],
+      },
+    }),
+    [],
+  );
 
-  const enableColorScaleBar =
-    variant === 'gsla-ocean-geostrophic-current' || variant === 'gsla-anomaly-sea-levels';
+  const colorScaleBars = useMemo(() => {
+    if (variant === GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT)
+      return <LogColorScaleBar className="w-full" {...variants[variant]} />;
+
+    if (variant === GSLA_ANOMALY_SEA_LEVELS_PRODUCT_VARIANT)
+      return (
+        <LinearColorScaleBar
+          className="w-full"
+          tickCount={isSmallScreen ? 5 : 7}
+          {...variants[variant]}
+        />
+      );
+  }, [isSmallScreen, variant, variants]);
 
   const handleClick = () => {
     if (visible) addToMap(false);
@@ -100,18 +115,7 @@ export const LayerCard = ({
               </Button>
             )}
           </div>
-          {enableColorScaleBar && (
-            <div className="col-span-2 md:mt-4">
-              {
-                <ColorScaleBar
-                  className="w-full"
-                  height={80}
-                  tickCount={isSmallScreen ? 5 : 7}
-                  {...variants[variant]}
-                />
-              }
-            </div>
-          )}
+          {!!colorScaleBars && <div className="col-span-2 md:mt-4">{colorScaleBars}</div>}
         </div>
       </CollapsibleComponent>
     </>
