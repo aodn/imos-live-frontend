@@ -12,8 +12,11 @@ import { cn } from '@/utils';
 import { useViewportSize } from '@/hooks';
 import { ReactNode, useMemo } from 'react';
 import { LinearColorScaleBar, LogColorScaleBar } from '../ColorScaleBar';
-import { vectorConfig, gslaOverlayImageColors, gslaAnomalySeaLevelsRange } from '@/config';
-import speedColormap from '@/config/speed_colormap.json';
+import {
+  gslaOverlayImageColors,
+  gslaAnomalySeaLevelsRange,
+  gslaOceanCurrentColorsLegendConfig,
+} from '@/config';
 
 export type LayerCardProps = LayersDataset & {
   firstButtonLabel: string;
@@ -38,10 +41,8 @@ export const LayerCard = ({
   const variants = useMemo(
     () => ({
       [GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT]: {
-        colors: speedColormap as [number, number, number][],
         title: 'ocean current speed (m/s)',
-        min: 0.01,
-        max: vectorConfig.maxSpeed,
+        ...gslaOceanCurrentColorsLegendConfig,
       },
       [GSLA_ANOMALY_SEA_LEVELS_PRODUCT_VARIANT]: {
         colors: gslaOverlayImageColors,
