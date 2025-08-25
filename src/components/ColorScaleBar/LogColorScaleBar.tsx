@@ -10,7 +10,7 @@ type LogColorScaleBarProps = {
   min: number;
   max: number;
   title?: string;
-  colors?: [number, number, number][];
+  colors: [number, number, number][];
   threshold?: number;
   compressedRange?: number;
   intermediateTicks?: number[];
