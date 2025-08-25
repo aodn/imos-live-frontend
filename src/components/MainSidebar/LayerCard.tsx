@@ -1,4 +1,8 @@
-import { WAVE_BUOYS_LAYER_ID } from '@/constants';
+import {
+  GSLA_ANOMALY_SEA_LEVELS_PRODUCT_VARIANT,
+  GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT,
+  WAVE_BUOYS_LAYER_ID,
+} from '@/constants';
 import { Button } from '../Button';
 import { ArrowDownIcon, MapLayersIcon } from '../Icons';
 import { Image } from '../Image';
@@ -6,8 +10,13 @@ import { LayersDataset } from './MainSidebarContent';
 import { CollapsibleComponent, TriggerArgs } from '../Collapsible';
 import { cn } from '@/utils';
 import { useViewportSize } from '@/hooks';
-import { ReactNode } from 'react';
-import { ColorScaleBar } from '../ColorScaleBar';
+import { ReactNode, useMemo } from 'react';
+import { LinearColorScaleBar, LogColorScaleBar } from '../ColorScaleBar';
+import {
+  gslaOverlayImageColors,
+  gslaAnomalySeaLevelsRange,
+  gslaOceanCurrentColorsLegendConfig,
+} from '@/config';
 
 export type LayerCardProps = LayersDataset & {
   firstButtonLabel: string;
@@ -29,12 +38,38 @@ export const LayerCard = ({
   const { widthBreakpoint } = useViewportSize();
   const isSmallScreen = ['sm', 'md'].includes(widthBreakpoint || '');
 
-  const enableColorScaleBar =
-    variant === 'gsla-ocean-geostrophic-current' || variant === 'gsla-anomaly-sea-levels';
+  const variants = useMemo(
+    () => ({
+      [GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT]: {
+        title: 'ocean current speed (m/s)',
+        ...gslaOceanCurrentColorsLegendConfig,
+      },
+      [GSLA_ANOMALY_SEA_LEVELS_PRODUCT_VARIANT]: {
+        colors: gslaOverlayImageColors,
+        title: 'anomaly sea level (m)',
+        min: gslaAnomalySeaLevelsRange[0],
+        max: gslaAnomalySeaLevelsRange[1],
+      },
+    }),
+    [],
+  );
+
+  const colorScaleBars = useMemo(() => {
+    if (variant === GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT)
+      return <LogColorScaleBar className="w-full" {...variants[variant]} />;
+
+    if (variant === GSLA_ANOMALY_SEA_LEVELS_PRODUCT_VARIANT)
+      return (
+        <LinearColorScaleBar
+          className="w-full"
+          tickCount={isSmallScreen ? 5 : 7}
+          {...variants[variant]}
+        />
+      );
+  }, [isSmallScreen, variant, variants]);
 
   const handleClick = () => {
-    if (visible) addToMap(false);
-    else addToMap(true);
+    addToMap(!visible);
     if (layerId === WAVE_BUOYS_LAYER_ID) import('../Highcharts/WaveBuoyChart'); //preload wavebuoy chart when wavebuoylayer added.
   };
   return (
@@ -80,18 +115,7 @@ export const LayerCard = ({
               </Button>
             )}
           </div>
-          {enableColorScaleBar && (
-            <div className="col-span-2 md:mt-4">
-              {
-                <ColorScaleBar
-                  className="w-full"
-                  height={80}
-                  variant={variant}
-                  tickCount={isSmallScreen ? 5 : 7}
-                />
-              }
-            </div>
-          )}
+          {!!colorScaleBars && <div className="col-span-2 md:mt-4">{colorScaleBars}</div>}
         </div>
       </CollapsibleComponent>
     </>

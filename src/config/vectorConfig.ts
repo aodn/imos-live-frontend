@@ -1,7 +1,21 @@
+import { convertLogColorScaleToRamp } from '@/components';
+import speedColors from './speed_colormap.json';
+
+const MAX_SPEED = 7.0;
+
+export const gslaOceanCurrentColorsLegendConfig = {
+  numStops: 256,
+  colors: speedColors as [number, number, number][],
+  min: 0.01,
+  max: MAX_SPEED,
+};
+
+const colors = convertLogColorScaleToRamp(gslaOceanCurrentColorsLegendConfig);
+
 export const vectorConfig = {
   // this is to set all dataset in the same maxSpeed. the maxSpeed determines how particles speed normilized in [0,1] then visualized corresponding color in graident colors ramp.
   // This should be the same to the maxSpeed of color legend (ColorScaleBar).
-  maxSpeed: 7.0, //this has to be a float number and if maxSpeed is not larger than 0, it will use dataset's own max speed to visualize the particles.
+  maxSpeed: MAX_SPEED, //this has to be a float number and if maxSpeed is not larger than 0, it will use dataset's own max speed to visualize the particles.
 
   // Number of particles
   nParticles: 10000,
@@ -28,11 +42,6 @@ export const vectorConfig = {
   // Size of the particles in pixels
   pointSize: 1.2,
 
-  // Colour gradient, the colours object is a pair of normilised speed with values (0-1) and hex colour strings.
-  colours: {
-    0.0: '#40E0D0',
-    0.33: '#FF8C00',
-    0.67: '#FF0080',
-    1.0: '#f80759',
-  },
+  // Colour gradient, the colours object is a pair of normilised speed with values (0-1) and hex colour strings. This has to be the same as the LogColorScaleBar component.
+  colours: colors,
 };

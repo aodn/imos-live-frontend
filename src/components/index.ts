@@ -20,3 +20,4 @@ export * from './Switch';
 export * from './Toast';
 export * from './LayersIndicator';
 export * from './Highcharts';
+export * from './ColorScaleBar';
