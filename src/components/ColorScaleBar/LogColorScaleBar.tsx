@@ -29,7 +29,7 @@ export const LogColorScaleBar = ({
   intermediateTicks = [2, 5],
 }: LogColorScaleBarProps) => {
   const formatTickValue = (value: number): string => {
-    if (value < 1) return value.toFixed(2).toString();
+    if (value < 1) return value.toFixed(1).toString();
     if (Math.round(value * 100) % 100 === 0) return (Math.round(value * 100) / 100).toString();
     return (Math.round(value * 100) / 100).toFixed(1).toString();
   };

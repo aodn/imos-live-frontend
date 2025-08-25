@@ -42,12 +42,6 @@ export const vectorConfig = {
   // Size of the particles in pixels
   pointSize: 1.2,
 
-  // Colour gradient, the colours object is a pair of normilised speed with values (0-1) and hex colour strings.
-  // colours: {
-  //   0.0: '#40E0D0',
-  //   0.33: '#FF8C00',
-  //   0.67: '#FF0080',
-  //   1.0: '#f80759',
-  // },
+  // Colour gradient, the colours object is a pair of normilised speed with values (0-1) and hex colour strings. This has to be the same as the LogColorScaleBar component.
   colours: colors,
 };
