@@ -20,7 +20,7 @@ export const LogColorScaleBar = ({
   height = 12,
   numStops = 256, //how smooth the legend can be.
   className,
-  min = 0.01,
+  min = 0.01, //this cannot be 0.
   max = 7,
   title,
   colors = speedColors as [number, number, number][],
@@ -29,7 +29,7 @@ export const LogColorScaleBar = ({
   intermediateTicks = [2, 5],
 }: LogColorScaleBarProps) => {
   const formatTickValue = (value: number): string => {
-    if (value < 1) return value.toFixed(1).toString();
+    if (value < 1) return value.toFixed(2).toString();
     if (Math.round(value * 100) % 100 === 0) return (Math.round(value * 100) / 100).toString();
     return (Math.round(value * 100) / 100).toFixed(1).toString();
   };
@@ -40,12 +40,11 @@ export const LogColorScaleBar = ({
       (_, i) => min * Math.pow(max / min, i / (numStops - 1)),
     );
 
-    // Build gradient stops with adjusted positioning but correct color mapping
     const stops = values.map(v => {
       // visual postion
       const adjustedPercent =
         getAdjustedPosition({ value: v, min, max, threshold, compressedRange }) * 100;
-      // Map color based on the logarithmic value position, not visual position, say it is 10 base, 1-10, 10-100, 100-1000. logPercent will be in (0 - 1/3), (1/3 - 2/3), (2/3 - 3/3)
+      // map color based on the logarithmic value position, not visual position, say it is 10 base, 1-10, 10-100, 100-1000. logPercent will be in (0 - 1/3), (1/3 - 2/3), (2/3 - 3/3)
       const logPercent = (Math.log10(v) - Math.log10(min)) / (Math.log10(max) - Math.log10(min));
       const color = interpolateColor(logPercent, colors);
       // color is based on logarithmic value position, but position is from adjustedPercent, because we put all colors
@@ -65,7 +64,7 @@ export const LogColorScaleBar = ({
       label: string;
     }> = [];
 
-    // Add zero tick if min is below threshold
+    // add zero tick if min is below threshold
     if (min < threshold) {
       tickData.push({
         value: 0,
@@ -75,7 +74,7 @@ export const LogColorScaleBar = ({
       });
     }
 
-    // Add all other ticks
+    // add all other ticks
     ticks.forEach(value => {
       const isLastTick = value === max;
       tickData.push({

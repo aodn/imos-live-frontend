@@ -1,13 +1,11 @@
 import { convertLogColorScaleToRamp } from '@/components';
-import seaLevels from './anomaly_sea_level_colormap.json';
+import speedColors from './speed_colormap.json';
 
 const MAX_SPEED = 7.0;
 
 export const gslaOceanCurrentColorsLegendConfig = {
-  threshold: 0.1,
   numStops: 256,
-  compressedRange: 0.1,
-  colors: seaLevels as [number, number, number][],
+  colors: speedColors as [number, number, number][],
   min: 0.01,
   max: MAX_SPEED,
 };
@@ -26,7 +24,7 @@ export const vectorConfig = {
   // If 1, trails will never fade. If 0, there will be no trails.
   // As the fade happens every frame, a high number (>0.9)
   // is required to see any appreciable trails at all.
-  fadeOpacity: 1,
+  fadeOpacity: 0.985,
 
   // A dial to adjust the speed of the particles
   // If the speed is too high, eventually particle trails will no longer be smooth

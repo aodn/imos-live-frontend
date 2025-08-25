@@ -4,14 +4,10 @@ export function convertLogColorScaleToRamp({
   min,
   max,
   colors,
-  threshold,
-  compressedRange,
   numStops,
 }: {
   min: number;
   max: number;
-  threshold: number;
-  compressedRange: number;
   numStops: number;
   colors: [number, number, number][];
 }): Record<string, string> {
@@ -23,17 +19,20 @@ export function convertLogColorScaleToRamp({
   const colorStops: Record<string, string> = {};
 
   values.forEach(v => {
-    const adjustedPercent = getAdjustedPosition({ value: v, min, max, threshold, compressedRange });
-    // Map color based on the logarithmic value position, not visual position
+    // get correct percentage in the color scale based on value. say it is 10 base, 1-10, 10-100, 100-1000. logPercent will be in (0 - 1/3), (1/3 - 2/3), (2/3 - 3/3)
     const logPercent = (Math.log10(v) - Math.log10(min)) / (Math.log10(max) - Math.log10(min));
+    //get correct color based on percentage 0-1
     const color = interpolateColor(logPercent, colors, 'hex');
+    // this is for webgl texture, say max is 7, then 7 will be 100%, 3.5 will be 50%, 0.07 will be 1%, 0.007 will be 0.1%
+    const visualizedPercentage = v / max;
 
-    colorStops[adjustedPercent.toFixed(2)] = color;
+    colorStops[visualizedPercentage.toFixed(2)] = color;
   });
 
   return colorStops;
 }
 
+//get color based on percentage 0-1
 export function interpolateColor(
   percentage: number,
   colorPalette: [number, number, number][],
@@ -65,7 +64,7 @@ export function generateLogTicks(
   const logMin = Math.log10(min);
   const logMax = Math.log10(max);
 
-  // Generate major ticks (powers of 10)
+  // major ticks (powers of 10)
   for (let power = Math.floor(logMin); power <= Math.ceil(logMax); power++) {
     const value = Math.pow(10, power);
     if (value >= min && value <= max && value >= threshold) {
@@ -73,7 +72,7 @@ export function generateLogTicks(
     }
   }
 
-  // Add intermediate ticks
+  // add intermediate ticks
   for (let power = Math.floor(logMin); power < Math.ceil(logMax); power++) {
     const base = Math.pow(10, power);
     intermediateTicks.forEach(mult => {
@@ -84,13 +83,14 @@ export function generateLogTicks(
     });
   }
 
-  // Always include the exact min and max values if they're >= 0.1
+  // include the exact min and max values if they're >= 0.1
   if (min >= threshold && !ticks.includes(min)) ticks.push(min);
   if (!ticks.includes(max)) ticks.push(max);
 
   return ticks.sort((a, b) => a - b);
 }
 
+// get adjusted position for value in [0,1] range, considering threshold and compressedRange
 export function getAdjustedPosition({
   value,
   min,
@@ -109,7 +109,7 @@ export function getAdjustedPosition({
     const normalizedInRange = (value - min) / (threshold - min);
     return normalizedInRange * compressedRange;
   } else {
-    // Use the remaining space for values above threshold
+    // the remaining space for values above threshold
     const normalizedAboveThreshold =
       (Math.log10(value) - Math.log10(threshold)) / (Math.log10(max) - Math.log10(threshold));
     return compressedRange + normalizedAboveThreshold * (1 - compressedRange);
