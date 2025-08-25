@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { LogColorScaleBar } from './LogColorScaleBar';
+import speedColors from '@/config/speed_colormap.json';
 
 const meta = {
   title: 'Components/LogColorScaleBar',
@@ -25,5 +26,6 @@ export const Default: Story = {
     max: 7,
     className: 'w-120',
     height: 12,
+    colors: speedColors as [number, number, number][],
   },
 };

@@ -1,6 +1,5 @@
 import { cn } from '@/utils';
 import { useMemo } from 'react';
-import speedColors from '@/config/speed_colormap.json';
 import { getAdjustedPosition, interpolateColor, generateLogTicks } from './utils';
 
 type LogColorScaleBarProps = {
@@ -23,7 +22,7 @@ export const LogColorScaleBar = ({
   min = 0.01, //this cannot be 0.
   max = 7,
   title,
-  colors = speedColors as [number, number, number][],
+  colors,
   threshold = 0.1,
   compressedRange = 0.1, //how much space the values smaller than threshold take.
   intermediateTicks = [2, 5],
