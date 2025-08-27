@@ -1,6 +1,7 @@
 import { WaveBuoyDetailsFeatureCollection } from '@/types';
 import { s3Api } from './instance';
 import { appendCacheBuster } from '@/utils';
+import axios from 'axios';
 
 export const getWaveBuoyDetails = async (
   date: string,
@@ -14,9 +15,8 @@ export const getWaveBuoyDetails = async (
 export const getWaveBuoyLocations = async (
   date: string,
 ): Promise<GeoJSON.FeatureCollection | GeoJSON.Feature> => {
-  const path = '/BUOY/buoy_locations/' + `buoy_locations_${date}.geojson`;
-  const response = await s3Api.get<GeoJSON.FeatureCollection | GeoJSON.Feature>(
-    appendCacheBuster(path),
+  const wavebuoysLocations = await axios.get<GeoJSON.FeatureCollection>(
+    '/api/v1/ogc/collections/aaa/items/realtime?datetime=' + date,
   );
-  return response.data;
+  return wavebuoysLocations.data;
 };

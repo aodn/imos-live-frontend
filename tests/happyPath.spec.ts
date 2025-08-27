@@ -180,8 +180,9 @@ test.beforeEach(async ({ page }) => {
   await page.route('*/**/GSLA/' + nextDaySelected + '/gsla_data.json*', async route => {
     await route.fulfill({ json: genData([2, 3, 4]) });
   });
+
   await page.route(
-    '*/**/BUOY/buoy_locations/buoy_locations_' + defaultDaySelected + '.geojson*',
+    '/api/v1/ogc/collections/aaa/items/realtime?datetime=' + defaultDaySelected,
     async route => {
       const buoyLocations = {
         type: 'FeatureCollection',
@@ -207,7 +208,7 @@ test.beforeEach(async ({ page }) => {
   );
 
   await page.route(
-    '*/**/BUOY/buoy_locations/buoy_locations_' + nextDaySelected + '.geojson*',
+    '/api/v1/ogc/collections/aaa/items/realtime?datetime=' + nextDaySelected,
     async route => {
       const buoyLocations = {
         type: 'FeatureCollection',
