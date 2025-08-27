@@ -106,8 +106,8 @@ export const SymLogColorScaleBar = ({
       </div>
 
       {title && (
-        <div className="mt-2">
-          <span className="text-sm font-bold text-center">{title}</span>
+        <div className="mt-2 text-black text-sm text-center">
+          <span>{title}</span>
         </div>
       )}
     </div>
