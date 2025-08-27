@@ -3,7 +3,7 @@ import { LinearColorScaleBar } from './LinearColorScaleBar';
 import { gslaOverlayImageColors, gslaAnomalySeaLevelsRange } from '@/config';
 
 const meta = {
-  title: 'Components/LinearColorScaleBar',
+  title: 'Components/ColorScaleBar/linear',
   component: LinearColorScaleBar,
   parameters: {
     layout: 'centered',

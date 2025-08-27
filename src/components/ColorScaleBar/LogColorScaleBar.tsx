@@ -1,13 +1,19 @@
 import { cn } from '@/utils';
 import { useMemo } from 'react';
-import { getAdjustedPosition, interpolateColor, generateLogTicks } from './utils';
+import {
+  getLogVisualPosition,
+  interpolateColor,
+  generateLogTicks,
+  formatTickValue,
+  applyTickGuard,
+} from './utils';
 
 type LogColorScaleBarProps = {
   height?: number;
   numStops?: number;
   className?: string;
-  min: number;
-  max: number;
+  min?: number;
+  max?: number;
   title?: string;
   colors: [number, number, number][];
   threshold?: number;
@@ -19,20 +25,14 @@ export const LogColorScaleBar = ({
   height = 12,
   numStops = 256, //how smooth the legend can be.
   className,
-  min = 0.01, //this cannot be 0.
+  min = 0.01, //this cannot be 0 and has to be 10^n, n is integer, because we are using 10 base log scale.
   max = 7,
   title,
   colors,
-  threshold = 0.1,
+  threshold = 0.1, //the threshold value to separate the compressed linear space and logarithmic space.
   compressedRange = 0.1, //how much space the values smaller than threshold take.
   intermediateTicks = [2, 5],
 }: LogColorScaleBarProps) => {
-  const formatTickValue = (value: number): string => {
-    if (value < 1) return value.toFixed(1).toString();
-    if (Math.round(value * 100) % 100 === 0) return (Math.round(value * 100) / 100).toString();
-    return (Math.round(value * 100) / 100).toFixed(1).toString();
-  };
-
   const gradient = useMemo(() => {
     const values = Array.from(
       { length: numStops },
@@ -41,14 +41,14 @@ export const LogColorScaleBar = ({
 
     const stops = values.map(v => {
       // visual postion
-      const adjustedPercent =
-        getAdjustedPosition({ value: v, min, max, threshold, compressedRange }) * 100;
+      const visualPosition =
+        getLogVisualPosition({ value: v, min, max, threshold, compressedRange }) * 100;
       // map color based on the logarithmic value position, not visual position, say it is 10 base, 1-10, 10-100, 100-1000. logPercent will be in (0 - 1/3), (1/3 - 2/3), (2/3 - 3/3)
       const logPercent = (Math.log10(v) - Math.log10(min)) / (Math.log10(max) - Math.log10(min));
       const color = interpolateColor(logPercent, colors);
-      // color is based on logarithmic value position, but position is from adjustedPercent, because we put all colors
+      // color is based on logarithmic value position, but position is from visualPosition, because we put all colors
       // less than threshold value within compressedRange to make it look good. like 0.01-0.1 will take large space without compressedRange, thredshold setup
-      return `${color} ${adjustedPercent.toFixed(2)}%`;
+      return `${color} ${visualPosition.toFixed(2)}%`;
     });
 
     return `linear-gradient(to right, ${stops.join(', ')})`;
@@ -56,16 +56,18 @@ export const LogColorScaleBar = ({
 
   const tickPositions = useMemo(() => {
     const ticks = generateLogTicks(min, max, threshold, intermediateTicks);
-    const tickData: Array<{
-      value: number;
-      position: number;
-      isEdge: boolean;
-      label: string;
-    }> = [];
+    const tickPositions = ticks.map((value, index) => ({
+      index,
+      value,
+      position: getLogVisualPosition({ value, min, max, threshold, compressedRange }) * 100,
+      isEdge: value === max,
+      label: formatTickValue(value),
+    }));
 
     // add zero tick if min is below threshold
     if (min < threshold) {
-      tickData.push({
+      tickPositions.unshift({
+        index: 0,
         value: 0,
         position: 0,
         isEdge: true,
@@ -73,18 +75,8 @@ export const LogColorScaleBar = ({
       });
     }
 
-    // add all other ticks
-    ticks.forEach(value => {
-      const isLastTick = value === max;
-      tickData.push({
-        value,
-        position: getAdjustedPosition({ value, min, max, threshold, compressedRange }) * 100,
-        isEdge: isLastTick, // Only hide tick mark for the maximum value
-        label: formatTickValue(value),
-      });
-    });
-
-    return tickData;
+    tickPositions.map((tp, i) => (tp.index = i));
+    return applyTickGuard(tickPositions);
   }, [min, max, threshold, intermediateTicks, compressedRange]);
 
   const scaleLabels = useMemo(() => {
@@ -125,7 +117,6 @@ export const LogColorScaleBar = ({
         />
 
         <div className="relative h-1">{scaleUnits}</div>
-
         <div className="relative h-2 mx-1">{scaleLabels}</div>
       </div>
 

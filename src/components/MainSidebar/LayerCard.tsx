@@ -11,7 +11,7 @@ import { CollapsibleComponent, TriggerArgs } from '../Collapsible';
 import { cn } from '@/utils';
 import { useViewportSize } from '@/hooks';
 import { ReactNode, useMemo } from 'react';
-import { LinearColorScaleBar, LogColorScaleBar } from '../ColorScaleBar';
+import { SymLogColorScaleBar, LogColorScaleBar } from '../ColorScaleBar';
 import {
   gslaOverlayImageColors,
   gslaAnomalySeaLevelsRange,
@@ -59,14 +59,8 @@ export const LayerCard = ({
       return <LogColorScaleBar className="w-full" {...variants[variant]} />;
 
     if (variant === GSLA_ANOMALY_SEA_LEVELS_PRODUCT_VARIANT)
-      return (
-        <LinearColorScaleBar
-          className="w-full"
-          tickCount={isSmallScreen ? 5 : 7}
-          {...variants[variant]}
-        />
-      );
-  }, [isSmallScreen, variant, variants]);
+      return <SymLogColorScaleBar className="w-full" {...variants[variant]} />;
+  }, [variant, variants]);
 
   const handleClick = () => {
     addToMap(!visible);
