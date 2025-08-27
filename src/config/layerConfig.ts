@@ -147,7 +147,16 @@ export const layersOrder = [
 ];
 
 //this is from Gabriela.Semolinipilo@csiro.au and this should be same in python script when generate the overlay image.
-export const gslaOverlayImageColors = anomalySeaLevelColorMap as [number, number, number][];
+const gslaOverlayImageColors = anomalySeaLevelColorMap as [number, number, number][];
 
 //this should be same in python script when generate the overlay image
-export const gslaAnomalySeaLevelsRange = [-1.2, 1.2];
+const gslaAnomalySeaLevelsRange = [-1.2, 1.2];
+
+export const gslaAnomalySeaLevelsColorsLegendConfig = {
+  title: 'anomaly sea level (m)',
+  colors: gslaOverlayImageColors,
+  min: gslaAnomalySeaLevelsRange[0],
+  max: gslaAnomalySeaLevelsRange[1],
+  numStops: 256,
+  threshode: 0.1, //this must be same as linthresh in python script when generate the overlay image
+};

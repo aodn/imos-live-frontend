@@ -13,9 +13,8 @@ import { useViewportSize } from '@/hooks';
 import { ReactNode, useMemo } from 'react';
 import { SymLogColorScaleBar, LogColorScaleBar } from '../ColorScaleBar';
 import {
-  gslaOverlayImageColors,
-  gslaAnomalySeaLevelsRange,
   gslaOceanCurrentColorsLegendConfig,
+  gslaAnomalySeaLevelsColorsLegendConfig,
 } from '@/config';
 
 export type LayerCardProps = LayersDataset & {
@@ -41,14 +40,10 @@ export const LayerCard = ({
   const variants = useMemo(
     () => ({
       [GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT]: {
-        title: 'ocean current speed (m/s)',
         ...gslaOceanCurrentColorsLegendConfig,
       },
       [GSLA_ANOMALY_SEA_LEVELS_PRODUCT_VARIANT]: {
-        colors: gslaOverlayImageColors,
-        title: 'anomaly sea level (m)',
-        min: gslaAnomalySeaLevelsRange[0],
-        max: gslaAnomalySeaLevelsRange[1],
+        ...gslaAnomalySeaLevelsColorsLegendConfig,
       },
     }),
     [],
