@@ -5,6 +5,7 @@ import {
   generateSymlogTicks,
   getSymlogVisualPosition,
   interpolateColor,
+  getSymlogColorPosition,
 } from './utils';
 import anomalySeaLevelColorMap from '@/config/anomaly_sea_level_colormap.json';
 import { cn } from '@/utils';
@@ -35,21 +36,24 @@ export const SymLogColorScaleBar = ({
   intermediateTicks = [2, 5],
 }: SymLogColorScaleBarProps) => {
   const gradient = useMemo(() => {
-    const stops = [];
+    const values = Array.from({ length: numStops }, (_, i) => {
+      return min + (max - min) * (i / (numStops - 1));
+    });
 
-    for (let i = 0; i < numStops; i++) {
-      const value = min + (max - min) * (i / (numStops - 1));
-      const position = getSymlogVisualPosition(value, min, max, threshold, compressedRange);
+    const stops = values.map(value => {
+      // visual position
+      const visualPosition =
+        getSymlogVisualPosition(value, min, max, threshold, compressedRange) * 100;
 
-      // Map position to color palette (0 to 1 range)
-      const colorPosition = (value - min) / (max - min);
+      // color position matches Python's SymLogNorm
+      const colorPosition = getSymlogColorPosition(value, min, max, threshold);
       const color = interpolateColor(colorPosition, colors);
 
-      stops.push(`${color} ${(position * 100).toFixed(2)}%`);
-    }
+      return `${color} ${visualPosition.toFixed(2)}%`;
+    });
 
     return `linear-gradient(to right, ${stops.join(', ')})`;
-  }, [min, max, threshold, compressedRange, numStops, colors]);
+  }, [numStops, min, max, threshold, compressedRange, colors]);
 
   const tickPositions = useMemo(() => {
     const ticks = generateSymlogTicks(min, max, threshold, intermediateTicks);

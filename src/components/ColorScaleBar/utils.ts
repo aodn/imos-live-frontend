@@ -411,3 +411,101 @@ export function applyTickGuard(
     return true;
   });
 }
+
+/**
+ * Calculates the normalized position of a value within a logarithmic color scale.
+ *
+ * This function maps a data value to a position in the [0, 1] range for color interpolation
+ * using logarithmic scaling. All values must be positive as logarithms of negative numbers
+ * are undefined.
+ *
+ * The mapping preserves logarithmic relationships, meaning that values with the same
+ * logarithmic ratio will have the same visual color distance. For example, the color
+ * difference between 1 and 10 will be the same as between 10 and 100.
+ *
+ * @param value - The data value to normalize (must be > 0)
+ * @param min - The minimum value of the data range (must be > 0)
+ * @param max - The maximum value of the data range (must be > 0 and > min)
+ * @returns A value between 0 and 1 representing the position in the color scale
+ *
+ * @example
+ * // For a range from 1 to 1000
+ * getLogColorPosition(1, 1, 1000);    // Returns 0.0 (start of color scale)
+ * getLogColorPosition(10, 1, 1000);   // Returns 0.333... (1/3 through color scale)
+ * getLogColorPosition(100, 1, 1000);  // Returns 0.666... (2/3 through color scale)
+ * getLogColorPosition(1000, 1, 1000); // Returns 1.0 (end of color scale)
+ *
+ * @example
+ * // Using with color interpolation
+ * const colorPos = getLogColorPosition(50, 1, 1000);
+ * const color = interpolateColor(colorPos, colorPalette);
+ */
+export function getLogColorPosition(value: number, min: number, max: number): number {
+  return (Math.log10(value) - Math.log10(min)) / (Math.log10(max) - Math.log10(min));
+}
+
+/**
+ * Calculates the normalized position of a value within a symmetric logarithmic (symlog) color scale.
+ *
+ * This function maps a data value to a position in the [0, 1] range for color interpolation
+ * using symmetric logarithmic scaling. Unlike pure logarithmic scaling, symlog can handle
+ * negative values and provides linear scaling near zero for better visualization of small values.
+ *
+ * The symlog transformation consists of three regions:
+ * - Linear region: |value| ≤ threshold - scaled linearly to preserve small value differences
+ * - Positive log region: value > threshold - scaled logarithmically for large positive values
+ * - Negative log region: value < -threshold - scaled logarithmically for large negative values
+ *
+ * This normalization matches Python's matplotlib SymLogNorm behavior, ensuring consistent
+ * color mapping between different visualization tools.
+ *
+ * @param value - The data value to normalize (can be any real number)
+ * @param min - The minimum value of the data range
+ * @param max - The maximum value of the data range (must be > min)
+ * @param threshold - The threshold value defining the boundary between linear and logarithmic regions (must be > 0)
+ * @returns A value between 0 and 1 representing the position in the color scale
+ *
+ * @example
+ * // For a range from -100 to 100 with threshold 1
+ * getSymlogColorPosition(-100, -100, 100, 1);  // Returns 0.0 (start of color scale)
+ * getSymlogColorPosition(-1, -100, 100, 1);    // Returns ~0.25 (end of negative log region)
+ * getSymlogColorPosition(0, -100, 100, 1);     // Returns 0.5 (center of linear region)
+ * getSymlogColorPosition(1, -100, 100, 1);     // Returns ~0.75 (start of positive log region)
+ * getSymlogColorPosition(100, -100, 100, 1);   // Returns 1.0 (end of color scale)
+ *
+ * @example
+ * // Using with color interpolation for oceanographic data
+ * const colorPos = getSymlogColorPosition(seaLevelAnomaly, -1.2, 1.2, 0.1);
+ * const color = interpolateColor(colorPos, oceanColorPalette);
+ *
+ * @example
+ * // Comparing with linear scaling
+ * const linearPos = (value - min) / (max - min);        // Linear color mapping
+ * const symlogPos = getSymlogColorPosition(value, min, max, threshold); // Symlog color mapping
+ * // symlogPos will emphasize differences in large magnitude values more than linearPos
+ */
+export function getSymlogColorPosition(
+  value: number,
+  min: number,
+  max: number,
+  threshold: number,
+): number {
+  const normalizeSymlog = (val: number) => {
+    if (Math.abs(val) <= threshold) {
+      // linear region: normalize within [-threshold, threshold] to [-1, 1]
+      return val / threshold;
+    } else {
+      // logarithmic region
+      const sign = Math.sign(val);
+      const logVal = Math.log10(Math.abs(val) / threshold);
+      return sign * (1 + logVal);
+    }
+  };
+
+  const normalizedValue = normalizeSymlog(value);
+  const normalizedMin = normalizeSymlog(min);
+  const normalizedMax = normalizeSymlog(max);
+
+  // map to [0, 1] range for color interpolation
+  return (normalizedValue - normalizedMin) / (normalizedMax - normalizedMin);
+}

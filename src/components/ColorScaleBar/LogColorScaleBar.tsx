@@ -6,6 +6,7 @@ import {
   generateLogTicks,
   formatTickValue,
   applyTickGuard,
+  getLogColorPosition,
 } from './utils';
 
 type LogColorScaleBarProps = {
@@ -44,8 +45,8 @@ export const LogColorScaleBar = ({
       const visualPosition =
         getLogVisualPosition({ value: v, min, max, threshold, compressedRange }) * 100;
       // map color based on the logarithmic value position, not visual position, say it is 10 base, 1-10, 10-100, 100-1000. logPercent will be in (0 - 1/3), (1/3 - 2/3), (2/3 - 3/3)
-      const logPercent = (Math.log10(v) - Math.log10(min)) / (Math.log10(max) - Math.log10(min));
-      const color = interpolateColor(logPercent, colors);
+      const colorPosition = getLogColorPosition(v, min, max);
+      const color = interpolateColor(colorPosition, colors);
       // color is based on logarithmic value position, but position is from visualPosition, because we put all colors
       // less than threshold value within compressedRange to make it look good. like 0.01-0.1 will take large space without compressedRange, thredshold setup
       return `${color} ${visualPosition.toFixed(2)}%`;
