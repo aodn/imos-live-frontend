@@ -20,6 +20,10 @@ export default defineConfig(({ mode }) => {
     define = { 'import.meta.env.VITE_S3_BASE_URL': '"/s3-edge-proxy"' };
     server = {
       proxy: {
+        '/api': {
+          target: 'https://portal.edge.aodn.org.au',
+          changeOrigin: true,
+        },
         '/s3-edge-proxy': {
           target: VITE_S3_BASE_URL,
           changeOrigin: true,
