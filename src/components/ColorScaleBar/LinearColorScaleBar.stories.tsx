@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { LinearColorScaleBar } from './LinearColorScaleBar';
 import { gslaOverlayImageColors, gslaAnomalySeaLevelsRange } from '@/config';
+import { rgbToHex } from '@/utils';
 
 const meta = {
   title: 'Components/ColorScaleBar/linear',
@@ -22,7 +23,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
-    colors: gslaOverlayImageColors,
+    colors: gslaOverlayImageColors.map(c => rgbToHex(c[0], c[1], c[2])),
     title: 'anomaly sea level (m)',
     min: gslaAnomalySeaLevelsRange[0],
     max: gslaAnomalySeaLevelsRange[1],
