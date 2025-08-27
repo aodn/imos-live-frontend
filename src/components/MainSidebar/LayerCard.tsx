@@ -52,9 +52,11 @@ export const LayerCard = ({
   const colorScaleBars = useMemo(() => {
     if (variant === GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT)
       return <LogColorScaleBar className="w-full" {...variants[variant]} />;
+    //the reaaon to use LogColorScaleBar is most data points are between 0~2, so log scale is better to show the color difference.
 
     if (variant === GSLA_ANOMALY_SEA_LEVELS_PRODUCT_VARIANT)
       return <SymLogColorScaleBar className="w-full" {...variants[variant]} />;
+    //the reaaon to use SymLogColorScaleBar is the data points are both positive and negative, and most data points are between -0.6~0.6, so symlog scale is better to show the color difference.
   }, [variant, variants]);
 
   const handleClick = () => {
