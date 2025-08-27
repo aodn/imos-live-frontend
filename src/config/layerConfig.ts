@@ -7,7 +7,6 @@ import {
   WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID,
   WAVE_BUOYS_LAYER_ID,
 } from '@/constants';
-import { rgbToHex } from '@/utils';
 import {
   CircleLayerSpecification,
   LineLayerSpecification,
@@ -148,11 +147,16 @@ export const layersOrder = [
 ];
 
 //this is from Gabriela.Semolinipilo@csiro.au and this should be same in python script when generate the overlay image.
-export const GSLA_OVERLAY_IMAGE_COLORS_SOURCE = anomalySeaLevelColorMap;
-
-export const gslaOverlayImageColors = GSLA_OVERLAY_IMAGE_COLORS_SOURCE.map(([r, g, b]) =>
-  rgbToHex(r, g, b),
-);
+export const gslaOverlayImageColors = anomalySeaLevelColorMap as [number, number, number][];
 
 //this should be same in python script when generate the overlay image
 export const gslaAnomalySeaLevelsRange = [-1.2, 1.2];
+
+export const gslaAnomalySeaLevelsColorsLegendConfig = {
+  title: 'anomaly sea level (m)',
+  colors: gslaOverlayImageColors,
+  min: gslaAnomalySeaLevelsRange[0],
+  max: gslaAnomalySeaLevelsRange[1],
+  numStops: 256,
+  threshode: 0.1, //this must be same as linthresh in python script when generate the overlay image
+};

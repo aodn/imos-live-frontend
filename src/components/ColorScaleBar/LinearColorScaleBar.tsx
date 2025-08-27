@@ -1,5 +1,6 @@
 import { cn } from '@/utils';
 import { useMemo } from 'react';
+import { formatTickValue } from './utils';
 
 type ColorScaleBarProps = {
   height?: number;
@@ -40,7 +41,7 @@ export const LinearColorScaleBar = ({
         className="absolute flex flex-col items-center"
         style={{ left: `${position}%`, transform: 'translateX(-50%)' }}
       >
-        <span className="text-xs text-black font-medium">{value.toFixed(1)}</span>
+        <span className="text-xs text-black font-medium">{formatTickValue(value)}</span>
       </div>
     ));
   }, [tickPositions]);

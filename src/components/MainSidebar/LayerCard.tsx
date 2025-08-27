@@ -11,11 +11,10 @@ import { CollapsibleComponent, TriggerArgs } from '../Collapsible';
 import { cn } from '@/utils';
 import { useViewportSize } from '@/hooks';
 import { ReactNode, useMemo } from 'react';
-import { LinearColorScaleBar, LogColorScaleBar } from '../ColorScaleBar';
+import { SymLogColorScaleBar, LogColorScaleBar } from '../ColorScaleBar';
 import {
-  gslaOverlayImageColors,
-  gslaAnomalySeaLevelsRange,
   gslaOceanCurrentColorsLegendConfig,
+  gslaAnomalySeaLevelsColorsLegendConfig,
 } from '@/config';
 
 export type LayerCardProps = LayersDataset & {
@@ -41,14 +40,10 @@ export const LayerCard = ({
   const variants = useMemo(
     () => ({
       [GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT]: {
-        title: 'ocean current speed (m/s)',
         ...gslaOceanCurrentColorsLegendConfig,
       },
       [GSLA_ANOMALY_SEA_LEVELS_PRODUCT_VARIANT]: {
-        colors: gslaOverlayImageColors,
-        title: 'anomaly sea level (m)',
-        min: gslaAnomalySeaLevelsRange[0],
-        max: gslaAnomalySeaLevelsRange[1],
+        ...gslaAnomalySeaLevelsColorsLegendConfig,
       },
     }),
     [],
@@ -57,16 +52,12 @@ export const LayerCard = ({
   const colorScaleBars = useMemo(() => {
     if (variant === GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT)
       return <LogColorScaleBar className="w-full" {...variants[variant]} />;
+    //the reaaon to use LogColorScaleBar is most data points are between 0~2, so log scale is better to show the color difference.
 
     if (variant === GSLA_ANOMALY_SEA_LEVELS_PRODUCT_VARIANT)
-      return (
-        <LinearColorScaleBar
-          className="w-full"
-          tickCount={isSmallScreen ? 5 : 7}
-          {...variants[variant]}
-        />
-      );
-  }, [isSmallScreen, variant, variants]);
+      return <SymLogColorScaleBar className="w-full" {...variants[variant]} />;
+    //the reaaon to use SymLogColorScaleBar is the data points are both positive and negative, and most data points are between -0.6~0.6, so symlog scale is better to show the color difference.
+  }, [variant, variants]);
 
   const handleClick = () => {
     addToMap(!visible);

@@ -4,6 +4,7 @@ import speedColors from './speed_colormap.json';
 const MAX_SPEED = 7.0;
 
 export const gslaOceanCurrentColorsLegendConfig = {
+  title: 'ocean current speed (m/s)',
   numStops: 256,
   colors: speedColors as [number, number, number][],
   min: 0.01,

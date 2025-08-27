@@ -3,7 +3,7 @@ import { LogColorScaleBar } from './LogColorScaleBar';
 import speedColors from '@/config/speed_colormap.json';
 
 const meta = {
-  title: 'Components/LogColorScaleBar',
+  title: 'Components/ColorScaleBar/logarthmic',
   component: LogColorScaleBar,
   parameters: {
     layout: 'centered',
