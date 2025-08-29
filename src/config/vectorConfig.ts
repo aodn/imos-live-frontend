@@ -1,7 +1,7 @@
 import { convertLogColorScaleToRamp } from '@/components';
 import speedColors from './speed_colormap.json';
 
-const MAX_SPEED = 7.0;
+const MAX_SPEED = 3.0;
 
 export const gslaOceanCurrentColorsLegendConfig = {
   title: 'ocean current speed (m/s)',
