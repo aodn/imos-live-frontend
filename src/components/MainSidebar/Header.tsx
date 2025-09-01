@@ -37,6 +37,8 @@ export const Header = ({ image, title, className }: HeaderProps) => {
           src={image.src}
           alt={image.alt || 'imos logo'}
           height={50}
+          imageClassName="cursor-pointer"
+          onClick={() => (window.location.href = 'https://imos.org.au')}
           width={
             getScaledDimensions({
               by: 'height',
