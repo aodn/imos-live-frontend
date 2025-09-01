@@ -58,21 +58,11 @@ export const unclusteredWaveBuoysLayerConfig: Partial<CircleLayerSpecification> 
     'circle-stroke-width': [
       'case',
       ['boolean', ['feature-state', 'selected'], false],
-      4, // thicker stroke when selected
-      1, // normal stroke
+      3, // thicker stroke when selected
+      2, // normal stroke
     ],
-    'circle-stroke-color': [
-      'case',
-      ['boolean', ['feature-state', 'selected'], false],
-      '#11b4da', // blue outline when selected (inverted colors)
-      '#ffffff', // white outline when not selected
-    ],
-    'circle-stroke-opacity': [
-      'case',
-      ['boolean', ['feature-state', 'selected'], false],
-      1, // full opacity when selected
-      0.8, // slightly transparent when not selected
-    ],
+    'circle-stroke-color': '#000',
+    'circle-stroke-opacity': 1,
     // Add smooth transitions
     'circle-radius-transition': {
       duration: 200,
