@@ -20,10 +20,14 @@ export default defineConfig(({ mode }) => {
     define = { 'import.meta.env.VITE_S3_BASE_URL': '"/s3-edge-proxy"' };
     server = {
       proxy: {
-        '/api': {
-          target: 'https://portal.edge.aodn.org.au',
-          changeOrigin: true,
-        },
+        ...(!process.env['MOCKDATA']
+          ? {
+              '/api': {
+                target: 'https://portal.edge.aodn.org.au',
+                changeOrigin: true,
+              },
+            }
+          : {}),
         '/s3-edge-proxy': {
           target: VITE_S3_BASE_URL,
           changeOrigin: true,
@@ -86,14 +90,18 @@ const mockServerPlugin = (): Plugin => {
         server.middlewares.use(async (req, res, next) => {
           const url = req.originalUrl || req.url;
 
-          if (!url || !url.startsWith('/data-from-mock-server')) return next();
+          if (!url || (!url.startsWith('/data-from-mock-server') && !url.startsWith('/api')))
+            return next();
 
-          if (url.endsWith('json')) res.writeHead(200, { 'Content-Type': 'application/json' });
           if (url.endsWith('png')) res.writeHead(200, { 'Content-Type': 'image/png' });
+          else res.writeHead(200, { 'Content-Type': 'application/json' });
 
           if (url.endsWith('gsla_meta.json')) res.end(JSON.stringify(meta()));
           if (url.endsWith('gsla_data.json')) res.end(JSON.stringify(gslaData()));
-          if (url.includes('BUOY/buoy_locations')) res.end(JSON.stringify(locations()));
+
+          if (url.includes('items/realtime')) {
+            res.end(JSON.stringify(locations()));
+          }
           if (url.includes('BUOY/buoy_details')) {
             const dateMatch = url.match(/BUOY\/buoy_details\/([^_]+)_(\d{4}-\d{2}-\d{2})\.geojson/);
             if (dateMatch) {
