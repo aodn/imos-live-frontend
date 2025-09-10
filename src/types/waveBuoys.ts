@@ -1,9 +1,7 @@
 // Wave Buoy Details Types
 export type BuoyDataVariants = 'SSWMD' | 'WPFM' | 'WSSH';
 
-export type BuoyItemContent = {
-  data: [number, number][];
-};
+export type BuoyItemContent = [number, number][];
 
 export type BuouyItem = Record<BuoyDataVariants, BuoyItemContent>;
 

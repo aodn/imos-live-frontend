@@ -1,22 +1,27 @@
-import { WaveBuoyDetailsFeatureCollection } from '@/types';
-import { s3Api } from './instance';
-import { appendCacheBuster } from '@/utils';
+import { WaveBuoyDetailsFeature, WaveBuoyDetailsFeatureCollection } from '@/types';
 import axios from 'axios';
 
 export const getWaveBuoyDetails = async (
-  date: string,
+  from: string,
+  to: string,
   buoy: string,
-): Promise<WaveBuoyDetailsFeatureCollection> => {
-  const path = '/BUOY/buoy_details/' + `${buoy}_${date}.geojson`;
-  const response = await s3Api.get<WaveBuoyDetailsFeatureCollection>(appendCacheBuster(path));
-  return response.data;
+): Promise<WaveBuoyDetailsFeature> => {
+  const searchParams = new URLSearchParams();
+  searchParams.append('datetime', `${from}/${to}`);
+  searchParams.append('waveBuoy', buoy);
+  const waveDetails = await axios.get<WaveBuoyDetailsFeature>(
+    '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items/timeseries?' +
+      searchParams.toString(),
+  );
+  return waveDetails.data;
 };
 
 export const getWaveBuoyLocations = async (
   date: string,
-): Promise<GeoJSON.FeatureCollection | GeoJSON.Feature> => {
-  const wavebuoysLocations = await axios.get<GeoJSON.FeatureCollection>(
-    '/api/v1/ogc/collections/aaa/items/realtime?datetime=' + date,
+): Promise<WaveBuoyDetailsFeatureCollection> => {
+  const wavebuoysLocations = await axios.get<WaveBuoyDetailsFeatureCollection>(
+    '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items/first_data_available?datetime=' +
+      date,
   );
   return wavebuoysLocations.data;
 };

@@ -1,4 +1,4 @@
-import { WaveBuoyDetailsFeatureCollection } from '@/types';
+import { WaveBuoyDetailsFeature } from '@/types';
 import { cn, toLocalDateTime } from '@/utils';
 import { useMemo } from 'react';
 import { obseravtionVariants } from './config';
@@ -25,11 +25,7 @@ const productDescription = {
   },
 };
 
-export function LatestObservation({
-  multiData,
-}: {
-  multiData: WaveBuoyDetailsFeatureCollection[] | null;
-}) {
+export function LatestObservation({ feature }: { feature: WaveBuoyDetailsFeature | undefined }) {
   const numOfCols = 3;
   const gridColsClass = (numOfCols: number) =>
     ({
@@ -48,16 +44,13 @@ export function LatestObservation({
     })[numOfCols];
 
   const observationData: ObservationData = useMemo(() => {
-    if (!Array.isArray(multiData) || multiData.length === 0) return [];
+    if (!feature) return [];
 
-    const latestData = multiData.slice(-1)[0];
-
-    const properties = latestData?.features?.[0]?.properties || {};
+    const properties = feature.properties;
     const keys = obseravtionVariants;
 
     return keys.map(key => {
-      const p = properties[key];
-      const data = p?.data ?? [];
+      const data = properties[key] ?? [];
 
       const lastData = data.at(-1);
       let timestamp, value;
@@ -75,7 +68,7 @@ export function LatestObservation({
         unit: productDescription[key].units,
       };
     });
-  }, [multiData]);
+  }, [feature]);
 
   return (
     <div className="w-full">

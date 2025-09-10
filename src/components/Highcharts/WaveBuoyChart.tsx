@@ -1,12 +1,7 @@
 import { getWaveBuoyDetails } from '@/api';
 import { WaveBuoyPositionFeature } from '@/types';
-import {
-  createMergedCollectionWithAllParameters,
-  getLast7Dates,
-  toLocalDateTime,
-  toWaveBuoyChartData,
-} from '@/utils';
-import { useQueries } from '@tanstack/react-query';
+import { toLocalDateTime, toWaveBuoyChartData } from '@/utils';
+import { useQuery } from '@tanstack/react-query';
 import { useCallback, useMemo } from 'react';
 import { buoyDataDirectionVariant, noneDirectionVariants, VariantReadableName } from './config';
 import { LatestObservation } from './LatestObservation';
@@ -26,37 +21,31 @@ type WaveBuoyChartProps = {
 
 const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => {
   const { dateString, buoy, geometry } = toWaveBuoyChartData(waveBuoysData);
-  const latestSevendays = getLast7Dates(dateString);
+  const date = new Date(dateString);
+  const from = new Date(date.getTime() - 6 * 24 * 60 * 60 * 1000).toISOString();
+  const to = date.toISOString();
 
-  const queryResults = useQueries({
-    queries: latestSevendays.map(date => {
-      return {
-        queryKey: ['waveBuoyDetails', buoy, date],
-        queryFn: () => {
-          return getWaveBuoyDetails(date, buoy);
-        },
-      };
-    }),
+  const wavebuoyQuery = useQuery({
+    queryKey: ['waveBuoyDetails', buoy, from, to],
+    queryFn: () => {
+      return getWaveBuoyDetails(from, to, buoy);
+    },
+    enabled: !!buoy,
   });
-
-  const isLoading = queryResults.some(query => query.isLoading);
-  const isError = queryResults.every(query => query.isError);
-  const multiData = queryResults.filter(query => query.isSuccess).map(query => query.data);
-  const feature = useMemo(
-    () => createMergedCollectionWithAllParameters(multiData || []),
-    [multiData],
-  );
-
+  const { isLoading, isError } = wavebuoyQuery;
+  const feature = wavebuoyQuery.data;
   const seriseData: SeriesData[] = useMemo(() => {
+    if (!feature) return [];
+
     const properties = feature.properties;
 
     const seriesStyle = generateSeriesStyles(noneDirectionVariants);
 
     const regularSeries = noneDirectionVariants.map(variant => {
-      const d = properties[variant];
+      const data = properties[variant];
 
       return {
-        ...d,
+        data,
         ...seriesStyle.find(s => s.name === variant),
         //update name from variant like SSMD... to like wave height..., this is to update legend label to readable name.
         name:
@@ -101,7 +90,7 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
 
       if (point.series.name === VariantReadableName[buoyDataDirectionVariant]) {
         //display wave direciton and period
-        const wavePeriodPoint = feature.properties.WPFM?.data.find(
+        const wavePeriodPoint = feature?.properties.WPFM?.find(
           d => Array.isArray(d) && d[0] === point.x,
         );
 
@@ -239,7 +228,7 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
           customFormatter: tooltipFormatter,
         }}
       />
-      <LatestObservation multiData={multiData} />
+      <LatestObservation feature={feature} />
     </div>
   );
 };

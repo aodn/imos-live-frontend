@@ -182,7 +182,7 @@ test.beforeEach(async ({ page }) => {
   });
 
   await page.route(
-    '/api/v1/ogc/collections/aaa/items/realtime?datetime=' + defaultDaySelected,
+    '/api/v1/ogc/collections/aaa/items/first_data_available?datetime=' + defaultDaySelected,
     async route => {
       const buoyLocations = {
         type: 'FeatureCollection',
@@ -208,7 +208,7 @@ test.beforeEach(async ({ page }) => {
   );
 
   await page.route(
-    '/api/v1/ogc/collections/aaa/items/realtime?datetime=' + nextDaySelected,
+    '/api/v1/ogc/collections/aaa/items/first_data_available?datetime=' + nextDaySelected,
     async route => {
       const buoyLocations = {
         type: 'FeatureCollection',

@@ -1,4 +1,3 @@
-//TODO: This is not GeoJSON standard compliant, but it is used in the app.
 export const locations = (): GeoJSON.FeatureCollection =>
   ({
     type: 'FeatureCollection',
@@ -49,7 +48,6 @@ export const locations = (): GeoJSON.FeatureCollection =>
       },
     ],
   }) as GeoJSON.FeatureCollection;
-//TODO: This is not GeoJSON standard compliant, but it is used in the app.
 
 type Coordinates = [number, number];
 type DataGenerators = {
@@ -60,10 +58,10 @@ type DataGenerators = {
 
 type Buoy = { coordinates: Coordinates; name: string; dataDate: Date };
 const genData = (
-  { coordinates, name, dataDate }: Buoy,
+  { coordinates, name, dataDate }: Partial<Buoy>,
   { sswmd, wpfm, wssh }: DataGenerators,
 ): GeoJSON.FeatureCollection => {
-  const [date] = dataDate.toISOString().split('T');
+  const [date] = dataDate?.toISOString().split('T') || [];
   const data = {
     type: 'FeatureCollection',
     metadata: {
@@ -81,29 +79,15 @@ const genData = (
           coordinates,
         },
         properties: {
-          SSWMD: {
-            data: sswmd(dataDate),
-          },
-
-          WPFM: {
-            data: wpfm(dataDate),
-          },
-
-          WSSH: {
-            data: wssh(dataDate),
-          },
+          SSWMD: sswmd(new Date(dataDate || '')),
+          WPFM: wpfm(new Date(dataDate || '')),
+          WSSH: wssh(new Date(dataDate || '')),
         },
       },
     ],
   } as GeoJSON.FeatureCollection;
 
   return data;
-};
-
-const everyDayPeriodicity = (date: Date, nextValue: () => number): [number, number][] => {
-  const start = new Date(date);
-  start.setHours(0, 0, 0, 0);
-  return [[date.getTime(), nextValue()]];
 };
 
 export const genBuoyData = (
@@ -113,20 +97,35 @@ export const genBuoyData = (
   genData({ dataDate, coordinates: [143.72338, -38.75365], name }, dataGenerators);
 
 export const genBuoyRandomData = ({
-  name,
-  dataDate,
-}: Omit<Buoy, 'coordinates'>): GeoJSON.FeatureCollection =>
-  genData(
-    { dataDate, coordinates: [143.72338, -38.75365], name },
-    {
-      sswmd: (date: Date) => {
-        return everyDayPeriodicity(date, () => Math.random() * 360);
-      },
-      wpfm: (date: Date) => {
-        return everyDayPeriodicity(date, () => Math.random() * 50);
-      },
-      wssh: (date: Date) => {
-        return everyDayPeriodicity(date, () => Math.random() * 100);
-      },
+  from,
+  to,
+}: {
+  name: string;
+  from: Date;
+  to: Date;
+}): GeoJSON.Feature => {
+  const properties = {
+    SSWMD: [] as [number, number][],
+    WPFM: [] as [number, number][],
+    WSSH: [] as [number, number][],
+  };
+  const current = new Date(from);
+  current.setHours(0, 0, 0, 0);
+  const end = new Date(to);
+  end.setHours(0, 0, 0, 0);
+  while (current <= end) {
+    properties['SSWMD'].push([current.getTime(), Math.random() * 360]);
+    properties['WPFM'].push([current.getTime(), Math.random() * 50]);
+    properties['WSSH'].push([current.getTime(), Math.random() * 100]);
+    current.setDate(current.getDate() + 1);
+  }
+
+  return {
+    type: 'Feature',
+    geometry: {
+      type: 'Point',
+      coordinates: [143.72338, -38.75365],
     },
-  );
+    properties,
+  };
+};
