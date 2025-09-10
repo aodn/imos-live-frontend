@@ -1,7 +1,7 @@
+import { WaveBuoyDetailsFeatureCollection } from '@/types';
 import { cn, toLocalDateTime } from '@/utils';
-import { WaveBuoyDetailsFeatureCollection, WaveBuoyDetailsProperties } from '@/types';
-import { obseravtionVariants } from './config';
 import { useMemo } from 'react';
+import { obseravtionVariants } from './config';
 
 export type ObservationData = {
   timeStamp: string | number | undefined;
@@ -9,6 +9,21 @@ export type ObservationData = {
   value: string | number | undefined;
   unit: string | undefined;
 }[];
+
+const productDescription = {
+  SSWMD: {
+    long_name: 'spectral sea surface wave mean direction',
+    units: 'Degrees',
+  },
+  WPFM: {
+    long_name: 'sea surface wave spectral mean period',
+    units: 's',
+  },
+  WSSH: {
+    long_name: 'sea surface wave spectral significant height',
+    units: 'm',
+  },
+};
 
 export function LatestObservation({
   multiData,
@@ -35,11 +50,9 @@ export function LatestObservation({
   const observationData: ObservationData = useMemo(() => {
     if (!Array.isArray(multiData) || multiData.length === 0) return [];
 
-    const latestData = multiData
-      .sort((a, b) => a.metadata.date.localeCompare(b.metadata.date))
-      .at(-1);
+    const latestData = multiData.slice(-1)[0];
 
-    const properties = latestData?.features?.[0]?.properties ?? ({} as WaveBuoyDetailsProperties);
+    const properties = latestData?.features?.[0]?.properties || {};
     const keys = obseravtionVariants;
 
     return keys.map(key => {
@@ -57,9 +70,9 @@ export function LatestObservation({
 
       return {
         timeStamp: timestamp,
-        label: p?.long_name,
+        label: productDescription[key].long_name,
         value,
-        unit: p?.units,
+        unit: productDescription[key].units,
       };
     });
   }, [multiData]);

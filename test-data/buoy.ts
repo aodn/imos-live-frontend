@@ -81,53 +81,16 @@ const genData = (
           coordinates,
         },
         properties: {
-          date,
-          location: name,
-          time_range: {
-            start: `${date}T00:15:00.000000000`,
-            end: `${date}T23:15:00.000000000`,
-          },
           SSWMD: {
-            name: 'SSWMD',
-            standard_name: 'sea_surface_wave_from_direction',
-            long_name: 'spectral sea surface wave mean direction',
-            units: 'Degrees',
-            positive: 'clockwise',
-            reference_datum: 'true north',
-            valid_min: 0.0,
-            valid_max: 360.0,
             data: sswmd(dataDate),
-            ancillary_variable: null,
-            compass_correction_applied: '13',
           },
 
           WPFM: {
-            name: 'WPFM',
-            standard_name:
-              'sea_surface_wave_mean_period_from_variance_spectral_density_first_frequency_moment',
-            long_name: 'sea surface wave spectral mean period',
-            units: 's',
-            positive: null,
-            reference_datum: null,
-            valid_min: 0.0,
-            valid_max: 50.0,
             data: wpfm(dataDate),
-            ancillary_variable: null,
-            compass_correction_applied: null,
           },
 
           WSSH: {
-            name: 'WSSH',
-            standard_name: 'sea_surface_wave_significant_height',
-            long_name: 'sea surface wave spectral significant height',
-            units: 'm',
-            positive: null,
-            reference_datum: null,
-            valid_min: 0.0,
-            valid_max: 100.0,
             data: wssh(dataDate),
-            ancillary_variable: null,
-            compass_correction_applied: null,
           },
         },
       },
@@ -137,12 +100,10 @@ const genData = (
   return data;
 };
 
-const everyHourPeriodicity = (date: Date, nextValue: () => number): [number, number][] => {
-  return Array.from({ length: 24 }, (_, i) => {
-    const dateTime = new Date(date);
-    dateTime.setHours(i, 0, 0, 0);
-    return [dateTime.getTime(), nextValue()];
-  });
+const everyDayPeriodicity = (date: Date, nextValue: () => number): [number, number][] => {
+  const start = new Date(date);
+  start.setHours(0, 0, 0, 0);
+  return [[date.getTime(), nextValue()]];
 };
 
 export const genBuoyData = (
@@ -159,13 +120,13 @@ export const genBuoyRandomData = ({
     { dataDate, coordinates: [143.72338, -38.75365], name },
     {
       sswmd: (date: Date) => {
-        return everyHourPeriodicity(date, () => Math.random() * 360);
+        return everyDayPeriodicity(date, () => Math.random() * 360);
       },
       wpfm: (date: Date) => {
-        return everyHourPeriodicity(date, () => Math.random() * 50);
+        return everyDayPeriodicity(date, () => Math.random() * 50);
       },
       wssh: (date: Date) => {
-        return everyHourPeriodicity(date, () => Math.random() * 100);
+        return everyDayPeriodicity(date, () => Math.random() * 100);
       },
     },
   );

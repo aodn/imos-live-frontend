@@ -1,7 +1,6 @@
 import { getWaveBuoyLocations } from '@/api';
 import { useToast } from '@/components';
 import {
-  cacheConfig,
   unclusteredWaveBuoysLayerConfig,
   waveBuoyCluserLabelLayerConfig,
   waveBuoysLayerConfig,
@@ -36,7 +35,6 @@ export function useWaveBuoysLayer(map: React.RefObject<mapboxgl.Map | null>) {
   const buoyQuery = useQuery({
     queryKey: ['wave_buoy_locations', dataset],
     queryFn: () => getWaveBuoyLocations(dataset),
-    ...cacheConfig(dataset),
     enabled: isBuoyWavesLayerEnabled && dataset !== '',
   });
 

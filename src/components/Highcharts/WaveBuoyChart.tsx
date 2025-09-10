@@ -1,36 +1,28 @@
-import { BuoyItemContent, WaveBuoyPositionFeature } from '@/types';
-import { LineChart } from './LineChart';
+import { getWaveBuoyDetails } from '@/api';
+import { WaveBuoyPositionFeature } from '@/types';
 import {
   createMergedCollectionWithAllParameters,
   getLast7Dates,
   toLocalDateTime,
   toWaveBuoyChartData,
 } from '@/utils';
+import { useQueries } from '@tanstack/react-query';
 import { useCallback, useMemo } from 'react';
+import { buoyDataDirectionVariant, noneDirectionVariants, VariantReadableName } from './config';
+import { LatestObservation } from './LatestObservation';
+import { LineChart } from './LineChart';
 import { SeriesData } from './type';
-import {
-  buoyDataDirectionVariant,
-  buoyDataInfoVariant,
-  noneDirectionVariants,
-  VariantReadableName,
-} from './config';
 import {
   calculateDataRange,
   generateDynamicButtons,
   generateSeriesStyles,
   processDirectionData,
 } from './utils';
-import { getWaveBuoyDetails } from '@/api';
-import { LatestObservation } from './LatestObservation';
-import { useQueries } from '@tanstack/react-query';
-import { cacheConfig } from '@/config';
 
 type WaveBuoyChartProps = {
   waveBuoysData: Omit<WaveBuoyPositionFeature, 'type'>[];
   showDirection?: boolean;
 };
-
-type DataLookup<T extends string> = Record<T, BuoyItemContent<T>>;
 
 const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => {
   const { dateString, buoy, geometry } = toWaveBuoyChartData(waveBuoysData);
@@ -39,10 +31,10 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
   const queryResults = useQueries({
     queries: latestSevendays.map(date => {
       return {
-        queryKey: [buoy, date],
-        queryFn: () => getWaveBuoyDetails(date, buoy),
-        enabled: !!date,
-        ...cacheConfig(date),
+        queryKey: ['waveBuoyDetails', buoy, date],
+        queryFn: () => {
+          return getWaveBuoyDetails(date, buoy);
+        },
       };
     }),
   });
@@ -50,30 +42,13 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
   const isLoading = queryResults.some(query => query.isLoading);
   const isError = queryResults.every(query => query.isError);
   const multiData = queryResults.filter(query => query.isSuccess).map(query => query.data);
-
-  const data = createMergedCollectionWithAllParameters(multiData || []);
-
-  const dataLookup = useMemo(() => {
-    if (!data?.features?.length) return {} as DataLookup<(typeof buoyDataInfoVariant)[number]>;
-
-    const properties = data.features[0].properties;
-    return buoyDataInfoVariant.reduce(
-      (acc, variant) => {
-        if (properties[variant]) {
-          acc[variant] = properties[variant];
-        }
-        return acc;
-      },
-      {} as DataLookup<(typeof buoyDataInfoVariant)[number]>,
-    );
-  }, [data]);
+  const feature = useMemo(
+    () => createMergedCollectionWithAllParameters(multiData || []),
+    [multiData],
+  );
 
   const seriseData: SeriesData[] = useMemo(() => {
-    if (!data) return [];
-    const { features } = data;
-    if (!features.length) return [];
-
-    const properties = features[0].properties;
+    const properties = feature.properties;
 
     const seriesStyle = generateSeriesStyles(noneDirectionVariants);
 
@@ -97,7 +72,7 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
       : null;
 
     return directionSeries ? [...regularSeries, directionSeries] : [...regularSeries];
-  }, [data, showDirection]);
+  }, [feature, showDirection]);
 
   const dynamicButtons = useMemo(() => {
     const dataRange = calculateDataRange(seriseData);
@@ -126,7 +101,7 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
 
       if (point.series.name === VariantReadableName[buoyDataDirectionVariant]) {
         //display wave direciton and period
-        const wavePeriodPoint = dataLookup.WPFM?.data.find(
+        const wavePeriodPoint = feature.properties.WPFM?.data.find(
           d => Array.isArray(d) && d[0] === point.x,
         );
 
@@ -143,7 +118,7 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
       tooltipHTML += '</div>';
       return tooltipHTML;
     },
-    [dataLookup],
+    [feature],
   );
 
   const yAxisConfig = useMemo(() => {
