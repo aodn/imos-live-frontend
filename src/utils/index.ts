@@ -13,7 +13,6 @@ export * from './queryIncludingSelf';
 export * from './cn';
 export * from './isScrollableElement';
 export * from './normalizeWaveBuouysData';
-export * from './mergeWaveBuoyDatas';
 export * from './getFirstAndLast';
 export * from './addIdToFeatures';
 export * from './processOceanCurrentDetails';
