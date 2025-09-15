@@ -7,9 +7,7 @@ import {
 } from '@/constants/map';
 import { VectoryLayerInterface } from '@/layers';
 import { expect, Page, test } from '@playwright/test';
-import dayjs from 'dayjs';
 import { type Map } from 'mapbox-gl';
-import { genBuoyData } from '../test-data/buoy';
 import { genData, toCompassStandard } from '../test-data/gsla';
 
 type LngLat = [number, number];
@@ -182,7 +180,8 @@ test.beforeEach(async ({ page }) => {
   });
 
   await page.route(
-    '/api/v1/ogc/collections/aaa/items/first_data_available?datetime=' + defaultDaySelected,
+    '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items/first_data_available?datetime=' +
+      defaultDaySelected,
     async route => {
       const buoyLocations = {
         type: 'FeatureCollection',
@@ -208,7 +207,8 @@ test.beforeEach(async ({ page }) => {
   );
 
   await page.route(
-    '/api/v1/ogc/collections/aaa/items/first_data_available?datetime=' + nextDaySelected,
+    '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items/first_data_available?datetime=' +
+      nextDaySelected,
     async route => {
       const buoyLocations = {
         type: 'FeatureCollection',
@@ -233,80 +233,54 @@ test.beforeEach(async ({ page }) => {
     },
   );
 
-  await page.route('*/**/BUOY/buoy_details/*.geojson*', async route => {
-    const defaultDateSelected = dayjs(defaultDaySelected);
-    const dateMatch = route
-      .request()
-      .url()
-      .match(/BUOY\/buoy_details\/([^_]+)_(\d{4}-\d{2}-\d{2})\.geojson/);
-    if (dateMatch) {
-      const buoyName = dateMatch[1];
-      const dataDate = new Date(dateMatch[2]);
-      const isLatestObservation = defaultDateSelected.isSame(dayjs(dataDate), 'day');
-      if (isLatestObservation) {
-        await route.fulfill({
-          json: genBuoyData(
-            { name: buoyName, dataDate },
-            {
-              sswmd: (date: Date) => {
-                const values: [number, number][] = [];
-                const dateTime = new Date(date);
-                dateTime.setHours(0, 0, 0, 0);
-                values.push([dateTime.getTime(), 170]);
-                dateTime.setHours(10, 0, 0, 0);
-                values.push([dateTime.getTime(), 1]);
-                return values;
-              },
-              wpfm: (date: Date) => {
-                const values: [number, number][] = [];
-                const dateTime = new Date(date);
-                dateTime.setHours(0, 0, 0, 0);
-                values.push([dateTime.getTime(), 30]);
-                dateTime.setHours(10, 0, 0, 0);
-                values.push([dateTime.getTime(), 1]);
-                return values;
-              },
-              wssh: (date: Date) => {
-                const values: [number, number][] = [];
-                const dateTime = new Date(date);
-                dateTime.setHours(0, 0, 0, 0);
-                values.push([dateTime.getTime(), 70]);
-                dateTime.setHours(10, 0, 0, 0);
-                values.push([dateTime.getTime(), 1]);
-                return values;
-              },
-            },
-          ),
-        });
-        return;
+  await page.route(
+    '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items/timeseries*',
+    async route => {
+      const req = route.request();
+      const url = req.url();
+
+      const timeseriesURL = new URL(url, `http://${req.headers().host}`);
+
+      const buoyName = timeseriesURL.searchParams.get('waveBuoy') ?? '';
+      expect(buoyName).toBe(buoys.HOBARITO.name);
+      const [from, to] = timeseriesURL.searchParams.get('datetime')?.split('/') || [];
+
+      const properties = {
+        SSWMD: [] as [number, number][],
+        WPFM: [] as [number, number][],
+        WSSH: [] as [number, number][],
+      };
+      const current = new Date(from);
+      current.setHours(0, 0, 0, 0);
+      const end = new Date(to);
+      end.setHours(0, 0, 0, 0);
+      let iterations = 0;
+      while (current <= end) {
+        properties['SSWMD'].push([current.getTime(), Math.random() * 360 - iterations * 10]);
+        properties['WPFM'].push([current.getTime(), Math.random() * 50 - iterations * 2]);
+        properties['WSSH'].push([current.getTime(), Math.random() * 100 - iterations * 5]);
+        current.setDate(current.getDate() + 1);
+        iterations++;
       }
 
+      properties['SSWMD'].push([current.getTime(), 1]);
+      properties['WPFM'].push([current.getTime(), 1]);
+      properties['WSSH'].push([current.getTime(), 1]);
+
+      const data = {
+        type: 'Feature',
+        geometry: {
+          type: 'Point',
+          coordinates: [143.72338, -38.75365],
+        },
+        properties,
+      };
+
       await route.fulfill({
-        json: genBuoyData(
-          { name: buoyName, dataDate },
-          {
-            sswmd: (date: Date) => {
-              const dateTime = new Date(date);
-              dateTime.setHours(0, 0, 0, 0);
-              return [[dateTime.getTime(), 180]];
-            },
-            wpfm: (date: Date) => {
-              const dateTime = new Date(date);
-              dateTime.setHours(0, 0, 0, 0);
-              return [[dateTime.getTime(), 40]];
-            },
-            wssh: (date: Date) => {
-              const dateTime = new Date(date);
-              dateTime.setHours(0, 0, 0, 0);
-              return [[dateTime.getTime(), 80]];
-            },
-          },
-        ),
+        json: data,
       });
-      return;
-    }
-    await route.continue();
-  });
+    },
+  );
 });
 
 test.describe('Ocean Current', () => {
@@ -427,7 +401,7 @@ test.describe('Wave Buoys', () => {
     await mapComponent.clickOnBuoy(page, buoys.HOBARITO.name);
 
     const latestObservation = page.getByTestId('latest-observation-timestamp');
-    await expect(latestObservation).toContainText('7/23/2025, 10:00:00 AM');
+    await expect(latestObservation).toContainText('7/24/2025, 12:00:00 AM');
 
     await expect(page.getByTestId('latest-observation-label')).toHaveText([
       'sea surface wave spectral significant height (m)',
