@@ -1,4 +1,3 @@
-//TODO: This is not GeoJSON standard compliant, but it is used in the app.
 export const locations = (): GeoJSON.FeatureCollection =>
   ({
     type: 'FeatureCollection',
@@ -49,7 +48,6 @@ export const locations = (): GeoJSON.FeatureCollection =>
       },
     ],
   }) as GeoJSON.FeatureCollection;
-//TODO: This is not GeoJSON standard compliant, but it is used in the app.
 
 type Coordinates = [number, number];
 type DataGenerators = {
@@ -60,10 +58,10 @@ type DataGenerators = {
 
 type Buoy = { coordinates: Coordinates; name: string; dataDate: Date };
 const genData = (
-  { coordinates, name, dataDate }: Buoy,
+  { coordinates, name, dataDate }: Partial<Buoy>,
   { sswmd, wpfm, wssh }: DataGenerators,
 ): GeoJSON.FeatureCollection => {
-  const [date] = dataDate.toISOString().split('T');
+  const [date] = dataDate?.toISOString().split('T') || [];
   const data = {
     type: 'FeatureCollection',
     metadata: {
@@ -81,68 +79,15 @@ const genData = (
           coordinates,
         },
         properties: {
-          date,
-          location: name,
-          time_range: {
-            start: `${date}T00:15:00.000000000`,
-            end: `${date}T23:15:00.000000000`,
-          },
-          SSWMD: {
-            name: 'SSWMD',
-            standard_name: 'sea_surface_wave_from_direction',
-            long_name: 'spectral sea surface wave mean direction',
-            units: 'Degrees',
-            positive: 'clockwise',
-            reference_datum: 'true north',
-            valid_min: 0.0,
-            valid_max: 360.0,
-            data: sswmd(dataDate),
-            ancillary_variable: null,
-            compass_correction_applied: '13',
-          },
-
-          WPFM: {
-            name: 'WPFM',
-            standard_name:
-              'sea_surface_wave_mean_period_from_variance_spectral_density_first_frequency_moment',
-            long_name: 'sea surface wave spectral mean period',
-            units: 's',
-            positive: null,
-            reference_datum: null,
-            valid_min: 0.0,
-            valid_max: 50.0,
-            data: wpfm(dataDate),
-            ancillary_variable: null,
-            compass_correction_applied: null,
-          },
-
-          WSSH: {
-            name: 'WSSH',
-            standard_name: 'sea_surface_wave_significant_height',
-            long_name: 'sea surface wave spectral significant height',
-            units: 'm',
-            positive: null,
-            reference_datum: null,
-            valid_min: 0.0,
-            valid_max: 100.0,
-            data: wssh(dataDate),
-            ancillary_variable: null,
-            compass_correction_applied: null,
-          },
+          SSWMD: sswmd(new Date(dataDate || '')),
+          WPFM: wpfm(new Date(dataDate || '')),
+          WSSH: wssh(new Date(dataDate || '')),
         },
       },
     ],
   } as GeoJSON.FeatureCollection;
 
   return data;
-};
-
-const everyHourPeriodicity = (date: Date, nextValue: () => number): [number, number][] => {
-  return Array.from({ length: 24 }, (_, i) => {
-    const dateTime = new Date(date);
-    dateTime.setHours(i, 0, 0, 0);
-    return [dateTime.getTime(), nextValue()];
-  });
 };
 
 export const genBuoyData = (
@@ -152,20 +97,35 @@ export const genBuoyData = (
   genData({ dataDate, coordinates: [143.72338, -38.75365], name }, dataGenerators);
 
 export const genBuoyRandomData = ({
-  name,
-  dataDate,
-}: Omit<Buoy, 'coordinates'>): GeoJSON.FeatureCollection =>
-  genData(
-    { dataDate, coordinates: [143.72338, -38.75365], name },
-    {
-      sswmd: (date: Date) => {
-        return everyHourPeriodicity(date, () => Math.random() * 360);
-      },
-      wpfm: (date: Date) => {
-        return everyHourPeriodicity(date, () => Math.random() * 50);
-      },
-      wssh: (date: Date) => {
-        return everyHourPeriodicity(date, () => Math.random() * 100);
-      },
+  from,
+  to,
+}: {
+  name: string;
+  from: Date;
+  to: Date;
+}): GeoJSON.Feature => {
+  const properties = {
+    SSWMD: [] as [number, number][],
+    WPFM: [] as [number, number][],
+    WSSH: [] as [number, number][],
+  };
+  const current = new Date(from);
+  current.setHours(0, 0, 0, 0);
+  const end = new Date(to);
+  end.setHours(0, 0, 0, 0);
+  while (current <= end) {
+    properties['SSWMD'].push([current.getTime(), Math.random() * 360]);
+    properties['WPFM'].push([current.getTime(), Math.random() * 50]);
+    properties['WSSH'].push([current.getTime(), Math.random() * 100]);
+    current.setDate(current.getDate() + 1);
+  }
+
+  return {
+    type: 'Feature',
+    geometry: {
+      type: 'Point',
+      coordinates: [143.72338, -38.75365],
     },
-  );
+    properties,
+  };
+};

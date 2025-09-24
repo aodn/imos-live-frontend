@@ -24,6 +24,7 @@ export default defineConfig(({ mode }) => {
           ? {
               '/api': {
                 target: 'https://portal.edge.aodn.org.au',
+                // target: 'http://localhost:8080',
                 changeOrigin: true,
               },
             }
@@ -99,16 +100,18 @@ const mockServerPlugin = (): Plugin => {
           if (url.endsWith('gsla_meta.json')) res.end(JSON.stringify(meta()));
           if (url.endsWith('gsla_data.json')) res.end(JSON.stringify(gslaData()));
 
-          if (url.includes('items/realtime')) {
+          if (url.includes('items/first_data_available')) {
             res.end(JSON.stringify(locations()));
           }
-          if (url.includes('BUOY/buoy_details')) {
-            const dateMatch = url.match(/BUOY\/buoy_details\/([^_]+)_(\d{4}-\d{2}-\d{2})\.geojson/);
-            if (dateMatch) {
-              const buoyName = dateMatch[1];
-              const dataDate = new Date(dateMatch[2]);
-              res.end(JSON.stringify(genBuoyRandomData({ name: buoyName, dataDate })));
-            }
+          if (url.includes('items/timeseries')) {
+            const timeseriesURL = new URL(url, `http://${req.headers.host}`);
+            const buoyName = timeseriesURL.searchParams.get('waveBuoy') ?? '';
+            const [from, to] = timeseriesURL.searchParams.get('datetime')?.split('/') || [];
+            res.end(
+              JSON.stringify(
+                genBuoyRandomData({ name: buoyName, from: new Date(from), to: new Date(to) }),
+              ),
+            );
           }
 
           if (url.endsWith('gsla_overlay.png')) res.end(await overlayBitmap());

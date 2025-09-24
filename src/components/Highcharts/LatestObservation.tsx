@@ -1,7 +1,7 @@
+import { WaveBuoyDetailsFeature } from '@/types';
 import { cn, toLocalDateTime } from '@/utils';
-import { WaveBuoyDetailsFeatureCollection, WaveBuoyDetailsProperties } from '@/types';
-import { obseravtionVariants } from './config';
 import { useMemo } from 'react';
+import { obseravtionVariants } from './config';
 
 export type ObservationData = {
   timeStamp: string | number | undefined;
@@ -10,11 +10,22 @@ export type ObservationData = {
   unit: string | undefined;
 }[];
 
-export function LatestObservation({
-  multiData,
-}: {
-  multiData: WaveBuoyDetailsFeatureCollection[] | null;
-}) {
+const productDescription = {
+  SSWMD: {
+    long_name: 'spectral sea surface wave mean direction',
+    units: 'Degrees',
+  },
+  WPFM: {
+    long_name: 'sea surface wave spectral mean period',
+    units: 's',
+  },
+  WSSH: {
+    long_name: 'sea surface wave spectral significant height',
+    units: 'm',
+  },
+};
+
+export function LatestObservation({ feature }: { feature: WaveBuoyDetailsFeature | undefined }) {
   const numOfCols = 3;
   const gridColsClass = (numOfCols: number) =>
     ({
@@ -33,18 +44,13 @@ export function LatestObservation({
     })[numOfCols];
 
   const observationData: ObservationData = useMemo(() => {
-    if (!Array.isArray(multiData) || multiData.length === 0) return [];
+    if (!feature) return [];
 
-    const latestData = multiData
-      .sort((a, b) => a.metadata.date.localeCompare(b.metadata.date))
-      .at(-1);
-
-    const properties = latestData?.features?.[0]?.properties ?? ({} as WaveBuoyDetailsProperties);
+    const properties = feature.properties;
     const keys = obseravtionVariants;
 
     return keys.map(key => {
-      const p = properties[key];
-      const data = p?.data ?? [];
+      const data = properties[key] ?? [];
 
       const lastData = data.at(-1);
       let timestamp, value;
@@ -57,12 +63,12 @@ export function LatestObservation({
 
       return {
         timeStamp: timestamp,
-        label: p?.long_name,
+        label: productDescription[key].long_name,
         value,
-        unit: p?.units,
+        unit: productDescription[key].units,
       };
     });
-  }, [multiData]);
+  }, [feature]);
 
   return (
     <div className="w-full">

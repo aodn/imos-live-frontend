@@ -1,4 +1,11 @@
+import { BuoyItemContent } from '@/types';
+import Highcharts from 'highcharts/highstock'; // Use highstock
 import accessibility from 'highcharts/modules/accessibility';
+import boost from 'highcharts/modules/boost';
+import exportData from 'highcharts/modules/export-data';
+import exporting from 'highcharts/modules/exporting';
+import offlineExporting from 'highcharts/modules/offline-exporting';
+import { buoyDataDirectionVariant, colors, directionColors, VariantReadableName } from './config';
 import {
   AnimationConfig,
   NavigatorConfig,
@@ -7,13 +14,6 @@ import {
   SeriesData,
   ThemeConfig,
 } from './type';
-import exporting from 'highcharts/modules/exporting';
-import Highcharts from 'highcharts/highstock'; // Use highstock
-import boost from 'highcharts/modules/boost';
-import exportData from 'highcharts/modules/export-data';
-import offlineExporting from 'highcharts/modules/offline-exporting';
-import { buoyDataDirectionVariant, colors, directionColors, VariantReadableName } from './config';
-import { BuoyItemContent, BuoyDataVariants } from '@/types';
 
 export const DEFAULT_THEME = {
   colors: [
@@ -633,15 +633,15 @@ export function createDirectionArrow(
   return 'data:image/svg+xml;base64,' + btoa(arrowSvg);
 }
 
-export function processDirectionData(data: BuoyItemContent<BuoyDataVariants>): SeriesData | null {
-  if (!data || !data.data || !Array.isArray(data.data)) {
+export function processDirectionData(data: BuoyItemContent): SeriesData | null {
+  if (!Array.isArray(data)) {
     return null;
   }
 
   // Fixed position: 10% from bottom of chart (adjust as needed)
   const arrowYPosition = -0.1;
 
-  const processedData = data.data.map(point => {
+  const processedData = data.map(point => {
     const [timestamp, direction] = point as [number, number];
     return {
       x: timestamp,
