@@ -36,6 +36,10 @@ export default defineConfig(({ mode }) => {
             return path.replace(/^\/s3-edge-proxy/, '');
           },
         },
+        '/thredds': {
+          target: 'https://thredds5.edge.aodn.org.au',
+          changeOrigin: true,
+        },
       },
     };
   }
