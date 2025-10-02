@@ -37,7 +37,7 @@ export default defineConfig(({ mode }) => {
           },
         },
         '/thredds': {
-          target: 'https://thredds5.edge.aodn.org.au',
+          target: 'https://imoslive.edge.aodn.org.au',
           changeOrigin: true,
         },
       },
