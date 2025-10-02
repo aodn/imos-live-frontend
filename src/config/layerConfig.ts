@@ -105,6 +105,8 @@ export const overlayLayerConfig = {
   paint: {
     'raster-fade-duration': 0,
   },
+  type: 'raster',
+  slot: 'middle',
 };
 
 export const measurePointsConfig: Partial<CircleLayerSpecification> = {

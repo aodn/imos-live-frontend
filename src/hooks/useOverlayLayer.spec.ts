@@ -8,7 +8,7 @@ import { useOverlayLayer } from './useOverlayLayer';
 import { useMapUIStore } from '@/store';
 import { getMetaData } from '@/api';
 import { useToast } from '@/components';
-import { addLayerInOrder, addOrUpdateImageSource } from '@/helpers';
+import { addLayerInOrder, addOrUpdateWaveBuoyWMSSource } from '@/helpers';
 import { imageLayer } from '@/layers';
 import { buildGSLADatasetFullPath, buildGSLADatasetPath, processMetaData } from '@/utils';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
@@ -50,6 +50,7 @@ vi.mock('@/components', () => ({
 vi.mock('@/helpers', () => ({
   addLayerInOrder: vi.fn(),
   addOrUpdateImageSource: vi.fn(),
+  addOrUpdateWaveBuoyWMSSource: vi.fn(),
 }));
 
 vi.mock('@/layers', () => ({
@@ -156,9 +157,7 @@ describe('useOverlayLayer', () => {
     );
   });
 
-  it('should disable layer visibility when error occurs', async () => {
-    mockQueryResult.promise = Promise.reject(new Error('API Error'));
-
+  it('should call addOrUpdateWaveBuoyWMSSource and addLayerInOrder during setup', async () => {
     renderHook(() => useOverlayLayer(mockMap as any));
 
     const setupLayerCall = (useMapboxLayerSetup as Mock).mock.calls[0];
@@ -168,42 +167,10 @@ describe('useOverlayLayer', () => {
       await setupLayerFn();
     });
 
-    expect(mockShowToast).toHaveBeenCalledWith({
-      type: 'error',
-      title: 'Error occurred',
-      message: 'Failed to get GSLA anamly sea level data of this date',
-      duration: 6000,
-    });
-
-    expect(useMapboxLayerVisibility).toHaveBeenCalledWith(
-      mockMap,
-      true,
-      [{ id: 'gsla-overlay-layer', source: 'gsla-overlay-source' }],
-      false,
-    );
-  });
-
-  it('should call addOrUpdateImageSource and addLayerInOrder during setup', async () => {
-    renderHook(() => useOverlayLayer(mockMap as any));
-
-    const setupLayerCall = (useMapboxLayerSetup as Mock).mock.calls[0];
-    const setupLayerFn = setupLayerCall[1];
-
-    await act(async () => {
-      await setupLayerFn();
-    });
-
-    expect(buildGSLADatasetFullPath).toHaveBeenCalledWith(
-      mockStoreState.dataset,
-      'gsla_overlay.png',
-    );
-
-    expect(addOrUpdateImageSource).toHaveBeenCalledWith(
+    expect(addOrUpdateWaveBuoyWMSSource).toHaveBeenCalledWith(
       mockMap.current,
       'gsla-overlay-source',
-      'path/to/data.png',
-      [110, 160],
-      [-45, -10],
+      '2024-01-01',
     );
 
     expect(addLayerInOrder).toHaveBeenCalledWith(mockMap, {
@@ -225,43 +192,6 @@ describe('useOverlayLayer', () => {
 
     expect(didMountEffectCall).toBeDefined();
     expect(didMountEffectCall![1]).toContain('2024-01-02');
-  });
-
-  it('should handle multiple dataset changes correctly', () => {
-    const { rerender } = renderHook(() => useOverlayLayer(mockMap as any));
-
-    expect(useQuery).toHaveBeenCalledWith({
-      queryKey: ['gsla_meta.json', '2024-01-01'],
-      queryFn: expect.any(Function),
-    });
-
-    mockStoreState.dataset = '2024-01-02';
-    rerender();
-
-    expect(useQuery).toHaveBeenCalledWith({
-      queryKey: ['gsla_meta.json', '2024-01-02'],
-      queryFn: expect.any(Function),
-    });
-  });
-
-  it('should handle metadata processing correctly', async () => {
-    renderHook(() => useOverlayLayer(mockMap as any));
-
-    const setupLayerCall = (useMapboxLayerSetup as Mock).mock.calls[0];
-    const setupLayerFn = setupLayerCall[1];
-
-    await act(async () => {
-      await setupLayerFn();
-    });
-
-    expect(processMetaData).toHaveBeenCalledWith(mockMetaData);
-    expect(addOrUpdateImageSource).toHaveBeenCalledWith(
-      mockMap.current,
-      'gsla-overlay-source',
-      'path/to/data.png',
-      [110, 160],
-      [-45, -10],
-    );
   });
 
   it('should toggle overlay layer visibility correctly', () => {

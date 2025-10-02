@@ -89,6 +89,30 @@ const mapComponent = {
       { layerID },
     );
   },
+  getTilesURL: async (page: Page, layerID: string): Promise<string | undefined> => {
+    return page.evaluate(
+      ({ layerID }) => {
+        const map = (window as any).map as Map | undefined;
+        if (!map) throw new Error('Map not found');
+        const layer = map.getLayer(layerID);
+        if (!layer) throw new Error('Layer not found');
+
+        if ('source' in layer && layer.source) {
+          console.log({ source: layer.source });
+          const [tiles] = (map.getSource(layer.source) as any).tiles || ([] as string[]);
+          return tiles;
+        }
+        if ('sourceId' in layer && layer.sourceId) {
+          console.log({ source: layer.sourceId });
+          const [tiles] =
+            (map.getSource(layer.sourceId as string) as any).tiles || ([] as string[]);
+          return tiles;
+        }
+        return;
+      },
+      { layerID },
+    );
+  },
   openPopup: async (page: Page) => {
     await expect(async () => {
       await page.getByRole('region', { name: 'Map' }).click();
@@ -331,14 +355,16 @@ test.describe('Anomaly sea levels', () => {
   });
 
   test('User can see see levels anomaly of different days', async ({ page }) => {
+    const nextDaySelectedParsed = nextDaySelected.replace(/-/g, '');
+    const defaultDaySelectedParsed = defaultDaySelected.replace(/-/g, '');
     await expect
-      .poll(() => mapComponent.getSourceURL(page, OVERLAY_LAYER_ID))
-      .toContain(`/${defaultDaySelected}/`);
+      .poll(() => mapComponent.getTilesURL(page, OVERLAY_LAYER_ID))
+      .toContain(`_${defaultDaySelectedParsed}T`);
     await page.getByRole('slider', { name: 'point handle' }).click();
     await page.keyboard.press('ArrowRight');
     await expect
-      .poll(() => mapComponent.getSourceURL(page, OVERLAY_LAYER_ID))
-      .toContain(`/${nextDaySelected}/`);
+      .poll(() => mapComponent.getTilesURL(page, OVERLAY_LAYER_ID))
+      .toContain(`_${nextDaySelectedParsed}T`);
   });
 
   test('User can see the current value from a map particle of different days', async ({ page }) => {
