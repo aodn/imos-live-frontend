@@ -3,10 +3,12 @@ import {
   GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT,
   OVERLAY_LAYER_ID,
   PARTICLE_LAYER_ID,
+  SST_ANOMALY_MOSAIC_LAYER_ID,
+  SST_ANOMALY_MOSAIC_PRODUCT_VARIANT,
   WAVE_BUOYS_LAYER_ID,
   WAVE_BUOYS_PRODUCT_VARIANT,
 } from '@/constants';
-import { WaterSurfaceIcon, WaveIcon, RadarIcon, SatelliteIcon } from '../Icons';
+import { WaterSurfaceIcon, WaveIcon, RadarIcon, SatelliteIcon, ThermometerIcon } from '../Icons';
 import { LayersDataset } from './MainSidebarContent';
 import occeanCurrentImage from '@/assets/ocean-current.webp';
 import anomalySeaLevelImage from '@/assets/sea-levels.webp';
@@ -72,6 +74,20 @@ export const featuredDataset: LayersDataset[] = [
     addToMap: () => console.log('Add to map clicked'),
     visible: false,
     variant: WAVE_BUOYS_PRODUCT_VARIANT,
+  },
+  {
+    image: {
+      src: '',
+      alt: 'AUS TEMP',
+    },
+    title: 'Sea surface skin temperature anomaly',
+    icon: <ThermometerIcon size="lg" />,
+    description:
+      'AusTemp is a specialised remote sensing application for the monitoring of SST conditions that lead to coral bleaching. The BOM legacy system was developed in consultation with Great Barrier Reef Marine Park Authority (GBRMPA) reef management and replaces the original CSIRO ReefTemp system (Maynard et al, 2008).',
+    layerId: SST_ANOMALY_MOSAIC_LAYER_ID,
+    addToMap: () => console.log('Add to map clicked'),
+    visible: false,
+    variant: SST_ANOMALY_MOSAIC_PRODUCT_VARIANT,
   },
 ];
 

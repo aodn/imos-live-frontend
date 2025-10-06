@@ -1,6 +1,6 @@
 import { overlayLayerConfig } from '@/config';
-import { OVERLAY_LAYER_ID, OVERLAY_SOURCE_ID } from '@/constants';
-import { addLayerInOrder, addOrUpdateWaveBuoyWMSSource } from '@/helpers';
+import { OVERLAY_LAYER_ID } from '@/constants';
+import { addLayerInOrder, addOrUpdateWMSSource } from '@/helpers';
 import { imageLayer } from '@/layers';
 import { useMapUIStore } from '@/store';
 import { useCallback, useMemo } from 'react';
@@ -10,8 +10,9 @@ import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
 
 export function useOverlayLayer(map: React.RefObject<mapboxgl.Map | null>) {
-  const { overlay, dataset } = useMapUIStore(
+  const { overlay, dataset, overlaySource } = useMapUIStore(
     useShallow(s => ({
+      overlaySource: s.overlaySource,
       overlay: s.overlay,
       dataset: s.dataset,
     })),
@@ -20,15 +21,15 @@ export function useOverlayLayer(map: React.RefObject<mapboxgl.Map | null>) {
   const overlayLayer = useMemo(
     () =>
       imageLayer(
-        { id: OVERLAY_LAYER_ID, source: OVERLAY_SOURCE_ID, ...overlayLayerConfig },
+        { id: OVERLAY_LAYER_ID, source: OVERLAY_LAYER_ID, ...overlayLayerConfig },
         overlay,
       ),
     [overlay],
   );
 
   const setDataByDataset = useCallback(async () => {
-    addOrUpdateWaveBuoyWMSSource(map.current!, OVERLAY_SOURCE_ID, dataset);
-  }, [dataset, map]);
+    addOrUpdateWMSSource(map.current!, overlaySource, dataset);
+  }, [dataset, map, overlaySource]);
 
   const setupLayer = useCallback(async () => {
     if (!overlayLayer) return;
@@ -38,10 +39,10 @@ export function useOverlayLayer(map: React.RefObject<mapboxgl.Map | null>) {
 
   const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [overlayLayer]);
 
-  useMapboxLayerVisibility(map, loadComplete, [overlayLayer], overlay);
+  useMapboxLayerVisibility(map, loadComplete, [overlayLayer], overlay, overlaySource);
 
   useDidMountEffect(() => {
     if (!map.current || !loadComplete) return;
     setDataByDataset();
-  }, [loadComplete, dataset]);
+  }, [loadComplete, dataset, overlaySource]);
 }

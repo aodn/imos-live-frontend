@@ -11,6 +11,7 @@ import { Button } from '../Button';
 import {
   GSLA_ANOMALY_SEA_LEVELS_PRODUCT_VARIANT,
   GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT,
+  SST_ANOMALY_MOSAIC_PRODUCT_VARIANT,
   WAVE_BUOYS_PRODUCT_VARIANT,
 } from '@/constants';
 
@@ -29,7 +30,8 @@ export type LayersDataset = {
   variant?:
     | typeof GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT
     | typeof GSLA_ANOMALY_SEA_LEVELS_PRODUCT_VARIANT
-    | typeof WAVE_BUOYS_PRODUCT_VARIANT;
+    | typeof WAVE_BUOYS_PRODUCT_VARIANT
+    | typeof SST_ANOMALY_MOSAIC_PRODUCT_VARIANT;
 };
 
 export type LayerProducts = {
@@ -45,16 +47,18 @@ type MainSidebarProps = {
 export const MainSidebarContent: React.FC<MainSidebarProps> = ({ className = '' }) => {
   const [searchQuery] = useState('');
 
-  const { overlay, particles, circle, setOverlay, setCircle, setParticles } = useMapUIStore(
-    useShallow(s => ({
-      overlay: s.overlay,
-      particles: s.particles,
-      circle: s.circle,
-      setOverlay: s.setOverlay,
-      setCircle: s.setCircle,
-      setParticles: s.setParticles,
-    })),
-  );
+  const { overlay, particles, circle, overlaySource, setOverlay, setCircle, setParticles } =
+    useMapUIStore(
+      useShallow(s => ({
+        overlay: s.overlay,
+        particles: s.particles,
+        circle: s.circle,
+        overlaySource: s.overlaySource,
+        setOverlay: s.setOverlay,
+        setCircle: s.setCircle,
+        setParticles: s.setParticles,
+      })),
+    );
   const normalizedLayerSets = useMemo(() => {
     return normalizeLayerSets(
       featuredDataset.map(item => ({ ...item })),
@@ -68,6 +72,7 @@ export const MainSidebarContent: React.FC<MainSidebarProps> = ({ className = '' 
         overlay,
         circle,
       },
+      overlaySource,
     );
   }, [setCircle, setOverlay, setParticles, particles, overlay, circle]);
 

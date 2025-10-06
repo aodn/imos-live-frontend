@@ -8,7 +8,7 @@ import { useOverlayLayer } from './useOverlayLayer';
 import { useMapUIStore } from '@/store';
 import { getMetaData } from '@/api';
 import { useToast } from '@/components';
-import { addLayerInOrder, addOrUpdateWaveBuoyWMSSource } from '@/helpers';
+import { addLayerInOrder, addOrUpdateWMSSource } from '@/helpers';
 import { imageLayer } from '@/layers';
 import { buildGSLADatasetFullPath, buildGSLADatasetPath, processMetaData } from '@/utils';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
@@ -50,7 +50,7 @@ vi.mock('@/components', () => ({
 vi.mock('@/helpers', () => ({
   addLayerInOrder: vi.fn(),
   addOrUpdateImageSource: vi.fn(),
-  addOrUpdateWaveBuoyWMSSource: vi.fn(),
+  addOrUpdateWMSSource: vi.fn(),
 }));
 
 vi.mock('@/layers', () => ({
@@ -141,6 +141,7 @@ describe('useOverlayLayer', () => {
       true,
       [{ id: 'gsla-overlay-layer', source: 'gsla-overlay-source' }],
       true,
+      undefined,
     );
   });
 
@@ -154,6 +155,7 @@ describe('useOverlayLayer', () => {
       true,
       [{ id: 'gsla-overlay-layer', source: 'gsla-overlay-source' }],
       false,
+      undefined,
     );
   });
 
@@ -167,11 +169,7 @@ describe('useOverlayLayer', () => {
       await setupLayerFn();
     });
 
-    expect(addOrUpdateWaveBuoyWMSSource).toHaveBeenCalledWith(
-      mockMap.current,
-      'gsla-overlay-source',
-      '2024-01-01',
-    );
+    expect(addOrUpdateWMSSource).toHaveBeenCalledWith(mockMap.current, undefined, '2024-01-01');
 
     expect(addLayerInOrder).toHaveBeenCalledWith(mockMap, {
       id: 'gsla-overlay-layer',
@@ -202,6 +200,7 @@ describe('useOverlayLayer', () => {
       true,
       [{ id: 'gsla-overlay-layer', source: 'gsla-overlay-source' }],
       true,
+      undefined,
     );
 
     mockStoreState.overlay = false;
@@ -212,6 +211,7 @@ describe('useOverlayLayer', () => {
       true,
       [{ id: 'gsla-overlay-layer', source: 'gsla-overlay-source' }],
       false,
+      undefined,
     );
 
     mockStoreState.overlay = true;
@@ -222,6 +222,7 @@ describe('useOverlayLayer', () => {
       true,
       [{ id: 'gsla-overlay-layer', source: 'gsla-overlay-source' }],
       true,
+      undefined,
     );
   });
 });
