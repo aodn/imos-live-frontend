@@ -39,7 +39,7 @@ export function useOverlayLayer(map: React.RefObject<mapboxgl.Map | null>) {
 
   const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [overlayLayer]);
 
-  useMapboxLayerVisibility(map, loadComplete, [overlayLayer], overlay, overlaySource);
+  useMapboxLayerVisibility(map, loadComplete, [overlayLayer], overlay);
 
   useDidMountEffect(() => {
     if (!map.current || !loadComplete) return;

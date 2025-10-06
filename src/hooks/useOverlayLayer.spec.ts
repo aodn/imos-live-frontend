@@ -141,7 +141,6 @@ describe('useOverlayLayer', () => {
       true,
       [{ id: 'gsla-overlay-layer', source: 'gsla-overlay-source' }],
       true,
-      undefined,
     );
   });
 
@@ -155,7 +154,6 @@ describe('useOverlayLayer', () => {
       true,
       [{ id: 'gsla-overlay-layer', source: 'gsla-overlay-source' }],
       false,
-      undefined,
     );
   });
 
@@ -200,7 +198,6 @@ describe('useOverlayLayer', () => {
       true,
       [{ id: 'gsla-overlay-layer', source: 'gsla-overlay-source' }],
       true,
-      undefined,
     );
 
     mockStoreState.overlay = false;
@@ -211,7 +208,6 @@ describe('useOverlayLayer', () => {
       true,
       [{ id: 'gsla-overlay-layer', source: 'gsla-overlay-source' }],
       false,
-      undefined,
     );
 
     mockStoreState.overlay = true;
@@ -222,7 +218,6 @@ describe('useOverlayLayer', () => {
       true,
       [{ id: 'gsla-overlay-layer', source: 'gsla-overlay-source' }],
       true,
-      undefined,
     );
   });
 });

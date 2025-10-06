@@ -24,7 +24,7 @@ export interface MapUIState {
   setCenter: (center: LngLat) => void;
   setZoom: (zoom: number) => void;
   setStyle: (style: StyleTitle) => void;
-  setOverlay: (v: boolean, layer: OverlaySource) => void;
+  setOverlay: (v: boolean, layer?: OverlaySource) => void;
   setCircle: (v: boolean) => void;
   setParticles: (v: boolean) => void;
   setNumParticles: (n: NumParticles) => void;
@@ -82,7 +82,7 @@ export const useMapUIStore = create(
       setZoom: zoom => set({ zoom }),
       setStyle: style => set({ style }),
       setOverlay: (overlay, overlaySource) => {
-        set({ overlay, overlaySource });
+        set({ overlay, overlaySource: overlaySource || GSLA_OVERLAY_SOURCE_ID });
       },
       setCircle: circle => set({ circle }),
       setParticles: particles => set({ particles }),
