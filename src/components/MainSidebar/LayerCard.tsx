@@ -1,30 +1,25 @@
-import {
-  GSLA_ANOMALY_SEA_LEVELS_PRODUCT_VARIANT,
-  GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT,
-  WAVE_BUOYS_LAYER_ID,
-} from '@/constants';
+import { gslaOceanCurrentColorsLegendConfig } from '@/config';
+import { GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT, WAVE_BUOYS_LAYER_ID } from '@/constants';
+import { useViewportSize } from '@/hooks';
+import { cn } from '@/utils';
+import { ReactNode, useMemo } from 'react';
 import { Button } from '../Button';
+import { CollapsibleComponent, TriggerArgs } from '../Collapsible';
+import { LogColorScaleBar } from '../ColorScaleBar';
 import { ArrowDownIcon, MapLayersIcon } from '../Icons';
 import { Image } from '../Image';
 import { LayersDataset } from './MainSidebarContent';
-import { CollapsibleComponent, TriggerArgs } from '../Collapsible';
-import { cn } from '@/utils';
-import { useViewportSize } from '@/hooks';
-import { ReactNode, useMemo } from 'react';
-import { SymLogColorScaleBar, LogColorScaleBar } from '../ColorScaleBar';
-import {
-  gslaOceanCurrentColorsLegendConfig,
-  gslaAnomalySeaLevelsColorsLegendConfig,
-} from '@/config';
 
 export type LayerCardProps = LayersDataset & {
   firstButtonLabel: string;
   secondButtonLabel: string;
+  dataset: string;
 };
 
 export const LayerCard = ({
   image,
   title,
+  dataset,
   description,
   firstButtonLabel,
   secondButtonLabel,
@@ -33,6 +28,7 @@ export const LayerCard = ({
   layerId,
   icon,
   variant,
+  legend,
 }: LayerCardProps) => {
   const { widthBreakpoint } = useViewportSize();
   const isSmallScreen = ['sm', 'md'].includes(widthBreakpoint || '');
@@ -42,9 +38,6 @@ export const LayerCard = ({
       [GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT]: {
         ...gslaOceanCurrentColorsLegendConfig,
       },
-      [GSLA_ANOMALY_SEA_LEVELS_PRODUCT_VARIANT]: {
-        ...gslaAnomalySeaLevelsColorsLegendConfig,
-      },
     }),
     [],
   );
@@ -53,10 +46,6 @@ export const LayerCard = ({
     if (variant === GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT)
       return <LogColorScaleBar className="w-full" {...variants[variant]} />;
     //the reaaon to use LogColorScaleBar is most data points are between 0~2, so log scale is better to show the color difference.
-
-    if (variant === GSLA_ANOMALY_SEA_LEVELS_PRODUCT_VARIANT)
-      return <SymLogColorScaleBar className="w-full" {...variants[variant]} />;
-    //the reaaon to use SymLogColorScaleBar is the data points are both positive and negative, and most data points are between -0.6~0.6, so symlog scale is better to show the color difference.
   }, [variant, variants]);
 
   const handleClick = () => {
@@ -64,52 +53,51 @@ export const LayerCard = ({
     if (layerId === WAVE_BUOYS_LAYER_ID) import('../Highcharts/WaveBuoyChart'); //preload wavebuoy chart when wavebuoylayer added.
   };
   return (
-    <>
-      <CollapsibleComponent
-        wrapperClassName="md:rounded-lg md:shadow-lg bg-white md:border border-b border-gray-300"
-        defaultOpen
-        isWidthFiexed
-        trigger={({ toggle, open, direction, toggleIconHidden }: TriggerArgs) => (
-          <CardTrigger
-            icon={icon}
-            title={title}
-            open={open}
-            toggle={toggle}
-            direction={direction}
-            toggleIconHidden={toggleIconHidden}
-          />
-        )}
-        disable={!isSmallScreen}
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2 md:p-4 pb-4 gap-y-4 md:gap-x-6  overflow-hidden">
-          <div className="col-span-2 md:col-span-1 min-w-30 rounded-lg overflow-hidden aspect-square">
-            <Image alt={image.alt} src={image.src} fill imageClassName="object-cover" />
-          </div>
-          <div className="col-span-2 md:col-span-1 flex flex-col justify-between">
-            <div>
-              <h3 className="font-semibold mb-2 hidden md:block">{title}</h3>
-              <p className="text-sm mb-3 leading-relaxed md:line-clamp-7" title={description}>
-                {description}
-              </p>
-            </div>
-
-            {!visible && (
-              <Button variant={'outline'} onClick={handleClick} className="self-end">
-                <MapLayersIcon />
-                {firstButtonLabel}
-              </Button>
-            )}
-            {visible && (
-              <Button variant={'outline'} onClick={handleClick} className="self-end">
-                <MapLayersIcon />
-                {secondButtonLabel}
-              </Button>
-            )}
-          </div>
-          {!!colorScaleBars && <div className="col-span-2 md:mt-4">{colorScaleBars}</div>}
+    <CollapsibleComponent
+      wrapperClassName="md:rounded-lg md:shadow-lg bg-white md:border border-b border-gray-300"
+      defaultOpen
+      isWidthFiexed
+      trigger={({ toggle, open, direction, toggleIconHidden }: TriggerArgs) => (
+        <CardTrigger
+          icon={icon}
+          title={title}
+          open={open}
+          toggle={toggle}
+          direction={direction}
+          toggleIconHidden={toggleIconHidden}
+        />
+      )}
+      disable={!isSmallScreen}
+    >
+      <div className="grid grid-cols-1 md:grid-cols-2 md:p-4 pb-4 gap-y-4 md:gap-x-6  overflow-hidden">
+        <div className="col-span-2 md:col-span-1 min-w-30 rounded-lg overflow-hidden aspect-square">
+          <Image alt={image.alt} src={image.src} fill imageClassName="object-cover" />
         </div>
-      </CollapsibleComponent>
-    </>
+        <div className="col-span-2 md:col-span-1 flex flex-col justify-between">
+          <div>
+            <h3 className="font-semibold mb-2 hidden md:block">{title}</h3>
+            <p className="text-sm mb-3 leading-relaxed md:line-clamp-7" title={description}>
+              {description}
+            </p>
+          </div>
+
+          {!visible && (
+            <Button variant={'outline'} onClick={handleClick} className="self-end">
+              <MapLayersIcon />
+              {firstButtonLabel}
+            </Button>
+          )}
+          {visible && (
+            <Button variant={'outline'} onClick={handleClick} className="self-end">
+              <MapLayersIcon />
+              {secondButtonLabel}
+            </Button>
+          )}
+        </div>
+        {!!colorScaleBars && <div className="col-span-2 md:mt-4">{colorScaleBars}</div>}
+        {!!legend && <div className="col-span-2 md:mt-4">{legend(dataset)}</div>}
+      </div>
+    </CollapsibleComponent>
   );
 };
 

@@ -27,6 +27,7 @@ export type LayersDataset = {
   addToMap: (v: boolean) => void;
   layerId: string;
   visible: boolean;
+  legend?: (dataset: string) => ReactNode;
   variant?:
     | typeof GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT
     | typeof GSLA_ANOMALY_SEA_LEVELS_PRODUCT_VARIANT
@@ -47,18 +48,27 @@ type MainSidebarProps = {
 export const MainSidebarContent: React.FC<MainSidebarProps> = ({ className = '' }) => {
   const [searchQuery] = useState('');
 
-  const { overlay, particles, circle, overlaySource, setOverlay, setCircle, setParticles } =
-    useMapUIStore(
-      useShallow(s => ({
-        overlay: s.overlay,
-        particles: s.particles,
-        circle: s.circle,
-        overlaySource: s.overlaySource,
-        setOverlay: s.setOverlay,
-        setCircle: s.setCircle,
-        setParticles: s.setParticles,
-      })),
-    );
+  const {
+    overlay,
+    particles,
+    circle,
+    overlaySource,
+    dataset,
+    setOverlay,
+    setCircle,
+    setParticles,
+  } = useMapUIStore(
+    useShallow(s => ({
+      overlay: s.overlay,
+      particles: s.particles,
+      circle: s.circle,
+      overlaySource: s.overlaySource,
+      dataset: s.dataset,
+      setOverlay: s.setOverlay,
+      setCircle: s.setCircle,
+      setParticles: s.setParticles,
+    })),
+  );
   const normalizedLayerSets = useMemo(() => {
     return normalizeLayerSets(
       featuredDataset.map(item => ({ ...item })),
@@ -92,6 +102,7 @@ export const MainSidebarContent: React.FC<MainSidebarProps> = ({ className = '' 
         title="Featured Data"
         layersDatasets={filteredLayerSets}
         className="md:px-2 mt-4"
+        dataset={dataset}
       />
 
       <LayerProducts
