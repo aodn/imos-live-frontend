@@ -22,7 +22,7 @@ export const processOceanCurrentDetails = (
   const [minLat, maxLat] = gslaData.latRange;
 
   if (lng < minLon || lng > maxLng || lat < minLat || lat > maxLat) {
-    throw new Error('Coordinates out of range');
+    return null;
   }
 
   const colIndex = Math.floor(((lng - minLon) / (maxLng - minLon)) * gslaData.width);

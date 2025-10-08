@@ -28,5 +28,6 @@ export const Primary: Story = {
     secondButtonLabel: 'Remove from map',
     visible: false,
     layerId: 'test layerid',
+    dataset: '',
   },
 };

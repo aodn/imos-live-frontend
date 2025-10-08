@@ -104,10 +104,11 @@ export const zoomLimitTempConnectiongLinesLayerPartial: Partial<LineLayerSpecifi
 export const overlayLayerConfig = {
   paint: {
     'raster-fade-duration': 0,
+    'raster-resampling': 'nearest',
   },
   type: 'raster',
   slot: 'middle',
-};
+} as const;
 
 export const measurePointsConfig: Partial<CircleLayerSpecification> = {
   paint: {
