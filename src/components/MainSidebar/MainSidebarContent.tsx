@@ -84,7 +84,7 @@ export const MainSidebarContent: React.FC<MainSidebarProps> = ({ className = '' 
       },
       overlaySource,
     );
-  }, [setCircle, setOverlay, setParticles, particles, overlay, circle]);
+  }, [setCircle, setOverlay, setParticles, particles, overlay, circle, overlaySource]);
 
   const filteredLayerSets = useMemo(() => {
     return normalizedLayerSets.filter(layerSet =>
