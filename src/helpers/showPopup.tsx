@@ -9,10 +9,11 @@ type PopupOptions = {
   direction?: string;
   degree?: number;
   gsla?: number;
+  sstAnom?: number;
 };
 
 export function showPopup(map: mapboxgl.Map, options: PopupOptions) {
-  const { lat, lng, speed, direction, degree, gsla } = options;
+  const { lat, lng, speed, direction, degree, gsla, sstAnom } = options;
 
   const container = document.createElement('div');
   container.className = 'custom-popup-container';
@@ -38,6 +39,7 @@ export function showPopup(map: mapboxgl.Map, options: PopupOptions) {
       direction={direction}
       degree={degree}
       gsla={gsla}
+      sstAnom={sstAnom}
       onClose={() => popup.remove()}
     />,
   );

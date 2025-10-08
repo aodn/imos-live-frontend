@@ -25,8 +25,28 @@ export const rasterUrl = (id: OverlaySource, date: Date): string => {
 export const rasterLegendUrl = (id: OverlaySource, date: Date): string => {
   return {
     [GSLA_OVERLAY_SOURCE_ID]: (date: Date) =>
-      `${baseUrl(id, date)}?version=1.3.0&COLORSCALERANGE=-1.2,1.2&REQUEST=GetLegendGraphic&LAYERS=sst_anom_mosaic&palette=x-Rainbow&COLORBARONLY=true&VERTICAL=false&WIDTH=443&HEIGHT=12`,
+      `${baseUrl(id, date)}?version=1.3.0&COLORSCALERANGE=-1.2,1.2&REQUEST=GetLegendGraphic&palette=x-Rainbow&COLORBARONLY=true&VERTICAL=false&WIDTH=443&HEIGHT=12`,
     [SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID]: (date: Date) =>
-      `${baseUrl(id, date)}?version=1.3.0&COLORSCALERANGE=-10,5&REQUEST=GetLegendGraphic&LAYERS=sst_anom_mosaic&palette=div-RdYlBu-inv&COLORBARONLY=true&VERTICAL=false&WIDTH=443&HEIGHT=12`,
+      `${baseUrl(id, date)}?version=1.3.0&COLORSCALERANGE=-10,5&REQUEST=GetLegendGraphic&palette=div-RdYlBu-inv&COLORBARONLY=true&VERTICAL=false&WIDTH=443&HEIGHT=12`,
   }[id](date);
+};
+
+export const getFeatureInfoUrl = (
+  id: OverlaySource,
+  date: Date,
+  mapBounds: [number, number, number, number], // [west, south, east, north]
+  mapSize: { width: number; height: number },
+  clickPoint: { x: number; y: number },
+): string => {
+  const base = baseUrl(id, date);
+  const layerName = {
+    [GSLA_OVERLAY_SOURCE_ID]: 'GSLA',
+    [SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID]: 'sst_anom_mosaic',
+  }[id];
+
+  // WMS 1.3.0 uses EPSG:4326 (lat,lon order for this CRS)
+  const [west, south, east, north] = mapBounds;
+  const bbox = `${south},${west},${north},${east}`;
+
+  return `${base}?REQUEST=GetFeatureInfo&SERVICE=WMS&VERSION=1.3.0&LAYERS=${layerName}&QUERY_LAYERS=${layerName}&CRS=EPSG:4326&BBOX=${bbox}&WIDTH=${mapSize.width}&HEIGHT=${mapSize.height}&I=${Math.floor(clickPoint.x)}&J=${Math.floor(clickPoint.y)}&INFO_FORMAT=text/xml`;
 };

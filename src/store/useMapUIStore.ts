@@ -108,4 +108,5 @@ export const selectAllStates = (s: MapUIState) => ({
   distanceMeasurement: s.distanceMeasurement,
   numParticles: s.numParticles,
   dataset: s.dataset,
+  overlaySource: s.overlaySource,
 });

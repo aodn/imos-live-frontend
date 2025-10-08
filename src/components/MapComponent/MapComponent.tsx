@@ -23,7 +23,7 @@ mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_KEY;
 const WaveBuoyChart = lazy(() => import('../Highcharts/WaveBuoyChart'));
 
 export const MapComponent = memo(() => {
-  const { overlay, circle, particles, distanceMeasurement, dataset } = useMapUIStore(
+  const { overlay, circle, particles, distanceMeasurement, dataset, overlaySource } = useMapUIStore(
     useShallow(selectAllStates),
   );
 
@@ -62,6 +62,7 @@ export const MapComponent = memo(() => {
     waveBuoysLayerClicked,
     tempPointsEventPrevent,
     distanceMeasurement,
+    overlaySource,
   });
 
   const { distance, setDistance } = useDistanceMeasurementLayersClickHandler(

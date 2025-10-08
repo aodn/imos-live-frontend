@@ -5,6 +5,7 @@ type PopupContentProps = {
   direction?: string;
   degree?: number;
   gsla?: number;
+  sstAnom?: number;
   onClose?: () => void;
 };
 
@@ -15,6 +16,7 @@ export const PopupContent = ({
   degree,
   direction,
   gsla,
+  sstAnom,
   onClose,
 }: PopupContentProps) => {
   return (
@@ -59,6 +61,15 @@ export const PopupContent = ({
           >
             <span className="text-gray-600 ">Sea level anomaly:</span>
             <span className="text-gray-900 ">{gsla.toFixed(2)} m</span>
+          </div>
+        )}
+        {sstAnom !== undefined && (
+          <div
+            className="flex-col md:flex-row flex justify-between md:items-center"
+            aria-label="Sea level anomaly details"
+          >
+            <span className="text-gray-600 ">Sea surface temperature anomaly:</span>
+            <span className="text-gray-900 ">{sstAnom.toFixed(2)} °C</span>
           </div>
         )}
       </div>
