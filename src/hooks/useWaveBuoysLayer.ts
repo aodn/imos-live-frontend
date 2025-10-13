@@ -20,6 +20,7 @@ import { useShallow } from 'zustand/shallow';
 import { useDidMountEffect } from './useDidMountEffect';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
+import dayjs from 'dayjs';
 
 export function useWaveBuoysLayer(map: React.RefObject<mapboxgl.Map | null>) {
   const [isError, setIsError] = useState(false);
@@ -34,7 +35,7 @@ export function useWaveBuoysLayer(map: React.RefObject<mapboxgl.Map | null>) {
 
   const buoyQuery = useQuery({
     queryKey: ['wave_buoy_locations', dataset],
-    queryFn: () => getWaveBuoyLocations(dataset),
+    queryFn: () => getWaveBuoyLocations(dayjs(dataset).toISOString()),
     enabled: isBuoyWavesLayerEnabled && dataset !== '',
   });
 
