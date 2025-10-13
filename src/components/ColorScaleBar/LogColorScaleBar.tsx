@@ -1,3 +1,4 @@
+import { cn } from '@/utils';
 import { useMemo } from 'react';
 import {
   getLogVisualPosition,
@@ -86,7 +87,21 @@ export const LogColorScaleBar = ({
         className="absolute flex flex-col items-center"
         style={{ left: `${position}%`, transform: 'translateX(-50%)' }}
       >
-        <span className="text-xs text-black font-light">{label}</span>
+        <span className="text-xs text-black font-medium">{label}</span>
+      </div>
+    ));
+  }, [tickPositions]);
+
+  const scaleUnits = useMemo(() => {
+    return tickPositions.map(({ value, position, isEdge }, index) => (
+      <div
+        key={`scale-unit-${value}-${index}`}
+        className={cn('absolute flex flex-col items-center h-full', {
+          hidden: isEdge,
+        })}
+        style={{ left: `${position}%`, transform: 'translateX(-50%)' }}
+      >
+        <span className="h-full bg-black w-0.5" />
       </div>
     ));
   }, [tickPositions]);
@@ -102,7 +117,8 @@ export const LogColorScaleBar = ({
           }}
         />
 
-        <div className="relative h-2 mx-1 mt-1">{scaleLabels}</div>
+        <div className="relative h-1">{scaleUnits}</div>
+        <div className="relative h-2 mx-1">{scaleLabels}</div>
       </div>
 
       {title && (

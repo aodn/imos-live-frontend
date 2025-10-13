@@ -1,4 +1,3 @@
-import { GSLA_OVERLAY_SOURCE_ID, OverlaySource } from '@/constants';
 import { StyleTitle } from '@/styles';
 import { getLast7DatesEnding3DaysAgo } from '@/utils';
 import { LngLat } from 'mapbox-gl';
@@ -18,13 +17,12 @@ export interface MapUIState {
   particles: boolean;
   numParticles: NumParticles;
   distanceMeasurement: boolean;
-  overlaySource: OverlaySource;
   dataset: string;
   datasets: string[];
   setCenter: (center: LngLat) => void;
   setZoom: (zoom: number) => void;
   setStyle: (style: StyleTitle) => void;
-  setOverlay: (v: boolean, layer?: OverlaySource) => void;
+  setOverlay: (v: boolean) => void;
   setCircle: (v: boolean) => void;
   setParticles: (v: boolean) => void;
   setNumParticles: (n: NumParticles) => void;
@@ -70,7 +68,6 @@ export const useMapUIStore = create(
       center: new LngLat(133.7751, -25.2744),
       zoom: 3,
       style: 'ESRIWorldImagery',
-      overlaySource: GSLA_OVERLAY_SOURCE_ID,
       overlay: true,
       circle: true,
       particles: true,
@@ -81,8 +78,8 @@ export const useMapUIStore = create(
       setCenter: center => set({ center }),
       setZoom: zoom => set({ zoom }),
       setStyle: style => set({ style }),
-      setOverlay: (overlay, overlaySource) => {
-        set({ overlay, overlaySource: overlaySource || GSLA_OVERLAY_SOURCE_ID });
+      setOverlay: overlay => {
+        set({ overlay });
       },
       setCircle: circle => set({ circle }),
       setParticles: particles => set({ particles }),
@@ -108,5 +105,4 @@ export const selectAllStates = (s: MapUIState) => ({
   distanceMeasurement: s.distanceMeasurement,
   numParticles: s.numParticles,
   dataset: s.dataset,
-  overlaySource: s.overlaySource,
 });

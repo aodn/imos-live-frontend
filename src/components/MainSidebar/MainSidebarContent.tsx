@@ -11,7 +11,6 @@ import { Button } from '../Button';
 import {
   GSLA_ANOMALY_SEA_LEVELS_PRODUCT_VARIANT,
   GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT,
-  SST_ANOMALY_MOSAIC_PRODUCT_VARIANT,
   WAVE_BUOYS_PRODUCT_VARIANT,
 } from '@/constants';
 
@@ -27,12 +26,10 @@ export type LayersDataset = {
   addToMap: (v: boolean) => void;
   layerId: string;
   visible: boolean;
-  legend?: (dataset: string) => ReactNode;
   variant?:
     | typeof GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT
     | typeof GSLA_ANOMALY_SEA_LEVELS_PRODUCT_VARIANT
-    | typeof WAVE_BUOYS_PRODUCT_VARIANT
-    | typeof SST_ANOMALY_MOSAIC_PRODUCT_VARIANT;
+    | typeof WAVE_BUOYS_PRODUCT_VARIANT;
 };
 
 export type LayerProducts = {
@@ -48,22 +45,11 @@ type MainSidebarProps = {
 export const MainSidebarContent: React.FC<MainSidebarProps> = ({ className = '' }) => {
   const [searchQuery] = useState('');
 
-  const {
-    overlay,
-    particles,
-    circle,
-    overlaySource,
-    dataset,
-    setOverlay,
-    setCircle,
-    setParticles,
-  } = useMapUIStore(
+  const { overlay, particles, circle, setOverlay, setCircle, setParticles } = useMapUIStore(
     useShallow(s => ({
       overlay: s.overlay,
       particles: s.particles,
       circle: s.circle,
-      overlaySource: s.overlaySource,
-      dataset: s.dataset,
       setOverlay: s.setOverlay,
       setCircle: s.setCircle,
       setParticles: s.setParticles,
@@ -82,9 +68,8 @@ export const MainSidebarContent: React.FC<MainSidebarProps> = ({ className = '' 
         overlay,
         circle,
       },
-      overlaySource,
     );
-  }, [setCircle, setOverlay, setParticles, particles, overlay, circle, overlaySource]);
+  }, [setCircle, setOverlay, setParticles, particles, overlay, circle]);
 
   const filteredLayerSets = useMemo(() => {
     return normalizedLayerSets.filter(layerSet =>
@@ -102,7 +87,6 @@ export const MainSidebarContent: React.FC<MainSidebarProps> = ({ className = '' 
         title="Featured Data"
         layersDatasets={filteredLayerSets}
         className="md:px-2 mt-4"
-        dataset={dataset}
       />
 
       <LayerProducts

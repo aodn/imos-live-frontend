@@ -1,6 +1,6 @@
 import { overlayLayerConfig } from '@/config';
-import { OVERLAY_LAYER_ID } from '@/constants';
-import { addLayerInOrder, addOrUpdateWMSSource } from '@/helpers';
+import { OVERLAY_LAYER_ID, OVERLAY_SOURCE_ID } from '@/constants';
+import { addLayerInOrder, addOrUpdateWaveBuoyWMSSource } from '@/helpers';
 import { imageLayer } from '@/layers';
 import { useMapUIStore } from '@/store';
 import { useCallback, useMemo } from 'react';
@@ -10,9 +10,8 @@ import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
 
 export function useOverlayLayer(map: React.RefObject<mapboxgl.Map | null>) {
-  const { overlay, dataset, overlaySource } = useMapUIStore(
+  const { overlay, dataset } = useMapUIStore(
     useShallow(s => ({
-      overlaySource: s.overlaySource,
       overlay: s.overlay,
       dataset: s.dataset,
     })),
@@ -21,15 +20,15 @@ export function useOverlayLayer(map: React.RefObject<mapboxgl.Map | null>) {
   const overlayLayer = useMemo(
     () =>
       imageLayer(
-        { id: OVERLAY_LAYER_ID, source: OVERLAY_LAYER_ID, ...overlayLayerConfig },
+        { id: OVERLAY_LAYER_ID, source: OVERLAY_SOURCE_ID, ...overlayLayerConfig },
         overlay,
       ),
     [overlay],
   );
 
   const setDataByDataset = useCallback(async () => {
-    addOrUpdateWMSSource(map.current!, overlaySource, dataset);
-  }, [dataset, map, overlaySource]);
+    addOrUpdateWaveBuoyWMSSource(map.current!, OVERLAY_SOURCE_ID, dataset);
+  }, [dataset, map]);
 
   const setupLayer = useCallback(async () => {
     if (!overlayLayer) return;
@@ -44,5 +43,5 @@ export function useOverlayLayer(map: React.RefObject<mapboxgl.Map | null>) {
   useDidMountEffect(() => {
     if (!map.current || !loadComplete) return;
     setDataByDataset();
-  }, [loadComplete, dataset, overlaySource]);
+  }, [loadComplete, dataset]);
 }

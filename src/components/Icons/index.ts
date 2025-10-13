@@ -23,7 +23,6 @@ import ImageError from './image_error.svg?react';
 import Loader from './loader.svg?react';
 import Loader2 from './loader_2.svg?react';
 import Check from './check.svg?react';
-import { Thermometer } from 'lucide-react';
 
 export const CloseIcon = withIcon(Close);
 export const MenuIcon = withIcon(Menu);
@@ -49,10 +48,8 @@ export const ImageErrorIcon = withIcon(ImageError);
 export const LoaderIcon = withIcon(Loader);
 export const Loader2Icon = withIcon(Loader2);
 export const CheckIcon = withIcon(Check);
-export const ThermometerIcon = withIcon(Thermometer);
 
 export const icons = {
-  ThermometerIcon,
   CloseIcon,
   MenuIcon,
   ArrowDownIcon,

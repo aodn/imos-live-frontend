@@ -8,7 +8,7 @@ import { useOverlayLayer } from './useOverlayLayer';
 import { useMapUIStore } from '@/store';
 import { getMetaData } from '@/api';
 import { useToast } from '@/components';
-import { addLayerInOrder, addOrUpdateWMSSource } from '@/helpers';
+import { addLayerInOrder, addOrUpdateWaveBuoyWMSSource } from '@/helpers';
 import { imageLayer } from '@/layers';
 import { buildGSLADatasetFullPath, buildGSLADatasetPath, processMetaData } from '@/utils';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
@@ -50,7 +50,7 @@ vi.mock('@/components', () => ({
 vi.mock('@/helpers', () => ({
   addLayerInOrder: vi.fn(),
   addOrUpdateImageSource: vi.fn(),
-  addOrUpdateWMSSource: vi.fn(),
+  addOrUpdateWaveBuoyWMSSource: vi.fn(),
 }));
 
 vi.mock('@/layers', () => ({
@@ -167,7 +167,11 @@ describe('useOverlayLayer', () => {
       await setupLayerFn();
     });
 
-    expect(addOrUpdateWMSSource).toHaveBeenCalledWith(mockMap.current, undefined, '2024-01-01');
+    expect(addOrUpdateWaveBuoyWMSSource).toHaveBeenCalledWith(
+      mockMap.current,
+      'gsla-overlay-source',
+      '2024-01-01',
+    );
 
     expect(addLayerInOrder).toHaveBeenCalledWith(mockMap, {
       id: 'gsla-overlay-layer',
