@@ -36,10 +36,6 @@ export default defineConfig(({ mode }) => {
             return path.replace(/^\/s3-edge-proxy/, '');
           },
         },
-        '/thredds': {
-          target: 'https://imoslive.edge.aodn.org.au',
-          changeOrigin: true,
-        },
       },
     };
   }
