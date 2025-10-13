@@ -97,18 +97,14 @@ const mapComponent = {
         const layer = map.getLayer(layerID);
         if (!layer) throw new Error('Layer not found');
 
+        let url: string | undefined;
         if ('source' in layer && layer.source) {
-          console.log({ source: layer.source });
-          const [tiles] = (map.getSource(layer.source) as any).tiles || ([] as string[]);
-          return tiles;
+          url = (map.getSource(layer.source) as any).tiles[0] as string | undefined;
         }
         if ('sourceId' in layer && layer.sourceId) {
-          console.log({ source: layer.sourceId });
-          const [tiles] =
-            (map.getSource(layer.sourceId as string) as any).tiles || ([] as string[]);
-          return tiles;
+          url = (map.getSource(layer.sourceId as string) as any).tiles[0] as string | undefined;
         }
-        return;
+        return url;
       },
       { layerID },
     );
@@ -204,8 +200,7 @@ test.beforeEach(async ({ page }) => {
   });
 
   await page.route(
-    '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items/first_data_available?datetime=' +
-      defaultDaySelected,
+    '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items/first_data_available?datetime=2025-07-22T14:00:00.000Z',
     async route => {
       const buoyLocations = {
         type: 'FeatureCollection',
@@ -231,8 +226,7 @@ test.beforeEach(async ({ page }) => {
   );
 
   await page.route(
-    '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items/first_data_available?datetime=' +
-      nextDaySelected,
+    '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items/first_data_available?datetime=2025-07-23T14:00:00.000Z',
     async route => {
       const buoyLocations = {
         type: 'FeatureCollection',
@@ -256,30 +250,6 @@ test.beforeEach(async ({ page }) => {
       await route.fulfill({ json: buoyLocations });
     },
   );
-
-  //   await page.route('/thredds/*', async route => {
-  //     const url = new URL(route.request().url());
-  //     console.log({ url });
-  //     if (url.searchParams.get('REQUEST') === 'GetFeatureInfo') {
-  //       await route.fulfill({
-  //         status: 200,
-  //         contentType: 'text/xml',
-  //         body: `<FeatureInfoResponse>
-  //     <longitude>153.0006650718357</longitude>
-  //     <latitude>-34.579748788393175</latitude>
-  //     <Feature>
-  //         <layer>GSLA</layer>
-  //         <FeatureInfo>
-  //             <id>GSLA</id>
-  //             <value>-0.37401004074283184</value>
-  //         </FeatureInfo>
-  //     </Feature>
-  // </FeatureInfoResponse>`,
-  //       });
-  //     } else {
-  //       await route.continue()
-  //     }
-  //   });
 
   await page.route(
     '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items/timeseries*',
@@ -379,16 +349,14 @@ test.describe('Anomaly sea levels', () => {
   });
 
   test('User can see see levels anomaly of different days', async ({ page }) => {
-    const nextDaySelectedParsed = nextDaySelected.replace(/-/g, '');
-    const defaultDaySelectedParsed = defaultDaySelected.replace(/-/g, '');
     await expect
       .poll(() => mapComponent.getTilesURL(page, OVERLAY_LAYER_ID))
-      .toContain(`_${defaultDaySelectedParsed}T`);
+      .toContain(`20250723T000000`);
     await page.getByRole('slider', { name: 'point handle' }).click();
     await page.keyboard.press('ArrowRight');
     await expect
       .poll(() => mapComponent.getTilesURL(page, OVERLAY_LAYER_ID))
-      .toContain(`_${nextDaySelectedParsed}T`);
+      .toContain(`20250724T000000`);
   });
 
   test.skip('User can see the current value from a map particle of different days', async ({
