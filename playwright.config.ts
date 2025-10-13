@@ -32,6 +32,7 @@ export default defineConfig({
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
+    timezoneId: 'Australia/Sydney',
   },
 
   /* Configure projects for major browsers */
@@ -55,6 +56,7 @@ export default defineConfig({
     env: {
       VITE_AUTOMATED_TEST_RUNNING: 'true',
       MOCKDATA: 'true',
+      TZ: 'Australia/Sydney',
     },
   },
 });

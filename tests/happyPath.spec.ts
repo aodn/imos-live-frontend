@@ -191,7 +191,51 @@ const defaultDaySelected = '2025-07-23';
 const nextDaySelected = '2025-07-24';
 
 test.beforeEach(async ({ page }) => {
-  await page.clock.setFixedTime(currentDate);
+  await page.clock.install({ time: currentDate });
+
+  await page.route('**/*', async route => {
+    const url = new URL(route.request().url());
+    console.log({ url: route.request().url() });
+    url.searchParams.get('REQUEST');
+    if (url.searchParams.get('REQUEST') === 'GetFeatureInfo') {
+      if (url.pathname.includes('OceanCurrent_HV_20250723')) {
+        await route.fulfill({
+          body: `
+          <FeatureInfoResponse>
+          <longitude>165.45967031250007</longitude>
+          <latitude>4.687731976914243</latitude>
+          <Feature>
+          <layer>GSLA</layer>
+          <FeatureInfo>
+          <id>GSLA</id>
+          <value>3.00</value>
+          </FeatureInfo>
+          </Feature>
+          </FeatureInfoResponse>
+          `,
+        });
+      } else {
+        await route.fulfill({
+          body: `
+          <FeatureInfoResponse>
+          <longitude>165.45967031250007</longitude>
+          <latitude>4.687731976914243</latitude>
+          <Feature>
+          <layer>GSLA</layer>
+          <FeatureInfo>
+          <id>GSLA</id>
+          <value>4.00</value>
+          </FeatureInfo>
+          </Feature>
+          </FeatureInfoResponse>
+          `,
+        });
+      }
+    } else {
+      await route.continue();
+    }
+  });
+
   await page.route('*/**/GSLA/' + defaultDaySelected + '/gsla_data.json*', async route => {
     await route.fulfill({ json: genData([1, 2, 3]) });
   });
@@ -359,9 +403,7 @@ test.describe('Anomaly sea levels', () => {
       .toContain(`20250724T000000`);
   });
 
-  test.skip('User can see the current value from a map particle of different days', async ({
-    page,
-  }) => {
+  test('User can see the current value from a map particle of different days', async ({ page }) => {
     await mapComponent.waitUntilLayerLoaded(page, OVERLAY_LAYER_ID);
     await mapComponent.expectPopupToHaveContent(page, {
       gsla: '3.00',
@@ -385,9 +427,7 @@ test.describe('Anomaly sea levels and Ocean Current', () => {
     await sidebarComponent.deselectProduct(page, 'Wave buoys product');
   });
 
-  test.skip('User can see the current value from a map particle of different days', async ({
-    page,
-  }) => {
+  test('User can see the current value from a map particle of different days', async ({ page }) => {
     await mapComponent.waitUntilLayerLoaded(page, OVERLAY_LAYER_ID);
     await mapComponent.expectPopupToHaveContent(page, {
       gsla: '3.00',
