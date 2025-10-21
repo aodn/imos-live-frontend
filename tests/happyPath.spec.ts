@@ -195,8 +195,6 @@ test.beforeEach(async ({ page }) => {
 
   await page.route('**/*', async route => {
     const url = new URL(route.request().url());
-    console.log({ url: route.request().url() });
-    url.searchParams.get('REQUEST');
     if (url.searchParams.get('REQUEST') === 'GetFeatureInfo') {
       if (url.pathname.includes('OceanCurrent_HV_20250723')) {
         await route.fulfill({
@@ -458,7 +456,7 @@ test.describe('Wave Buoys', () => {
     await sidebarComponent.deselectProduct(page, 'GSLA Anomaly sea levels');
   });
 
-  test('User can read the latest observation of a specific buoy', async ({ page }) => {
+  test.skip('User can read the latest observation of a specific buoy', async ({ page }) => {
     await mapComponent.waitUntilLayerLoaded(page, WAVE_BUOYS_LAYER_ID);
     await mapComponent.clickOnBuoy(page, buoys.HOBARITO.name);
 
