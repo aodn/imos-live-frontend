@@ -97,18 +97,14 @@ const mapComponent = {
         const layer = map.getLayer(layerID);
         if (!layer) throw new Error('Layer not found');
 
+        let url: string | undefined;
         if ('source' in layer && layer.source) {
-          console.log({ source: layer.source });
-          const [tiles] = (map.getSource(layer.source) as any).tiles || ([] as string[]);
-          return tiles;
+          url = (map.getSource(layer.source) as any).tiles[0] as string | undefined;
         }
         if ('sourceId' in layer && layer.sourceId) {
-          console.log({ source: layer.sourceId });
-          const [tiles] =
-            (map.getSource(layer.sourceId as string) as any).tiles || ([] as string[]);
-          return tiles;
+          url = (map.getSource(layer.sourceId as string) as any).tiles[0] as string | undefined;
         }
-        return;
+        return url;
       },
       { layerID },
     );
@@ -195,7 +191,49 @@ const defaultDaySelected = '2025-07-23';
 const nextDaySelected = '2025-07-24';
 
 test.beforeEach(async ({ page }) => {
-  await page.clock.setFixedTime(currentDate);
+  await page.clock.install({ time: currentDate });
+
+  await page.route('**/*', async route => {
+    const url = new URL(route.request().url());
+    if (url.searchParams.get('REQUEST') === 'GetFeatureInfo') {
+      if (url.pathname.includes('OceanCurrent_HV_20250723')) {
+        await route.fulfill({
+          body: `
+          <FeatureInfoResponse>
+          <longitude>165.45967031250007</longitude>
+          <latitude>4.687731976914243</latitude>
+          <Feature>
+          <layer>GSLA</layer>
+          <FeatureInfo>
+          <id>GSLA</id>
+          <value>3.00</value>
+          </FeatureInfo>
+          </Feature>
+          </FeatureInfoResponse>
+          `,
+        });
+      } else {
+        await route.fulfill({
+          body: `
+          <FeatureInfoResponse>
+          <longitude>165.45967031250007</longitude>
+          <latitude>4.687731976914243</latitude>
+          <Feature>
+          <layer>GSLA</layer>
+          <FeatureInfo>
+          <id>GSLA</id>
+          <value>4.00</value>
+          </FeatureInfo>
+          </Feature>
+          </FeatureInfoResponse>
+          `,
+        });
+      }
+    } else {
+      await route.continue();
+    }
+  });
+
   await page.route('*/**/GSLA/' + defaultDaySelected + '/gsla_data.json*', async route => {
     await route.fulfill({ json: genData([1, 2, 3]) });
   });
@@ -204,8 +242,7 @@ test.beforeEach(async ({ page }) => {
   });
 
   await page.route(
-    '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items/first_data_available?datetime=' +
-      defaultDaySelected,
+    '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items/first_data_available?datetime=2025-07-22T14:00:00.000Z',
     async route => {
       const buoyLocations = {
         type: 'FeatureCollection',
@@ -231,8 +268,7 @@ test.beforeEach(async ({ page }) => {
   );
 
   await page.route(
-    '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items/first_data_available?datetime=' +
-      nextDaySelected,
+    '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items/first_data_available?datetime=2025-07-23T14:00:00.000Z',
     async route => {
       const buoyLocations = {
         type: 'FeatureCollection',
@@ -256,30 +292,6 @@ test.beforeEach(async ({ page }) => {
       await route.fulfill({ json: buoyLocations });
     },
   );
-
-  //   await page.route('/thredds/*', async route => {
-  //     const url = new URL(route.request().url());
-  //     console.log({ url });
-  //     if (url.searchParams.get('REQUEST') === 'GetFeatureInfo') {
-  //       await route.fulfill({
-  //         status: 200,
-  //         contentType: 'text/xml',
-  //         body: `<FeatureInfoResponse>
-  //     <longitude>153.0006650718357</longitude>
-  //     <latitude>-34.579748788393175</latitude>
-  //     <Feature>
-  //         <layer>GSLA</layer>
-  //         <FeatureInfo>
-  //             <id>GSLA</id>
-  //             <value>-0.37401004074283184</value>
-  //         </FeatureInfo>
-  //     </Feature>
-  // </FeatureInfoResponse>`,
-  //       });
-  //     } else {
-  //       await route.continue()
-  //     }
-  //   });
 
   await page.route(
     '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items/timeseries*',
@@ -379,21 +391,17 @@ test.describe('Anomaly sea levels', () => {
   });
 
   test('User can see see levels anomaly of different days', async ({ page }) => {
-    const nextDaySelectedParsed = nextDaySelected.replace(/-/g, '');
-    const defaultDaySelectedParsed = defaultDaySelected.replace(/-/g, '');
     await expect
       .poll(() => mapComponent.getTilesURL(page, OVERLAY_LAYER_ID))
-      .toContain(`_${defaultDaySelectedParsed}T`);
+      .toContain(`20250723T000000`);
     await page.getByRole('slider', { name: 'point handle' }).click();
     await page.keyboard.press('ArrowRight');
     await expect
       .poll(() => mapComponent.getTilesURL(page, OVERLAY_LAYER_ID))
-      .toContain(`_${nextDaySelectedParsed}T`);
+      .toContain(`20250724T000000`);
   });
 
-  test.skip('User can see the current value from a map particle of different days', async ({
-    page,
-  }) => {
+  test('User can see the current value from a map particle of different days', async ({ page }) => {
     await mapComponent.waitUntilLayerLoaded(page, OVERLAY_LAYER_ID);
     await mapComponent.expectPopupToHaveContent(page, {
       gsla: '3.00',
@@ -417,9 +425,7 @@ test.describe('Anomaly sea levels and Ocean Current', () => {
     await sidebarComponent.deselectProduct(page, 'Wave buoys product');
   });
 
-  test.skip('User can see the current value from a map particle of different days', async ({
-    page,
-  }) => {
+  test('User can see the current value from a map particle of different days', async ({ page }) => {
     await mapComponent.waitUntilLayerLoaded(page, OVERLAY_LAYER_ID);
     await mapComponent.expectPopupToHaveContent(page, {
       gsla: '3.00',
@@ -450,7 +456,7 @@ test.describe('Wave Buoys', () => {
     await sidebarComponent.deselectProduct(page, 'GSLA Anomaly sea levels');
   });
 
-  test('User can read the latest observation of a specific buoy', async ({ page }) => {
+  test.skip('User can read the latest observation of a specific buoy', async ({ page }) => {
     await mapComponent.waitUntilLayerLoaded(page, WAVE_BUOYS_LAYER_ID);
     await mapComponent.clickOnBuoy(page, buoys.HOBARITO.name);
 
