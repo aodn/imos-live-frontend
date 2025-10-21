@@ -99,13 +99,19 @@ export function useParticleOverlayLayersClickHandlers({
         }
       }
 
-      const details = processOceanCurrentDetails(lngLat, oceanCurrentData);
-      const { speed, degree, direction } = details || {};
+      let popupData = {
+        ...(overlay ? overlayData : {}),
+      };
+
+      if (particles) {
+        popupData = { ...popupData, ...processOceanCurrentDetails(lngLat, oceanCurrentData) };
+      }
+
+      if (Object.keys(popupData).length === 0) return;
 
       showPopup(map.current, {
         ...lngLat,
-        ...(particles ? { speed, direction, degree } : {}),
-        ...(overlay ? overlayData : {}),
+        ...popupData,
       });
     }, 400),
     [oceanCurrentData, distanceMeasurement, overlay, particles, overlaySource],

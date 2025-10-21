@@ -69,6 +69,7 @@ export const featuredDataset: LayersDataset[] = [
               style={{
                 height: '12px',
                 background: `url(${rasterLegendUrl(GSLA_OVERLAY_SOURCE_ID, new Date(dataset))})`,
+                backgroundSize: 'cover',
               }}
             />
             <div className="w-full flex justify-between text-xs text-black mt-1">
