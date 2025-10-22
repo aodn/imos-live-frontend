@@ -16,7 +16,7 @@ export default defineConfig(({ mode }) => {
     tailwindcss(),
     svgr(),
     mockServerPlugin(),
-    googleAnalyticsPlugin(),
+    googleAnalyticsPlugin(mode),
   ];
 
   let define: UserConfig['define'] = {};
@@ -139,19 +139,19 @@ const mockServerPlugin = (): Plugin => {
   };
 };
 
-const googleAnalyticsPlugin = () => {
+const googleAnalyticsPlugin = (mode: string) => {
+  const { VITE_GA_MEASUREMENT_ID } = loadEnv(mode, process.cwd(), '');
   return {
     name: 'vite-plugin-google-analytics',
     transformIndexHtml(html: string) {
-      const gaId = process.env.VITE_GA_MEASUREMENT_ID;
-      if (!gaId) return html;
+      if (!VITE_GA_MEASUREMENT_ID) return html;
       const gaScript = `
-          <script async src="https://www.googletagmanager.com/gtag/js?id=${gaId}"></script>
+          <script async src="https://www.googletagmanager.com/gtag/js?id=${VITE_GA_MEASUREMENT_ID}"></script>
           <script>
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', '${gaId}');
+            gtag('config', '${VITE_GA_MEASUREMENT_ID}');
           </script>
         `;
       return html.replace('<!-- google-analytics-js -->', gaScript);
