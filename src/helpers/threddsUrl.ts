@@ -9,7 +9,7 @@ const baseUrl = (id: OverlaySource, date: Date): string => {
     [GSLA_OVERLAY_SOURCE_ID]: (date: Date) =>
       `/thredds/wms/IMOS/OceanCurrent/GSLA/NRT/${date.getFullYear()}/IMOS_OceanCurrent_HV_${date.getFullYear()}${(date.getUTCMonth() + 1).toString().padStart(2, '0')}${date.getDate().toString().padStart(2, '0')}T000000Z_GSLA_FV02_NRT.nc`,
     [SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID]: (date: Date) =>
-      `/thredds/wms/IMOS/SRS/AusTemp/ssta/${date.getFullYear()}/${date.getFullYear()}${(date.getUTCMonth() + 1).toString().padStart(2, '0')}${date.getDate().toString().padStart(2, '0')}_IMOS_AusTemp-sst-anomaly_AUS_fv02.nc`,
+      `/thredds/wms/AusTemp/${date.getFullYear()}${(date.getUTCMonth() + 1).toString().padStart(2, '0')}${date.getDate().toString().padStart(2, '0')}_IMOS_AusTemp-sst-anomaly_AUS_fv02.nc`,
   }[id](date);
 };
 
