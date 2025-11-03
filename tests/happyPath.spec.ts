@@ -513,7 +513,7 @@ test.describe('Measurement', () => {
     await page.goto('/');
   });
   test('User can measure distance', async ({ page }) => {
-    await page.getByRole('menuitem', { name: 'Measurement' }).click();
+    await page.getByRole('menuitem', { name: 'Options' }).click();
     await page.getByRole('switch').click();
 
     await mapComponent.waitUntilLayerLoaded(page, MEASURE_POINTS_LAYER_ID);
@@ -525,15 +525,17 @@ test.describe('Measurement', () => {
     const measurementPopup = page.getByLabel('Distance measurement');
     // click at two points to create a measurement
     await page.getByRole('region', { name: 'Map' }).click({ position: { x: bbox!.x, y: bbox!.y } });
-    await expect(measurementPopup).not.toBeVisible();
+    await expect(measurementPopup).toBeVisible();
+    await expect(measurementPopup.getByRole('button', { name: 'clear' })).not.toBeVisible();
     await page
       .getByRole('region', { name: 'Map' })
       .click({ position: { x: bbox!.x + 10, y: bbox!.y } });
-    await expect(measurementPopup).toBeVisible();
+    await expect(measurementPopup.getByRole('button', { name: 'clear' })).toBeVisible();
 
     await expect(measurementPopup.getByText(/^\d+(\.\d+)? km$/)).toBeVisible();
     await measurementPopup.getByRole('button', { name: 'clear' }).click();
-    await expect(measurementPopup).not.toBeVisible();
+    await expect(measurementPopup.getByRole('button', { name: 'clear' })).not.toBeVisible();
+    await expect(measurementPopup).toBeVisible();
   });
 });
 

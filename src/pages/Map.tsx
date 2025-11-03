@@ -10,7 +10,6 @@ import {
   MapComponent,
   Header as MapHeader,
   MapsIcon,
-  MeasuresIcon,
   SatelliteIcon,
   Sidebar,
   WaterSurfaceIcon,
@@ -83,7 +82,6 @@ export const Map = () => {
                 features={[
                   { icon: LayersIcon, label: 'Options' },
                   { icon: MapsIcon, label: 'Maps' },
-                  { icon: MeasuresIcon, label: 'Measurement' },
                 ]}
               />
             }
