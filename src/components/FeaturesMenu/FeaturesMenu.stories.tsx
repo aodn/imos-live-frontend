@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
+import { LayersIcon, MapsIcon } from '../Icons';
 import { FeaturesMenu } from './FeaturesMenu';
-import { LayersIcon, MapsIcon, MeasuresIcon } from '../Icons';
 
 const meta = {
   title: 'components/FeaturesMenu',
@@ -19,7 +19,6 @@ export const Primary: Story = {
     features: [
       { icon: LayersIcon, label: 'Options' },
       { icon: MapsIcon, label: 'Maps' },
-      { icon: MeasuresIcon, label: 'Measurement' },
     ],
   },
 };

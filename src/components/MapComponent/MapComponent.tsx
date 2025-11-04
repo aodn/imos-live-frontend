@@ -81,7 +81,7 @@ export const MapComponent = memo(() => {
   return (
     <>
       <div ref={mapContainer} className={cn('w-full h-full')} />
-      {distance && (
+      {distanceMeasurement && (
         <DistanceMeasurement
           distance={distance}
           setDistance={setDistance}
