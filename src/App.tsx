@@ -22,7 +22,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       {/* this will be excluded during a production build*/}
-      <ReactQueryDevtools initialIsOpen={false} buttonPosition="top-right" />
+      <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-left" />
       <ToastProvider>
         <Routes>
           <Route element={<Layout />}>
