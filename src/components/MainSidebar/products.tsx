@@ -2,6 +2,7 @@ import loggImage from '@/assets/imos_logo_with_title.png';
 import occeanCurrentImage from '@/assets/ocean-current.webp';
 import anomalySeaLevelImage from '@/assets/sea-levels.webp';
 import waveBuoysImage from '@/assets/wave-buoys.webp';
+import sstImage from '@/assets/sst.jpg';
 import {
   GSLA_ANOMALY_SEA_LEVELS_PRODUCT_VARIANT,
   GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT,
@@ -97,7 +98,7 @@ export const featuredDataset: LayersDataset[] = [
   },
   {
     image: {
-      src: '',
+      src: sstImage,
       alt: 'AUS TEMP',
     },
     title: 'Sea surface skin temperature anomaly',
