@@ -4,7 +4,7 @@ import { LngLat } from 'mapbox-gl';
 import { create } from 'zustand';
 import { createJSONStorage, persist, StateStorage } from 'zustand/middleware';
 
-export type NumParticles = 1000 | 10000 | 100000;
+export type NumParticles = 10000 | 30000 | 60000 | 100000;
 
 export const INITIAL_DATASET = getLast7DatesEnding3DaysAgo().at(0)!;
 

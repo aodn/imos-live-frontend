@@ -29,7 +29,7 @@ const styleDropdownSelections = styles.map(s => ({
   label: s.title,
   value: s.title,
 }));
-const NUM_PARTICLES: NumParticles[] = [1000, 10000, 100000];
+const NUM_PARTICLES: NumParticles[] = [10000, 30000, 60000, 100000];
 const numParticlesDropdownSelections = NUM_PARTICLES.map(num => ({
   label: num,
   value: num,
