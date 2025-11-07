@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
+import { FeaturesMenu, LayersIcon, MapsIcon } from '..';
 import { FloatingPanel } from './FloatingPanel';
-import { FeaturesMenu, LayersIcon, MapsIcon, MeasuresIcon } from '..';
 const meta = {
   title: 'components/FloatingPanel',
   component: FloatingPanel,
@@ -20,7 +20,6 @@ export const Collapsible: Story = {
         features={[
           { icon: LayersIcon, label: 'Options' },
           { icon: MapsIcon, label: 'Maps' },
-          { icon: MeasuresIcon, label: 'Measurement' },
         ]}
       />
     ),
@@ -39,7 +38,6 @@ export const Uncollapsible: Story = {
         features={[
           { icon: LayersIcon, label: 'Options' },
           { icon: MapsIcon, label: 'Maps' },
-          { icon: MeasuresIcon, label: 'Measurement' },
         ]}
       />
     ),

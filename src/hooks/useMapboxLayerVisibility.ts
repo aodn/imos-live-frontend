@@ -18,7 +18,12 @@ export function useMapboxLayerVisibility(
       const exists = map.current?.getLayer(layerId);
       if (!exists) return;
 
-      map.current?.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
+      if (!visible) {
+        map.current?.setLayoutProperty(layerId, 'visibility', 'none');
+        return;
+      }
+      // Added delay of 500ms to avoid flickering while source tiles are swapped
+      setTimeout(() => map.current?.setLayoutProperty(layerId, 'visibility', 'visible'), 500);
     });
   }, [map, loadComplete, visible, layers]);
 }

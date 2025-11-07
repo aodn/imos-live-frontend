@@ -1,4 +1,6 @@
 import { getWaveBuoyDetails } from '@/api';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 import { WaveBuoyPositionFeature } from '@/types';
 import { toLocalDateTime, toWaveBuoyChartData } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
@@ -14,6 +16,8 @@ import {
   processDirectionData,
 } from './utils';
 
+dayjs.extend(utc);
+
 type WaveBuoyChartProps = {
   waveBuoysData: Omit<WaveBuoyPositionFeature, 'type'>[];
   showDirection?: boolean;
@@ -21,10 +25,9 @@ type WaveBuoyChartProps = {
 
 const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => {
   const { dateString, buoy, geometry } = toWaveBuoyChartData(waveBuoysData);
-  const date = new Date(dateString);
-  const from = new Date(date.getTime() - 6 * 24 * 60 * 60 * 1000).toISOString();
-  const to = date.toISOString();
-
+  const date = dayjs(dateString);
+  const from = date.utc().subtract(6, 'days').format('YYYY-MM-DDTHH:mm:ss.000000000') + 'Z';
+  const to = date.utc().format('YYYY-MM-DDTHH:mm:ss.000000000') + 'Z';
   const wavebuoyQuery = useQuery({
     queryKey: ['waveBuoyDetails', buoy, from, to],
     queryFn: () => {

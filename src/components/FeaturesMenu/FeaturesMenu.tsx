@@ -8,7 +8,7 @@ import { NumParticles, useMapUIStore } from '@/store';
 import { useShallow } from 'zustand/shallow';
 import { Switch } from '../Switch';
 
-export type Label = 'Options' | 'Maps' | 'Measurement';
+export type Label = 'Options' | 'Maps';
 
 export type MenuItem = {
   icon: React.FC<IconProps>;
@@ -107,21 +107,33 @@ export function FeaturesMenu({
       {!!activeItem && (
         <div className="mt-2 p-2">
           {activeItem === 'Options' && (
-            <div>
-              <Dropdown
-                label="number of particles"
-                onChange={
-                  handleNumParticlesSelect as (value: string | number | (string | number)[]) => void
-                }
-                options={numParticlesDropdownSelections}
-                initialValue={numParticles || numParticlesDropdownSelections[0].value}
-                position="auto"
-                usePortal
-              />
-            </div>
+            <>
+              <div className="pr-2 pl-2 pb-2">
+                <Dropdown
+                  label="number of particles"
+                  onChange={
+                    handleNumParticlesSelect as (
+                      value: string | number | (string | number)[],
+                    ) => void
+                  }
+                  options={numParticlesDropdownSelections}
+                  initialValue={numParticles || numParticlesDropdownSelections[0].value}
+                  position="auto"
+                  usePortal
+                />
+              </div>
+              <div className="pt-2">
+                <Switch
+                  label="Measure distance"
+                  labelPosition="left"
+                  initialValue={distanceMeasurement}
+                  onChange={handleDistanceMeasurementSelect}
+                />
+              </div>
+            </>
           )}
           {activeItem === 'Maps' && (
-            <div>
+            <div className="pl-2 pr-2">
               <Dropdown
                 label="map style"
                 onChange={
@@ -131,16 +143,6 @@ export function FeaturesMenu({
                 initialValue={style || styleDropdownSelections[0].value}
                 position="auto"
                 usePortal
-              />
-            </div>
-          )}
-          {activeItem === 'Measurement' && (
-            <div>
-              <Switch
-                label="Distance Measurement"
-                labelPosition="top"
-                initialValue={distanceMeasurement}
-                onChange={handleDistanceMeasurementSelect}
               />
             </div>
           )}

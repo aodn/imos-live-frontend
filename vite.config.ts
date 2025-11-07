@@ -11,7 +11,13 @@ import { visualizer } from 'rollup-plugin-visualizer';
 export default defineConfig(({ mode }) => {
   const { VITE_S3_BASE_URL, VITE_STATS_ENABLED } = loadEnv(mode, process.cwd(), '');
 
-  const plugins: UserConfig['plugins'] = [react(), tailwindcss(), svgr(), mockServerPlugin()];
+  const plugins: UserConfig['plugins'] = [
+    react(),
+    tailwindcss(),
+    svgr(),
+    mockServerPlugin(),
+    googleAnalyticsPlugin(mode),
+  ];
 
   let define: UserConfig['define'] = {};
   let server: UserConfig['server'] = {};
@@ -130,5 +136,25 @@ const mockServerPlugin = (): Plugin => {
     }),
 
     apply: 'serve',
+  };
+};
+
+const googleAnalyticsPlugin = (mode: string) => {
+  const { VITE_GA_MEASUREMENT_ID } = loadEnv(mode, process.cwd(), '');
+  return {
+    name: 'vite-plugin-google-analytics',
+    transformIndexHtml(html: string) {
+      if (!VITE_GA_MEASUREMENT_ID) return html;
+      const gaScript = `
+          <script async src="https://www.googletagmanager.com/gtag/js?id=${VITE_GA_MEASUREMENT_ID}"></script>
+          <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${VITE_GA_MEASUREMENT_ID}');
+          </script>
+        `;
+      return html.replace('<!-- google-analytics-js -->', gaScript);
+    },
   };
 };

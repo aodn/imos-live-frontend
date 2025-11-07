@@ -146,7 +146,7 @@ export const Switch = ({
 
   const labelElement = label && (
     <div className="flex flex-col">
-      <span className={cn('text-sm font-medium text-gray-900', labelClassName)}>{label}</span>
+      <span className={cn('text-sm font-medium text-gray-700', labelClassName)}>{label}</span>
       {description && (
         <span className={cn('text-xs text-gray-500', descriptionClassName)}>{description}</span>
       )}
@@ -159,7 +159,7 @@ export const Switch = ({
 
   return (
     <div
-      className={cn('flex items-center gap-3', {
+      className={cn('flex items-center gap-4', {
         'flex-row-reverse': labelPosition === 'left',
         'flex-col-reverse items-start': labelPosition === 'top',
         'flex-col': labelPosition === 'bottom',
