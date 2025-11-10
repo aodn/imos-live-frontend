@@ -9,6 +9,7 @@ import {
   useParticleOverlayLayersClickHandlers,
   useWaveBuoysLayer,
   useWaveBuoysLayerClickHandler,
+  useWorldLandBorderLayer,
 } from '@/hooks';
 import { selectAllStates, useMapUIStore } from '@/store';
 import { cn } from '@/utils';
@@ -35,6 +36,7 @@ export const MapComponent = memo(() => {
   useOverlayLayer(map);
   useParticleLayer(map);
   useWaveBuoysLayer(map);
+  useWorldLandBorderLayer(map);
 
   //3. add click event listners to map and layers.
   const {

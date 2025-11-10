@@ -5,3 +5,4 @@ export * from './addLayerInOrder.ts';
 export * from './createZoomLimitPoints.ts';
 export * from './removeZoomLimitTempPoints.ts';
 export * from './addOrUpdateWMSSource.ts';
+export * from './addOrUpdateVectorSource.ts';

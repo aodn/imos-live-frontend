@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": ["WebSearch", "WebFetch(domain:docs.mapbox.com)"],
+    "deny": [],
+    "ask": []
+  }
+}

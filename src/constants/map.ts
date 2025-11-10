@@ -37,3 +37,8 @@ export const GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT = 'gsla-ocean-geostr
 export const GSLA_ANOMALY_SEA_LEVELS_PRODUCT_VARIANT = 'gsla-anomaly-sea-levels';
 export const WAVE_BUOYS_PRODUCT_VARIANT = 'wave-buoys';
 export const SST_ANOMALY_MOSAIC_PRODUCT_VARIANT = 'sst-anom-mosaic';
+
+//land border
+export const WORLD_LAND_SOURCE_ID = 'world-land-source';
+export const WORLD_LAND_BORDER_LAYER_ID = 'world-land-border-layer';
+export const WORLD_LAND_FILL_LAYER_ID = 'world-land-fill-layer';
