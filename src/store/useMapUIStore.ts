@@ -18,6 +18,7 @@ export interface MapUIState {
   particles: boolean;
   numParticles: NumParticles;
   distanceMeasurement: boolean;
+  worldBoundaries: boolean;
   overlaySource: OverlaySource;
   dataset: string;
   datasets: string[];
@@ -29,6 +30,7 @@ export interface MapUIState {
   setParticles: (v: boolean) => void;
   setNumParticles: (n: NumParticles) => void;
   setDistanceMeasurement: (v: boolean) => void;
+  setWorldBoundaries: (v: boolean) => void;
   setDataset: (d: string) => void;
   refreshDatasets: () => void;
 }
@@ -76,6 +78,7 @@ export const useMapUIStore = create(
       particles: true,
       numParticles: 10000,
       distanceMeasurement: false,
+      worldBoundaries: false,
       datasets: getLast7Dates(),
       dataset: INITIAL_DATASET,
       setCenter: center => set({ center }),
@@ -88,6 +91,7 @@ export const useMapUIStore = create(
       setParticles: particles => set({ particles }),
       setNumParticles: numParticles => set({ numParticles }),
       setDistanceMeasurement: distanceMeasurement => set({ distanceMeasurement }),
+      setWorldBoundaries: worldBoundaries => set({ worldBoundaries }),
       setDataset: dataset => set({ dataset }),
       refreshDatasets: () => {
         const newDatasets = getLast7Dates();

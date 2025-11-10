@@ -9,7 +9,7 @@ import {
   useParticleOverlayLayersClickHandlers,
   useWaveBuoysLayer,
   useWaveBuoysLayerClickHandler,
-  useWorldLandBorderLayer,
+  useWorldLandLayer,
 } from '@/hooks';
 import { selectAllStates, useMapUIStore } from '@/store';
 import { cn } from '@/utils';
@@ -33,10 +33,10 @@ export const MapComponent = memo(() => {
 
   //2. create layer, set data to layer and add layer to map.
   const { measurePointsGeojson, setMeasurePointsGeojson } = useDistanceMeasurementLayers(map);
+  useWorldLandLayer(map);
   useOverlayLayer(map);
   useParticleLayer(map);
   useWaveBuoysLayer(map);
-  useWorldLandBorderLayer(map);
 
   //3. add click event listners to map and layers.
   const {

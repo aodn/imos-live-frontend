@@ -144,6 +144,7 @@ export const worldLandFillConfig: Partial<FillLayerSpecification> = {
   'source-layer': 'country_boundaries',
   paint: {
     'fill-color': 'rgba(66,150,251, 0.4)',
+    'fill-outline-color': 'transparent',
   },
 };
 
