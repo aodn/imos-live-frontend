@@ -135,7 +135,7 @@ export const worldLandBorderConfig: Partial<LineLayerSpecification> = {
   'source-layer': 'country_boundaries',
   paint: {
     'line-color': '#333333',
-    'line-width': 6,
+    'line-width': 4,
     'line-blur': 0.5,
   },
 };
@@ -143,7 +143,7 @@ export const worldLandBorderConfig: Partial<LineLayerSpecification> = {
 export const worldLandFillConfig: Partial<FillLayerSpecification> = {
   'source-layer': 'country_boundaries',
   paint: {
-    'fill-color': 'rgba(66,150,251, 0.6)',
+    'fill-color': 'rgba(66,150,251, 0.4)',
   },
 };
 
