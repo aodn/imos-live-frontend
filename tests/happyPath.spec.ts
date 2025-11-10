@@ -187,8 +187,8 @@ const buoys = {
 };
 
 const currentDate = new Date('2025-08-01T00:00:00.000Z');
-const defaultDaySelected = '2025-07-23';
-const nextDaySelected = '2025-07-24';
+const defaultDaySelected = '2025-07-26';
+const nextDaySelected = '2025-07-27';
 
 test.beforeEach(async ({ page }) => {
   await page.clock.install({ time: currentDate });
@@ -196,7 +196,7 @@ test.beforeEach(async ({ page }) => {
   await page.route('**/*', async route => {
     const url = new URL(route.request().url());
     if (url.searchParams.get('REQUEST') === 'GetFeatureInfo') {
-      if (url.pathname.includes('OceanCurrent_HV_20250723')) {
+      if (url.pathname.includes('OceanCurrent_HV_20250726')) {
         await route.fulfill({
           body: `
           <FeatureInfoResponse>
@@ -242,7 +242,7 @@ test.beforeEach(async ({ page }) => {
   });
 
   await page.route(
-    '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items/first_data_available?datetime=2025-07-22T14:00:00.000Z',
+    '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items/first_data_available?datetime=2025-07-25T14:00:00.000Z',
     async route => {
       const buoyLocations = {
         type: 'FeatureCollection',
@@ -268,7 +268,7 @@ test.beforeEach(async ({ page }) => {
   );
 
   await page.route(
-    '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items/first_data_available?datetime=2025-07-23T14:00:00.000Z',
+    '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items/first_data_available?datetime=2025-07-26T14:00:00.000Z',
     async route => {
       const buoyLocations = {
         type: 'FeatureCollection',
@@ -393,12 +393,12 @@ test.describe('Anomaly sea levels', () => {
   test('User can see see levels anomaly of different days', async ({ page }) => {
     await expect
       .poll(() => mapComponent.getTilesURL(page, OVERLAY_LAYER_ID))
-      .toContain(`20250723T000000`);
+      .toContain(`20250726T000000`);
     await page.getByRole('slider', { name: 'point handle' }).click();
     await page.keyboard.press('ArrowRight');
     await expect
       .poll(() => mapComponent.getTilesURL(page, OVERLAY_LAYER_ID))
-      .toContain(`20250724T000000`);
+      .toContain(`20250727T000000`);
   });
 
   test('User can see the current value from a map particle of different days', async ({ page }) => {
