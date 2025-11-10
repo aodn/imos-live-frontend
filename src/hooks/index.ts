@@ -21,3 +21,4 @@ export * from './useCurrentPage';
 export * from './useMapboxLayerSetup';
 export * from './useParticleLayerVisibility';
 export * from './useMapboxLayerVisibility';
+export * from './useWorldLandLayer';

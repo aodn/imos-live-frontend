@@ -6,9 +6,12 @@ import {
   UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
   WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID,
   WAVE_BUOYS_LAYER_ID,
+  WORLD_LAND_BORDER_LAYER_ID,
+  WORLD_LAND_FILL_LAYER_ID,
 } from '@/constants';
 import {
   CircleLayerSpecification,
+  FillLayerSpecification,
   LineLayerSpecification,
   SymbolLayerSpecification,
 } from 'mapbox-gl';
@@ -38,7 +41,7 @@ export const waveBuoysLayerConfig: Partial<CircleLayerSpecification> = {
   },
 };
 
-export const clusterMaxZoom = 16;
+export const clusterMaxZoom = 14;
 
 export const unclusteredWaveBuoysLayerConfig: Partial<CircleLayerSpecification> = {
   filter: ['!', ['has', 'point_count']],
@@ -128,10 +131,28 @@ export const measureLinesConfig: Partial<LineLayerSpecification> = {
   filter: ['in', '$type', 'LineString'],
 };
 
+export const worldLandBorderConfig: Partial<LineLayerSpecification> = {
+  'source-layer': 'country_boundaries',
+  paint: {
+    'line-color': '#333333',
+    'line-width': 4,
+    'line-blur': 0.5,
+  },
+};
+
+export const worldLandFillConfig: Partial<FillLayerSpecification> = {
+  'source-layer': 'country_boundaries',
+  paint: {
+    'fill-color': 'rgba(66,150,251, 0.4)',
+  },
+};
+
 //last one is the top layer.
 export const layersOrder = [
   OVERLAY_LAYER_ID,
   PARTICLE_LAYER_ID,
+  WORLD_LAND_BORDER_LAYER_ID,
+  WORLD_LAND_FILL_LAYER_ID,
   WAVE_BUOYS_LAYER_ID,
   UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
   WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID,
