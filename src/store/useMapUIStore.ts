@@ -1,13 +1,13 @@
 import { GSLA_OVERLAY_SOURCE_ID, OverlaySource } from '@/constants';
 import { StyleTitle } from '@/styles';
-import { getLast7DatesEnding3DaysAgo } from '@/utils';
+import { getLast7Dates } from '@/utils';
 import { LngLat } from 'mapbox-gl';
 import { create } from 'zustand';
 import { createJSONStorage, persist, StateStorage } from 'zustand/middleware';
 
 export type NumParticles = 10000 | 30000 | 60000 | 100000;
 
-export const INITIAL_DATASET = getLast7DatesEnding3DaysAgo().at(0)!;
+export const INITIAL_DATASET = getLast7Dates().at(0)!;
 
 export interface MapUIState {
   center: LngLat;
@@ -76,7 +76,7 @@ export const useMapUIStore = create(
       particles: true,
       numParticles: 10000,
       distanceMeasurement: false,
-      datasets: getLast7DatesEnding3DaysAgo(),
+      datasets: getLast7Dates(),
       dataset: INITIAL_DATASET,
       setCenter: center => set({ center }),
       setZoom: zoom => set({ zoom }),
@@ -90,7 +90,7 @@ export const useMapUIStore = create(
       setDistanceMeasurement: distanceMeasurement => set({ distanceMeasurement }),
       setDataset: dataset => set({ dataset }),
       refreshDatasets: () => {
-        const newDatasets = getLast7DatesEnding3DaysAgo();
+        const newDatasets = getLast7Dates();
         set(prev => ({ ...prev, datasets: newDatasets }));
       },
     }),

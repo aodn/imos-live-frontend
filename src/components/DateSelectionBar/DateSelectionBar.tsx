@@ -1,6 +1,6 @@
 import { TriangleIcon } from '../Icons';
 import { DateSlider, PointSelection, SelectionResult, SliderExposedMethod } from '../DateSlider';
-import { getLast7DatesEnding3DaysAgo, dateToUTC, toDateFormatString, cn } from '@/utils';
+import { getLast7Dates, dateToUTC, toDateFormatString, cn } from '@/utils';
 import { useMapUIStore } from '@/store';
 import { memo, useCallback, useMemo, useRef } from 'react';
 import { useShallow } from 'zustand/shallow';
@@ -17,7 +17,7 @@ export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
 
   const dateSliderMethodRef = useRef<SliderExposedMethod>(null);
 
-  const lastSevenDays = useMemo(() => getLast7DatesEnding3DaysAgo('yyyy-mm-dd'), []);
+  const lastSevenDays = useMemo(() => getLast7Dates('yyyy-mm-dd'), []);
   const startDate = useMemo(() => new Date(lastSevenDays[0]), [lastSevenDays]);
   const endDate = useMemo(() => {
     const last = new Date(lastSevenDays.at(-1)!);
