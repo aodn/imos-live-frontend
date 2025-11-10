@@ -27,3 +27,8 @@ export type StyleSource =
   | 'mapbox://styles/mapbox/satellite-v9'
   | typeof terrain
   | typeof ESRIWorldImagery;
+
+export const worldLandStyle = {
+  title: 'countryBoundaries',
+  source: 'mapbox://mapbox.country-boundaries-v1',
+};
