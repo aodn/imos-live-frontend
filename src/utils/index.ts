@@ -22,4 +22,3 @@ export * from './sleep';
 export * from './snapToClosestStep';
 export * from './clampToLowerBound';
 export * from './rgbToHex';
-export * from './convertGeometryCollectionToFeatureCollection';
