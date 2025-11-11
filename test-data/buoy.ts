@@ -107,6 +107,8 @@ export const genBuoyRandomData = ({
   const properties = {
     SSWMD: [] as [number, number][],
     WPFM: [] as [number, number][],
+    WPMH: [] as [number, number][],
+    WHTH: [] as [number, number][],
     WSSH: [] as [number, number][],
   };
   const current = new Date(from);
@@ -116,7 +118,9 @@ export const genBuoyRandomData = ({
   while (current <= end) {
     properties['SSWMD'].push([current.getTime(), Math.random() * 360]);
     properties['WPFM'].push([current.getTime(), Math.random() * 50]);
+    properties['WPMH'].push([current.getTime(), Math.random() * 50]);
     properties['WSSH'].push([current.getTime(), Math.random() * 100]);
+    properties['WHTH'].push([current.getTime(), Math.random() * 100]);
     current.setDate(current.getDate() + 1);
   }
 

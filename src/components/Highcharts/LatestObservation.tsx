@@ -19,14 +19,21 @@ const productDescription = {
     long_name: 'sea surface wave spectral mean period',
     units: 's',
   },
+  WPMH: {
+    long_name: 'average upcross wave period',
+    units: 's',
+  },
   WSSH: {
-    long_name: 'sea surface wave spectral significant height',
+    long_name: 'sea surface wave significant height',
+    units: 'm',
+  },
+  WHTH: {
+    long_name: 'sea surface wave significant height',
     units: 'm',
   },
 };
 
 export function LatestObservation({ feature }: { feature: WaveBuoyDetailsFeature | undefined }) {
-  const numOfCols = 3;
   const gridColsClass = (numOfCols: number) =>
     ({
       1: 'grid-cols-1',
@@ -49,27 +56,29 @@ export function LatestObservation({ feature }: { feature: WaveBuoyDetailsFeature
     const properties = feature.properties;
     const keys = obseravtionVariants;
 
-    return keys.map(key => {
-      const data = properties[key] ?? [];
+    return keys
+      .filter(key => (properties[key] ?? []).length > 0)
+      .filter((key, _index, keys) => key !== 'WPMH' || (key === 'WPMH' && !keys.includes('WPFM')))
+      .filter((key, _index, keys) => key !== 'WHTH' || (key === 'WHTH' && !keys.includes('WSSH')))
+      .map(key => {
+        const data = properties[key] ?? [];
+        const lastData = data.at(-1);
+        let timestamp, value;
+        if (Array.isArray(lastData)) {
+          [timestamp, value] = lastData;
+        } else {
+          timestamp = undefined;
+          value = undefined;
+        }
 
-      const lastData = data.at(-1);
-      let timestamp, value;
-      if (Array.isArray(lastData)) {
-        [timestamp, value] = lastData;
-      } else {
-        timestamp = undefined;
-        value = undefined;
-      }
-
-      return {
-        timeStamp: timestamp,
-        label: productDescription[key].long_name,
-        value,
-        unit: productDescription[key].units,
-      };
-    });
+        return {
+          timeStamp: timestamp,
+          label: productDescription[key].long_name,
+          value,
+          unit: productDescription[key].units,
+        };
+      });
   }, [feature]);
-
   return (
     <div className="w-full">
       <div className="border  border-gray-300 ">
@@ -84,7 +93,7 @@ export function LatestObservation({ feature }: { feature: WaveBuoyDetailsFeature
           </h2>
         </div>
 
-        <div className={cn('grid w-full', gridColsClass(numOfCols))}>
+        <div className={cn('grid w-full', gridColsClass(observationData.length))}>
           {observationData?.map((field, index, values) => (
             <div
               key={field.label || '' + index}
