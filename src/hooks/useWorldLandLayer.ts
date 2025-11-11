@@ -9,19 +9,15 @@ import { fillLayer, lineLayer } from '@/layers';
 import { addLayerInOrder, addOrUpdateVectorSource } from '@/helpers';
 import { worldLandBorderConfig, worldLandFillConfig } from '@/config';
 import { worldLandStyle } from '@/styles';
+import { useMapUIStore } from '@/store';
+import { useShallow } from 'zustand/shallow';
+import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
 
-export function useWorldLandBorderLayer(map: React.RefObject<mapboxgl.Map | null>) {
-  const worldLandBorderLayer = useMemo(
-    () =>
-      lineLayer(
-        {
-          id: WORLD_LAND_BORDER_LAYER_ID,
-          source: WORLD_LAND_SOURCE_ID,
-          ...worldLandBorderConfig,
-        },
-        true,
-      ),
-    [],
+export function useWorldLandLayer(map: React.RefObject<mapboxgl.Map | null>) {
+  const { worldBoundaries } = useMapUIStore(
+    useShallow(s => ({
+      worldBoundaries: s.worldBoundaries,
+    })),
   );
   const worldLandFillLayer = useMemo(
     () =>
@@ -31,14 +27,27 @@ export function useWorldLandBorderLayer(map: React.RefObject<mapboxgl.Map | null
           source: WORLD_LAND_SOURCE_ID,
           ...worldLandFillConfig,
         },
-        true,
+        worldBoundaries,
       ),
-    [],
+    [worldBoundaries],
+  );
+
+  const worldLandBorderLayer = useMemo(
+    () =>
+      lineLayer(
+        {
+          id: WORLD_LAND_BORDER_LAYER_ID,
+          source: WORLD_LAND_SOURCE_ID,
+          ...worldLandBorderConfig,
+        },
+        worldBoundaries,
+      ),
+    [worldBoundaries],
   );
 
   const landLayers = useMemo(
-    () => [worldLandBorderLayer, worldLandFillLayer],
-    [worldLandBorderLayer, worldLandFillLayer],
+    () => [worldLandFillLayer, worldLandBorderLayer],
+    [worldLandFillLayer, worldLandBorderLayer],
   );
 
   const setupLayer = useCallback(async () => {
@@ -51,5 +60,12 @@ export function useWorldLandBorderLayer(map: React.RefObject<mapboxgl.Map | null
     landLayers.forEach(layer => addLayerInOrder(map, layer));
   }, [landLayers, map]);
 
-  useMapboxLayerSetup(map, setupLayer, []);
+  const { loadComplete } = useMapboxLayerSetup(map, setupLayer, []);
+
+  useMapboxLayerVisibility(
+    map,
+    loadComplete,
+    [worldLandBorderLayer, worldLandFillLayer],
+    worldBoundaries,
+  );
 }

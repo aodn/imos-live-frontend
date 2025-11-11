@@ -46,17 +46,21 @@ export function FeaturesMenu({
     style,
     numParticles,
     distanceMeasurement,
+    worldBoundaries,
     setStyle,
     setNumParticles,
     setDistanceMeasurement,
+    setWorldBoundaries,
   } = useMapUIStore(
     useShallow(s => ({
       style: s.style,
       numParticles: s.numParticles,
       distanceMeasurement: s.distanceMeasurement,
+      worldBoundaries: s.worldBoundaries,
       setStyle: s.setStyle,
       setNumParticles: s.setNumParticles,
       setDistanceMeasurement: s.setDistanceMeasurement,
+      setWorldBoundaries: s.setWorldBoundaries,
     })),
   );
   const isActive = (label: Label) => activeItem === label;
@@ -75,6 +79,9 @@ export function FeaturesMenu({
   };
   const handleDistanceMeasurementSelect = (distanceMeasurement: boolean) => {
     setDistanceMeasurement(distanceMeasurement);
+  };
+  const handleWorldBoundariesSelect = (worldBoundaries: boolean) => {
+    setWorldBoundaries(worldBoundaries);
   };
   return (
     <aside
@@ -128,6 +135,15 @@ export function FeaturesMenu({
                   labelPosition="left"
                   initialValue={distanceMeasurement}
                   onChange={handleDistanceMeasurementSelect}
+                  dataTestId="switch-distancemeasurement"
+                />
+              </div>
+              <div className="pt-2">
+                <Switch
+                  label="World boundaries"
+                  labelPosition="left"
+                  initialValue={worldBoundaries}
+                  onChange={handleWorldBoundariesSelect}
                 />
               </div>
             </>
