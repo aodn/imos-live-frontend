@@ -135,6 +135,7 @@ export function FeaturesMenu({
                   labelPosition="left"
                   initialValue={distanceMeasurement}
                   onChange={handleDistanceMeasurementSelect}
+                  dataTestId="switch-distancemeasurement"
                 />
               </div>
               <div className="pt-2">

@@ -24,6 +24,7 @@ interface SwitchProps {
   trackClassName?: string;
   labelClassName?: string;
   descriptionClassName?: string;
+  dataTestId?: string;
 }
 
 export const Switch = ({
@@ -43,6 +44,7 @@ export const Switch = ({
   trackClassName,
   labelClassName,
   descriptionClassName,
+  dataTestId,
 }: SwitchProps) => {
   const [isOn, setIsOn] = useState(initialValue);
 
@@ -119,6 +121,7 @@ export const Switch = ({
       role="switch"
       aria-checked={isOn}
       aria-disabled={disabled}
+      data-testid={dataTestId}
     >
       <span
         className={cn(
