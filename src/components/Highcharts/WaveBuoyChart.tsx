@@ -44,26 +44,28 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
 
     const seriesStyle = generateSeriesStyles(noneDirectionVariants);
 
-    const regularSeries = noneDirectionVariants.map(variant => {
-      const data = properties[variant];
+    const [regularSeries] = noneDirectionVariants
+      .filter(variant => (properties[variant] ?? []).length > 0)
+      .map(variant => {
+        const data = properties[variant];
 
-      return {
-        data,
-        ...seriesStyle.find(s => s.name === variant),
-        //update name from variant like SSMD... to like wave height..., this is to update legend label to readable name.
-        name:
-          variant in VariantReadableName
-            ? VariantReadableName[variant as keyof typeof VariantReadableName]
-            : variant,
-        yAxis: 0,
-      };
-    });
+        return {
+          data,
+          ...seriesStyle.find(s => s.name === variant),
+          //update name from variant like SSMD... to like wave height..., this is to update legend label to readable name.
+          name:
+            variant in VariantReadableName
+              ? VariantReadableName[variant as keyof typeof VariantReadableName]
+              : variant,
+          yAxis: 0,
+        };
+      });
 
     const directionSeries = showDirection
       ? processDirectionData(properties[buoyDataDirectionVariant])
       : null;
 
-    return directionSeries ? [...regularSeries, directionSeries] : [...regularSeries];
+    return directionSeries ? [regularSeries, directionSeries] : [regularSeries];
   }, [feature, showDirection]);
 
   const dynamicButtons = useMemo(() => {
