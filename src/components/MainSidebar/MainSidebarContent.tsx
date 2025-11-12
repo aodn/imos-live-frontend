@@ -27,7 +27,7 @@ export type LayersDataset = {
   addToMap: (v: boolean) => void;
   layerId: string;
   visible: boolean;
-  legend?: (dataset: string) => ReactNode;
+  legend?: (dataset: string) => Promise<ReactNode>;
   variant?:
     | typeof GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT
     | typeof GSLA_ANOMALY_SEA_LEVELS_PRODUCT_VARIANT

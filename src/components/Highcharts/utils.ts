@@ -634,7 +634,7 @@ export function createDirectionArrow(
 }
 
 export function processDirectionData(data: BuoyItemContent): SeriesData | null {
-  if (!Array.isArray(data)) {
+  if (!Array.isArray(data) || data.length === 0) {
     return null;
   }
 
