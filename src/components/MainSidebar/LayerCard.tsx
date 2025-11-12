@@ -2,7 +2,7 @@ import { gslaOceanCurrentColorsLegendConfig } from '@/config';
 import { GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT, WAVE_BUOYS_LAYER_ID } from '@/constants';
 import { useViewportSize } from '@/hooks';
 import { cn } from '@/utils';
-import { ReactNode, useMemo } from 'react';
+import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { Button } from '../Button';
 import { CollapsibleComponent, TriggerArgs } from '../Collapsible';
 import { LogColorScaleBar } from '../ColorScaleBar';
@@ -32,6 +32,18 @@ export const LayerCard = ({
 }: LayerCardProps) => {
   const { widthBreakpoint } = useViewportSize();
   const isSmallScreen = ['sm', 'md'].includes(widthBreakpoint || '');
+  const [legendImg, setLegendImg] = useState<ReactNode>(null);
+
+  useEffect(() => {
+    if (!legend) {
+      setLegendImg(null);
+      return;
+    }
+    if (legend) {
+      legend(dataset).then(setLegendImg);
+      return;
+    }
+  }, [legend, dataset]);
 
   const variants = useMemo(
     () => ({
@@ -95,7 +107,7 @@ export const LayerCard = ({
           )}
         </div>
         {!!colorScaleBars && <div className="col-span-2 md:mt-4">{colorScaleBars}</div>}
-        {!!legend && <div className="col-span-2 md:mt-4">{legend(dataset)}</div>}
+        {!!legendImg && <div className="col-span-2 md:mt-4">{legendImg}</div>}
       </div>
     </CollapsibleComponent>
   );

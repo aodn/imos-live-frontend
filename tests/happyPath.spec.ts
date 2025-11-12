@@ -404,7 +404,7 @@ test.describe('Anomaly sea levels', () => {
   test('User can see the current value from a map particle of different days', async ({ page }) => {
     await mapComponent.waitUntilLayerLoaded(page, OVERLAY_LAYER_ID);
     await mapComponent.expectPopupToHaveContent(page, {
-      gsla: '3.00',
+      gsla: '4.00',
     });
 
     await page.getByRole('slider', { name: 'point handle' }).click();

@@ -64,7 +64,7 @@ export const featuredDataset: LayersDataset[] = [
     addToMap: () => console.log('Add to map clicked'),
     visible: false,
     variant: GSLA_ANOMALY_SEA_LEVELS_PRODUCT_VARIANT,
-    legend: (dataset: string) => {
+    legend: async (dataset: string) => {
       return (
         <div>
           <div className="w-full">
@@ -72,7 +72,7 @@ export const featuredDataset: LayersDataset[] = [
               className="w-full"
               style={{
                 height: '12px',
-                background: `url(${rasterLegendUrl(GSLA_OVERLAY_SOURCE_ID, new Date(dataset))})`,
+                background: `url(${await rasterLegendUrl(GSLA_OVERLAY_SOURCE_ID, new Date(dataset))})`,
                 backgroundSize: 'cover',
               }}
             />
@@ -109,7 +109,7 @@ export const featuredDataset: LayersDataset[] = [
     addToMap: () => console.log('Add to map clicked'),
     visible: false,
     variant: SST_ANOMALY_MOSAIC_PRODUCT_VARIANT,
-    legend: (dataset: string) => {
+    legend: async (dataset: string) => {
       return (
         <div>
           <div className="w-full">
@@ -117,7 +117,7 @@ export const featuredDataset: LayersDataset[] = [
               className="w-full"
               style={{
                 height: '12px',
-                background: `url(${rasterLegendUrl(SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID, new Date(dataset))})`,
+                background: `url(${await rasterLegendUrl(SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID, new Date(dataset))})`,
               }}
             />
             <div className="w-full flex justify-between text-xs text-black mt-1">

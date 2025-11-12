@@ -28,7 +28,7 @@ export function useOverlayLayer(map: React.RefObject<mapboxgl.Map | null>) {
   );
 
   const setDataByDataset = useCallback(async () => {
-    addOrUpdateWMSSource(map.current!, overlaySource, dataset);
+    await addOrUpdateWMSSource(map.current!, overlaySource, dataset);
   }, [dataset, map, overlaySource]);
 
   const setupLayer = useCallback(async () => {
