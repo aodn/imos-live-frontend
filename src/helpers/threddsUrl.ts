@@ -23,10 +23,12 @@ const baseUrl = async (id: OverlaySource, date: Date): Promise<string> => {
               `IMOS_OceanCurrent_HV_${date.getFullYear()}${(date.getUTCMonth() + 1).toString().padStart(2, '0')}${date.getDate().toString().padStart(2, '0')}T`,
             ),
           ) || '';
-
+      console.log({ link });
       const url = new URL(link);
+
       return `/thredds/wms/${url.searchParams.get('dataset')}`;
     },
+    //TODO: question, why GSLA url need to get from catalog, why sst one no need.  Is it because GSLA not follow same naming pattern?
     [SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID]: (date: Date) =>
       `/thredds/wms/AusTemp/${date.getFullYear()}${(date.getUTCMonth() + 1).toString().padStart(2, '0')}${date.getDate().toString().padStart(2, '0')}_IMOS_AusTemp-sst-anomaly_AUS_fv02.nc`,
   }[id](date);
@@ -52,14 +54,15 @@ export const rasterLegendUrl = async (id: OverlaySource, date: Date): Promise<st
   }[id]();
 };
 
-export const getFeatureInfoUrl = (
+export const getFeatureInfoUrl = async (
   id: OverlaySource,
   date: Date,
   mapBounds: [number, number, number, number], // [west, south, east, north]
   mapSize: { width: number; height: number },
   clickPoint: { x: number; y: number },
-): string => {
-  const base = baseUrl(id, date);
+): Promise<string> => {
+  console.log('getFeatureInfoUrl called');
+  const base = await baseUrl(id, date);
   const layerName = {
     [GSLA_OVERLAY_SOURCE_ID]: 'GSLA',
     [SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID]: 'sst_anom_mosaic',

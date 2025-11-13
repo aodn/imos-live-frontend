@@ -50,8 +50,7 @@ export function useParticleOverlayLayersClickHandlers({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleMapClick = useCallback(
     debounce(async (e: mapboxgl.MapMouseEvent) => {
-      if (!map?.current || !oceanCurrentData || distanceMeasurement || (!particles && !overlay))
-        return;
+      if (!map?.current || distanceMeasurement || (!particles && !overlay)) return;
 
       if (waveBuoysLayerClicked.current) {
         waveBuoysLayerClicked.current = false;
@@ -77,7 +76,13 @@ export function useParticleOverlayLayersClickHandlers({
         height: map.current.getCanvas().height,
       };
 
-      const url = getFeatureInfoUrl(overlaySource, new Date(dataset), mapBounds, mapSize, e.point);
+      const url = await getFeatureInfoUrl(
+        overlaySource,
+        new Date(dataset),
+        mapBounds,
+        mapSize,
+        e.point,
+      );
       const response = await fetch(url);
       const data = await response.text();
 
@@ -103,10 +108,10 @@ export function useParticleOverlayLayersClickHandlers({
         ...(overlay ? overlayData : {}),
       };
 
-      if (particles) {
+      if (particles && oceanCurrentData) {
         popupData = { ...popupData, ...processOceanCurrentDetails(lngLat, oceanCurrentData) };
       }
-
+      console.log({ popupData });
       if (Object.keys(popupData).length === 0) return;
 
       showPopup(map.current, {
