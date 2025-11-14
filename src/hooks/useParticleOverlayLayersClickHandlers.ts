@@ -103,7 +103,6 @@ export function useParticleOverlayLayersClickHandlers({
           overlayData.sstAnom = Number(fieldValue);
         }
       }
-
       let popupData = {
         ...(overlay ? overlayData : {}),
       };

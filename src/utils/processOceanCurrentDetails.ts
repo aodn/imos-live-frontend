@@ -10,7 +10,6 @@ type OceanCurrentDetails = {
   speedUnit: string;
   degree: number;
   direction: string;
-  gsla: number;
   gslaUnit: string;
 };
 
@@ -36,7 +35,6 @@ export const processOceanCurrentDetails = (
     speedUnit: 'm/s',
     degree: toCompassStandard(degree),
     direction: compassDirectionFrom(degree),
-    gsla,
     gslaUnit: 'm/s',
   };
 };
