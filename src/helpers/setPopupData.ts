@@ -164,7 +164,9 @@ export function gerMapMetaData(map: React.RefObject<mapboxgl.Map | null>) {
 }
 
 // Set and update popupdata in useMapPopup store, PopupContent component consume directly from this store.
-export async function setPopupData(oceanCurrentData?: OceanCurrentDataResponse) {
+export async function setPopupData(
+  oceanCurrentData?: OceanCurrentDataResponse,
+): Promise<{ popupEnabled: boolean }> {
   const { metaData } = useMapPopupStore.getState();
   const { particles, overlay, overlaySource, dataset } = useMapUIStore.getState();
 
@@ -179,8 +181,7 @@ export async function setPopupData(oceanCurrentData?: OceanCurrentDataResponse) 
     dataset,
     lngLat: metaData.lngLat,
   });
-
-  if (Object.keys(popupData).length === 0) return;
-
+  if (Object.keys(popupData).length === 0) return { popupEnabled: false };
   batchUpdateMapPopup(popupData);
+  return { popupEnabled: true };
 }

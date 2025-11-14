@@ -69,8 +69,8 @@ export function useParticleOverlayLayersClickHandlers({
         mapSize,
       });
 
-      await setPopupData(oceanCurrentData);
-      showPopup(map.current);
+      const { popupEnabled } = await setPopupData(oceanCurrentData);
+      if (popupEnabled) showPopup(map.current);
     }, 400),
     [oceanCurrentData, distanceMeasurement, overlay, particles, overlaySource],
   );
