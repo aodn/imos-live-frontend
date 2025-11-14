@@ -111,7 +111,7 @@ async function fetchOverlayData(
  * Gathers all popup data from various sources (overlay, particles)
  * @returns Combined popup data object organized by Product types
  */
-async function getPopupData({
+export async function getPopupData({
   lngLat,
   oceanCurrentData,
   overlay,
@@ -133,7 +133,6 @@ async function getPopupData({
 
   if (particles && oceanCurrentData) {
     const oceanCurrentDetails = processOceanCurrentDetails(lngLat, oceanCurrentData);
-
     if (oceanCurrentDetails) {
       popupData[Product.GSLA_OCEAN_GEOSTROPHIC_CURRENT] = {
         speed: oceanCurrentDetails.speed,
@@ -146,7 +145,7 @@ async function getPopupData({
   return popupData;
 }
 
-export function gerMapMetaData(map: React.RefObject<mapboxgl.Map | null>) {
+function gerMapMetaData(map: React.RefObject<mapboxgl.Map | null>) {
   if (!map.current) return {};
 
   const bounds = map.current.getBounds();
@@ -165,13 +164,17 @@ export function gerMapMetaData(map: React.RefObject<mapboxgl.Map | null>) {
 }
 
 // Set and update popupdata in useMapPopup store, PopupContent component consume directly from this store.
-export async function setPopupData(oceanCurrentData?: OceanCurrentDataResponse) {
+export async function setPopupData(
+  map: React.RefObject<mapboxgl.Map | null>,
+  oceanCurrentData?: OceanCurrentDataResponse,
+) {
   const { metaData } = useMapPopupStore.getState();
   const { particles, overlay, overlaySource, dataset } = useMapUIStore.getState();
+  const { mapBounds, mapSize } = gerMapMetaData(map);
 
   const popupData = await getPopupData({
-    mapBounds: metaData.mapBounds,
-    mapSize: metaData.mapSize,
+    mapBounds,
+    mapSize,
     particles,
     oceanCurrentData,
     overlay,
