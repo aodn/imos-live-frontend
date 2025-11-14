@@ -61,7 +61,6 @@ export const getFeatureInfoUrl = async (
   mapSize: { width: number; height: number },
   clickPoint: { x: number; y: number },
 ): Promise<string> => {
-  console.log('getFeatureInfoUrl called');
   const base = await baseUrl(id, date);
   const layerName = {
     [GSLA_OVERLAY_SOURCE_ID]: 'GSLA',
