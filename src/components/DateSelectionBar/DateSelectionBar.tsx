@@ -1,15 +1,18 @@
 import { TriangleIcon } from '../Icons';
-import { DateSlider, PointSelection, SelectionResult, SliderExposedMethod } from '../DateSlider';
+import { DateSlider, PointSelection, SelectionResult } from '../DateSlider';
 import { getLast7Dates, dateToUTC, toDateFormatString, cn } from '@/utils';
 import { useMapUIStore, setDataset } from '@/store';
-import { memo, useCallback, useMemo, useRef } from 'react';
+import { memo, useCallback, useMemo } from 'react';
+import { setPopupData } from '@/helpers';
+import { getOceanCurrentData } from '@/api';
+import { useQueryClient } from '@tanstack/react-query';
+import { GSLA_DATA_NAME } from '@/constants';
 
 type DateSelectionBarProps = { className?: string };
 
 export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
   const dataset = useMapUIStore(s => s.dataset);
-
-  const dateSliderMethodRef = useRef<SliderExposedMethod>(null);
+  const queryClient = useQueryClient();
 
   const lastSevenDays = useMemo(() => getLast7Dates('yyyy-mm-dd'), []);
   const startDate = useMemo(() => new Date(lastSevenDays[0]), [lastSevenDays]);
@@ -19,9 +22,18 @@ export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
     return last;
   }, [lastSevenDays]);
 
-  const handleSelect = useCallback((v: PointSelection) => {
-    setDataset(toDateFormatString(v.point));
-  }, []);
+  const handleSelect = useCallback(
+    async (v: PointSelection) => {
+      const dataset = toDateFormatString(v.point);
+      setDataset(dataset);
+      const oceanCurrentData = await queryClient.fetchQuery({
+        queryKey: [GSLA_DATA_NAME, dataset],
+        queryFn: () => getOceanCurrentData(dataset),
+      });
+      await setPopupData(oceanCurrentData);
+    },
+    [queryClient],
+  );
 
   return (
     <div className={cn('shadow-xl', className)}>
@@ -43,7 +55,6 @@ export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
         }}
         sliderHeight={110}
         sliderWidth={'fill'}
-        imperativeHandleRef={dateSliderMethodRef}
         pointLabelPersistent
         isTimeLabelPerDay
         withEndLabel={false}

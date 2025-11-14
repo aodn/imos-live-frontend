@@ -1,4 +1,4 @@
-import { LngLat, MapMouseEvent } from 'mapbox-gl';
+import { LngLat, MapMouseEvent, Point } from 'mapbox-gl';
 import { getFeatureInfoUrl } from '../api/threddsUrl';
 import {
   OverlaySource,
@@ -8,10 +8,10 @@ import {
 } from '@/constants';
 import { processOceanCurrentDetails } from '@/utils';
 import { OceanCurrentDataResponse } from '@/api';
-import { PopupStoreState } from '@/store';
+import { batchUpdateMapPopup, PopupStoreState, useMapPopupStore, useMapUIStore } from '@/store';
 
 type GetPopupDataArg = {
-  lngLat: LngLat;
+  lngLat?: LngLat;
   oceanCurrentData: OceanCurrentDataResponse | undefined;
   overlay: boolean;
   particles: boolean;
@@ -22,7 +22,7 @@ type GetPopupDataArg = {
     width: number;
     height: number;
   };
-  point: MapMouseEvent['point'];
+  point?: Point;
 };
 
 export type PopupData = PopupStoreState;
@@ -111,7 +111,7 @@ async function fetchOverlayData(
  * Gathers all popup data from various sources (overlay, particles)
  * @returns Combined popup data object organized by Product types
  */
-export async function getPopupData({
+async function getPopupData({
   lngLat,
   oceanCurrentData,
   overlay,
@@ -124,7 +124,7 @@ export async function getPopupData({
 }: GetPopupDataArg): Promise<Partial<PopupData>> {
   const popupData: Partial<PopupData> = {};
 
-  if (!mapBounds || !mapSize) return popupData;
+  if (!mapBounds || !mapSize || !lngLat || !point) return popupData;
 
   if (overlay) {
     const overlayData = await fetchOverlayData(overlaySource, dataset, mapBounds, mapSize, point);
@@ -144,4 +144,44 @@ export async function getPopupData({
   }
 
   return popupData;
+}
+
+export function gerMapMetaData(map: React.RefObject<mapboxgl.Map | null>) {
+  if (!map.current) return {};
+
+  const bounds = map.current.getBounds();
+  const mapBounds: [number, number, number, number] | undefined = bounds
+    ? [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()]
+    : undefined;
+  const mapSize = {
+    width: map.current.getCanvas().width,
+    height: map.current.getCanvas().height,
+  };
+
+  return {
+    mapBounds,
+    mapSize,
+  };
+}
+
+// Set and update popupdata in useMapPopup store, PopupContent component consume directly from this store.
+export async function setPopupData(oceanCurrentData?: OceanCurrentDataResponse) {
+  const { metaData } = useMapPopupStore.getState();
+  const { particles, overlay, overlaySource, dataset } = useMapUIStore.getState();
+
+  const popupData = await getPopupData({
+    mapBounds: metaData.mapBounds,
+    mapSize: metaData.mapSize,
+    particles,
+    oceanCurrentData,
+    overlay,
+    overlaySource,
+    point: metaData.point,
+    dataset,
+    lngLat: metaData.lngLat,
+  });
+
+  if (Object.keys(popupData).length === 0) return;
+
+  batchUpdateMapPopup(popupData);
 }

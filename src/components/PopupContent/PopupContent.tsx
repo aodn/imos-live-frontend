@@ -15,7 +15,6 @@ export const PopupContent = ({ lat, lng, onClose }: PopupContentProps) => {
       sstAnomalyMosatic: s['sst-anom-mosaic'],
     })),
   );
-
   return (
     <div
       className="w-50 md:w-90 bg-white rounded-lg shadow-lg overflow-hidden"

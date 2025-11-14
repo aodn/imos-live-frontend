@@ -6,4 +6,4 @@ export * from './createZoomLimitPoints.ts';
 export * from './removeZoomLimitTempPoints.ts';
 export * from './addOrUpdateWMSSource.ts';
 export * from './addOrUpdateVectorSource.ts';
-export * from './getPopupData';
+export * from './setPopupData.ts';

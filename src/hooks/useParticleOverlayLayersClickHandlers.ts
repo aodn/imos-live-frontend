@@ -1,12 +1,11 @@
 import { getOceanCurrentData } from '@/api';
 import { useToast } from '@/components';
-import { showPopup } from '@/helpers';
-import { debounce, gerMapMetaData } from '@/utils';
+import { gerMapMetaData, setPopupData, showPopup } from '@/helpers';
+import { debounce } from '@/utils';
 import { RefObject, useCallback, useEffect } from 'react';
 import { GSLA_DATA_NAME, OverlaySource } from '@/constants';
 import { useQuery } from '@tanstack/react-query';
-import { useMapPopupStore } from '@/store';
-import { getPopupData } from '@/helpers';
+import { updateMapPopupByKey } from '@/store';
 
 type UseMapClickHandlersOptions = {
   map: RefObject<mapboxgl.Map | null>;
@@ -30,7 +29,6 @@ export function useParticleOverlayLayersClickHandlers({
   overlaySource,
 }: UseMapClickHandlersOptions) {
   const { showToast } = useToast();
-  const updateAllMapPopup = useMapPopupStore(s => s.updateAllMapPopup);
   //cached by browser
   const { data: oceanCurrentData, isError } = useQuery({
     queryKey: [GSLA_DATA_NAME, dataset],
@@ -62,29 +60,17 @@ export function useParticleOverlayLayersClickHandlers({
         tempPointsEventPrevent.current = false;
         return;
       }
-      const { lngLat } = e;
-
+      const { lngLat, point } = e;
       const { mapBounds, mapSize } = gerMapMetaData(map);
-
-      const popupData = await getPopupData({
+      updateMapPopupByKey('metaData', {
+        lngLat,
+        point,
         mapBounds,
         mapSize,
-        particles,
-        oceanCurrentData,
-        overlay,
-        overlaySource,
-        point: e.point,
-        dataset,
-        lngLat,
       });
 
-      if (Object.keys(popupData).length === 0) return;
-
-      updateAllMapPopup(popupData);
-
-      showPopup(map.current, {
-        ...lngLat,
-      });
+      await setPopupData(oceanCurrentData);
+      showPopup(map.current);
     }, 400),
     [oceanCurrentData, distanceMeasurement, overlay, particles, overlaySource],
   );

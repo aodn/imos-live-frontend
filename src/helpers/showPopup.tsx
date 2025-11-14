@@ -1,18 +1,19 @@
 import mapboxgl from 'mapbox-gl';
 import { createRoot, Root } from 'react-dom/client';
 import { PopupContent } from '@/components';
-
-type PopupOptions = {
-  lat: number;
-  lng: number;
-};
+import { useMapPopupStore } from '@/store';
 
 interface PopupWithRoot extends mapboxgl.Popup {
   __reactRoot?: Root | null;
 }
 
-export function showPopup(map: mapboxgl.Map, options: PopupOptions) {
-  const { lat, lng } = options;
+export function showPopup(map: mapboxgl.Map) {
+  const {
+    metaData: { lngLat },
+  } = useMapPopupStore.getState();
+
+  const { lat, lng } = lngLat || {};
+  if (lat === undefined || lng === undefined) return;
 
   const container = document.createElement('div');
   container.className = 'custom-popup-container';
