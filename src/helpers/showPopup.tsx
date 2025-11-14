@@ -5,11 +5,6 @@ import { PopupContent } from '@/components';
 type PopupOptions = {
   lat: number;
   lng: number;
-  speed?: number;
-  direction?: string;
-  degree?: number;
-  gsla?: number;
-  sstAnom?: number;
 };
 
 interface PopupWithRoot extends mapboxgl.Popup {
@@ -17,7 +12,7 @@ interface PopupWithRoot extends mapboxgl.Popup {
 }
 
 export function showPopup(map: mapboxgl.Map, options: PopupOptions) {
-  const { lat, lng, speed, direction, degree, gsla, sstAnom } = options;
+  const { lat, lng } = options;
 
   const container = document.createElement('div');
   container.className = 'custom-popup-container';
@@ -43,18 +38,7 @@ export function showPopup(map: mapboxgl.Map, options: PopupOptions) {
   popup.on('close', cleanup);
   popup.on('remove', cleanup);
 
-  root.render(
-    <PopupContent
-      lat={lat}
-      lng={lng}
-      speed={speed}
-      direction={direction}
-      degree={degree}
-      gsla={gsla}
-      sstAnom={sstAnom}
-      onClose={() => popup.remove()}
-    />,
-  );
+  root.render(<PopupContent lat={lat} lng={lng} onClose={() => popup.remove()} />);
 
   popup.setLngLat([lng, lat]).setDOMContent(container).addTo(map);
 

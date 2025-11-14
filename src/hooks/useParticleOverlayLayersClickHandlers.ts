@@ -1,11 +1,12 @@
 import { getOceanCurrentData } from '@/api';
 import { useToast } from '@/components';
 import { showPopup } from '@/helpers';
-import { debounce, processOceanCurrentDetails } from '@/utils';
+import { debounce, gerMapMetaData } from '@/utils';
 import { RefObject, useCallback, useEffect } from 'react';
 import { GSLA_DATA_NAME, OverlaySource } from '@/constants';
 import { useQuery } from '@tanstack/react-query';
-import { getFeatureInfoUrl } from '@/helpers/threddsUrl';
+import { useMapPopupStore } from '@/store';
+import { getPopupData } from '@/helpers';
 
 type UseMapClickHandlersOptions = {
   map: RefObject<mapboxgl.Map | null>;
@@ -29,7 +30,7 @@ export function useParticleOverlayLayersClickHandlers({
   overlaySource,
 }: UseMapClickHandlersOptions) {
   const { showToast } = useToast();
-
+  const updateAllMapPopup = useMapPopupStore(s => s.updateAllMapPopup);
   //cached by browser
   const { data: oceanCurrentData, isError } = useQuery({
     queryKey: [GSLA_DATA_NAME, dataset],
@@ -61,61 +62,28 @@ export function useParticleOverlayLayersClickHandlers({
         tempPointsEventPrevent.current = false;
         return;
       }
-
       const { lngLat } = e;
-      const bounds = map.current.getBounds();
-      if (!bounds) return;
-      const mapBounds: [number, number, number, number] = [
-        bounds.getWest(),
-        bounds.getSouth(),
-        bounds.getEast(),
-        bounds.getNorth(),
-      ];
-      const mapSize = {
-        width: map.current.getCanvas().width,
-        height: map.current.getCanvas().height,
-      };
 
-      const url = await getFeatureInfoUrl(
-        overlaySource,
-        new Date(dataset),
+      const { mapBounds, mapSize } = gerMapMetaData(map);
+
+      const popupData = await getPopupData({
         mapBounds,
         mapSize,
-        e.point,
-      );
-      const response = await fetch(url);
-      const data = await response.text();
+        particles,
+        oceanCurrentData,
+        overlay,
+        overlaySource,
+        point: e.point,
+        dataset,
+        lngLat,
+      });
 
-      // Parse XML to extract the value
-      const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(data, 'text/xml');
-
-      const [value] = Array.from(xmlDoc.querySelectorAll('FeatureInfoResponse FeatureInfo value'));
-      const overlayData: {
-        gsla?: number;
-        sstAnom?: number;
-      } = {};
-      if (value !== undefined) {
-        const fieldValue = Number(value.textContent);
-        if (overlaySource === 'gsla-overlay-source') {
-          overlayData.gsla = Number(fieldValue);
-        } else {
-          overlayData.sstAnom = Number(fieldValue);
-        }
-      }
-      let popupData = {
-        ...(overlay ? overlayData : {}),
-      };
-
-      if (particles && oceanCurrentData) {
-        popupData = { ...popupData, ...processOceanCurrentDetails(lngLat, oceanCurrentData) };
-      }
-      console.log({ popupData });
       if (Object.keys(popupData).length === 0) return;
+
+      updateAllMapPopup(popupData);
 
       showPopup(map.current, {
         ...lngLat,
-        ...popupData,
       });
     }, 400),
     [oceanCurrentData, distanceMeasurement, overlay, particles, overlaySource],

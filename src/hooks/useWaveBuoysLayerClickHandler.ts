@@ -7,7 +7,7 @@ import {
   ZOOM_LIMIT_TEMP_POINTS_SOURCE_ID,
 } from '@/constants';
 import { createZoomLimitPoints, removeZoomLimitTempPoints } from '@/helpers';
-import { useDrawerStore } from '@/store';
+import { useDrawerStore, openBottomDrawer } from '@/store';
 import { WaveBuoyPositionFeature } from '@/types';
 import { normalizeWaveBuouysData } from '@/utils';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -20,7 +20,6 @@ export function useWaveBuoysLayerClickHandler(
   const waveBuoysLayerClicked = useRef(false);
   const tempPointsEventPrevent = useRef(false);
   const selectedFeatureId = useRef<string | number | null>(null);
-  const openDrawer = useDrawerStore(s => s.openBottomDrawer);
   const bottomDrawer = useDrawerStore(s => s.bottomDrawer);
 
   const [clickedPointData, setClickedPointData] = useState<
@@ -225,7 +224,7 @@ export function useWaveBuoysLayerClickHandler(
 
   return {
     clickedPointData,
-    openDrawer,
+    openDrawer: openBottomDrawer,
     waveBuoysLayerClicked,
     tempPointsEventPrevent,
     clearSelection,

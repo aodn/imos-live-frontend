@@ -4,18 +4,15 @@ import anomalySeaLevelImage from '@/assets/sea-levels.webp';
 import waveBuoysImage from '@/assets/wave-buoys.webp';
 import sstImage from '@/assets/sst.jpg';
 import {
-  GSLA_ANOMALY_SEA_LEVELS_PRODUCT_VARIANT,
-  GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT,
   GSLA_OVERLAY_SOURCE_ID,
   OVERLAY_LAYER_ID,
   PARTICLE_LAYER_ID,
   SST_ANOMALY_MOSAIC_LAYER_ID,
   SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID,
-  SST_ANOMALY_MOSAIC_PRODUCT_VARIANT,
   WAVE_BUOYS_LAYER_ID,
-  WAVE_BUOYS_PRODUCT_VARIANT,
+  Product,
 } from '@/constants';
-import { rasterLegendUrl } from '@/helpers/threddsUrl';
+import { rasterLegendUrl } from '@/api/threddsUrl';
 import { RadarIcon, SatelliteIcon, ThermometerIcon, WaterSurfaceIcon, WaveIcon } from '../Icons';
 import { LayersDataset } from './MainSidebarContent';
 
@@ -45,7 +42,7 @@ export const featuredDataset: LayersDataset[] = [
     layerId: PARTICLE_LAYER_ID,
     addToMap: () => console.log('Add to map clicked'),
     visible: false,
-    variant: GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT,
+    variant: Product.GSLA_OCEAN_GEOSTROPHIC_CURRENT,
   },
   {
     image: {
@@ -63,7 +60,7 @@ export const featuredDataset: LayersDataset[] = [
     layerId: OVERLAY_LAYER_ID,
     addToMap: () => console.log('Add to map clicked'),
     visible: false,
-    variant: GSLA_ANOMALY_SEA_LEVELS_PRODUCT_VARIANT,
+    variant: Product.GSLA_ANOMALY_SEA_LEVELS,
     legend: async (dataset: string) => {
       return (
         <div>
@@ -108,7 +105,7 @@ export const featuredDataset: LayersDataset[] = [
     layerId: SST_ANOMALY_MOSAIC_LAYER_ID,
     addToMap: () => console.log('Add to map clicked'),
     visible: false,
-    variant: SST_ANOMALY_MOSAIC_PRODUCT_VARIANT,
+    variant: Product.SST_ANOMALY_MOSAIC,
     legend: async (dataset: string) => {
       return (
         <div>
@@ -148,7 +145,7 @@ export const featuredDataset: LayersDataset[] = [
     layerId: WAVE_BUOYS_LAYER_ID,
     addToMap: () => console.log('Add to map clicked'),
     visible: false,
-    variant: WAVE_BUOYS_PRODUCT_VARIANT,
+    variant: Product.WAVE_BUOYS,
   },
 ];
 

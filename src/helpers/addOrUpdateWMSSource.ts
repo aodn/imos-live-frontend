@@ -1,5 +1,5 @@
 import { OVERLAY_LAYER_ID, OverlaySource } from '@/constants';
-import { rasterUrl } from './threddsUrl';
+import { rasterUrl } from '@/api';
 
 export async function addOrUpdateWMSSource(
   map: mapboxgl.Map,

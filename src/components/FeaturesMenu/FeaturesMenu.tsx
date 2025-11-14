@@ -4,7 +4,14 @@ import { Button } from '../Button';
 import { cn } from '@/utils';
 import { Dropdown } from '../Dropdown';
 import { styles, StyleTitle } from '@/styles';
-import { NumParticles, useMapUIStore } from '@/store';
+import {
+  NumParticles,
+  useMapUIStore,
+  setStyle,
+  setNumParticles,
+  setDistanceMeasurement,
+  setWorldBoundaries,
+} from '@/store';
 import { useShallow } from 'zustand/shallow';
 import { Switch } from '../Switch';
 
@@ -42,25 +49,12 @@ export function FeaturesMenu({
   iconSize,
 }: FeaturesMenuProps) {
   const [activeItem, setActiveItem] = useState<Label>();
-  const {
-    style,
-    numParticles,
-    distanceMeasurement,
-    worldBoundaries,
-    setStyle,
-    setNumParticles,
-    setDistanceMeasurement,
-    setWorldBoundaries,
-  } = useMapUIStore(
+  const { style, numParticles, distanceMeasurement, worldBoundaries } = useMapUIStore(
     useShallow(s => ({
       style: s.style,
       numParticles: s.numParticles,
       distanceMeasurement: s.distanceMeasurement,
       worldBoundaries: s.worldBoundaries,
-      setStyle: s.setStyle,
-      setNumParticles: s.setNumParticles,
-      setDistanceMeasurement: s.setDistanceMeasurement,
-      setWorldBoundaries: s.setWorldBoundaries,
     })),
   );
   const isActive = (label: Label) => activeItem === label;

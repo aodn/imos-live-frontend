@@ -1,19 +1,13 @@
 import { TriangleIcon } from '../Icons';
 import { DateSlider, PointSelection, SelectionResult, SliderExposedMethod } from '../DateSlider';
 import { getLast7Dates, dateToUTC, toDateFormatString, cn } from '@/utils';
-import { useMapUIStore } from '@/store';
+import { useMapUIStore, setDataset } from '@/store';
 import { memo, useCallback, useMemo, useRef } from 'react';
-import { useShallow } from 'zustand/shallow';
 
 type DateSelectionBarProps = { className?: string };
 
 export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
-  const { dataset, setDataset } = useMapUIStore(
-    useShallow(s => ({
-      dataset: s.dataset,
-      setDataset: s.setDataset,
-    })),
-  );
+  const dataset = useMapUIStore(s => s.dataset);
 
   const dateSliderMethodRef = useRef<SliderExposedMethod>(null);
 
@@ -25,12 +19,9 @@ export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
     return last;
   }, [lastSevenDays]);
 
-  const handleSelect = useCallback(
-    (v: PointSelection) => {
-      setDataset(toDateFormatString(v.point));
-    },
-    [setDataset],
-  );
+  const handleSelect = useCallback((v: PointSelection) => {
+    setDataset(toDateFormatString(v.point));
+  }, []);
 
   return (
     <div className={cn('shadow-xl', className)}>

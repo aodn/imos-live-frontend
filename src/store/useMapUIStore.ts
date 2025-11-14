@@ -114,3 +114,17 @@ export const selectAllStates = (s: MapUIState) => ({
   dataset: s.dataset,
   overlaySource: s.overlaySource,
 });
+
+export const {
+  setCenter,
+  setCircle,
+  setDataset,
+  setDistanceMeasurement,
+  setNumParticles,
+  setOverlay,
+  setParticles,
+  setStyle,
+  setWorldBoundaries,
+  setZoom,
+  refreshDatasets,
+} = useMapUIStore.getState();

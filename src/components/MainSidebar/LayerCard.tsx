@@ -1,5 +1,5 @@
 import { gslaOceanCurrentColorsLegendConfig } from '@/config';
-import { GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT, WAVE_BUOYS_LAYER_ID } from '@/constants';
+import { WAVE_BUOYS_LAYER_ID, Product } from '@/constants';
 import { useViewportSize } from '@/hooks';
 import { cn } from '@/utils';
 import { ReactNode, useEffect, useMemo, useState } from 'react';
@@ -47,7 +47,7 @@ export const LayerCard = ({
 
   const variants = useMemo(
     () => ({
-      [GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT]: {
+      [Product.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: {
         ...gslaOceanCurrentColorsLegendConfig,
       },
     }),
@@ -55,7 +55,7 @@ export const LayerCard = ({
   );
 
   const colorScaleBars = useMemo(() => {
-    if (variant === GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT)
+    if (variant === Product.GSLA_OCEAN_GEOSTROPHIC_CURRENT)
       return <LogColorScaleBar className="w-full" {...variants[variant]} />;
     //the reaaon to use LogColorScaleBar is most data points are between 0~2, so log scale is better to show the color difference.
   }, [variant, variants]);

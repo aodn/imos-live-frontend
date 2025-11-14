@@ -87,3 +87,6 @@ export const useDrawerStore = create<DrawerStore>(set => ({
       },
     })),
 }));
+
+export const { closeBottomDrawer, closeLeftDrawer, openBottomDrawer, openLeftDrawer } =
+  useDrawerStore.getState();

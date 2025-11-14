@@ -3,7 +3,7 @@ import { HeaderData } from './MainSidebarContent';
 import { Image } from '../Image';
 import { Button } from '../Button';
 import { MenuIcon } from '../Icons';
-import { useDrawerStore } from '@/store';
+import { openLeftDrawer } from '@/store';
 import { useCallback } from 'react';
 import { MainSidebarContent } from './MainSidebarContent';
 
@@ -12,10 +12,9 @@ export type HeaderProps = {
 } & HeaderData;
 
 export const Header = ({ image, title, className }: HeaderProps) => {
-  const openLeftDrawer = useDrawerStore(s => s.openLeftDrawer);
   const handleClick = useCallback(() => {
     openLeftDrawer(<MainSidebarContent />);
-  }, [openLeftDrawer]);
+  }, []);
   return (
     <div
       className={cn(

@@ -16,26 +16,19 @@ import {
   WaveIcon,
 } from '@/components';
 import { useViewportSize } from '@/hooks';
-import { useDrawerStore, useMapUIStore } from '@/store';
+import { useDrawerStore, refreshDatasets, closeLeftDrawer } from '@/store';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useEffect, useMemo } from 'react';
-import { useShallow } from 'zustand/shallow';
 
 export const Map = () => {
-  const refreshDatasets = useMapUIStore(s => s.refreshDatasets);
   const { widthBreakpoint } = useViewportSize();
   const isSmallScreen = ['sm', 'md'].includes(widthBreakpoint || '');
 
-  const { leftDrawer, closeLeftDrawer } = useDrawerStore(
-    useShallow(s => ({
-      leftDrawer: s.leftDrawer,
-      closeLeftDrawer: s.closeLeftDrawer,
-    })),
-  );
+  const leftDrawer = useDrawerStore(s => s.leftDrawer);
 
   useEffect(() => {
     refreshDatasets();
-  }, [refreshDatasets]);
+  }, []);
 
   const mapContent = useMemo(
     () => (
@@ -91,7 +84,6 @@ export const Map = () => {
       </div>
     ),
     [
-      closeLeftDrawer,
       isSmallScreen,
       leftDrawer.content,
       leftDrawer.direction,

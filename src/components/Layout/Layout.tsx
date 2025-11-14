@@ -1,17 +1,11 @@
 import { Outlet } from 'react-router-dom';
-import { useDrawerStore } from '@/store';
+import { useDrawerStore, closeBottomDrawer } from '@/store';
 import { Drawer } from '../Drawer';
-import { useShallow } from 'zustand/shallow';
 import { useCurrentPage } from '@/hooks';
 import { cn } from '@/utils';
 
 export const Layout = () => {
-  const { bottomDrawer, closeBottomDrawer } = useDrawerStore(
-    useShallow(s => ({
-      bottomDrawer: s.bottomDrawer,
-      closeBottomDrawer: s.closeBottomDrawer,
-    })),
-  );
+  const bottomDrawer = useDrawerStore(s => s.bottomDrawer);
 
   const page = useCurrentPage();
 

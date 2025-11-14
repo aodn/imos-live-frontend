@@ -3,17 +3,12 @@ import { ImageType } from '@/types';
 import { LayerProducts } from './LayerProducts';
 import { LayerSets } from './LayerSets';
 import { headerData, layerProductsMock, featuredDataset } from './products';
-import { useMapUIStore } from '@/store';
+import { useMapUIStore, setOverlay, setCircle, setParticles } from '@/store';
 import { useShallow } from 'zustand/shallow';
 import { ReactNode, useMemo, useState } from 'react';
 import { cn, normalizeLayerSets } from '@/utils';
 import { Button } from '../Button';
-import {
-  GSLA_ANOMALY_SEA_LEVELS_PRODUCT_VARIANT,
-  GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT,
-  SST_ANOMALY_MOSAIC_PRODUCT_VARIANT,
-  WAVE_BUOYS_PRODUCT_VARIANT,
-} from '@/constants';
+import { Product } from '@/constants';
 
 export type HeaderData = {
   image: ImageType;
@@ -28,11 +23,7 @@ export type LayersDataset = {
   layerId: string;
   visible: boolean;
   legend?: (dataset: string) => Promise<ReactNode>;
-  variant?:
-    | typeof GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT
-    | typeof GSLA_ANOMALY_SEA_LEVELS_PRODUCT_VARIANT
-    | typeof WAVE_BUOYS_PRODUCT_VARIANT
-    | typeof SST_ANOMALY_MOSAIC_PRODUCT_VARIANT;
+  variant?: Product;
 };
 
 export type LayerProducts = {
@@ -48,25 +39,13 @@ type MainSidebarProps = {
 export const MainSidebarContent: React.FC<MainSidebarProps> = ({ className = '' }) => {
   const [searchQuery] = useState('');
 
-  const {
-    overlay,
-    particles,
-    circle,
-    overlaySource,
-    dataset,
-    setOverlay,
-    setCircle,
-    setParticles,
-  } = useMapUIStore(
+  const { overlay, particles, circle, overlaySource, dataset } = useMapUIStore(
     useShallow(s => ({
       overlay: s.overlay,
       particles: s.particles,
       circle: s.circle,
       overlaySource: s.overlaySource,
       dataset: s.dataset,
-      setOverlay: s.setOverlay,
-      setCircle: s.setCircle,
-      setParticles: s.setParticles,
     })),
   );
   const normalizedLayerSets = useMemo(() => {
@@ -84,7 +63,7 @@ export const MainSidebarContent: React.FC<MainSidebarProps> = ({ className = '' 
       },
       overlaySource,
     );
-  }, [setCircle, setOverlay, setParticles, particles, overlay, circle, overlaySource]);
+  }, [particles, overlay, circle, overlaySource]);
 
   const filteredLayerSets = useMemo(() => {
     return normalizedLayerSets.filter(layerSet =>
