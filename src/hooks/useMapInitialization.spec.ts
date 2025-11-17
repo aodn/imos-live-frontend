@@ -35,11 +35,16 @@ vi.mock('mapbox-gl', () => ({
 
 vi.mock('@/store', () => ({
   useMapUIStore: vi.fn(),
+  setCenter: vi.fn(),
+  setZoom: vi.fn(),
 }));
 
 vi.mock('@/config', () => ({
   maxZoom: 18,
 }));
+
+// Import the mocked functions to use in tests
+import * as store from '@/store';
 
 describe('useMapInitialization', () => {
   let mockSetCenter: Mock;
@@ -48,14 +53,13 @@ describe('useMapInitialization', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    mockSetCenter = vi.fn();
-    mockSetZoom = vi.fn();
+    // Get references to the mocked functions
+    mockSetCenter = store.setCenter as Mock;
+    mockSetZoom = store.setZoom as Mock;
 
     (useMapUIStore as unknown as Mock).mockReturnValue({
       center: { lng: 133.7751, lat: -25.2744 },
       zoom: 3,
-      setCenter: mockSetCenter,
-      setZoom: mockSetZoom,
     });
 
     mockMap.getCenter.mockReturnValue({ lng: 133.7751, lat: -25.2744 });

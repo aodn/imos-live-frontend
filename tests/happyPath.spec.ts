@@ -391,6 +391,8 @@ test.describe('Anomaly sea levels', () => {
   });
 
   test('User can see see levels anomaly of different days', async ({ page }) => {
+    await mapComponent.waitUntilLayerLoaded(page, OVERLAY_LAYER_ID);
+
     await expect
       .poll(() => mapComponent.getTilesURL(page, OVERLAY_LAYER_ID))
       .toContain(`20250726T000000`);
