@@ -7,7 +7,7 @@ import { createJSONStorage, persist, StateStorage } from 'zustand/middleware';
 
 export type NumParticles = 10000 | 30000 | 60000 | 100000;
 
-export const INITIAL_DATASET = getLast7Dates().at(0)!;
+export const INITIAL_DATE = getLast7Dates().at(0)!;
 
 export interface MapUIState {
   center: LngLat;
@@ -20,8 +20,8 @@ export interface MapUIState {
   distanceMeasurement: boolean;
   worldBoundaries: boolean;
   overlaySource: OverlaySource;
-  dataset: string;
-  datasets: string[];
+  date: string;
+  dates: string[];
   setCenter: (center: LngLat) => void;
   setZoom: (zoom: number) => void;
   setStyle: (style: StyleTitle) => void;
@@ -31,11 +31,11 @@ export interface MapUIState {
   setNumParticles: (n: NumParticles) => void;
   setDistanceMeasurement: (v: boolean) => void;
   setWorldBoundaries: (v: boolean) => void;
-  setDataset: (d: string) => void;
-  refreshDatasets: () => void;
+  setDate: (d: string) => void;
+  refreshDates: () => void;
 }
 
-const stateKeysToExcludeFromUrl = ['datasets'];
+const stateKeysToExcludeFromUrl = ['dates'];
 const hashStorage: StateStorage = {
   getItem: () => {
     const url = new URL(location.href);
@@ -79,8 +79,8 @@ export const useMapUIStore = create(
       numParticles: 10000,
       distanceMeasurement: false,
       worldBoundaries: false,
-      datasets: getLast7Dates(),
-      dataset: INITIAL_DATASET,
+      dates: getLast7Dates(),
+      date: INITIAL_DATE,
       setCenter: center => set({ center }),
       setZoom: zoom => set({ zoom }),
       setStyle: style => set({ style }),
@@ -92,10 +92,10 @@ export const useMapUIStore = create(
       setNumParticles: numParticles => set({ numParticles }),
       setDistanceMeasurement: distanceMeasurement => set({ distanceMeasurement }),
       setWorldBoundaries: worldBoundaries => set({ worldBoundaries }),
-      setDataset: dataset => set({ dataset }),
-      refreshDatasets: () => {
-        const newDatasets = getLast7Dates();
-        set(prev => ({ ...prev, datasets: newDatasets }));
+      setDate: date => set({ date }),
+      refreshDates: () => {
+        const newDates = getLast7Dates();
+        set(prev => ({ ...prev, dates: newDates }));
       },
     }),
     storageOptions,
@@ -111,6 +111,20 @@ export const selectAllStates = (s: MapUIState) => ({
   particles: s.particles,
   distanceMeasurement: s.distanceMeasurement,
   numParticles: s.numParticles,
-  dataset: s.dataset,
+  date: s.date,
   overlaySource: s.overlaySource,
 });
+
+export const {
+  setCenter,
+  setCircle,
+  setDate,
+  setDistanceMeasurement,
+  setNumParticles,
+  setOverlay,
+  setParticles,
+  setStyle,
+  setWorldBoundaries,
+  setZoom,
+  refreshDates,
+} = useMapUIStore.getState();

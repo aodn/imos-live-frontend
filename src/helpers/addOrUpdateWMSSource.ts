@@ -1,13 +1,12 @@
 import { OVERLAY_LAYER_ID, OverlaySource } from '@/constants';
-import { rasterUrl } from './threddsUrl';
+import { rasterUrl } from '@/helpers';
 
 export async function addOrUpdateWMSSource(
   map: mapboxgl.Map,
   overlaySource: OverlaySource,
-  dataset: string,
+  date: string,
 ) {
-  const date = new Date(dataset);
-  const url = await rasterUrl(overlaySource, date);
+  const url = await rasterUrl(overlaySource, new Date(date));
   const source = map.getSource(OVERLAY_LAYER_ID);
   if (source && source.type === 'raster') {
     source.setTiles([url]);

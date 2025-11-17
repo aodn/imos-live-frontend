@@ -1,24 +1,23 @@
+import { useMapPopupStore } from '@/store';
+import { useShallow } from 'zustand/shallow';
+
 type PopupContentProps = {
-  lat: number;
-  lng: number;
-  speed?: number;
-  direction?: string;
-  degree?: number;
-  gsla?: number;
-  sstAnom?: number;
   onClose?: () => void;
 };
 
-export const PopupContent = ({
-  lat,
-  lng,
-  speed,
-  degree,
-  direction,
-  gsla,
-  sstAnom,
-  onClose,
-}: PopupContentProps) => {
+export const PopupContent = ({ onClose }: PopupContentProps) => {
+  const { gslaOceanCurrent, gslaAnomalySeaLevels, sstAnomalyMosatic, metaData } = useMapPopupStore(
+    useShallow(s => ({
+      gslaOceanCurrent: s['gsla-ocean-geostrophic-current'],
+      gslaAnomalySeaLevels: s['gsla-anomaly-sea-levels'],
+      sstAnomalyMosatic: s['sst-anom-mosaic'],
+      metaData: s.metaData,
+    })),
+  );
+
+  const { lngLat } = metaData;
+  const { lat, lng } = lngLat || {};
+
   return (
     <div
       className="w-50 md:w-90 bg-white rounded-lg shadow-lg overflow-hidden"
@@ -27,7 +26,7 @@ export const PopupContent = ({
       {/* Header */}
       <div className="relative bg-imos-light  text-black p-2  flex justify-between items-center ">
         <h4 className="text-base text-center w-full">
-          ({lat.toFixed(2)}, {lng.toFixed(2)})
+          ({lat?.toFixed(2)}, {lng?.toFixed(2)})
         </h4>
         {onClose && (
           <button
@@ -42,34 +41,35 @@ export const PopupContent = ({
 
       {/* Body */}
       <div className="p-2 space-y-2">
-        {speed !== undefined && degree !== undefined && (
+        {gslaOceanCurrent.speed !== undefined && gslaOceanCurrent.degree !== undefined && (
           <div
             className="flex-col md:flex-row flex justify-between md:items-center"
             aria-label="Ocean surface current details"
           >
             <span className="text-gray-600 text-left">Ocean geostrophic current direction:</span>
             <span className="text-gray-900 text-left">
-              {degree.toFixed(2)} ({direction})° @ {speed.toFixed(2)} m/s
+              {gslaOceanCurrent.degree.toFixed(2)} ({gslaOceanCurrent.direction})° @{' '}
+              {gslaOceanCurrent.speed.toFixed(2)} m/s
             </span>
           </div>
         )}
 
-        {gsla !== undefined && (
+        {gslaAnomalySeaLevels.gsla !== undefined && (
           <div
             className="flex-col md:flex-row flex justify-between md:items-center"
             aria-label="Sea level anomaly details"
           >
             <span className="text-gray-600 ">Sea level anomaly:</span>
-            <span className="text-gray-900 ">{gsla.toFixed(2)} m</span>
+            <span className="text-gray-900 ">{gslaAnomalySeaLevels.gsla.toFixed(2)} m</span>
           </div>
         )}
-        {sstAnom !== undefined && (
+        {sstAnomalyMosatic.sstAnom !== undefined && (
           <div
             className="flex-col md:flex-row flex justify-between md:items-center"
             aria-label="Sea level anomaly details"
           >
             <span className="text-gray-600 ">Sea surface temperature anomaly:</span>
-            <span className="text-gray-900 ">{sstAnom.toFixed(2)} °C</span>
+            <span className="text-gray-900 ">{sstAnomalyMosatic.sstAnom.toFixed(2)} °C</span>
           </div>
         )}
       </div>

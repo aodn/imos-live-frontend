@@ -15,8 +15,7 @@ export const TimeLabels = memo(
     withEndLabel = true,
     className = 'bottom-0 whitespace-nowrap text-center text-xs font-medium text-slate-700 shadow-sm absolute',
   }: TimeLabelsProps) => {
-    const { widthBreakpoint } = useViewportSize();
-    const isSmallScreen = ['sm', 'md'].includes(widthBreakpoint || '');
+    const { isSmallScreen } = useViewportSize();
 
     const getVisibleLabels = useCallback((): TimeLabel[] => {
       if (!timeLabels.length || !scales.length) return [];

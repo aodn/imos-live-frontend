@@ -1,5 +1,5 @@
 import { maxZoom } from '@/config';
-import { useMapUIStore } from '@/store';
+import { useMapUIStore, setCenter, setZoom } from '@/store';
 import mapboxgl, { LngLatBoundsLike } from 'mapbox-gl';
 import { useEffect, useRef } from 'react';
 import { useShallow } from 'zustand/shallow';
@@ -10,12 +10,10 @@ const maxBounds: LngLatBoundsLike = [
 ]; // Australia + New Zealand
 
 export function useMapInitialization() {
-  const { center, zoom, setCenter, setZoom } = useMapUIStore(
+  const { center, zoom } = useMapUIStore(
     useShallow(s => ({
       center: s.center,
       zoom: s.zoom,
-      setCenter: s.setCenter,
-      setZoom: s.setZoom,
     })),
   );
 

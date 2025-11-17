@@ -58,5 +58,7 @@ export function useViewportSize(options: ViewportOptions = {}) {
     };
   }, [updateSize, debounceMs]);
 
-  return { size, widthBreakpoint, heightBreakpoint };
+  const isSmallScreen = ['sm', 'md'].includes(widthBreakpoint || '');
+
+  return { isSmallScreen, size, widthBreakpoint, heightBreakpoint };
 }

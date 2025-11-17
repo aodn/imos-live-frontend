@@ -1,4 +1,4 @@
-import { MapUIState, useMapUIStore } from '@/store';
+import { MapUIState, useMapUIStore, setCircle, setOverlay, setParticles } from '@/store';
 import { cn } from '@/utils';
 import { useShallow } from 'zustand/shallow';
 import { Button } from '../Button';
@@ -15,14 +15,11 @@ type LayersIndicatorProps = {
 };
 
 export const LayersIndicator = ({ layers, className }: LayersIndicatorProps) => {
-  const { particles, overlay, circle, setCircle, setOverlay, setParticles } = useMapUIStore(
+  const { particles, overlay, circle } = useMapUIStore(
     useShallow(s => ({
       overlay: s.overlay,
       particles: s.particles,
       circle: s.circle,
-      setOverlay: s.setOverlay,
-      setParticles: s.setParticles,
-      setCircle: s.setCircle,
     })),
   );
   const visibles: Record<Label, boolean> = {

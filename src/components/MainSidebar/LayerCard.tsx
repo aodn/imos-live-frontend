@@ -1,25 +1,28 @@
 import { gslaOceanCurrentColorsLegendConfig } from '@/config';
-import { GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT, WAVE_BUOYS_LAYER_ID } from '@/constants';
+import { WAVE_BUOYS_LAYER_ID, Product, GSLA_DATA_NAME } from '@/constants';
 import { useViewportSize } from '@/hooks';
 import { cn } from '@/utils';
-import { ReactNode, useEffect, useMemo, useState } from 'react';
+import { ReactNode, useMemo } from 'react';
 import { Button } from '../Button';
 import { CollapsibleComponent, TriggerArgs } from '../Collapsible';
 import { LogColorScaleBar } from '../ColorScaleBar';
 import { ArrowDownIcon, MapLayersIcon } from '../Icons';
 import { Image } from '../Image';
 import { LayersDataset } from './MainSidebarContent';
+import { useQuery } from '@tanstack/react-query';
+import { getOceanCurrentData } from '@/api';
+import { setPopupData } from '@/helpers';
 
 export type LayerCardProps = LayersDataset & {
   firstButtonLabel: string;
   secondButtonLabel: string;
-  dataset: string;
+  date: string;
 };
 
 export const LayerCard = ({
   image,
   title,
-  dataset,
+  date,
   description,
   firstButtonLabel,
   secondButtonLabel,
@@ -30,24 +33,17 @@ export const LayerCard = ({
   variant,
   legend,
 }: LayerCardProps) => {
-  const { widthBreakpoint } = useViewportSize();
-  const isSmallScreen = ['sm', 'md'].includes(widthBreakpoint || '');
-  const [legendImg, setLegendImg] = useState<ReactNode>(null);
+  const { isSmallScreen } = useViewportSize();
 
-  useEffect(() => {
-    if (!legend) {
-      setLegendImg(null);
-      return;
-    }
-    if (legend) {
-      legend(dataset).then(setLegendImg);
-      return;
-    }
-  }, [legend, dataset]);
+  const { data: oceanCurrentData } = useQuery({
+    queryKey: [GSLA_DATA_NAME, date],
+    queryFn: () => getOceanCurrentData(date),
+    enabled: !!date,
+  });
 
   const variants = useMemo(
     () => ({
-      [GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT]: {
+      [Product.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: {
         ...gslaOceanCurrentColorsLegendConfig,
       },
     }),
@@ -55,13 +51,14 @@ export const LayerCard = ({
   );
 
   const colorScaleBars = useMemo(() => {
-    if (variant === GSLA_OCEAN_GEOSTROPHIC_CURRENT_PRODUCT_VARIANT)
+    if (variant === Product.GSLA_OCEAN_GEOSTROPHIC_CURRENT)
       return <LogColorScaleBar className="w-full" {...variants[variant]} />;
     //the reaaon to use LogColorScaleBar is most data points are between 0~2, so log scale is better to show the color difference.
   }, [variant, variants]);
 
   const handleClick = () => {
-    addToMap(!visible);
+    if (addToMap) addToMap(!visible);
+    if (layerId !== WAVE_BUOYS_LAYER_ID) setPopupData(oceanCurrentData);
     if (layerId === WAVE_BUOYS_LAYER_ID) import('../Highcharts/WaveBuoyChart'); //preload wavebuoy chart when wavebuoylayer added.
   };
   return (
@@ -107,7 +104,7 @@ export const LayerCard = ({
           )}
         </div>
         {!!colorScaleBars && <div className="col-span-2 md:mt-4">{colorScaleBars}</div>}
-        {!!legendImg && <div className="col-span-2 md:mt-4">{legendImg}</div>}
+        {!!legend && <div className="col-span-2 md:mt-4">{legend(date)}</div>}
       </div>
     </CollapsibleComponent>
   );

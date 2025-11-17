@@ -20,18 +20,18 @@ import { useParticleLayerVisibility } from './useParticleLayerVisibility';
 export function useParticleLayer(map: React.RefObject<mapboxgl.Map | null>) {
   const [isError, setIsError] = useState(false);
   const { showToast } = useToast();
-  const { particles, dataset, numParticles } = useMapUIStore(
+  const { particles, date, numParticles } = useMapUIStore(
     useShallow(s => ({
       particles: s.particles,
-      dataset: s.dataset,
+      date: s.date,
       numParticles: s.numParticles,
     })),
   );
 
   const currentParticleQuery = useQuery({
-    queryKey: [GSLA_META_NAME, dataset],
-    queryFn: () => getMetaData(buildGSLADatasetPath(dataset, GSLA_META_NAME)),
-    enabled: !!dataset && particles,
+    queryKey: [GSLA_META_NAME, date],
+    queryFn: () => getMetaData(buildGSLADatasetPath(date, GSLA_META_NAME)),
+    enabled: !!date && particles,
   });
 
   const particleLayer = useMemo(() => vectorLayer(PARTICLE_LAYER_ID, PARTICLE_SOURCE_ID), []);
@@ -50,7 +50,7 @@ export function useParticleLayer(map: React.RefObject<mapboxgl.Map | null>) {
       addOrUpdateImageSource(
         map.current!,
         PARTICLE_SOURCE_ID,
-        buildGSLADatasetFullPath(dataset, GSLA_PARTICLE_NAME),
+        buildGSLADatasetFullPath(date, GSLA_PARTICLE_NAME),
         lonRange,
         latRange,
       );
@@ -65,7 +65,7 @@ export function useParticleLayer(map: React.RefObject<mapboxgl.Map | null>) {
         duration: 6000,
       });
     }
-  }, [currentParticleQuery.promise, dataset, map, particleLayer, showToast]);
+  }, [currentParticleQuery.promise, date, map, particleLayer, showToast]);
 
   const setupLayer = useCallback(async () => {
     if (!particleLayer) return;
@@ -88,5 +88,5 @@ export function useParticleLayer(map: React.RefObject<mapboxgl.Map | null>) {
   useDidMountEffect(() => {
     if (!map.current || !loadComplete) return;
     setDataByDataset();
-  }, [loadComplete, dataset]);
+  }, [loadComplete, date]);
 }

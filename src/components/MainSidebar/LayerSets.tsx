@@ -5,10 +5,10 @@ type LayerSetsProps = {
   className?: string;
   title: string;
   layersDatasets: LayersDataset[];
-  dataset: string;
+  date: string;
 };
 
-export const LayerSets = ({ layersDatasets, title, className, dataset }: LayerSetsProps) => {
+export const LayerSets = ({ layersDatasets, title, className, date }: LayerSetsProps) => {
   return (
     <div className={className}>
       <h2 className="text-lg font-bold hidden md:block">{title}</h2>
@@ -19,7 +19,7 @@ export const LayerSets = ({ layersDatasets, title, className, dataset }: LayerSe
               {...product}
               firstButtonLabel="Add to map"
               secondButtonLabel="Remove from map"
-              dataset={dataset}
+              date={date}
             />
           </div>
         ))}

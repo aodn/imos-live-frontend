@@ -1,23 +1,19 @@
 import mapboxgl from 'mapbox-gl';
 import { createRoot, Root } from 'react-dom/client';
 import { PopupContent } from '@/components';
-
-type PopupOptions = {
-  lat: number;
-  lng: number;
-  speed?: number;
-  direction?: string;
-  degree?: number;
-  gsla?: number;
-  sstAnom?: number;
-};
+import { useMapPopupStore } from '@/store';
 
 interface PopupWithRoot extends mapboxgl.Popup {
   __reactRoot?: Root | null;
 }
 
-export function showPopup(map: mapboxgl.Map, options: PopupOptions) {
-  const { lat, lng, speed, direction, degree, gsla, sstAnom } = options;
+export function showPopup(map: mapboxgl.Map) {
+  const {
+    metaData: { lngLat },
+  } = useMapPopupStore.getState();
+
+  const { lat, lng } = lngLat || {};
+  if (lat === undefined || lng === undefined) return;
 
   const container = document.createElement('div');
   container.className = 'custom-popup-container';
@@ -40,21 +36,12 @@ export function showPopup(map: mapboxgl.Map, options: PopupOptions) {
     }
   };
 
+  const closeFn = () => popup.remove();
+
   popup.on('close', cleanup);
   popup.on('remove', cleanup);
 
-  root.render(
-    <PopupContent
-      lat={lat}
-      lng={lng}
-      speed={speed}
-      direction={direction}
-      degree={degree}
-      gsla={gsla}
-      sstAnom={sstAnom}
-      onClose={() => popup.remove()}
-    />,
-  );
+  root.render(<PopupContent onClose={closeFn} />);
 
   popup.setLngLat([lng, lat]).setDOMContent(container).addTo(map);
 
