@@ -3,16 +3,16 @@ import { rasterLegendUrl } from '@/helpers';
 import { useQuery } from '@tanstack/react-query';
 
 type RasterLegendProps = {
-  dataset: string;
+  date: string;
   overlaySource: OverlaySource;
   scales: number[];
   label: string;
 };
 
-export const RasterLegend = ({ dataset, overlaySource, scales, label }: RasterLegendProps) => {
+export const RasterLegend = ({ date, overlaySource, scales, label }: RasterLegendProps) => {
   const { data: legendUrl } = useQuery({
-    queryKey: ['legend', overlaySource, dataset],
-    queryFn: () => rasterLegendUrl(overlaySource, new Date(dataset)),
+    queryKey: ['legend', overlaySource, date],
+    queryFn: () => rasterLegendUrl(overlaySource, new Date(date)),
   });
   return (
     <div>

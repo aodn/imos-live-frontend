@@ -1,7 +1,7 @@
 import { TriangleIcon } from '../Icons';
 import { DateSlider, PointSelection, SelectionResult } from '../DateSlider';
 import { getLast7Dates, dateToUTC, toDateFormatString, cn } from '@/utils';
-import { useMapUIStore, setDataset } from '@/store';
+import { useMapUIStore, setDate } from '@/store';
 import { memo, useCallback, useMemo } from 'react';
 import { setPopupData } from '@/helpers';
 import { getOceanCurrentData } from '@/api';
@@ -11,7 +11,7 @@ import { GSLA_DATA_NAME } from '@/constants';
 type DateSelectionBarProps = { className?: string };
 
 export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
-  const dataset = useMapUIStore(s => s.dataset);
+  const date = useMapUIStore(s => s.date);
   const queryClient = useQueryClient();
 
   const lastSevenDays = useMemo(() => getLast7Dates('yyyy-mm-dd'), []);
@@ -24,11 +24,11 @@ export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
 
   const handleSelect = useCallback(
     async (v: PointSelection) => {
-      const dataset = toDateFormatString(v.point);
-      setDataset(dataset);
+      const date = toDateFormatString(v.point);
+      setDate(date);
       const oceanCurrentData = await queryClient.fetchQuery({
-        queryKey: [GSLA_DATA_NAME, dataset],
-        queryFn: () => getOceanCurrentData(dataset),
+        queryKey: [GSLA_DATA_NAME, date],
+        queryFn: () => getOceanCurrentData(date),
       });
       await setPopupData(oceanCurrentData);
     },
@@ -42,7 +42,7 @@ export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
         initialTimeUnit="day"
         startDate={startDate}
         endDate={endDate}
-        initialPoint={dateToUTC(dataset)}
+        initialPoint={dateToUTC(date)}
         pointHandleIcon={<TriangleIcon size="xxl" className="text-slate-700! text-shadow" />}
         sliderClassName="frosted"
         timeUnitSlectionClassName="frosted"

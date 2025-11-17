@@ -9,7 +9,7 @@ import { updateMapPopupByKey } from '@/store';
 
 type UseMapClickHandlersOptions = {
   map: RefObject<mapboxgl.Map | null>;
-  dataset: string;
+  date: string;
   overlay: boolean;
   particles: boolean;
   waveBuoysLayerClicked: React.RefObject<boolean>;
@@ -20,7 +20,7 @@ type UseMapClickHandlersOptions = {
 
 export function useParticleOverlayLayersClickHandlers({
   map,
-  dataset,
+  date,
   overlay,
   particles,
   waveBuoysLayerClicked,
@@ -30,9 +30,9 @@ export function useParticleOverlayLayersClickHandlers({
 }: UseMapClickHandlersOptions) {
   const { showToast } = useToast();
   const { data: oceanCurrentData, isError } = useQuery({
-    queryKey: [GSLA_DATA_NAME, dataset],
-    queryFn: () => getOceanCurrentData(dataset),
-    enabled: !!dataset,
+    queryKey: [GSLA_DATA_NAME, date],
+    queryFn: () => getOceanCurrentData(date),
+    enabled: !!date,
   });
 
   useEffect(() => {

@@ -22,7 +22,6 @@ const baseUrl = async (id: OverlaySource, date: Date): Promise<string> => {
             ),
           ) || '';
       const url = new URL(link);
-
       return `/thredds/wms/${url.searchParams.get('dataset')}`;
     },
     //TODO: question, why GSLA url need to get from catalog, why sst one no need.  Is it because GSLA not follow same naming pattern?

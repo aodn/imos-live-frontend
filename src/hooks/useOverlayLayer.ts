@@ -10,11 +10,11 @@ import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
 
 export function useOverlayLayer(map: React.RefObject<mapboxgl.Map | null>) {
-  const { overlay, dataset, overlaySource } = useMapUIStore(
+  const { overlay, date, overlaySource } = useMapUIStore(
     useShallow(s => ({
       overlaySource: s.overlaySource,
       overlay: s.overlay,
-      dataset: s.dataset,
+      date: s.date,
     })),
   );
 
@@ -28,8 +28,8 @@ export function useOverlayLayer(map: React.RefObject<mapboxgl.Map | null>) {
   );
 
   const setDataByDataset = useCallback(async () => {
-    await addOrUpdateWMSSource(map.current!, overlaySource, dataset);
-  }, [dataset, map, overlaySource]);
+    await addOrUpdateWMSSource(map.current!, overlaySource, date);
+  }, [date, map, overlaySource]);
 
   const setupLayer = useCallback(async () => {
     if (!overlayLayer) return;
@@ -44,5 +44,5 @@ export function useOverlayLayer(map: React.RefObject<mapboxgl.Map | null>) {
   useDidMountEffect(() => {
     if (!map.current || !loadComplete) return;
     setDataByDataset();
-  }, [loadComplete, dataset, overlaySource]);
+  }, [loadComplete, date, overlaySource]);
 }

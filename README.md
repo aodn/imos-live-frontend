@@ -6,7 +6,7 @@ IMOS live project
 
 ## Overview
 
-This application visualizes ocean current data using WebGL-accelerated particle animation on an interactive MapBox map. The system loads the [processed Gridded Sea Level Anomaly (GSLA) data](./doc/DataProcessing.md) for different dates, renders the vector field using thousands of animated particles that follow the current patterns and a scalar heatmap image as overlay representing ocean surface anomalies. The visualization offers various customization options including map style, overlay visibility, particle count, and dataset selection.
+This application visualizes ocean current data using WebGL-accelerated particle animation on an interactive MapBox map. The system loads the [processed Gridded Sea Level Anomaly (GSLA) data](./doc/DataProcessing.md) for different dates, renders the vector field using thousands of animated particles that follow the current patterns and a scalar heatmap image as overlay representing ocean surface anomalies. The visualization offers various customization options including map style, overlay visibility, particle count, and date selection.
 
 ## Key Features
 

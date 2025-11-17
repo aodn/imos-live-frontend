@@ -61,9 +61,9 @@ export const featuredDataset: LayersDataset[] = [
     layerId: OVERLAY_LAYER_ID,
     visible: false,
     variant: Product.GSLA_ANOMALY_SEA_LEVELS,
-    legend: dataset => (
+    legend: date => (
       <RasterLegend
-        dataset={dataset}
+        date={date}
         overlaySource={GSLA_OVERLAY_SOURCE_ID}
         scales={[-1.2, -0.5, -0.2, -0.1, 0, 0.1, 0.2, 0.5, 1.2]}
         label="anomaly sea level (m)"
@@ -85,9 +85,9 @@ export const featuredDataset: LayersDataset[] = [
     layerId: SST_ANOMALY_MOSAIC_LAYER_ID,
     visible: false,
     variant: Product.SST_ANOMALY_MOSAIC,
-    legend: dataset => (
+    legend: date => (
       <RasterLegend
-        dataset={dataset}
+        date={date}
         overlaySource={SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID}
         scales={[-10, -5, 0, 5, 10]}
         label="degrees Celsius (°C)"

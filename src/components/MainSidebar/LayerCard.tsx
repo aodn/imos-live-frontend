@@ -16,13 +16,13 @@ import { setPopupData } from '@/helpers';
 export type LayerCardProps = LayersDataset & {
   firstButtonLabel: string;
   secondButtonLabel: string;
-  dataset: string;
+  date: string;
 };
 
 export const LayerCard = ({
   image,
   title,
-  dataset,
+  date,
   description,
   firstButtonLabel,
   secondButtonLabel,
@@ -36,9 +36,9 @@ export const LayerCard = ({
   const { isSmallScreen } = useViewportSize();
 
   const { data: oceanCurrentData } = useQuery({
-    queryKey: [GSLA_DATA_NAME, dataset],
-    queryFn: () => getOceanCurrentData(dataset),
-    enabled: !!dataset,
+    queryKey: [GSLA_DATA_NAME, date],
+    queryFn: () => getOceanCurrentData(date),
+    enabled: !!date,
   });
 
   const variants = useMemo(
@@ -104,7 +104,7 @@ export const LayerCard = ({
           )}
         </div>
         {!!colorScaleBars && <div className="col-span-2 md:mt-4">{colorScaleBars}</div>}
-        {!!legend && <div className="col-span-2 md:mt-4">{legend(dataset)}</div>}
+        {!!legend && <div className="col-span-2 md:mt-4">{legend(date)}</div>}
       </div>
     </CollapsibleComponent>
   );

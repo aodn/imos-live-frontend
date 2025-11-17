@@ -16,7 +16,7 @@ type GetPopupDataArg = {
   overlay: boolean;
   particles: boolean;
   overlaySource: OverlaySource;
-  dataset: string;
+  date: string;
   mapBounds?: [number, number, number, number];
   mapSize?: {
     width: number;
@@ -62,19 +62,13 @@ function parseFeatureInfoXML(xmlString: string): number | null {
  */
 async function fetchOverlayData(
   overlaySource: OverlaySource,
-  dataset: string,
+  date: string,
   mapBounds: [number, number, number, number],
   mapSize: { width: number; height: number },
   point: MapMouseEvent['point'],
 ): Promise<Partial<PopupData>> {
   try {
-    const url = await getFeatureInfoUrl(
-      overlaySource,
-      new Date(dataset),
-      mapBounds,
-      mapSize,
-      point,
-    );
+    const url = await getFeatureInfoUrl(overlaySource, new Date(date), mapBounds, mapSize, point);
 
     const response = await fetch(url);
     if (!response.ok) {
@@ -117,7 +111,7 @@ export async function getPopupData({
   overlay,
   particles,
   overlaySource,
-  dataset,
+  date,
   mapBounds,
   mapSize,
   point,
@@ -127,7 +121,7 @@ export async function getPopupData({
   if (!mapBounds || !mapSize || !lngLat || !point) return popupData;
 
   if (overlay) {
-    const overlayData = await fetchOverlayData(overlaySource, dataset, mapBounds, mapSize, point);
+    const overlayData = await fetchOverlayData(overlaySource, date, mapBounds, mapSize, point);
     Object.assign(popupData, overlayData);
   }
 
@@ -168,7 +162,7 @@ export async function setPopupData(
   oceanCurrentData?: OceanCurrentDataResponse,
 ): Promise<{ popupEnabled: boolean }> {
   const { metaData } = useMapPopupStore.getState();
-  const { particles, overlay, overlaySource, dataset } = useMapUIStore.getState();
+  const { particles, overlay, overlaySource, date: date } = useMapUIStore.getState();
 
   const popupData = await getPopupData({
     mapBounds: metaData.mapBounds,
@@ -178,7 +172,7 @@ export async function setPopupData(
     overlay,
     overlaySource,
     point: metaData.point,
-    dataset,
+    date,
     lngLat: metaData.lngLat,
   });
 

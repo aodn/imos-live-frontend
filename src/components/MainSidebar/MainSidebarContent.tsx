@@ -22,7 +22,7 @@ export type LayersDataset = {
   addToMap?: (v: boolean) => void;
   layerId: string;
   visible: boolean;
-  legend?: (dataset: string) => ReactNode;
+  legend?: (date: string) => ReactNode;
   variant?: Product;
 };
 
@@ -38,13 +38,13 @@ type MainSidebarProps = {
 
 export const MainSidebarContent: React.FC<MainSidebarProps> = ({ className = '' }) => {
   const [searchQuery] = useState('');
-  const { overlay, particles, circle, overlaySource, dataset } = useMapUIStore(
+  const { overlay, particles, circle, overlaySource, date } = useMapUIStore(
     useShallow(s => ({
       overlay: s.overlay,
       particles: s.particles,
       circle: s.circle,
       overlaySource: s.overlaySource,
-      dataset: s.dataset,
+      date: s.date,
     })),
   );
   const normalizedLayerSets = useMemo(() => {
@@ -75,7 +75,7 @@ export const MainSidebarContent: React.FC<MainSidebarProps> = ({ className = '' 
         title="Featured Data"
         layersDatasets={filteredLayerSets}
         className="md:px-2 mt-4"
-        dataset={dataset}
+        date={date}
       />
 
       <LayerProducts

@@ -92,7 +92,7 @@ describe('useOverlayLayer', () => {
 
     mockStoreState = {
       overlay: true,
-      dataset: '2024-01-01',
+      date: '2024-01-01',
     };
 
     mockQueryResult = {
@@ -178,12 +178,12 @@ describe('useOverlayLayer', () => {
   it('should update data source when dataset changes', () => {
     const { rerender } = renderHook(() => useOverlayLayer(mockMap as any));
 
-    mockStoreState.dataset = '2024-01-02';
+    mockStoreState.date = '2024-01-02';
 
     rerender();
 
     const didMountEffectCall = (useDidMountEffect as Mock).mock.calls.find(
-      call => call[1] && call[1].includes(mockStoreState.dataset),
+      call => call[1] && call[1].includes(mockStoreState.date),
     );
 
     expect(didMountEffectCall).toBeDefined();

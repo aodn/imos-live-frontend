@@ -16,7 +16,7 @@ import {
   WaveIcon,
 } from '@/components';
 import { useViewportSize } from '@/hooks';
-import { useDrawerStore, refreshDatasets, closeLeftDrawer } from '@/store';
+import { useDrawerStore, refreshDates, closeLeftDrawer } from '@/store';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useEffect, useMemo } from 'react';
 
@@ -25,7 +25,7 @@ export const Map = () => {
   const leftDrawer = useDrawerStore(s => s.leftDrawer);
 
   useEffect(() => {
-    refreshDatasets();
+    refreshDates();
   }, []);
 
   const mapContent = useMemo(

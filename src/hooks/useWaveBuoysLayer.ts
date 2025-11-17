@@ -26,17 +26,17 @@ export function useWaveBuoysLayer(map: React.RefObject<mapboxgl.Map | null>) {
   const [isError, setIsError] = useState(false);
   const { showToast } = useToast();
 
-  const { circle: isBuoyWavesLayerEnabled, dataset } = useMapUIStore(
+  const { circle: isBuoyWavesLayerEnabled, date } = useMapUIStore(
     useShallow(s => ({
       circle: s.circle,
-      dataset: s.dataset,
+      date: s.date,
     })),
   );
 
   const buoyQuery = useQuery({
-    queryKey: ['wave_buoy_locations', dataset],
-    queryFn: () => getWaveBuoyLocations(dayjs(dataset).toISOString()),
-    enabled: isBuoyWavesLayerEnabled && dataset !== '',
+    queryKey: ['wave_buoy_locations', date],
+    queryFn: () => getWaveBuoyLocations(dayjs(date).toISOString()),
+    enabled: isBuoyWavesLayerEnabled && date !== '',
   });
 
   const waveBuoysLayer = useMemo(
@@ -123,5 +123,5 @@ export function useWaveBuoysLayer(map: React.RefObject<mapboxgl.Map | null>) {
   useDidMountEffect(() => {
     if (!map.current || !loadComplete) return;
     setDataByDataset();
-  }, [loadComplete, dataset]);
+  }, [loadComplete, date]);
 }
