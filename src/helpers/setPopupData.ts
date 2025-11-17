@@ -1,5 +1,5 @@
 import { LngLat, MapMouseEvent, Point } from 'mapbox-gl';
-import { getFeatureInfoUrl } from '../api/threddsUrl';
+import { getFeatureInfoUrl } from './threddsUrl';
 import {
   OverlaySource,
   GSLA_OVERLAY_SOURCE_ID,
@@ -181,6 +181,7 @@ export async function setPopupData(
     dataset,
     lngLat: metaData.lngLat,
   });
+
   if (Object.keys(popupData).length === 0) return { popupEnabled: false };
   batchUpdateMapPopup(popupData);
   return { popupEnabled: true };

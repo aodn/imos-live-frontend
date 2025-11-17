@@ -36,10 +36,12 @@ export function showPopup(map: mapboxgl.Map) {
     }
   };
 
+  const closeFn = () => popup.remove();
+
   popup.on('close', cleanup);
   popup.on('remove', cleanup);
 
-  root.render(<PopupContent lat={lat} lng={lng} onClose={() => popup.remove()} />);
+  root.render(<PopupContent onClose={closeFn} />);
 
   popup.setLngLat([lng, lat]).setDOMContent(container).addTo(map);
 

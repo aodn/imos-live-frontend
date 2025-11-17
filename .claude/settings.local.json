@@ -1,6 +1,6 @@
 {
   "permissions": {
-    "allow": ["WebSearch", "WebFetch(domain:docs.mapbox.com)"],
+    "allow": ["WebSearch", "WebFetch(domain:docs.mapbox.com)", "mcp__ide__getDiagnostics"],
     "deny": [],
     "ask": []
   }

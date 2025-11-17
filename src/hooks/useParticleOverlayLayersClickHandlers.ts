@@ -29,7 +29,6 @@ export function useParticleOverlayLayersClickHandlers({
   overlaySource,
 }: UseMapClickHandlersOptions) {
   const { showToast } = useToast();
-  //cached by browser
   const { data: oceanCurrentData, isError } = useQuery({
     queryKey: [GSLA_DATA_NAME, dataset],
     queryFn: () => getOceanCurrentData(dataset),

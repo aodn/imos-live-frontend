@@ -3,7 +3,7 @@ import { ImageType } from '@/types';
 import { LayerProducts } from './LayerProducts';
 import { LayerSets } from './LayerSets';
 import { headerData, layerProductsMock, featuredDataset } from './products';
-import { useMapUIStore, setOverlay, setCircle, setParticles } from '@/store';
+import { useMapUIStore } from '@/store';
 import { useShallow } from 'zustand/shallow';
 import { ReactNode, useMemo, useState } from 'react';
 import { cn, normalizeLayerSets } from '@/utils';
@@ -19,10 +19,10 @@ export type LayersDataset = {
   title: string;
   icon: ReactNode;
   description: string;
-  addToMap: (v: boolean) => void;
+  addToMap?: (v: boolean) => void;
   layerId: string;
   visible: boolean;
-  legend?: (dataset: string) => Promise<ReactNode>;
+  legend?: (dataset: string) => ReactNode;
   variant?: Product;
 };
 
@@ -38,7 +38,6 @@ type MainSidebarProps = {
 
 export const MainSidebarContent: React.FC<MainSidebarProps> = ({ className = '' }) => {
   const [searchQuery] = useState('');
-
   const { overlay, particles, circle, overlaySource, dataset } = useMapUIStore(
     useShallow(s => ({
       overlay: s.overlay,
@@ -51,11 +50,6 @@ export const MainSidebarContent: React.FC<MainSidebarProps> = ({ className = '' 
   const normalizedLayerSets = useMemo(() => {
     return normalizeLayerSets(
       featuredDataset.map(item => ({ ...item })),
-      {
-        setCircle,
-        setOverlay,
-        setParticles,
-      },
       {
         particles,
         overlay,

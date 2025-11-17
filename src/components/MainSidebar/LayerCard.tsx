@@ -1,14 +1,17 @@
 import { gslaOceanCurrentColorsLegendConfig } from '@/config';
-import { WAVE_BUOYS_LAYER_ID, Product } from '@/constants';
+import { WAVE_BUOYS_LAYER_ID, Product, GSLA_DATA_NAME } from '@/constants';
 import { useViewportSize } from '@/hooks';
 import { cn } from '@/utils';
-import { ReactNode, useEffect, useMemo, useState } from 'react';
+import { ReactNode, useMemo } from 'react';
 import { Button } from '../Button';
 import { CollapsibleComponent, TriggerArgs } from '../Collapsible';
 import { LogColorScaleBar } from '../ColorScaleBar';
 import { ArrowDownIcon, MapLayersIcon } from '../Icons';
 import { Image } from '../Image';
 import { LayersDataset } from './MainSidebarContent';
+import { useQuery } from '@tanstack/react-query';
+import { getOceanCurrentData } from '@/api';
+import { setPopupData } from '@/helpers';
 
 export type LayerCardProps = LayersDataset & {
   firstButtonLabel: string;
@@ -32,18 +35,11 @@ export const LayerCard = ({
 }: LayerCardProps) => {
   const { widthBreakpoint } = useViewportSize();
   const isSmallScreen = ['sm', 'md'].includes(widthBreakpoint || '');
-  const [legendImg, setLegendImg] = useState<ReactNode>(null);
-
-  useEffect(() => {
-    if (!legend) {
-      setLegendImg(null);
-      return;
-    }
-    if (legend) {
-      legend(dataset).then(setLegendImg);
-      return;
-    }
-  }, [legend, dataset]);
+  const { data: oceanCurrentData } = useQuery({
+    queryKey: [GSLA_DATA_NAME, dataset],
+    queryFn: () => getOceanCurrentData(dataset),
+    enabled: !!dataset,
+  });
 
   const variants = useMemo(
     () => ({
@@ -61,7 +57,8 @@ export const LayerCard = ({
   }, [variant, variants]);
 
   const handleClick = () => {
-    addToMap(!visible);
+    if (addToMap) addToMap(!visible);
+    if (layerId !== WAVE_BUOYS_LAYER_ID) setPopupData(oceanCurrentData);
     if (layerId === WAVE_BUOYS_LAYER_ID) import('../Highcharts/WaveBuoyChart'); //preload wavebuoy chart when wavebuoylayer added.
   };
   return (
@@ -107,7 +104,7 @@ export const LayerCard = ({
           )}
         </div>
         {!!colorScaleBars && <div className="col-span-2 md:mt-4">{colorScaleBars}</div>}
-        {!!legendImg && <div className="col-span-2 md:mt-4">{legendImg}</div>}
+        {!!legend && <div className="col-span-2 md:mt-4">{legend(dataset)}</div>}
       </div>
     </CollapsibleComponent>
   );

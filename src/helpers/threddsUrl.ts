@@ -3,16 +3,14 @@ import {
   GSLA_OVERLAY_SOURCE_ID,
   SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID,
 } from '@/constants';
-import axios from 'axios';
+import { getThreddsCatalog } from '@/api';
 
 const baseUrl = async (id: OverlaySource, date: Date): Promise<string> => {
   return {
     [GSLA_OVERLAY_SOURCE_ID]: async (date: Date) => {
-      const catalog = await axios.get<string>(
-        `/thredds/catalog/IMOS/OceanCurrent/GSLA/NRT/${date.getFullYear()}/catalog.html`,
-      );
+      const catalog = await getThreddsCatalog(date);
       const parser = new DOMParser();
-      const doc = parser.parseFromString(catalog.data, 'text/html');
+      const doc = parser.parseFromString(catalog, 'text/html');
       const link =
         Array.from(doc.querySelectorAll('.section-content a[href]'))
           .map(item => {

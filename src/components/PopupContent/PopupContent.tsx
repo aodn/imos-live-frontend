@@ -2,19 +2,22 @@ import { useMapPopupStore } from '@/store';
 import { useShallow } from 'zustand/shallow';
 
 type PopupContentProps = {
-  lat: number;
-  lng: number;
   onClose?: () => void;
 };
 
-export const PopupContent = ({ lat, lng, onClose }: PopupContentProps) => {
-  const { gslaOceanCurrent, gslaAnomalySeaLevels, sstAnomalyMosatic } = useMapPopupStore(
+export const PopupContent = ({ onClose }: PopupContentProps) => {
+  const { gslaOceanCurrent, gslaAnomalySeaLevels, sstAnomalyMosatic, metaData } = useMapPopupStore(
     useShallow(s => ({
       gslaOceanCurrent: s['gsla-ocean-geostrophic-current'],
       gslaAnomalySeaLevels: s['gsla-anomaly-sea-levels'],
       sstAnomalyMosatic: s['sst-anom-mosaic'],
+      metaData: s.metaData,
     })),
   );
+
+  const { lngLat } = metaData;
+  const { lat, lng } = lngLat || {};
+
   return (
     <div
       className="w-50 md:w-90 bg-white rounded-lg shadow-lg overflow-hidden"
@@ -23,7 +26,7 @@ export const PopupContent = ({ lat, lng, onClose }: PopupContentProps) => {
       {/* Header */}
       <div className="relative bg-imos-light  text-black p-2  flex justify-between items-center ">
         <h4 className="text-base text-center w-full">
-          ({lat.toFixed(2)}, {lng.toFixed(2)})
+          ({lat?.toFixed(2)}, {lng?.toFixed(2)})
         </h4>
         {onClose && (
           <button
