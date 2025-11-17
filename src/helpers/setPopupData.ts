@@ -8,7 +8,14 @@ import {
 } from '@/constants';
 import { processOceanCurrentDetails } from '@/utils';
 import { OceanCurrentDataResponse } from '@/api';
-import { batchUpdateMapPopup, PopupStoreState, useMapPopupStore, useMapUIStore } from '@/store';
+import {
+  batchUpdateMapPopup,
+  useMapPopupStore,
+  useMapUIStore,
+  currentPopupProductState,
+  PopupDataState,
+  ProductState,
+} from '@/store';
 
 type GetPopupDataArg = {
   lngLat?: LngLat;
@@ -25,7 +32,7 @@ type GetPopupDataArg = {
   point?: Point;
 };
 
-export type PopupData = PopupStoreState;
+export type PopupData = ProductState & Partial<PopupDataState>;
 
 /**
  * Parses XML response from WMS GetFeatureInfo request
@@ -115,23 +122,22 @@ export async function getPopupData({
   mapBounds,
   mapSize,
   point,
-}: GetPopupDataArg): Promise<Partial<PopupData>> {
-  const popupData: Partial<PopupData> = {};
-
-  if (!mapBounds || !mapSize || !lngLat || !point) return popupData;
+}: GetPopupDataArg): Promise<PopupData | undefined> {
+  const popupData: PopupData = currentPopupProductState();
+  if (!mapBounds || !mapSize || !lngLat || !point) return;
 
   if (overlay) {
     const overlayData = await fetchOverlayData(overlaySource, date, mapBounds, mapSize, point);
     Object.assign(popupData, overlayData);
   }
 
-  if (particles && oceanCurrentData) {
-    const oceanCurrentDetails = processOceanCurrentDetails(lngLat, oceanCurrentData);
-    if (oceanCurrentDetails) {
+  if (particles) {
+    if (oceanCurrentData) {
+      const oceanCurrentDetails = processOceanCurrentDetails(lngLat, oceanCurrentData);
       popupData[Product.GSLA_OCEAN_GEOSTROPHIC_CURRENT] = {
-        speed: oceanCurrentDetails.speed,
-        direction: oceanCurrentDetails.direction,
-        degree: oceanCurrentDetails.degree,
+        speed: oceanCurrentDetails?.speed,
+        direction: oceanCurrentDetails?.direction,
+        degree: oceanCurrentDetails?.degree,
       };
     }
   }
@@ -163,7 +169,6 @@ export async function setPopupData(
 ): Promise<{ popupEnabled: boolean }> {
   const { metaData } = useMapPopupStore.getState();
   const { particles, overlay, overlaySource, date: date } = useMapUIStore.getState();
-
   const popupData = await getPopupData({
     mapBounds: metaData.mapBounds,
     mapSize: metaData.mapSize,
@@ -176,7 +181,8 @@ export async function setPopupData(
     lngLat: metaData.lngLat,
   });
 
-  if (Object.keys(popupData).length === 0) return { popupEnabled: false };
-  batchUpdateMapPopup(popupData);
+  if (!popupData) return { popupEnabled: false };
+  batchUpdateMapPopup({ ...popupData });
+
   return { popupEnabled: true };
 }

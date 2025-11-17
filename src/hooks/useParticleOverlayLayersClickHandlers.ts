@@ -1,5 +1,4 @@
 import { getOceanCurrentData } from '@/api';
-import { useToast } from '@/components';
 import { gerMapMetaData, setPopupData, showPopup } from '@/helpers';
 import { debounce } from '@/utils';
 import { RefObject, useCallback, useEffect } from 'react';
@@ -28,22 +27,11 @@ export function useParticleOverlayLayersClickHandlers({
   distanceMeasurement,
   overlaySource,
 }: UseMapClickHandlersOptions) {
-  const { showToast } = useToast();
-  const { data: oceanCurrentData, isError } = useQuery({
+  const { data: oceanCurrentData, isLoading } = useQuery({
     queryKey: [GSLA_DATA_NAME, date],
     queryFn: () => getOceanCurrentData(date),
     enabled: !!date,
   });
-
-  useEffect(() => {
-    if (isError)
-      showToast({
-        type: 'error',
-        title: 'Error occurred',
-        message: 'Failed to get ocean current details',
-        duration: 6000,
-      });
-  }, [isError, showToast]);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleMapClick = useCallback(
@@ -67,7 +55,6 @@ export function useParticleOverlayLayersClickHandlers({
         mapBounds,
         mapSize,
       });
-
       const { popupEnabled } = await setPopupData(oceanCurrentData);
       if (popupEnabled) showPopup(map.current);
     }, 400),
@@ -78,9 +65,10 @@ export function useParticleOverlayLayersClickHandlers({
     if (!map?.current) return;
     const { current } = map;
 
+    updateMapPopupByKey('loading', isLoading);
     current.on('click', handleMapClick);
     return () => {
       current.off('click', handleMapClick);
     };
-  }, [map, handleMapClick]);
+  }, [map, handleMapClick, isLoading]);
 }

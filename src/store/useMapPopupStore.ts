@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { Product } from '@/constants';
 import { LngLat, Point } from 'mapbox-gl';
 
-export type PopupStoreState = {
+export type ProductState = {
   [Product.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: {
     speed?: number;
     direction?: string;
@@ -14,6 +14,9 @@ export type PopupStoreState = {
   [Product.SST_ANOMALY_MOSAIC]: {
     sstAnom?: number;
   };
+};
+
+export type PopupDataState = {
   metaData: {
     lngLat?: LngLat;
     point?: Point;
@@ -23,16 +26,17 @@ export type PopupStoreState = {
     };
     mapBounds?: [number, number, number, number];
   };
+  loading: boolean;
 };
+
+export type PopupStoreState = PopupDataState & ProductState;
 
 export type PopupStore = PopupStoreState & {
   updateMapPopupByKey: <K extends keyof PopupStore>(key: K, value: Partial<PopupStore[K]>) => void;
-  batchUpdateMapPopup: (
-    value: Partial<Omit<PopupStore, 'updateMapPopupByKey' | 'updateAllMapPopup'>>,
-  ) => void;
+  batchUpdateMapPopup: (value: ProductState & Partial<PopupDataState>) => void;
 };
 
-const initialState: Omit<PopupStoreState, 'metaData'> = {
+export const initialProductState: ProductState = {
   [Product.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: {
     speed: undefined,
     direction: undefined,
@@ -47,25 +51,41 @@ const initialState: Omit<PopupStoreState, 'metaData'> = {
 };
 
 export const useMapPopupStore = create<PopupStore>(set => ({
-  ...initialState,
+  ...initialProductState,
   metaData: {},
-  updateMapPopupByKey: (key, value) =>
-    set(state => ({
-      [key]: {
-        ...state[key],
-        ...value,
-      },
-    })),
+  loading: false,
+  updateMapPopupByKey: (key, value) => {
+    if (typeof value === 'object') {
+      set(state => ({
+        [key]: {
+          ...(state[key] as object),
+          ...value,
+        },
+      }));
+    } else {
+      set(() => ({
+        [key]: value,
+      }));
+    }
+  },
+  clearMapPopupProduct: (key: keyof ProductState) =>
+    updateMapPopupByKey(key, initialProductState[key]),
   /**
-   * update all the other state beside metaData and if certain state not in value, it will be reset to initial state.
+   * update all the present state, if not present, keep current state.
    * @param value
    * @returns
    */
   batchUpdateMapPopup: value =>
-    set(() => ({
-      ...initialState,
+    set(state => ({
+      ...state,
       ...value,
     })),
 }));
 
+//utils
 export const { batchUpdateMapPopup, updateMapPopupByKey } = useMapPopupStore.getState();
+export const currentPopupProductState = () => ({
+  'gsla-anomaly-sea-levels': useMapPopupStore.getState()['gsla-anomaly-sea-levels'],
+  'gsla-ocean-geostrophic-current': useMapPopupStore.getState()['gsla-ocean-geostrophic-current'],
+  'sst-anom-mosaic': useMapPopupStore.getState()['sst-anom-mosaic'],
+});

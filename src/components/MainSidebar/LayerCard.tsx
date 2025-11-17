@@ -1,5 +1,5 @@
 import { gslaOceanCurrentColorsLegendConfig } from '@/config';
-import { WAVE_BUOYS_LAYER_ID, Product, GSLA_DATA_NAME } from '@/constants';
+import { WAVE_BUOYS_LAYER_ID, Product } from '@/constants';
 import { useViewportSize } from '@/hooks';
 import { cn } from '@/utils';
 import { ReactNode, useMemo } from 'react';
@@ -9,8 +9,6 @@ import { LogColorScaleBar } from '../ColorScaleBar';
 import { ArrowDownIcon, MapLayersIcon } from '../Icons';
 import { Image } from '../Image';
 import { LayersDataset } from './MainSidebarContent';
-import { useQuery } from '@tanstack/react-query';
-import { getOceanCurrentData } from '@/api';
 import { setPopupData } from '@/helpers';
 
 export type LayerCardProps = LayersDataset & {
@@ -35,12 +33,6 @@ export const LayerCard = ({
 }: LayerCardProps) => {
   const { isSmallScreen } = useViewportSize();
 
-  const { data: oceanCurrentData } = useQuery({
-    queryKey: [GSLA_DATA_NAME, date],
-    queryFn: () => getOceanCurrentData(date),
-    enabled: !!date,
-  });
-
   const variants = useMemo(
     () => ({
       [Product.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: {
@@ -58,7 +50,7 @@ export const LayerCard = ({
 
   const handleClick = () => {
     if (addToMap) addToMap(!visible);
-    if (layerId !== WAVE_BUOYS_LAYER_ID) setPopupData(oceanCurrentData);
+    if (layerId !== WAVE_BUOYS_LAYER_ID) setPopupData();
     if (layerId === WAVE_BUOYS_LAYER_ID) import('../Highcharts/WaveBuoyChart'); //preload wavebuoy chart when wavebuoylayer added.
   };
   return (

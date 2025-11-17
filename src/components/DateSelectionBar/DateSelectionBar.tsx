@@ -1,7 +1,7 @@
 import { TriangleIcon } from '../Icons';
 import { DateSlider, PointSelection, SelectionResult } from '../DateSlider';
 import { getLast7Dates, dateToUTC, toDateFormatString, cn } from '@/utils';
-import { useMapUIStore, setDate } from '@/store';
+import { useMapUIStore, setDate, updateMapPopupByKey } from '@/store';
 import { memo, useCallback, useMemo } from 'react';
 import { setPopupData } from '@/helpers';
 import { getOceanCurrentData } from '@/api';
@@ -24,12 +24,18 @@ export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
 
   const handleSelect = useCallback(
     async (v: PointSelection) => {
+      let oceanCurrentData;
+      updateMapPopupByKey('loading', true);
       const date = toDateFormatString(v.point);
       setDate(date);
-      const oceanCurrentData = await queryClient.fetchQuery({
-        queryKey: [GSLA_DATA_NAME, date],
-        queryFn: () => getOceanCurrentData(date),
-      });
+      try {
+        oceanCurrentData = await queryClient.fetchQuery({
+          queryKey: [GSLA_DATA_NAME, date],
+          queryFn: () => getOceanCurrentData(date),
+        });
+      } finally {
+        updateMapPopupByKey('loading', false);
+      }
       await setPopupData(oceanCurrentData);
     },
     [queryClient],

@@ -1,4 +1,4 @@
-import { useMapPopupStore } from '@/store';
+import { useMapPopupStore, useMapUIStore } from '@/store';
 import { useShallow } from 'zustand/shallow';
 
 type PopupContentProps = {
@@ -6,15 +6,23 @@ type PopupContentProps = {
 };
 
 export const PopupContent = ({ onClose }: PopupContentProps) => {
-  const { gslaOceanCurrent, gslaAnomalySeaLevels, sstAnomalyMosatic, metaData } = useMapPopupStore(
+  const { gslaOceanCurrent, gslaAnomalySeaLevels, sstAnomalyMosatic, metaData, loading } =
+    useMapPopupStore(
+      useShallow(s => ({
+        gslaOceanCurrent: s['gsla-ocean-geostrophic-current'],
+        gslaAnomalySeaLevels: s['gsla-anomaly-sea-levels'],
+        sstAnomalyMosatic: s['sst-anom-mosaic'],
+        metaData: s.metaData,
+        loading: s.loading,
+      })),
+    );
+  const { particles, overlay, overlaySource } = useMapUIStore(
     useShallow(s => ({
-      gslaOceanCurrent: s['gsla-ocean-geostrophic-current'],
-      gslaAnomalySeaLevels: s['gsla-anomaly-sea-levels'],
-      sstAnomalyMosatic: s['sst-anom-mosaic'],
-      metaData: s.metaData,
+      particles: s.particles,
+      overlay: s.overlay,
+      overlaySource: s.overlaySource,
     })),
   );
-
   const { lngLat } = metaData;
   const { lat, lng } = lngLat || {};
 
@@ -25,6 +33,7 @@ export const PopupContent = ({ onClose }: PopupContentProps) => {
     >
       {/* Header */}
       <div className="relative bg-imos-light  text-black p-2  flex justify-between items-center ">
+        <h2>{loading ? 1 : 0}</h2>
         <h4 className="text-base text-center w-full">
           ({lat?.toFixed(2)}, {lng?.toFixed(2)})
         </h4>
@@ -41,35 +50,35 @@ export const PopupContent = ({ onClose }: PopupContentProps) => {
 
       {/* Body */}
       <div className="p-2 space-y-2">
-        {gslaOceanCurrent.speed !== undefined && gslaOceanCurrent.degree !== undefined && (
+        {particles && (
           <div
             className="flex-col md:flex-row flex justify-between md:items-center"
             aria-label="Ocean surface current details"
           >
             <span className="text-gray-600 text-left">Ocean geostrophic current direction:</span>
             <span className="text-gray-900 text-left">
-              {gslaOceanCurrent.degree.toFixed(2)} ({gslaOceanCurrent.direction})° @{' '}
-              {gslaOceanCurrent.speed.toFixed(2)} m/s
+              {gslaOceanCurrent.degree?.toFixed(2)} ({gslaOceanCurrent?.direction})° @{' '}
+              {gslaOceanCurrent.speed?.toFixed(2)} m/s
             </span>
           </div>
         )}
 
-        {gslaAnomalySeaLevels.gsla !== undefined && (
+        {overlay && overlaySource === 'gsla-overlay-source' && (
           <div
             className="flex-col md:flex-row flex justify-between md:items-center"
             aria-label="Sea level anomaly details"
           >
             <span className="text-gray-600 ">Sea level anomaly:</span>
-            <span className="text-gray-900 ">{gslaAnomalySeaLevels.gsla.toFixed(2)} m</span>
+            <span className="text-gray-900 ">{gslaAnomalySeaLevels.gsla?.toFixed(2)} m</span>
           </div>
         )}
-        {sstAnomalyMosatic.sstAnom !== undefined && (
+        {overlay && overlaySource === 'sst-anom-mosaic-source' && (
           <div
             className="flex-col md:flex-row flex justify-between md:items-center"
             aria-label="Sea level anomaly details"
           >
             <span className="text-gray-600 ">Sea surface temperature anomaly:</span>
-            <span className="text-gray-900 ">{sstAnomalyMosatic.sstAnom.toFixed(2)} °C</span>
+            <span className="text-gray-900 ">{sstAnomalyMosatic.sstAnom?.toFixed(2)} °C</span>
           </div>
         )}
       </div>
