@@ -33,8 +33,8 @@ export const LayerCard = ({
   variant,
   legend,
 }: LayerCardProps) => {
-  const { widthBreakpoint } = useViewportSize();
-  const isSmallScreen = ['sm', 'md'].includes(widthBreakpoint || '');
+  const { isSmallScreen } = useViewportSize();
+
   const { data: oceanCurrentData } = useQuery({
     queryKey: [GSLA_DATA_NAME, dataset],
     queryFn: () => getOceanCurrentData(dataset),

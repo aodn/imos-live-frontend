@@ -21,9 +21,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { useEffect, useMemo } from 'react';
 
 export const Map = () => {
-  const { widthBreakpoint } = useViewportSize();
-  const isSmallScreen = ['sm', 'md'].includes(widthBreakpoint || '');
-
+  const { isSmallScreen } = useViewportSize();
   const leftDrawer = useDrawerStore(s => s.leftDrawer);
 
   useEffect(() => {
