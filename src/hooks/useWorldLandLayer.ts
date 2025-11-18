@@ -1,9 +1,13 @@
-import { WORLD_LAND_BORDER_LAYER_ID, WORLD_LAND_SOURCE_ID } from '@/constants';
+import {
+  WORLD_LAND_BORDER_LAYER_ID,
+  WORLD_LAND_FILL_LAYER_ID,
+  WORLD_LAND_SOURCE_ID,
+} from '@/constants';
 import { useCallback, useMemo } from 'react';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
-import { lineLayer } from '@/layers';
+import { lineLayer, fillLayer } from '@/layers';
 import { addLayerInOrder, addOrUpdateVectorSource } from '@/helpers';
-import { worldLandBorderConfig } from '@/config';
+import { worldLandBorderConfig, worldLandFillConfig } from '@/config';
 import { worldLandStyle } from '@/styles';
 import { useMapUIStore } from '@/store';
 import { useShallow } from 'zustand/shallow';
@@ -14,6 +18,20 @@ export function useWorldLandLayer(map: React.RefObject<mapboxgl.Map | null>) {
     useShallow(s => ({
       worldBoundaries: s.worldBoundaries,
     })),
+  );
+
+  //this worldLandFillLayer is transparent and not for visualization, it is used to prevent click event on land.
+  const worldLandFillLayer = useMemo(
+    () =>
+      fillLayer(
+        {
+          id: WORLD_LAND_FILL_LAYER_ID,
+          source: WORLD_LAND_SOURCE_ID,
+          ...worldLandFillConfig,
+        },
+        true,
+      ),
+    [],
   );
 
   const worldLandBorderLayer = useMemo(
@@ -29,6 +47,11 @@ export function useWorldLandLayer(map: React.RefObject<mapboxgl.Map | null>) {
     [worldBoundaries],
   );
 
+  const layers = useMemo(
+    () => [worldLandFillLayer, worldLandBorderLayer],
+    [worldLandBorderLayer, worldLandFillLayer],
+  );
+
   const setupLayer = useCallback(async () => {
     if (!map.current) return;
     addOrUpdateVectorSource({
@@ -36,8 +59,8 @@ export function useWorldLandLayer(map: React.RefObject<mapboxgl.Map | null>) {
       id: WORLD_LAND_SOURCE_ID,
       url: worldLandStyle.source,
     });
-    addLayerInOrder(map, worldLandBorderLayer);
-  }, [worldLandBorderLayer, map]);
+    layers.forEach(layer => addLayerInOrder(map, layer));
+  }, [map, layers]);
 
   const { loadComplete } = useMapboxLayerSetup(map, setupLayer, []);
 

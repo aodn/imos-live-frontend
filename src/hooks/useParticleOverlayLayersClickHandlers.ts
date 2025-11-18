@@ -1,15 +1,10 @@
-import { getOceanCurrentData } from '@/api';
-import { useToast } from '@/components';
-import { gerMapMetaData, setPopupData, showPopup } from '@/helpers';
+import { showPopup } from '@/helpers';
 import { debounce } from '@/utils';
 import { RefObject, useCallback, useEffect } from 'react';
-import { GSLA_DATA_NAME, OverlaySource } from '@/constants';
-import { useQuery } from '@tanstack/react-query';
-import { updateMapPopupByKey } from '@/store';
+import { OverlaySource, WORLD_LAND_FILL_LAYER_ID } from '@/constants';
 
 type UseMapClickHandlersOptions = {
   map: RefObject<mapboxgl.Map | null>;
-  date: string;
   overlay: boolean;
   particles: boolean;
   waveBuoysLayerClicked: React.RefObject<boolean>;
@@ -20,7 +15,6 @@ type UseMapClickHandlersOptions = {
 
 export function useParticleOverlayLayersClickHandlers({
   map,
-  date,
   overlay,
   particles,
   waveBuoysLayerClicked,
@@ -28,23 +22,6 @@ export function useParticleOverlayLayersClickHandlers({
   distanceMeasurement,
   overlaySource,
 }: UseMapClickHandlersOptions) {
-  const { showToast } = useToast();
-  const { data: oceanCurrentData, isError } = useQuery({
-    queryKey: [GSLA_DATA_NAME, date],
-    queryFn: () => getOceanCurrentData(date),
-    enabled: !!date,
-  });
-
-  useEffect(() => {
-    if (isError)
-      showToast({
-        type: 'error',
-        title: 'Error occurred',
-        message: 'Failed to get ocean current details',
-        duration: 6000,
-      });
-  }, [isError, showToast]);
-
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleMapClick = useCallback(
     debounce(async (e: mapboxgl.MapMouseEvent) => {
@@ -59,19 +36,25 @@ export function useParticleOverlayLayersClickHandlers({
         tempPointsEventPrevent.current = false;
         return;
       }
+
       const { lngLat, point } = e;
-      const { mapBounds, mapSize } = gerMapMetaData(map);
-      updateMapPopupByKey('metaData', {
+      if (!lngLat || !point) return;
+
+      //stop clicking on land.
+      const landFeatures = map.current.queryRenderedFeatures(point, {
+        layers: [WORLD_LAND_FILL_LAYER_ID],
+      });
+      if (landFeatures.length > 0) {
+        return;
+      }
+
+      showPopup({
+        map,
         lngLat,
         point,
-        mapBounds,
-        mapSize,
       });
-
-      const { popupEnabled } = await setPopupData(oceanCurrentData);
-      if (popupEnabled) showPopup(map.current);
     }, 400),
-    [oceanCurrentData, distanceMeasurement, overlay, particles, overlaySource],
+    [distanceMeasurement, overlay, particles, overlaySource],
   );
 
   useEffect(() => {

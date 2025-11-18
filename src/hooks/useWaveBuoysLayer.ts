@@ -83,7 +83,6 @@ export function useWaveBuoysLayer(map: React.RefObject<mapboxgl.Map | null>) {
   const setDataByDataset = useCallback(async () => {
     try {
       const data = await buoyQuery.promise;
-      if (!data) return;
       addOrUpdateGeoJsonSource({
         map: map.current!,
         id: WAVE_BUOYS_SOURCE_ID,

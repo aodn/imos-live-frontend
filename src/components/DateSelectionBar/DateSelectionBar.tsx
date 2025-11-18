@@ -3,16 +3,11 @@ import { DateSlider, PointSelection, SelectionResult } from '../DateSlider';
 import { getLast7Dates, dateToUTC, toDateFormatString, cn } from '@/utils';
 import { useMapUIStore, setDate } from '@/store';
 import { memo, useCallback, useMemo } from 'react';
-import { setPopupData } from '@/helpers';
-import { getOceanCurrentData } from '@/api';
-import { useQueryClient } from '@tanstack/react-query';
-import { GSLA_DATA_NAME } from '@/constants';
 
 type DateSelectionBarProps = { className?: string };
 
 export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
   const date = useMapUIStore(s => s.date);
-  const queryClient = useQueryClient();
 
   const lastSevenDays = useMemo(() => getLast7Dates('yyyy-mm-dd'), []);
   const startDate = useMemo(() => new Date(lastSevenDays[0]), [lastSevenDays]);
@@ -22,18 +17,10 @@ export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
     return last;
   }, [lastSevenDays]);
 
-  const handleSelect = useCallback(
-    async (v: PointSelection) => {
-      const date = toDateFormatString(v.point);
-      setDate(date);
-      const oceanCurrentData = await queryClient.fetchQuery({
-        queryKey: [GSLA_DATA_NAME, date],
-        queryFn: () => getOceanCurrentData(date),
-      });
-      await setPopupData(oceanCurrentData);
-    },
-    [queryClient],
-  );
+  const handleSelect = useCallback(async (v: PointSelection) => {
+    const date = toDateFormatString(v.point);
+    setDate(date);
+  }, []);
 
   return (
     <div className={cn('shadow-xl', className)}>

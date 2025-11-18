@@ -1,19 +1,26 @@
-import mapboxgl from 'mapbox-gl';
+import mapboxgl, { LngLat, Point } from 'mapbox-gl';
 import { createRoot, Root } from 'react-dom/client';
 import { PopupContent } from '@/components';
-import { useMapPopupStore } from '@/store';
+import { queryClient } from '@/config';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { gerMapMetaData } from './setPopupData';
 
 interface PopupWithRoot extends mapboxgl.Popup {
   __reactRoot?: Root | null;
 }
 
-export function showPopup(map: mapboxgl.Map) {
-  const {
-    metaData: { lngLat },
-  } = useMapPopupStore.getState();
+type ShowPopUpArgs = {
+  map: React.RefObject<mapboxgl.Map | null>;
+  lngLat: LngLat;
+  point: Point;
+};
 
-  const { lat, lng } = lngLat || {};
-  if (lat === undefined || lng === undefined) return;
+export function showPopup({ map, ...rest }: ShowPopUpArgs) {
+  const { lat, lng } = rest.lngLat;
+  if (!map.current || lat === undefined || lng === undefined) return;
+
+  const { mapBounds, mapSize } = gerMapMetaData(map);
+  if (!mapBounds || !mapSize) return;
 
   const container = document.createElement('div');
   container.className = 'custom-popup-container';
@@ -37,13 +44,15 @@ export function showPopup(map: mapboxgl.Map) {
   };
 
   const closeFn = () => popup.remove();
-
   popup.on('close', cleanup);
   popup.on('remove', cleanup);
+  root.render(
+    <QueryClientProvider client={queryClient}>
+      <PopupContent onClose={closeFn} mapBounds={mapBounds} mapSize={mapSize} {...rest} />
+    </QueryClientProvider>,
+  );
 
-  root.render(<PopupContent onClose={closeFn} />);
-
-  popup.setLngLat([lng, lat]).setDOMContent(container).addTo(map);
+  popup.setLngLat([lng, lat]).setDOMContent(container).addTo(map.current);
 
   return popup;
 }
