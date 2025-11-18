@@ -1,25 +1,18 @@
-import { getOceanCurrentData } from '@/api';
-import {
-  GSLA_DATA_NAME,
-  GSLA_OVERLAY_SOURCE_ID,
-  SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID,
-} from '@/constants';
-import { fetchGslaAnomalySeaLevelsData, fetchSstAnomalyMosaic } from '@/helpers';
+import { usePopupContentData } from '@/hooks';
 import { useMapUIStore } from '@/store';
-import { processOceanCurrentDetails } from '@/utils';
-import { useQuery } from '@tanstack/react-query';
 import { LngLat, Point } from 'mapbox-gl';
 import { useShallow } from 'zustand/shallow';
+import { LoaderIcon } from '../Icons';
 
 type PopupContentProps = {
   onClose?: () => void;
-  lngLat?: LngLat;
-  point?: Point;
-  mapSize?: {
+  lngLat: LngLat;
+  point: Point;
+  mapSize: {
     width: number;
     height: number;
   };
-  mapBounds?: [number, number, number, number];
+  mapBounds: [number, number, number, number];
 };
 
 export const PopupContent = ({ onClose, lngLat, mapBounds, mapSize, point }: PopupContentProps) => {
@@ -31,37 +24,21 @@ export const PopupContent = ({ onClose, lngLat, mapBounds, mapSize, point }: Pop
       date: s.date,
     })),
   );
+  const { data, isLoading } = usePopupContentData({
+    mapBounds,
+    mapSize,
+    particles,
+    overlay,
+    overlaySource,
+    date,
+    lngLat,
+    point,
+  });
   const { lat, lng } = lngLat || {};
-
-  const { data: gslaOceanCurrent } = useQuery({
-    queryKey: [GSLA_DATA_NAME, date],
-    queryFn: () => getOceanCurrentData(date),
-    enabled: !!date && particles,
-    select: raw => {
-      const oceanCurrentDetails = processOceanCurrentDetails(lngLat!, raw);
-      return {
-        speed: oceanCurrentDetails?.speed,
-        direction: oceanCurrentDetails?.direction,
-        degree: oceanCurrentDetails?.degree,
-      };
-    },
-  });
-
-  const { data: gslaAnomalySeaLevels } = useQuery({
-    queryKey: [GSLA_OVERLAY_SOURCE_ID, date, mapBounds, mapSize, point],
-    queryFn: () => fetchGslaAnomalySeaLevelsData(date, mapBounds!, mapSize!, point!),
-    enabled: !!date && overlay && overlaySource === GSLA_OVERLAY_SOURCE_ID,
-  });
-
-  const { data: sstAnomalyMosatic } = useQuery({
-    queryKey: [SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID, date, mapBounds, mapSize, point],
-    queryFn: () => fetchSstAnomalyMosaic(date, mapBounds!, mapSize!, point!),
-    enabled: !!date && overlay && overlaySource === SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID,
-  });
 
   return (
     <div
-      className="w-50 md:w-90 bg-white rounded-lg shadow-lg overflow-hidden"
+      className="w-50 md:w-90 min-h-25 flex flex-col bg-white rounded-lg shadow-lg overflow-hidden"
       aria-label="Current value from coordinates"
     >
       {/* Header */}
@@ -81,40 +58,51 @@ export const PopupContent = ({ onClose, lngLat, mapBounds, mapSize, point }: Pop
       </div>
 
       {/* Body */}
-      <div className="p-2 space-y-2">
-        {particles && (
-          <div
-            className="flex-col md:flex-row flex justify-between md:items-center"
-            aria-label="Ocean surface current details"
-          >
-            <span className="text-gray-600 text-left">Ocean geostrophic current direction:</span>
-            <span className="text-gray-900 text-left">
-              {gslaOceanCurrent?.degree?.toFixed(2)} ({gslaOceanCurrent?.direction})° @{' '}
-              {gslaOceanCurrent?.speed?.toFixed(2)} m/s
-            </span>
+      <div className="p-2 space-y-2 flex-1 flex flex-col">
+        {isLoading ? (
+          <div className="flex justify-center items-center flex-1">
+            <LoaderIcon />
           </div>
-        )}
+        ) : (
+          <div>
+            {particles && (
+              <div
+                className="flex-col md:flex-row flex justify-between md:items-center"
+                aria-label="Ocean surface current details"
+              >
+                <span className="text-gray-600 text-left">
+                  Ocean geostrophic current direction:
+                </span>
+                <span className="text-gray-900 text-left">
+                  {data['gsla-ocean-geostrophic-current']?.degree?.toFixed(2)} (
+                  {data['gsla-ocean-geostrophic-current']?.direction})° @{' '}
+                  {data['gsla-ocean-geostrophic-current']?.speed?.toFixed(2)} m/s
+                </span>
+              </div>
+            )}
 
-        {overlay && overlaySource === 'gsla-overlay-source' && (
-          <div
-            className="flex-col md:flex-row flex justify-between md:items-center"
-            aria-label="Sea level anomaly details"
-          >
-            <span className="text-gray-600 ">Sea level anomaly:</span>
-            <span className="text-gray-900 ">
-              {gslaAnomalySeaLevels?.['gsla-anomaly-sea-levels']?.gsla?.toFixed(2)} m
-            </span>
-          </div>
-        )}
-        {overlay && overlaySource === 'sst-anom-mosaic-source' && (
-          <div
-            className="flex-col md:flex-row flex justify-between md:items-center"
-            aria-label="Sea level anomaly details"
-          >
-            <span className="text-gray-600 ">Sea surface temperature anomaly:</span>
-            <span className="text-gray-900 ">
-              {sstAnomalyMosatic?.['sst-anom-mosaic']?.sstAnom?.toFixed(2)} °C
-            </span>
+            {overlay && overlaySource === 'gsla-overlay-source' && (
+              <div
+                className="flex-col md:flex-row flex justify-between md:items-center"
+                aria-label="Sea level anomaly details"
+              >
+                <span className="text-gray-600 ">Sea level anomaly:</span>
+                <span className="text-gray-900 ">
+                  {data['gsla-anomaly-sea-levels']?.gsla?.toFixed(2)} m
+                </span>
+              </div>
+            )}
+            {overlay && overlaySource === 'sst-anom-mosaic-source' && (
+              <div
+                className="flex-col md:flex-row flex justify-between md:items-center"
+                aria-label="Sea level anomaly details"
+              >
+                <span className="text-gray-600 ">Sea surface temperature anomaly:</span>
+                <span className="text-gray-900 ">
+                  {data['sst-anom-mosaic']?.sstAnom?.toFixed(2)} °C
+                </span>
+              </div>
+            )}
           </div>
         )}
       </div>

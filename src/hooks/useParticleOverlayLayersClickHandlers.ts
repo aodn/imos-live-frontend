@@ -37,6 +37,7 @@ export function useParticleOverlayLayersClickHandlers({
         return;
       }
       const { lngLat, point } = e;
+      if (!lngLat || !point) return;
 
       showPopup({
         map,

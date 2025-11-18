@@ -11,15 +11,16 @@ interface PopupWithRoot extends mapboxgl.Popup {
 
 type ShowPopUpArgs = {
   map: React.RefObject<mapboxgl.Map | null>;
-  lngLat?: LngLat;
-  point?: Point;
+  lngLat: LngLat;
+  point: Point;
 };
 
 export function showPopup({ map, ...rest }: ShowPopUpArgs) {
-  const { lat, lng } = rest.lngLat || {};
+  const { lat, lng } = rest.lngLat;
   if (!map.current || lat === undefined || lng === undefined) return;
 
   const { mapBounds, mapSize } = gerMapMetaData(map);
+  if (!mapBounds || !mapSize) return;
 
   const container = document.createElement('div');
   container.className = 'custom-popup-container';
