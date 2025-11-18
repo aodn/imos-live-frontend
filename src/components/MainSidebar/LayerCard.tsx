@@ -9,7 +9,6 @@ import { LogColorScaleBar } from '../ColorScaleBar';
 import { ArrowDownIcon, MapLayersIcon } from '../Icons';
 import { Image } from '../Image';
 import { LayersDataset } from './MainSidebarContent';
-import { setPopupData } from '@/helpers';
 
 export type LayerCardProps = LayersDataset & {
   firstButtonLabel: string;
@@ -50,7 +49,6 @@ export const LayerCard = ({
 
   const handleClick = () => {
     if (addToMap) addToMap(!visible);
-    if (layerId !== WAVE_BUOYS_LAYER_ID) setPopupData();
     if (layerId === WAVE_BUOYS_LAYER_ID) import('../Highcharts/WaveBuoyChart'); //preload wavebuoy chart when wavebuoylayer added.
   };
   return (

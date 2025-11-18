@@ -1,4 +1,4 @@
-import { LngLat, MapMouseEvent, Point } from 'mapbox-gl';
+import { MapMouseEvent } from 'mapbox-gl';
 import { getFeatureInfoUrl } from './threddsUrl';
 import {
   OverlaySource,
@@ -6,33 +6,15 @@ import {
   SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID,
   Product,
 } from '@/constants';
-import { processOceanCurrentDetails } from '@/utils';
-import { OceanCurrentDataResponse } from '@/api';
-import {
-  batchUpdateMapPopup,
-  useMapPopupStore,
-  useMapUIStore,
-  currentPopupProductState,
-  PopupDataState,
-  ProductState,
-} from '@/store';
 
-type GetPopupDataArg = {
-  lngLat?: LngLat;
-  oceanCurrentData: OceanCurrentDataResponse | undefined;
-  overlay: boolean;
-  particles: boolean;
-  overlaySource: OverlaySource;
-  date: string;
-  mapBounds?: [number, number, number, number];
-  mapSize?: {
-    width: number;
-    height: number;
+type OverlaySourceData = {
+  [GSLA_OVERLAY_SOURCE_ID]: {
+    [Product.GSLA_ANOMALY_SEA_LEVELS]: { gsla: number };
   };
-  point?: Point;
+  [SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID]: {
+    [Product.SST_ANOMALY_MOSAIC]: { sstAnom: number };
+  };
 };
-
-export type PopupData = ProductState & Partial<PopupDataState>;
 
 /**
  * Parses XML response from WMS GetFeatureInfo request
@@ -67,83 +49,46 @@ function parseFeatureInfoXML(xmlString: string): number | null {
 /**
  * Fetches overlay data (GSLA or SST Anomaly) from THREDDS WMS service
  */
-async function fetchOverlayData(
-  overlaySource: OverlaySource,
-  date: string,
-  mapBounds: [number, number, number, number],
-  mapSize: { width: number; height: number },
-  point: MapMouseEvent['point'],
-): Promise<Partial<PopupData>> {
-  try {
-    const url = await getFeatureInfoUrl(overlaySource, new Date(date), mapBounds, mapSize, point);
+const fetchOverlayData =
+  <T extends OverlaySource>(overlaySource: T) =>
+  async (
+    date: string,
+    mapBounds: [number, number, number, number],
+    mapSize: { width: number; height: number },
+    point: MapMouseEvent['point'],
+  ): Promise<Partial<OverlaySourceData[T]>> => {
+    try {
+      const url = await getFeatureInfoUrl(overlaySource, new Date(date), mapBounds, mapSize, point);
 
-    const response = await fetch(url);
-    if (!response.ok) {
-      console.error(`Failed to fetch overlay data: ${response.status} ${response.statusText}`);
+      const response = await fetch(url);
+
+      const xmlString = await response.text();
+      const value = parseFeatureInfoXML(xmlString);
+
+      if (value === null) {
+        return {};
+      }
+
+      // Map the value to the appropriate Product field based on overlay source
+      if (overlaySource === GSLA_OVERLAY_SOURCE_ID) {
+        return {
+          [Product.GSLA_ANOMALY_SEA_LEVELS]: { gsla: value },
+        } as OverlaySourceData[T];
+      } else if (overlaySource === SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID) {
+        return {
+          [Product.SST_ANOMALY_MOSAIC]: { sstAnom: value },
+        } as OverlaySourceData[T];
+      }
+
+      return {};
+    } catch (error) {
+      console.error('Error fetching overlay data:', error);
       return {};
     }
+  };
 
-    const xmlString = await response.text();
-    const value = parseFeatureInfoXML(xmlString);
-
-    if (value === null) {
-      return {};
-    }
-
-    // Map the value to the appropriate Product field based on overlay source
-    if (overlaySource === GSLA_OVERLAY_SOURCE_ID) {
-      return {
-        [Product.GSLA_ANOMALY_SEA_LEVELS]: { gsla: value },
-      };
-    } else if (overlaySource === SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID) {
-      return {
-        [Product.SST_ANOMALY_MOSAIC]: { sstAnom: value },
-      };
-    }
-
-    return {};
-  } catch (error) {
-    console.error('Error fetching overlay data:', error);
-    return {};
-  }
-}
-
-/**
- * Gathers all popup data from various sources (overlay, particles)
- * @returns Combined popup data object organized by Product types
- */
-export async function getPopupData({
-  lngLat,
-  oceanCurrentData,
-  overlay,
-  particles,
-  overlaySource,
-  date,
-  mapBounds,
-  mapSize,
-  point,
-}: GetPopupDataArg): Promise<PopupData | undefined> {
-  const popupData: PopupData = currentPopupProductState();
-  if (!mapBounds || !mapSize || !lngLat || !point) return;
-
-  if (overlay) {
-    const overlayData = await fetchOverlayData(overlaySource, date, mapBounds, mapSize, point);
-    Object.assign(popupData, overlayData);
-  }
-
-  if (particles) {
-    if (oceanCurrentData) {
-      const oceanCurrentDetails = processOceanCurrentDetails(lngLat, oceanCurrentData);
-      popupData[Product.GSLA_OCEAN_GEOSTROPHIC_CURRENT] = {
-        speed: oceanCurrentDetails?.speed,
-        direction: oceanCurrentDetails?.direction,
-        degree: oceanCurrentDetails?.degree,
-      };
-    }
-  }
-
-  return popupData;
-}
+export const fetchGslaAnomalySeaLevelsData = fetchOverlayData(GSLA_OVERLAY_SOURCE_ID);
+export const fetchSstAnomalyMosaic = fetchOverlayData(SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID);
 
 export function gerMapMetaData(map: React.RefObject<mapboxgl.Map | null>) {
   if (!map.current) return {};
@@ -161,28 +106,4 @@ export function gerMapMetaData(map: React.RefObject<mapboxgl.Map | null>) {
     mapBounds,
     mapSize,
   };
-}
-
-// Set and update popupdata in useMapPopup store, PopupContent component consume directly from this store.
-export async function setPopupData(
-  oceanCurrentData?: OceanCurrentDataResponse,
-): Promise<{ popupEnabled: boolean }> {
-  const { metaData } = useMapPopupStore.getState();
-  const { particles, overlay, overlaySource, date: date } = useMapUIStore.getState();
-  const popupData = await getPopupData({
-    mapBounds: metaData.mapBounds,
-    mapSize: metaData.mapSize,
-    particles,
-    oceanCurrentData,
-    overlay,
-    overlaySource,
-    point: metaData.point,
-    date,
-    lngLat: metaData.lngLat,
-  });
-
-  if (!popupData) return { popupEnabled: false };
-  batchUpdateMapPopup({ ...popupData });
-
-  return { popupEnabled: true };
 }
