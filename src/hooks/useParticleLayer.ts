@@ -39,8 +39,6 @@ export function useParticleLayer(map: React.RefObject<mapboxgl.Map | null>) {
   const setDataByDataset = useCallback(async () => {
     try {
       const data = await currentParticleQuery.promise;
-      if (!data) return;
-
       const { bounds, lonRange, latRange, uRange, vRange } = processMetaData(data);
       particleLayer.metadata = {
         bounds,
