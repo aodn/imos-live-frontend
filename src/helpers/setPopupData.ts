@@ -7,15 +7,6 @@ import {
   Product,
 } from '@/constants';
 
-type OverlaySourceData = {
-  [GSLA_OVERLAY_SOURCE_ID]: {
-    [Product.GSLA_ANOMALY_SEA_LEVELS]: { gsla: number };
-  };
-  [SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID]: {
-    [Product.SST_ANOMALY_MOSAIC]: { sstAnom: number };
-  };
-};
-
 /**
  * Parses XML response from WMS GetFeatureInfo request
  * @param xmlString - The XML response string
@@ -45,6 +36,15 @@ function parseFeatureInfoXML(xmlString: string): number | null {
     return null;
   }
 }
+
+type OverlaySourceData = {
+  [GSLA_OVERLAY_SOURCE_ID]: {
+    [Product.GSLA_ANOMALY_SEA_LEVELS]: { gsla: number };
+  };
+  [SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID]: {
+    [Product.SST_ANOMALY_MOSAIC]: { sstAnom: number };
+  };
+};
 
 /**
  * Fetches overlay data (GSLA or SST Anomaly) from THREDDS WMS service
@@ -83,7 +83,7 @@ const fetchOverlayData =
       return {};
     } catch (error) {
       console.error('Error fetching overlay data:', error);
-      return {};
+      throw error; // let react query catch and handle error.
     }
   };
 

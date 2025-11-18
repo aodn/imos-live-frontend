@@ -1,7 +1,7 @@
 import { showPopup } from '@/helpers';
 import { debounce } from '@/utils';
 import { RefObject, useCallback, useEffect } from 'react';
-import { OverlaySource } from '@/constants';
+import { OverlaySource, WORLD_LAND_FILL_LAYER_ID } from '@/constants';
 
 type UseMapClickHandlersOptions = {
   map: RefObject<mapboxgl.Map | null>;
@@ -36,8 +36,17 @@ export function useParticleOverlayLayersClickHandlers({
         tempPointsEventPrevent.current = false;
         return;
       }
+
       const { lngLat, point } = e;
       if (!lngLat || !point) return;
+
+      //stop clicking on land.
+      const landFeatures = map.current.queryRenderedFeatures(point, {
+        layers: [WORLD_LAND_FILL_LAYER_ID],
+      });
+      if (landFeatures.length > 0) {
+        return;
+      }
 
       showPopup({
         map,

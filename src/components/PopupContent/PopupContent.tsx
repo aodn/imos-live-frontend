@@ -61,7 +61,7 @@ export const PopupContent = ({ onClose, lngLat, mapBounds, mapSize, point }: Pop
       <div className="p-2 space-y-2 flex-1 flex flex-col">
         {isLoading ? (
           <div className="flex justify-center items-center flex-1">
-            <LoaderIcon />
+            <LoaderIcon className="animate-spin" color="imos-grey" size="lg" />
           </div>
         ) : (
           <div>

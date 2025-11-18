@@ -7,6 +7,7 @@ import {
   WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID,
   WAVE_BUOYS_LAYER_ID,
   WORLD_LAND_BORDER_LAYER_ID,
+  WORLD_LAND_FILL_LAYER_ID,
 } from '@/constants';
 import {
   CircleLayerSpecification,
@@ -142,7 +143,7 @@ export const worldLandBorderConfig: Partial<LineLayerSpecification> = {
 export const worldLandFillConfig: Partial<FillLayerSpecification> = {
   'source-layer': 'country_boundaries',
   paint: {
-    'fill-color': 'rgba(66,150,251, 0.4)',
+    'fill-color': 'transparent',
     'fill-outline-color': 'transparent',
   },
 };
@@ -152,6 +153,7 @@ export const layersOrder = [
   OVERLAY_LAYER_ID,
   PARTICLE_LAYER_ID,
   WORLD_LAND_BORDER_LAYER_ID,
+  WORLD_LAND_FILL_LAYER_ID,
   WAVE_BUOYS_LAYER_ID,
   UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
   WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID,
