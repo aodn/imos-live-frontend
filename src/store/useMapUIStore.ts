@@ -105,10 +105,11 @@ export const useMapUIStore = create(
           const next = { ...prev.productEnabled };
           if (product === Product.GSLA_ANOMALY_SEA_LEVELS) {
             next[Product.GSLA_ANOMALY_SEA_LEVELS] = enabled;
-            next[Product.SST_ANOMALY_MOSAIC] = !enabled;
+            if (next[Product.SST_ANOMALY_MOSAIC]) next[Product.SST_ANOMALY_MOSAIC] = !enabled;
           } else if (product === Product.SST_ANOMALY_MOSAIC) {
             next[Product.SST_ANOMALY_MOSAIC] = enabled;
-            next[Product.GSLA_ANOMALY_SEA_LEVELS] = !enabled;
+            if (next[Product.GSLA_ANOMALY_SEA_LEVELS])
+              next[Product.GSLA_ANOMALY_SEA_LEVELS] = !enabled;
           } else {
             next[product] = enabled;
           }

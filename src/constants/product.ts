@@ -42,3 +42,11 @@ export const Products = {
 
 export type ProductLayerId = (typeof Products)[Product]['layerId'];
 export type ProductSourceId = (typeof Products)[Product]['sourceId'];
+
+export const sourceIdToProduct = (sourceId: ProductSourceId) => {
+  return Object.entries(Products).find(([, v]) => v.sourceId === sourceId)?.[0] as Product;
+};
+
+export const layerIdToProduct = (layerId: ProductLayerId) => {
+  return Object.entries(Products).find(([, v]) => v.layerId === layerId)?.[0] as Product;
+};

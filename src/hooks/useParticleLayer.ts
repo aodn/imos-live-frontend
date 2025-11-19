@@ -43,26 +43,21 @@ export function useParticleLayer({ map, layerId, sourceId, product }: UseOPartic
   const particleLayer = useMemo(() => vectorLayer(layerId, sourceId), [layerId, sourceId]);
 
   const setDataByDataset = useCallback(async () => {
-    try {
-      const data = await currentParticleQuery.promise;
-      const { bounds, lonRange, latRange, uRange, vRange } = processMetaData(data);
-      particleLayer.metadata = {
-        bounds,
-        range: [uRange, vRange],
-      };
+    const data = await currentParticleQuery.promise;
+    const { bounds, lonRange, latRange, uRange, vRange } = processMetaData(data);
+    particleLayer.metadata = {
+      bounds,
+      range: [uRange, vRange],
+    };
 
-      addOrUpdateImageSource(
-        map.current!,
-        sourceId,
-        buildGSLADatasetFullPath(date, GSLA_PARTICLE_NAME),
-        lonRange,
-        latRange,
-      );
-      setProductErrorByProduct(Product.GSLA_OCEAN_GEOSTROPHIC_CURRENT, false);
-    } catch (error) {
-      console.error('Error adding particles layer', error);
-      setProductErrorByProduct(Product.GSLA_OCEAN_GEOSTROPHIC_CURRENT, true);
-    }
+    addOrUpdateImageSource(
+      map.current!,
+      sourceId,
+      buildGSLADatasetFullPath(date, GSLA_PARTICLE_NAME),
+      lonRange,
+      latRange,
+    );
+    setProductErrorByProduct(Product.GSLA_OCEAN_GEOSTROPHIC_CURRENT, false);
   }, [currentParticleQuery.promise, date, map, particleLayer, sourceId]);
 
   const setupLayer = useCallback(async () => {

@@ -1,4 +1,4 @@
-import { Products } from './product';
+import { Products, ProductSourceId } from './product';
 
 //product layer id and source id, keep single truth from: import { Products } from "./product";
 export const PARTICLE_LAYER_ID = Products['gsla-ocean-geostrophic-current'].layerId;
@@ -9,6 +9,16 @@ export const SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID = Products['sst-anom-mosaic'].
 export const SST_ANOMALY_MOSAIC_OVERLAY_LAYER_ID = Products['sst-anom-mosaic'].layerId;
 export const WAVE_BUOYS_LAYER_ID = Products['wave-buoys'].layerId;
 export const WAVE_BUOYS_SOURCE_ID = Products['wave-buoys'].sourceId;
+
+export const ProductSourceIds: ProductSourceId[] = [
+  PARTICLE_SOURCE_ID,
+  GSLA_OVERLAY_SOURCE_ID,
+  SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID,
+  WAVE_BUOYS_SOURCE_ID,
+];
+
+export const isProductSourceId = (id: string): id is ProductSourceId =>
+  ProductSourceIds.includes(id as ProductSourceId);
 
 // these two are intermediate layer on fly
 export const WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID = 'wave-buoys-cluster-label-layer';

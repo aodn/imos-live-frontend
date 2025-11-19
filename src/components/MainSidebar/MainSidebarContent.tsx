@@ -22,8 +22,9 @@ export type LayersDataset = {
   addToMap?: (product: Product, enabled: boolean) => void;
   layerId: string;
   visible: boolean;
+  isError: boolean;
   legend?: (date: string) => ReactNode;
-  variant: Product;
+  product: Product;
 };
 
 export type LayerProducts = {
@@ -38,18 +39,20 @@ type MainSidebarProps = {
 
 export const MainSidebarContent: React.FC<MainSidebarProps> = ({ className = '' }) => {
   const [searchQuery] = useState('');
-  const { date, productEnabled } = useMapUIStore(
+  const { date, productEnabled, productError } = useMapUIStore(
     useShallow(s => ({
       date: s.date,
       productEnabled: s.productEnabled,
+      productError: s.productError,
     })),
   );
   const normalizedLayerSets = useMemo(() => {
     return featuredDataset.map(layer => {
-      layer.visible = productEnabled[layer.variant];
+      layer.visible = productEnabled[layer.product];
+      layer.isError = productError[layer.product];
       return layer;
     });
-  }, [productEnabled]);
+  }, [productEnabled, productError]);
 
   const filteredLayerSets = useMemo(() => {
     return normalizedLayerSets.filter(layerSet =>

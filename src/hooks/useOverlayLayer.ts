@@ -30,13 +30,8 @@ export function useOverlayLayer({ map, layerId, sourceId, product }: UseOverlayL
   );
 
   const setDataByDataset = useCallback(async () => {
-    try {
-      await addOrUpdateWMSSource({ map: map.current!, date, overlaySource: sourceId });
-      setProductErrorByProduct(product, false);
-    } catch (error) {
-      console.error(error);
-      setProductErrorByProduct(product, true);
-    }
+    setProductErrorByProduct(product, false);
+    await addOrUpdateWMSSource({ map: map.current!, date, overlaySource: sourceId });
   }, [date, map, product, sourceId]);
 
   const setupLayer = useCallback(async () => {
