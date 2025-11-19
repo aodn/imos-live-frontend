@@ -6,7 +6,7 @@ import { headerData, layerProductsMock, featuredDataset } from './products';
 import { useMapUIStore } from '@/store';
 import { useShallow } from 'zustand/shallow';
 import { ReactNode, useMemo, useState } from 'react';
-import { cn, normalizeLayerSets } from '@/utils';
+import { cn } from '@/utils';
 import { Button } from '../Button';
 import { Product } from '@/constants';
 
@@ -19,11 +19,11 @@ export type LayersDataset = {
   title: string;
   icon: ReactNode;
   description: string;
-  addToMap?: (v: boolean) => void;
+  addToMap?: (product: Product, enabled: boolean) => void;
   layerId: string;
   visible: boolean;
   legend?: (date: string) => ReactNode;
-  variant?: Product;
+  variant: Product;
 };
 
 export type LayerProducts = {
@@ -38,26 +38,18 @@ type MainSidebarProps = {
 
 export const MainSidebarContent: React.FC<MainSidebarProps> = ({ className = '' }) => {
   const [searchQuery] = useState('');
-  const { overlay, particles, circle, overlaySource, date } = useMapUIStore(
+  const { date, productEnabled } = useMapUIStore(
     useShallow(s => ({
-      overlay: s.overlay,
-      particles: s.particles,
-      circle: s.circle,
-      overlaySource: s.overlaySource,
       date: s.date,
+      productEnabled: s.productEnabled,
     })),
   );
   const normalizedLayerSets = useMemo(() => {
-    return normalizeLayerSets(
-      featuredDataset.map(item => ({ ...item })),
-      {
-        particles,
-        overlay,
-        circle,
-      },
-      overlaySource,
-    );
-  }, [particles, overlay, circle, overlaySource]);
+    return featuredDataset.map(layer => {
+      layer.visible = productEnabled[layer.variant];
+      return layer;
+    });
+  }, [productEnabled]);
 
   const filteredLayerSets = useMemo(() => {
     return normalizedLayerSets.filter(layerSet =>

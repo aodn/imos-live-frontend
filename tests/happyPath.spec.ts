@@ -1,6 +1,6 @@
 import {
   MEASURE_POINTS_LAYER_ID,
-  OVERLAY_LAYER_ID,
+  GSLA_OVERLAY_LAYER_ID,
   PARTICLE_LAYER_ID,
   UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
   WAVE_BUOYS_LAYER_ID,
@@ -391,20 +391,20 @@ test.describe('Anomaly sea levels', () => {
   });
 
   test('User can see see levels anomaly of different days', async ({ page }) => {
-    await mapComponent.waitUntilLayerLoaded(page, OVERLAY_LAYER_ID);
+    await mapComponent.waitUntilLayerLoaded(page, GSLA_OVERLAY_LAYER_ID);
 
     await expect
-      .poll(() => mapComponent.getTilesURL(page, OVERLAY_LAYER_ID))
+      .poll(() => mapComponent.getTilesURL(page, GSLA_OVERLAY_LAYER_ID))
       .toContain(`20250726T000000`);
     await page.getByRole('slider', { name: 'point handle' }).click();
     await page.keyboard.press('ArrowRight');
     await expect
-      .poll(() => mapComponent.getTilesURL(page, OVERLAY_LAYER_ID))
+      .poll(() => mapComponent.getTilesURL(page, GSLA_OVERLAY_LAYER_ID))
       .toContain(`20250727T000000`);
   });
 
   test('User can see the current value from a map particle of different days', async ({ page }) => {
-    await mapComponent.waitUntilLayerLoaded(page, OVERLAY_LAYER_ID);
+    await mapComponent.waitUntilLayerLoaded(page, GSLA_OVERLAY_LAYER_ID);
 
     await page.getByRole('slider', { name: 'point handle' }).click();
     await page.keyboard.press('ArrowRight');
@@ -425,7 +425,7 @@ test.describe('Anomaly sea levels and Ocean Current', () => {
   });
 
   test('User can see the current value from a map particle of different days', async ({ page }) => {
-    await mapComponent.waitUntilLayerLoaded(page, OVERLAY_LAYER_ID);
+    await mapComponent.waitUntilLayerLoaded(page, GSLA_OVERLAY_LAYER_ID);
     await mapComponent.expectPopupToHaveContent(page, {
       gsla: '3.00',
       speed: '1.00',
@@ -545,13 +545,13 @@ test.describe('Ocean Current, Anomaly sea levels and Wave Buoys', () => {
 
   test('All the products are selected by default', async ({ page }) => {
     await mapComponent.waitUntilLayerLoaded(page, PARTICLE_LAYER_ID);
-    await mapComponent.waitUntilLayerLoaded(page, OVERLAY_LAYER_ID);
+    await mapComponent.waitUntilLayerLoaded(page, GSLA_OVERLAY_LAYER_ID);
     await mapComponent.waitUntilLayerLoaded(page, WAVE_BUOYS_LAYER_ID);
   });
 
   test('User can deselect all the products', async ({ page }) => {
     await mapComponent.waitUntilLayerLoaded(page, PARTICLE_LAYER_ID);
-    await mapComponent.waitUntilLayerLoaded(page, OVERLAY_LAYER_ID);
+    await mapComponent.waitUntilLayerLoaded(page, GSLA_OVERLAY_LAYER_ID);
     await mapComponent.waitUntilLayerLoaded(page, WAVE_BUOYS_LAYER_ID);
 
     await sidebarComponent.deselectProduct(page, 'GSLA Ocean geostrophic current product');
@@ -559,7 +559,7 @@ test.describe('Ocean Current, Anomaly sea levels and Wave Buoys', () => {
     await sidebarComponent.deselectProduct(page, 'Wave buoys product');
 
     await mapComponent.waitUntilLayerNotLoaded(page, PARTICLE_LAYER_ID);
-    await mapComponent.waitUntilLayerNotLoaded(page, OVERLAY_LAYER_ID);
+    await mapComponent.waitUntilLayerNotLoaded(page, GSLA_OVERLAY_LAYER_ID);
     await mapComponent.waitUntilLayerNotLoaded(page, WAVE_BUOYS_LAYER_ID);
   });
 });

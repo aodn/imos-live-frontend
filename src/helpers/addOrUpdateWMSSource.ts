@@ -1,18 +1,20 @@
-import { OVERLAY_LAYER_ID, OverlaySource } from '@/constants';
+import { OverlaySource } from '@/constants';
 import { rasterUrl } from '@/helpers';
 
-export async function addOrUpdateWMSSource(
-  map: mapboxgl.Map,
-  overlaySource: OverlaySource,
-  date: string,
-) {
+type AddOrUpdateWMSSource = {
+  map: mapboxgl.Map;
+  overlaySource: OverlaySource;
+  date: string;
+};
+
+export async function addOrUpdateWMSSource({ map, overlaySource, date }: AddOrUpdateWMSSource) {
   const url = await rasterUrl(overlaySource, new Date(date));
-  const source = map.getSource(OVERLAY_LAYER_ID);
+  const source = map.getSource(overlaySource);
   if (source && source.type === 'raster') {
     source.setTiles([url]);
     return;
   }
-  map.addSource(OVERLAY_LAYER_ID, {
+  map.addSource(overlaySource, {
     type: 'raster',
     tiles: [url],
     tileSize: 256,

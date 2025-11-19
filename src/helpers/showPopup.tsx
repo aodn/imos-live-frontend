@@ -3,7 +3,7 @@ import { createRoot, Root } from 'react-dom/client';
 import { PopupContent } from '@/components';
 import { queryClient } from '@/config';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { gerMapMetaData } from './setPopupData';
+import { gerMapMetaData } from './getOverlayData';
 
 interface PopupWithRoot extends mapboxgl.Popup {
   __reactRoot?: Root | null;

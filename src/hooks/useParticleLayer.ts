@@ -1,40 +1,46 @@
 import { getMetaData } from '@/api';
-import { useToast } from '@/components';
 import {
   GSLA_META_NAME,
   GSLA_PARTICLE_NAME,
-  PARTICLE_LAYER_ID,
-  PARTICLE_SOURCE_ID,
+  ParticleLayer,
+  ParticleSource,
+  Product,
 } from '@/constants';
 import { addLayerInOrder, addOrUpdateImageSource } from '@/helpers';
 import { vectorLayer } from '@/layers';
-import { useMapUIStore } from '@/store';
+import { useMapUIStore, setProductErrorByProduct } from '@/store';
 import { buildGSLADatasetFullPath, buildGSLADatasetPath, processMetaData } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { useDidMountEffect } from './useDidMountEffect';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useParticleLayerVisibility } from './useParticleLayerVisibility';
 
-export function useParticleLayer(map: React.RefObject<mapboxgl.Map | null>) {
-  const [isError, setIsError] = useState(false);
-  const { showToast } = useToast();
-  const { particles, date, numParticles } = useMapUIStore(
+type UseOParticleLayer = {
+  map: React.RefObject<mapboxgl.Map | null>;
+  layerId: ParticleLayer;
+  sourceId: ParticleSource;
+  product: Product;
+};
+
+export function useParticleLayer({ map, layerId, sourceId, product }: UseOParticleLayer) {
+  const { date, numParticles, isError, enabled } = useMapUIStore(
     useShallow(s => ({
-      particles: s.particles,
       date: s.date,
       numParticles: s.numParticles,
+      isError: s.productError[product],
+      enabled: s.productEnabled[product],
     })),
   );
 
   const currentParticleQuery = useQuery({
     queryKey: [GSLA_META_NAME, date],
     queryFn: () => getMetaData(buildGSLADatasetPath(date, GSLA_META_NAME)),
-    enabled: !!date && particles,
+    enabled: !!date && enabled,
   });
 
-  const particleLayer = useMemo(() => vectorLayer(PARTICLE_LAYER_ID, PARTICLE_SOURCE_ID), []);
+  const particleLayer = useMemo(() => vectorLayer(layerId, sourceId), [layerId, sourceId]);
 
   const setDataByDataset = useCallback(async () => {
     try {
@@ -47,23 +53,17 @@ export function useParticleLayer(map: React.RefObject<mapboxgl.Map | null>) {
 
       addOrUpdateImageSource(
         map.current!,
-        PARTICLE_SOURCE_ID,
+        sourceId,
         buildGSLADatasetFullPath(date, GSLA_PARTICLE_NAME),
         lonRange,
         latRange,
       );
-      setIsError(false);
+      setProductErrorByProduct(Product.GSLA_OCEAN_GEOSTROPHIC_CURRENT, false);
     } catch (error) {
-      console.error('Error adding layers back after style changes:', error);
-      setIsError(true);
-      showToast({
-        type: 'error',
-        title: 'Error occurred',
-        message: 'Failed to get buoys locations',
-        duration: 6000,
-      });
+      console.error('Error adding particles layer', error);
+      setProductErrorByProduct(Product.GSLA_OCEAN_GEOSTROPHIC_CURRENT, true);
     }
-  }, [currentParticleQuery.promise, date, map, particleLayer, showToast]);
+  }, [currentParticleQuery.promise, date, map, particleLayer, sourceId]);
 
   const setupLayer = useCallback(async () => {
     if (!particleLayer) return;
@@ -75,7 +75,7 @@ export function useParticleLayer(map: React.RefObject<mapboxgl.Map | null>) {
 
   const { loadComplete } = useMapboxLayerSetup(map, setupLayer);
 
-  useParticleLayerVisibility(map, loadComplete, particleLayer, particles && !isError);
+  useParticleLayerVisibility(map, loadComplete, particleLayer, enabled && !isError);
 
   useEffect(() => {
     if (!map || !loadComplete || !particleLayer) return;

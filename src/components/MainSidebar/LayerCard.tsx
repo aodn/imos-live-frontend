@@ -48,7 +48,7 @@ export const LayerCard = ({
   }, [variant, variants]);
 
   const handleClick = () => {
-    if (addToMap) addToMap(!visible);
+    if (addToMap) addToMap(variant, !visible);
     if (layerId === WAVE_BUOYS_LAYER_ID) import('../Highcharts/WaveBuoyChart'); //preload wavebuoy chart when wavebuoylayer added.
   };
   return (
