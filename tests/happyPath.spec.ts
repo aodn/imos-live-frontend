@@ -109,9 +109,27 @@ const mapComponent = {
       { layerID },
     );
   },
-  openPopup: async (page: Page) => {
+  openPopup: async (page: Page, coordinates?: LngLat) => {
     await expect(async () => {
-      await page.getByRole('region', { name: 'Map' }).click();
+      const point = await page.evaluate(coords => {
+        const map = (window as any).map as Map | undefined;
+        if (!map) throw new Error('Map not found');
+
+        // Temporarily remove the world-land-fill-layer to allow clicks for testing
+        // This layer is used in production to prevent clicks on land
+        const landLayerId = 'world-land-fill-layer';
+        if (map.getLayer(landLayerId)) {
+          map.removeLayer(landLayerId);
+        }
+
+        // Use provided coordinates or find a point in the center of the data bounds
+        const targetCoords = coords ?? [150.0, -30.0];
+        return map.project(targetCoords as [number, number]);
+      }, coordinates);
+
+      await page
+        .getByRole('region', { name: 'Map' })
+        .click({ position: { x: point.x, y: point.y } });
       await expect(page.getByLabel('Current value from coordinates')).toBeVisible();
     }).toPass();
   },
