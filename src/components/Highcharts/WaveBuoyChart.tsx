@@ -28,22 +28,24 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
   const date = dayjs(dateString);
   const from = date.utc().subtract(6, 'days').format('YYYY-MM-DDTHH:mm:ss.000000000') + 'Z';
   const to = date.utc().format('YYYY-MM-DDTHH:mm:ss.000000000') + 'Z';
-  const wavebuoyQuery = useQuery({
+  const {
+    isLoading,
+    isError,
+    data: feature,
+  } = useQuery({
     queryKey: ['waveBuoyDetails', buoy, from, to],
     queryFn: () => {
       return getWaveBuoyDetails(from, to, buoy);
     },
     enabled: !!buoy,
   });
-  const { isLoading, isError } = wavebuoyQuery;
-  const feature = wavebuoyQuery.data;
+
   const seriseData: SeriesData[] = useMemo(() => {
-    if (!feature) return [];
+    if (!feature || !feature.properties) return [];
 
     const properties = feature.properties;
 
     const seriesStyle = generateSeriesStyles(noneDirectionVariants);
-
     const [regularSeries] = noneDirectionVariants
       .filter(variant => (properties[variant] ?? []).length > 0)
       .map(variant => {
