@@ -51,7 +51,7 @@ export function LatestObservation({ feature }: { feature: WaveBuoyDetailsFeature
     })[numOfCols];
 
   const observationData: ObservationData = useMemo(() => {
-    if (!feature) return [];
+    if (!feature || !feature.properties) return [];
 
     const properties = feature.properties;
     const keys = obseravtionVariants;
