@@ -1,31 +1,29 @@
 import { showPopup } from '@/helpers';
 import { debounce } from '@/utils';
 import { RefObject, useCallback, useEffect } from 'react';
-import { OverlaySource, WORLD_LAND_FILL_LAYER_ID } from '@/constants';
+import { WORLD_LAND_FILL_LAYER_ID } from '@/constants';
 
 type UseMapClickHandlersOptions = {
   map: RefObject<mapboxgl.Map | null>;
   overlay: boolean;
-  particles: boolean;
+  oceanCurrentEnabled: boolean;
   waveBuoysLayerClicked: React.RefObject<boolean>;
   tempPointsEventPrevent: React.RefObject<boolean>;
   distanceMeasurement: boolean;
-  overlaySource: OverlaySource;
 };
 
 export function useParticleOverlayLayersClickHandlers({
   map,
   overlay,
-  particles,
+  oceanCurrentEnabled,
   waveBuoysLayerClicked,
   tempPointsEventPrevent,
   distanceMeasurement,
-  overlaySource,
 }: UseMapClickHandlersOptions) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleMapClick = useCallback(
     debounce(async (e: mapboxgl.MapMouseEvent) => {
-      if (!map?.current || distanceMeasurement || (!particles && !overlay)) return;
+      if (!map?.current || distanceMeasurement || (!oceanCurrentEnabled && !overlay)) return;
 
       if (waveBuoysLayerClicked.current) {
         waveBuoysLayerClicked.current = false;
@@ -54,7 +52,7 @@ export function useParticleOverlayLayersClickHandlers({
         point,
       });
     }, 400),
-    [distanceMeasurement, overlay, particles, overlaySource],
+    [distanceMeasurement, overlay, oceanCurrentEnabled],
   );
 
   useEffect(() => {

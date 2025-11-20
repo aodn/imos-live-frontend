@@ -24,7 +24,7 @@ const baseUrl = async (id: OverlaySource, date: Date): Promise<string> => {
       const url = new URL(link);
       return `/thredds/wms/${url.searchParams.get('dataset')}`;
     },
-    //TODO: question, why GSLA url need to get from catalog, why sst one no need.  Is it because GSLA not follow same naming pattern?
+    //TODO: question, why GSLA url need to get from catalog, why sst one no need.
     [SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID]: (date: Date) =>
       `/thredds/wms/AusTemp/${date.getFullYear()}${(date.getUTCMonth() + 1).toString().padStart(2, '0')}${date.getDate().toString().padStart(2, '0')}_IMOS_AusTemp-sst-anomaly_AUS_fv02.nc`,
   }[id](date);

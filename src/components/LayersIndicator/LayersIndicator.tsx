@@ -1,60 +1,40 @@
-import { MapUIState, useMapUIStore, setCircle, setOverlay, setParticles } from '@/store';
+import { useMapUIStore, setProductEnabledByProduct } from '@/store';
 import { cn } from '@/utils';
 import { useShallow } from 'zustand/shallow';
 import { Button } from '../Button';
 import { CloseIcon } from '../Icons';
-
-type Label = keyof Pick<MapUIState, 'circle' | 'particles' | 'overlay'>;
+import { Product } from '@/constants';
 
 type LayersIndicatorProps = {
   layers: {
     Icon: React.ComponentType<any>;
-    label: Label;
+    product: Product;
   }[];
   className?: string;
 };
 
 export const LayersIndicator = ({ layers, className }: LayersIndicatorProps) => {
-  const { particles, overlay, circle } = useMapUIStore(
+  const { productEnabled } = useMapUIStore(
     useShallow(s => ({
-      overlay: s.overlay,
-      particles: s.particles,
-      circle: s.circle,
+      productEnabled: s.productEnabled,
     })),
   );
-  const visibles: Record<Label, boolean> = {
-    particles,
-    overlay,
-    circle,
-  };
 
-  const handleClose = (label: Label) => () => {
-    switch (label) {
-      case 'circle':
-        setCircle(false);
-        break;
-      case 'overlay':
-        setOverlay(false);
-        break;
-      case 'particles':
-        setParticles(false);
-        break;
-      default:
-        break;
-    }
+  const handleClick = (product: Product) => () => {
+    setProductEnabledByProduct(product, false);
   };
 
   return (
     <div className={cn('flex flex-col gap-y-4', className)}>
-      {layers.map(({ Icon, label }) => {
+      {layers.map(({ Icon, product }) => {
         return (
           <Button
-            key={'LayersIndicator-' + label}
-            aria-label={'close' + label}
+            key={'LayersIndicator-' + product}
+            aria-label={'close' + product}
             className={cn('relative h-10 w-10 rounded bg-white flex justify-center items-center', {
-              hidden: !visibles[label],
+              hidden: !productEnabled[product],
             })}
-            onClick={handleClose(label)}
+            onClick={handleClick(product)}
           >
             <Icon size="lg" />
             <CloseIcon

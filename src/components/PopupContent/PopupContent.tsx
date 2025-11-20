@@ -16,21 +16,22 @@ type PopupContentProps = {
 };
 
 export const PopupContent = ({ onClose, lngLat, mapBounds, mapSize, point }: PopupContentProps) => {
-  const { particles, overlay, overlaySource, date } = useMapUIStore(
-    useShallow(s => ({
-      particles: s.particles,
-      overlay: s.overlay,
-      overlaySource: s.overlaySource,
-      date: s.date,
-    })),
-  );
+  const { gslaAnomalySeaLevelsEnabled, sstAnomMosaicEnabled, oceanCurrentEnabled, date } =
+    useMapUIStore(
+      useShallow(s => ({
+        gslaAnomalySeaLevelsEnabled: s.productEnabled['gsla-anomaly-sea-levels'],
+        sstAnomMosaicEnabled: s.productEnabled['sst-anom-mosaic'],
+        oceanCurrentEnabled: s.productEnabled['gsla-ocean-geostrophic-current'],
+        date: s.date,
+      })),
+    );
 
   const { data, isLoading } = usePopupContentData({
     mapBounds,
     mapSize,
-    particles,
-    overlay,
-    overlaySource,
+    oceanCurrentEnabled,
+    gslaAnomalySeaLevelsEnabled,
+    sstAnomMosaicEnabled,
     date,
     lngLat,
     point,
@@ -67,7 +68,7 @@ export const PopupContent = ({ onClose, lngLat, mapBounds, mapSize, point }: Pop
           </div>
         ) : (
           <div>
-            {particles && data['gsla-ocean-geostrophic-current'] && (
+            {oceanCurrentEnabled && data['gsla-ocean-geostrophic-current'] && (
               <div
                 className="flex-col md:flex-row flex justify-between md:items-center"
                 aria-label="Ocean surface current details"
@@ -83,20 +84,18 @@ export const PopupContent = ({ onClose, lngLat, mapBounds, mapSize, point }: Pop
               </div>
             )}
 
-            {overlay &&
-              overlaySource === 'gsla-overlay-source' &&
-              data['gsla-anomaly-sea-levels'] && (
-                <div
-                  className="flex-col md:flex-row flex justify-between md:items-center"
-                  aria-label="Sea level anomaly details"
-                >
-                  <span className="text-gray-600 ">Sea level anomaly:</span>
-                  <span className="text-gray-900 ">
-                    {data['gsla-anomaly-sea-levels']?.gsla?.toFixed(2)} m
-                  </span>
-                </div>
-              )}
-            {overlay && overlaySource === 'sst-anom-mosaic-source' && data['sst-anom-mosaic'] && (
+            {gslaAnomalySeaLevelsEnabled && data['gsla-anomaly-sea-levels'] && (
+              <div
+                className="flex-col md:flex-row flex justify-between md:items-center"
+                aria-label="Sea level anomaly details"
+              >
+                <span className="text-gray-600 ">Sea level anomaly:</span>
+                <span className="text-gray-900 ">
+                  {data['gsla-anomaly-sea-levels']?.gsla?.toFixed(2)} m
+                </span>
+              </div>
+            )}
+            {sstAnomMosaicEnabled && data['sst-anom-mosaic'] && (
               <div
                 className="flex-col md:flex-row flex justify-between md:items-center"
                 aria-label="Sea level anomaly details"

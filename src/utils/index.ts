@@ -6,7 +6,6 @@ export * from './processMetaData';
 export * from './shader';
 export * from './debounce';
 export * from './getScaledDimensions';
-export * from './normalizeLayerSets';
 export * from './clamp';
 export * from './checkDateDuration';
 export * from './queryIncludingSelf';

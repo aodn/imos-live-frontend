@@ -1,79 +1,83 @@
 import { getWaveBuoyLocations } from '@/api';
-import { useToast } from '@/components';
 import {
   unclusteredWaveBuoysLayerConfig,
   waveBuoyCluserLabelLayerConfig,
   waveBuoysLayerConfig,
 } from '@/config';
 import {
+  BuoyLayer,
+  BuoySource,
+  Product,
   UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
   WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID,
-  WAVE_BUOYS_LAYER_ID,
-  WAVE_BUOYS_SOURCE_ID,
 } from '@/constants';
 import { addLayerInOrder, addOrUpdateGeoJsonSource } from '@/helpers';
 import { circleLayer, symbolLayer } from '@/layers';
-import { useMapUIStore } from '@/store';
+import { useMapUIStore, setProductErrorByProduct } from '@/store';
 import { useQuery } from '@tanstack/react-query';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { useDidMountEffect } from './useDidMountEffect';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
 import dayjs from 'dayjs';
 
-export function useWaveBuoysLayer(map: React.RefObject<mapboxgl.Map | null>) {
-  const [isError, setIsError] = useState(false);
-  const { showToast } = useToast();
+type UseWaveBuoysLayer = {
+  map: React.RefObject<mapboxgl.Map | null>;
+  layerId: BuoyLayer;
+  sourceId: BuoySource;
+  product: Product;
+};
 
-  const { circle: isBuoyWavesLayerEnabled, date } = useMapUIStore(
+export function useWaveBuoysLayer({ map, layerId, sourceId, product }: UseWaveBuoysLayer) {
+  const { enabled, date, isError } = useMapUIStore(
     useShallow(s => ({
-      circle: s.circle,
+      enabled: s.productEnabled[product],
       date: s.date,
+      isError: s.productError[product],
     })),
   );
-
   const buoyQuery = useQuery({
     queryKey: ['wave_buoy_locations', date],
     queryFn: () => getWaveBuoyLocations(dayjs(date).toISOString()),
-    enabled: isBuoyWavesLayerEnabled && date !== '',
+    enabled: enabled && date !== '',
   });
 
   const waveBuoysLayer = useMemo(
     () =>
       circleLayer(
         {
-          id: WAVE_BUOYS_LAYER_ID,
-          source: WAVE_BUOYS_SOURCE_ID,
+          id: layerId,
+          source: sourceId,
           ...waveBuoysLayerConfig,
         },
-        isBuoyWavesLayerEnabled,
+        enabled,
       ),
-    [isBuoyWavesLayerEnabled],
+    [enabled, layerId, sourceId],
   );
   const unClusteredWaveBuoysLayer = useMemo(
     () =>
       circleLayer(
         {
           id: UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
-          source: WAVE_BUOYS_SOURCE_ID,
+          source: sourceId,
           ...unclusteredWaveBuoysLayerConfig,
         },
-        isBuoyWavesLayerEnabled,
+        enabled,
       ),
-    [isBuoyWavesLayerEnabled],
+    [enabled, sourceId],
   );
   const clusterLabelLayer = useMemo(
     () =>
       symbolLayer(
         {
           id: WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID,
-          source: WAVE_BUOYS_SOURCE_ID,
+          source: sourceId,
           ...waveBuoyCluserLabelLayerConfig,
         },
-        isBuoyWavesLayerEnabled,
+        enabled,
       ),
-    [isBuoyWavesLayerEnabled],
+    [enabled, sourceId],
   );
   const buoyLayers = useMemo(
     () => [waveBuoysLayer, unClusteredWaveBuoysLayer, clusterLabelLayer],
@@ -81,28 +85,23 @@ export function useWaveBuoysLayer(map: React.RefObject<mapboxgl.Map | null>) {
   );
 
   const setDataByDataset = useCallback(async () => {
+    setProductErrorByProduct(Product.WAVE_BUOYS, false);
+    //NOTICE!!! This trycatch only catch error from const data = await buoyQuery.promise
+    //Error from addOrUpdateGeoJsonSource handled by useProductErrorDetect.
     try {
       const data = await buoyQuery.promise;
       addOrUpdateGeoJsonSource({
         map: map.current!,
-        id: WAVE_BUOYS_SOURCE_ID,
+        id: sourceId,
         data,
         enableCluser: true,
         clusterRadius: 40,
       });
-
-      setIsError(false);
     } catch (error) {
-      console.error('Error adding layers back after style changes:', error);
-      setIsError(true);
-      showToast({
-        type: 'error',
-        title: 'Error occurred',
-        message: 'Failed to get buoys locations',
-        duration: 6000,
-      });
+      console.log(error);
+      setProductErrorByProduct(Product.WAVE_BUOYS, true);
     }
-  }, [buoyQuery.promise, map, showToast]);
+  }, [buoyQuery.promise, map, sourceId]);
 
   const setupLayer = useCallback(async () => {
     if (buoyLayers.some(layer => !layer)) return;
@@ -116,7 +115,7 @@ export function useWaveBuoysLayer(map: React.RefObject<mapboxgl.Map | null>) {
     map,
     loadComplete,
     [waveBuoysLayer, unClusteredWaveBuoysLayer, clusterLabelLayer],
-    isBuoyWavesLayerEnabled && !isError,
+    enabled && !isError,
   );
 
   useDidMountEffect(() => {

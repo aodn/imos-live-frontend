@@ -25,14 +25,14 @@ export const LayerCard = ({
   secondButtonLabel,
   addToMap,
   visible,
+  isError,
   layerId,
   icon,
-  variant,
+  product,
   legend,
 }: LayerCardProps) => {
   const { isSmallScreen } = useViewportSize();
-
-  const variants = useMemo(
+  const products = useMemo(
     () => ({
       [Product.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: {
         ...gslaOceanCurrentColorsLegendConfig,
@@ -42,13 +42,13 @@ export const LayerCard = ({
   );
 
   const colorScaleBars = useMemo(() => {
-    if (variant === Product.GSLA_OCEAN_GEOSTROPHIC_CURRENT)
-      return <LogColorScaleBar className="w-full" {...variants[variant]} />;
+    if (product === Product.GSLA_OCEAN_GEOSTROPHIC_CURRENT)
+      return <LogColorScaleBar className="w-full" {...products[product]} />;
     //the reaaon to use LogColorScaleBar is most data points are between 0~2, so log scale is better to show the color difference.
-  }, [variant, variants]);
+  }, [product, products]);
 
   const handleClick = () => {
-    if (addToMap) addToMap(!visible);
+    if (addToMap) addToMap(product, !visible);
     if (layerId === WAVE_BUOYS_LAYER_ID) import('../Highcharts/WaveBuoyChart'); //preload wavebuoy chart when wavebuoylayer added.
   };
   return (
@@ -81,13 +81,23 @@ export const LayerCard = ({
           </div>
 
           {!visible && (
-            <Button variant={'outline'} onClick={handleClick} className="self-end">
+            <Button
+              variant={'outline'}
+              onClick={handleClick}
+              className="self-end"
+              disabled={isError}
+            >
               <MapLayersIcon />
               {firstButtonLabel}
             </Button>
           )}
           {visible && (
-            <Button variant={'outline'} onClick={handleClick} className="self-end">
+            <Button
+              variant={'outline'}
+              onClick={handleClick}
+              className="self-end"
+              disabled={isError}
+            >
               <MapLayersIcon />
               {secondButtonLabel}
             </Button>

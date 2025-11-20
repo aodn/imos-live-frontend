@@ -1,4 +1,4 @@
-import { GSLA_OVERLAY_SOURCE_ID, OverlaySource } from '@/constants';
+import { Product } from '@/constants';
 import { StyleTitle } from '@/styles';
 import { getLast7Dates } from '@/utils';
 import { LngLat } from 'mapbox-gl';
@@ -6,6 +6,8 @@ import { create } from 'zustand';
 import { createJSONStorage, persist, StateStorage } from 'zustand/middleware';
 
 export type NumParticles = 10000 | 30000 | 60000 | 100000;
+type ProductError = Record<Product, boolean>;
+export type ProductEnabled = Record<Product, boolean>;
 
 export const INITIAL_DATE = getLast7Dates().at(0)!;
 
@@ -13,29 +15,27 @@ export interface MapUIState {
   center: LngLat;
   zoom: number;
   style: StyleTitle;
-  overlay: boolean;
-  circle: boolean;
-  particles: boolean;
   numParticles: NumParticles;
   distanceMeasurement: boolean;
   worldBoundaries: boolean;
-  overlaySource: OverlaySource;
   date: string;
   dates: string[];
+  productEnabled: ProductEnabled;
+  productError: ProductError;
   setCenter: (center: LngLat) => void;
   setZoom: (zoom: number) => void;
   setStyle: (style: StyleTitle) => void;
-  setOverlay: (v: boolean, layer?: OverlaySource) => void;
-  setCircle: (v: boolean) => void;
-  setParticles: (v: boolean) => void;
   setNumParticles: (n: NumParticles) => void;
   setDistanceMeasurement: (v: boolean) => void;
   setWorldBoundaries: (v: boolean) => void;
   setDate: (d: string) => void;
   refreshDates: () => void;
+  setProductErrorByProduct: (product: Product, error: boolean) => void;
+  setProductEnabledByProduct: (product: Product, enabled: boolean) => void;
 }
 
-const stateKeysToExcludeFromUrl = ['dates'];
+const stateKeysToExcludeFromUrl = ['dates', 'productError'];
+
 const hashStorage: StateStorage = {
   getItem: () => {
     const url = new URL(location.href);
@@ -72,23 +72,26 @@ export const useMapUIStore = create(
       center: new LngLat(133.7751, -25.2744),
       zoom: 3,
       style: 'ESRIWorldImagery',
-      overlaySource: GSLA_OVERLAY_SOURCE_ID,
-      overlay: true,
-      circle: true,
-      particles: true,
       numParticles: 10000,
       distanceMeasurement: false,
       worldBoundaries: false,
       dates: getLast7Dates(),
       date: INITIAL_DATE,
+      productEnabled: {
+        [Product.GSLA_ANOMALY_SEA_LEVELS]: true,
+        [Product.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: true,
+        [Product.SST_ANOMALY_MOSAIC]: false,
+        [Product.WAVE_BUOYS]: true,
+      },
+      productError: {
+        [Product.GSLA_ANOMALY_SEA_LEVELS]: false,
+        [Product.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: false,
+        [Product.SST_ANOMALY_MOSAIC]: false,
+        [Product.WAVE_BUOYS]: false,
+      },
       setCenter: center => set({ center }),
       setZoom: zoom => set({ zoom }),
       setStyle: style => set({ style }),
-      setOverlay: (overlay, overlaySource) => {
-        set({ overlay, overlaySource: overlaySource || GSLA_OVERLAY_SOURCE_ID });
-      },
-      setCircle: circle => set({ circle }),
-      setParticles: particles => set({ particles }),
       setNumParticles: numParticles => set({ numParticles }),
       setDistanceMeasurement: distanceMeasurement => set({ distanceMeasurement }),
       setWorldBoundaries: worldBoundaries => set({ worldBoundaries }),
@@ -97,34 +100,50 @@ export const useMapUIStore = create(
         const newDates = getLast7Dates();
         set(prev => ({ ...prev, dates: newDates }));
       },
+      setProductEnabledByProduct: (product, enabled) => {
+        set(prev => {
+          const next = { ...prev.productEnabled };
+          if (product === Product.GSLA_ANOMALY_SEA_LEVELS) {
+            next[Product.GSLA_ANOMALY_SEA_LEVELS] = enabled;
+            if (next[Product.SST_ANOMALY_MOSAIC]) next[Product.SST_ANOMALY_MOSAIC] = !enabled;
+          } else if (product === Product.SST_ANOMALY_MOSAIC) {
+            next[Product.SST_ANOMALY_MOSAIC] = enabled;
+            if (next[Product.GSLA_ANOMALY_SEA_LEVELS])
+              next[Product.GSLA_ANOMALY_SEA_LEVELS] = !enabled;
+          } else {
+            next[product] = enabled;
+          }
+
+          return {
+            ...prev,
+            productEnabled: next,
+          };
+        });
+      },
+      setProductErrorByProduct: (product, error) => {
+        set(prev => ({
+          ...prev,
+          productError: {
+            ...prev.productError,
+            [product]: error,
+          },
+        }));
+      },
     }),
     storageOptions,
   ),
 );
 
-export const selectAllStates = (s: MapUIState) => ({
-  center: s.center,
-  zoom: s.zoom,
-  style: s.style,
-  overlay: s.overlay,
-  circle: s.circle,
-  particles: s.particles,
-  distanceMeasurement: s.distanceMeasurement,
-  numParticles: s.numParticles,
-  date: s.date,
-  overlaySource: s.overlaySource,
-});
-
+//utils
 export const {
   setCenter,
-  setCircle,
   setDate,
   setDistanceMeasurement,
   setNumParticles,
-  setOverlay,
-  setParticles,
   setStyle,
   setWorldBoundaries,
   setZoom,
   refreshDates,
+  setProductErrorByProduct,
+  setProductEnabledByProduct,
 } = useMapUIStore.getState();

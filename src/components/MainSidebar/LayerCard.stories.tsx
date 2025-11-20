@@ -23,11 +23,14 @@ export const Primary: Story = {
     icon: null,
     description:
       'm ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.m ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-    addToMap: (v: boolean) => console.log(v),
+    addToMap: undefined,
     firstButtonLabel: 'Add to map',
     secondButtonLabel: 'Remove from map',
     visible: false,
     layerId: 'test layerid',
     date: '',
+    legend: undefined,
+    isError: false,
+    product: 'gsla-anomaly-sea-levels',
   },
 };

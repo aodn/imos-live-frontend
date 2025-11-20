@@ -4,7 +4,6 @@ import {
   Product,
   GSLA_OVERLAY_SOURCE_ID,
   SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID,
-  OverlaySource,
 } from '@/constants';
 import { fetchGslaAnomalySeaLevelsData, fetchSstAnomalyMosaic } from '@/helpers';
 import { processOceanCurrentDetails } from '@/utils';
@@ -12,9 +11,9 @@ import { useQuery } from '@tanstack/react-query';
 import { LngLat, Point } from 'mapbox-gl';
 
 type UsePopupContentData = {
-  particles: boolean;
-  overlay: boolean;
-  overlaySource: OverlaySource;
+  oceanCurrentEnabled: boolean;
+  sstAnomMosaicEnabled: boolean;
+  gslaAnomalySeaLevelsEnabled: boolean;
   date: string;
   lngLat: LngLat;
   point: Point;
@@ -28,9 +27,9 @@ type UsePopupContentData = {
 export const usePopupContentData = ({
   mapBounds,
   mapSize,
-  particles,
-  overlay,
-  overlaySource,
+  oceanCurrentEnabled,
+  gslaAnomalySeaLevelsEnabled,
+  sstAnomMosaicEnabled,
   date,
   lngLat,
   point,
@@ -38,7 +37,7 @@ export const usePopupContentData = ({
   const { data: gslaOceanCurrent, isLoading: isGslaOceanCurrentLoading } = useQuery({
     queryKey: [GSLA_DATA_NAME, date],
     queryFn: () => getOceanCurrentData(date),
-    enabled: !!date && particles,
+    enabled: !!date && oceanCurrentEnabled,
     select: raw => {
       const oceanCurrentDetails = processOceanCurrentDetails(lngLat, raw);
       return {
@@ -54,13 +53,13 @@ export const usePopupContentData = ({
   const { data: gslaAnomalySeaLevels, isLoading: isGslaAnomalySeaLevelsLoading } = useQuery({
     queryKey: [GSLA_OVERLAY_SOURCE_ID, date, mapBounds, mapSize, point],
     queryFn: () => fetchGslaAnomalySeaLevelsData(date, mapBounds, mapSize, point),
-    enabled: !!date && overlay && overlaySource === GSLA_OVERLAY_SOURCE_ID,
+    enabled: !!date && gslaAnomalySeaLevelsEnabled,
   });
 
   const { data: sstAnomalyMosatic, isLoading: isSstAnomalyMosaticLoading } = useQuery({
     queryKey: [SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID, date, mapBounds, mapSize, point],
     queryFn: () => fetchSstAnomalyMosaic(date, mapBounds, mapSize, point),
-    enabled: !!date && overlay && overlaySource === SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID,
+    enabled: !!date && sstAnomMosaicEnabled,
   });
 
   const data = {
