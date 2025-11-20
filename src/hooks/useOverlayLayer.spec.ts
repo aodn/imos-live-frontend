@@ -6,7 +6,7 @@ import { renderHook, act } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi, Mock } from 'vitest';
 import { useOverlayLayer } from './useOverlayLayer';
 import { useMapUIStore, setProductErrorByProduct } from '@/store';
-import { addLayerInOrder, addOrUpdateWMSSource } from '@/helpers';
+import { addLayerInOrder, addOrUpdateWMSSource, rasterUrl } from '@/helpers';
 import { imageLayer } from '@/layers';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
@@ -32,6 +32,7 @@ vi.mock('@/store', () => ({
 vi.mock('@/helpers', () => ({
   addLayerInOrder: vi.fn(),
   addOrUpdateWMSSource: vi.fn(),
+  rasterUrl: vi.fn(),
 }));
 
 vi.mock('@/layers', () => ({
@@ -104,6 +105,7 @@ describe('useOverlayLayer', () => {
       loadComplete: true,
     });
 
+    (rasterUrl as Mock).mockResolvedValue('http://example.com/tile/{z}/{x}/{y}.png');
     (addOrUpdateWMSSource as Mock).mockResolvedValue(undefined);
   });
 
@@ -161,10 +163,12 @@ describe('useOverlayLayer', () => {
       await setupLayerFn();
     });
 
+    expect(rasterUrl).toHaveBeenCalledWith('gsla-overlay-source', new Date('2024-01-01'));
+
     expect(addOrUpdateWMSSource).toHaveBeenCalledWith({
       map: mockMap.current,
-      date: '2024-01-01',
-      overlaySource: 'gsla-overlay-source',
+      url: 'http://example.com/tile/{z}/{x}/{y}.png',
+      sourceId: 'gsla-overlay-source',
     });
 
     expect(addLayerInOrder).toHaveBeenCalledWith(mockMap, {
@@ -175,8 +179,8 @@ describe('useOverlayLayer', () => {
     expect(setProductErrorByProduct).toHaveBeenCalledWith('gsla', false);
   });
 
-  it('should set product error when setup fails', async () => {
-    (addOrUpdateWMSSource as Mock).mockRejectedValue(new Error('Failed to load'));
+  it('should set product error when rasterUrl fails', async () => {
+    (rasterUrl as Mock).mockRejectedValue(new Error('Failed to fetch URL'));
 
     renderHook(() => useOverlayLayer(defaultProps));
 
@@ -187,7 +191,9 @@ describe('useOverlayLayer', () => {
       await setupLayerFn();
     });
 
+    expect(setProductErrorByProduct).toHaveBeenCalledWith('gsla', false);
     expect(setProductErrorByProduct).toHaveBeenCalledWith('gsla', true);
+    expect(addOrUpdateWMSSource).not.toHaveBeenCalled();
   });
 
   it('should update data source when date changes', () => {
