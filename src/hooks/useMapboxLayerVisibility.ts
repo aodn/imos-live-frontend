@@ -22,8 +22,9 @@ export function useMapboxLayerVisibility(
         map.current?.setLayoutProperty(layerId, 'visibility', 'none');
         return;
       }
+      map.current?.setLayoutProperty(layerId, 'visibility', 'visible');
       // Added delay of 500ms to avoid flickering while source tiles are swapped
-      setTimeout(() => map.current?.setLayoutProperty(layerId, 'visibility', 'visible'), 500);
+      // setTimeout(() => map.current?.setLayoutProperty(layerId, 'visibility', 'visible'), 500);
     });
   }, [map, loadComplete, visible, layers]);
 }

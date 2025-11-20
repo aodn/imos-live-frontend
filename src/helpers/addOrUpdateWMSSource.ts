@@ -6,7 +6,7 @@ type AddOrUpdateWMSSource = {
   url: string;
 };
 
-export async function addOrUpdateWMSSource({ map, sourceId, url }: AddOrUpdateWMSSource) {
+export function addOrUpdateWMSSource({ map, sourceId, url }: AddOrUpdateWMSSource) {
   const source = map.getSource(sourceId);
   if (source && source.type === 'raster') {
     source.setTiles([url]);

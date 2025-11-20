@@ -18,12 +18,9 @@ export function useProductErrorDetect(map: React.RefObject<mapboxgl.Map | null>)
     if (!mapInstance) return;
 
     const handleError = (e: MapSourceDataEvent) => {
-      if (!e.sourceId) return;
-      if (e.sourceDataType !== 'error' || !e.isSourceLoaded) return;
-      const sourceId = e.sourceId;
-      if (isProductSourceId(sourceId)) {
-        console.log(e);
-        setProductErrorByProduct(sourceIdToProduct(sourceId), true);
+      if (e.sourceDataType !== 'error' || !e.isSourceLoaded || !e.sourceId) return;
+      if (isProductSourceId(e.sourceId)) {
+        setProductErrorByProduct(sourceIdToProduct(e.sourceId), true);
       }
     };
 
