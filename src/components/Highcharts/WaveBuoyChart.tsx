@@ -244,7 +244,7 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
           customFormatter: tooltipFormatter,
         }}
       />
-      <LatestObservation feature={feature} />
+      {feature && feature.properties && <LatestObservation feature={feature} />}
     </div>
   );
 };
