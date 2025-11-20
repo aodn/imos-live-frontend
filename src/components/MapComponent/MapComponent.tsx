@@ -83,7 +83,7 @@ export const MapComponent = memo(() => {
     product: Product.WAVE_BUOYS,
   });
 
-  useProductErrorDetect({ map });
+  useProductErrorDetect(map);
 
   //3. add click event listners to map and layers.
   const {

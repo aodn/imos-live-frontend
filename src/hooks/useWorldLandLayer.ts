@@ -13,6 +13,10 @@ import { useMapUIStore } from '@/store';
 import { useShallow } from 'zustand/shallow';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
 
+/**
+ * 1. add border around land.
+ * 2. add transparent land fill layer that used to disbale click on land.
+ */
 export function useWorldLandLayer(map: React.RefObject<mapboxgl.Map | null>) {
   const { worldBoundaries } = useMapUIStore(
     useShallow(s => ({

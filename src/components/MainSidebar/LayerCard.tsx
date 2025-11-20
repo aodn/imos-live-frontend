@@ -32,7 +32,6 @@ export const LayerCard = ({
   legend,
 }: LayerCardProps) => {
   const { isSmallScreen } = useViewportSize();
-
   const products = useMemo(
     () => ({
       [Product.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: {

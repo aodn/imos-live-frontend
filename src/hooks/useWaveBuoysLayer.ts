@@ -85,6 +85,9 @@ export function useWaveBuoysLayer({ map, layerId, sourceId, product }: UseWaveBu
   );
 
   const setDataByDataset = useCallback(async () => {
+    setProductErrorByProduct(Product.WAVE_BUOYS, false);
+    //NOTICE!!! This trycatch only catch error from const data = await buoyQuery.promise
+    //Error from addOrUpdateGeoJsonSource handled by useProductErrorDetect.
     try {
       const data = await buoyQuery.promise;
       addOrUpdateGeoJsonSource({
@@ -94,9 +97,7 @@ export function useWaveBuoysLayer({ map, layerId, sourceId, product }: UseWaveBu
         enableCluser: true,
         clusterRadius: 40,
       });
-      setProductErrorByProduct(Product.WAVE_BUOYS, false);
-    } catch (error) {
-      console.error('Error adding wave buoys layer', error);
+    } catch {
       setProductErrorByProduct(Product.WAVE_BUOYS, true);
     }
   }, [buoyQuery.promise, map, sourceId]);

@@ -42,22 +42,34 @@ export function useParticleLayer({ map, layerId, sourceId, product }: UseOPartic
 
   const particleLayer = useMemo(() => vectorLayer(layerId, sourceId), [layerId, sourceId]);
 
+  /**
+   * NOTICE!!!
+   * the try catch only catch error from const data = await currentParticleQuery.promise
+   * addOrUpdateImageSource will not throw error, even image fail to add, because on this
+   * state Mapbox only validates the shape of your source definition. The actual image load
+   * happens asynchronously.
+   */
   const setDataByDataset = useCallback(async () => {
-    const data = await currentParticleQuery.promise;
-    const { bounds, lonRange, latRange, uRange, vRange } = processMetaData(data);
-    particleLayer.metadata = {
-      bounds,
-      range: [uRange, vRange],
-    };
+    try {
+      const data = await currentParticleQuery.promise;
+      const { bounds, lonRange, latRange, uRange, vRange } = processMetaData(data);
+      particleLayer.metadata = {
+        bounds,
+        range: [uRange, vRange],
+      };
 
-    addOrUpdateImageSource(
-      map.current!,
-      sourceId,
-      buildGSLADatasetFullPath(date, GSLA_PARTICLE_NAME),
-      lonRange,
-      latRange,
-    );
-    setProductErrorByProduct(Product.GSLA_OCEAN_GEOSTROPHIC_CURRENT, false);
+      addOrUpdateImageSource(
+        map.current!,
+        sourceId,
+        buildGSLADatasetFullPath(date, GSLA_PARTICLE_NAME),
+        lonRange,
+        latRange,
+      );
+      setProductErrorByProduct(Product.GSLA_OCEAN_GEOSTROPHIC_CURRENT, false);
+    } catch (error) {
+      console.log(error);
+      setProductErrorByProduct(Product.GSLA_OCEAN_GEOSTROPHIC_CURRENT, true);
+    }
   }, [currentParticleQuery.promise, date, map, particleLayer, sourceId]);
 
   const setupLayer = useCallback(async () => {

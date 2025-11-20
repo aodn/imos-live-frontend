@@ -1,6 +1,6 @@
 import { overlayLayerConfig } from '@/config';
 import { OverlayLayer, OverlaySource, Product } from '@/constants';
-import { addLayerInOrder, addOrUpdateWMSSource } from '@/helpers';
+import { addLayerInOrder, addOrUpdateWMSSource, rasterUrl } from '@/helpers';
 import { imageLayer } from '@/layers';
 import { useMapUIStore, setProductErrorByProduct } from '@/store';
 import { useCallback, useMemo } from 'react';
@@ -31,7 +31,17 @@ export function useOverlayLayer({ map, layerId, sourceId, product }: UseOverlayL
 
   const setDataByDataset = useCallback(async () => {
     setProductErrorByProduct(product, false);
-    await addOrUpdateWMSSource({ map: map.current!, date, overlaySource: sourceId });
+    //NOTICE!!! This trycatch only catch error from const url = await rasterUrl(sourceId, new Date(date))
+    //Error from addOrUpdateWMSSource handled by useProductErrorDetect. This trycatch is for GSLA_ANOMALY_SEA_LEVELS,
+    //because when generate its url, api called, which might throw error. But for SST_ANOMALY_MOSAIC no error will be
+    //thrown when generate url. And even this url did not have image, addOrUpdateWMSSource will not throw error, so
+    //need useProductErrorDetect to detect error.
+    try {
+      const url = await rasterUrl(sourceId, new Date(date));
+      await addOrUpdateWMSSource({ map: map.current!, url, sourceId });
+    } catch {
+      setProductErrorByProduct(product, true);
+    }
   }, [date, map, product, sourceId]);
 
   const setupLayer = useCallback(async () => {
