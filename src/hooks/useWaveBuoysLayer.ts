@@ -97,7 +97,8 @@ export function useWaveBuoysLayer({ map, layerId, sourceId, product }: UseWaveBu
         enableCluser: true,
         clusterRadius: 40,
       });
-    } catch {
+    } catch (error) {
+      console.log(error);
       setProductErrorByProduct(Product.WAVE_BUOYS, true);
     }
   }, [buoyQuery.promise, map, sourceId]);

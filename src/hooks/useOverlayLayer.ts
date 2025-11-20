@@ -39,7 +39,8 @@ export function useOverlayLayer({ map, layerId, sourceId, product }: UseOverlayL
     try {
       const url = await rasterUrl(sourceId, new Date(date));
       await addOrUpdateWMSSource({ map: map.current!, url, sourceId });
-    } catch {
+    } catch (error) {
+      console.log(error);
       setProductErrorByProduct(product, true);
     }
   }, [date, map, product, sourceId]);
