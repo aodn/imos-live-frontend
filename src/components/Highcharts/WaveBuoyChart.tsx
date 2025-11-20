@@ -40,8 +40,10 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
     enabled: !!buoy,
   });
 
+  const isFeatureEmpty = !feature || !feature.properties;
+
   const seriseData: SeriesData[] = useMemo(() => {
-    if (!feature || !feature.properties) return [];
+    if (isFeatureEmpty) return [];
 
     const properties = feature.properties;
 
@@ -68,7 +70,7 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
       : null;
 
     return directionSeries ? [regularSeries, directionSeries] : [regularSeries];
-  }, [feature, showDirection]);
+  }, [feature?.properties, isFeatureEmpty, showDirection]);
 
   const dynamicButtons = useMemo(() => {
     const dataRange = calculateDataRange(seriseData);
@@ -161,6 +163,13 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
 
   if (isError) return <div>error</div>;
   if (isLoading) return <div>loading</div>;
+  if (isFeatureEmpty)
+    return (
+      <div>
+        <h2 className="text-center font-bold">{title}</h2>
+        <p>Sorry! No Data for this buoy.</p>
+      </div>
+    );
 
   return (
     <div className="w-full">
