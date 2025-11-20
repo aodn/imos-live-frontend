@@ -166,7 +166,8 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
   if (isFeatureEmpty)
     return (
       <div>
-        <h2>{title}</h2>
+        <h2 className="text-center font-bold">{title}</h2>
+        <p>Sorry! No Data for this buoy.</p>
       </div>
     );
 
