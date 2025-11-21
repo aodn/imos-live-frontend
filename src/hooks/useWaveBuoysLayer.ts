@@ -37,7 +37,6 @@ export function useWaveBuoysLayer({ map, layerId, sourceId, product }: UseWaveBu
       isError: s.productError[product],
     })),
   );
-
   const buoyQuery = useQuery({
     queryKey: ['wave_buoy_locations', date],
     queryFn: () => getWaveBuoyLocations(dayjs(date).toISOString()),

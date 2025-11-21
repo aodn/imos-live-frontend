@@ -28,22 +28,26 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
   const date = dayjs(dateString);
   const from = date.utc().subtract(6, 'days').format('YYYY-MM-DDTHH:mm:ss.000000000') + 'Z';
   const to = date.utc().format('YYYY-MM-DDTHH:mm:ss.000000000') + 'Z';
-  const wavebuoyQuery = useQuery({
+  const {
+    isLoading,
+    isError,
+    data: feature,
+  } = useQuery({
     queryKey: ['waveBuoyDetails', buoy, from, to],
     queryFn: () => {
       return getWaveBuoyDetails(from, to, buoy);
     },
     enabled: !!buoy,
   });
-  const { isLoading, isError } = wavebuoyQuery;
-  const feature = wavebuoyQuery.data;
+
+  const isFeatureEmpty = !feature || !feature.properties;
+
   const seriseData: SeriesData[] = useMemo(() => {
-    if (!feature) return [];
+    if (isFeatureEmpty) return [];
 
     const properties = feature.properties;
 
     const seriesStyle = generateSeriesStyles(noneDirectionVariants);
-
     const [regularSeries] = noneDirectionVariants
       .filter(variant => (properties[variant] ?? []).length > 0)
       .map(variant => {
@@ -66,7 +70,7 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
       : null;
 
     return directionSeries ? [regularSeries, directionSeries] : [regularSeries];
-  }, [feature, showDirection]);
+  }, [feature?.properties, isFeatureEmpty, showDirection]);
 
   const dynamicButtons = useMemo(() => {
     const dataRange = calculateDataRange(seriseData);
@@ -159,6 +163,13 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
 
   if (isError) return <div>error</div>;
   if (isLoading) return <div>loading</div>;
+  if (isFeatureEmpty)
+    return (
+      <div>
+        <h2 className="text-center font-bold">{title}</h2>
+        <p>Sorry! No Data for this buoy.</p>
+      </div>
+    );
 
   return (
     <div className="w-full">
@@ -233,7 +244,7 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
           customFormatter: tooltipFormatter,
         }}
       />
-      <LatestObservation feature={feature} />
+      {feature && feature.properties && <LatestObservation feature={feature} />}
     </div>
   );
 };
