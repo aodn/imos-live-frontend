@@ -24,6 +24,10 @@ const mockMap = {
   },
 };
 
+vi.mock('@/store', () => ({
+  useMapUIStore: vi.fn(),
+}));
+
 vi.mock('@/helpers', () => ({
   addLayerInOrder: vi.fn(),
   addOrUpdateWMSSource: vi.fn(),
