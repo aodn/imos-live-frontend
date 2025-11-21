@@ -2,7 +2,7 @@ import { overlayLayerConfig } from '@/config';
 import { OverlayLayer, OverlaySource, Product } from '@/constants';
 import { addLayerInOrder, addOrUpdateWMSSource, rasterUrl } from '@/helpers';
 import { imageLayer } from '@/layers';
-import { useMapUIStore, setProductErrorByProduct } from '@/store';
+import { useMapUIStore } from '@/store';
 import { useCallback, useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { useDidMountEffect } from './useDidMountEffect';
@@ -30,14 +30,14 @@ export function useOverlayLayer({ map, layerId, sourceId, product }: UseOverlayL
   );
 
   const setDataByDataset = useCallback(async () => {
-    setProductErrorByProduct(product, false);
+    // setProductErrorByProduct(product, false);
     // this will not throw any error and return invalid url when there is error instead.
     // when invalid url, useOverlayProductErrorDetect will handle it, So that addOrUpdateWMSSource
     // will always add source to map. This can fix the bug that overlay layer fail to appear when
     // jump from date no data to date owning data.
     const url = await rasterUrl(sourceId, new Date(date));
     addOrUpdateWMSSource({ map: map.current!, url, sourceId });
-  }, [date, map, product, sourceId]);
+  }, [date, map, sourceId]);
 
   const setupLayer = useCallback(async () => {
     if (!overlayLayer) return;

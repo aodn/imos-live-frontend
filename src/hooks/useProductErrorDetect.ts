@@ -11,6 +11,12 @@ import { MapSourceDataEvent } from 'mapbox-gl';
  * "sourcedata" fires when tiles or sources attempt to load, but it does not catch and throw
  * image load error like what did in useParcileLayer.
  *
+ * issue of this validation: it only check the visible product layer, as the not visible product
+ * layer will not fire sourcedata event. And currently, either of GSLA_ANOMALY_SEA_LEVELS, SST_ANOMALY_MOSAIC
+ * enabled. So this check only work on the visible product.
+ *
+ * Parallel validation implemented in RasterLegend, the legened image loaded validated. It could validate both
+ * products, but it does not validate tiles directly.
  */
 export function useOverlayProductErrorDetect(map: React.RefObject<mapboxgl.Map | null>) {
   const mapInstance = map.current;
