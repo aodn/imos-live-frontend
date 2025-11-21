@@ -37,6 +37,7 @@ export function useWaveBuoysLayer({ map, layerId, sourceId, product }: UseWaveBu
       isError: s.productError[product],
     })),
   );
+
   const buoyQuery = useQuery({
     queryKey: ['wave_buoy_locations', date],
     queryFn: () => getWaveBuoyLocations(dayjs(date).toISOString()),
@@ -112,7 +113,7 @@ export function useWaveBuoysLayer({ map, layerId, sourceId, product }: UseWaveBu
     buoyLayers.forEach(layer => addLayerInOrder(map, layer));
   }, [buoyLayers, map, setDataByDataset]);
 
-  const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [waveBuoysLayer, setupLayer]);
+  const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [setupLayer]);
 
   useMapboxLayerVisibility(
     map,
