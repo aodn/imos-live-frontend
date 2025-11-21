@@ -37,10 +37,11 @@ export function useWaveBuoysLayer({ map, layerId, sourceId, product }: UseWaveBu
       isError: s.productError[product],
     })),
   );
+
   const buoyQuery = useQuery({
     queryKey: ['wave_buoy_locations', date],
     queryFn: () => getWaveBuoyLocations(dayjs(date).toISOString()),
-    enabled: enabled && date !== '',
+    enabled: enabled && !!date,
   });
 
   const waveBuoysLayer = useMemo(
@@ -86,21 +87,24 @@ export function useWaveBuoysLayer({ map, layerId, sourceId, product }: UseWaveBu
 
   const setDataByDataset = useCallback(async () => {
     setProductErrorByProduct(Product.WAVE_BUOYS, false);
-    //NOTICE!!! This trycatch only catch error from const data = await buoyQuery.promise
-    //Error from addOrUpdateGeoJsonSource handled by useProductErrorDetect.
-    try {
-      const data = await buoyQuery.promise;
-      addOrUpdateGeoJsonSource({
-        map: map.current!,
-        id: sourceId,
-        data,
-        enableCluser: true,
-        clusterRadius: 40,
-      });
-    } catch (error) {
-      console.log(error);
+    // when error thrown no break code but set fallback to data.
+    // this can fix the bug that when sylte change, or switch from
+    // date no data to date owning data buouys displaying or hiding unexpectedly.
+    const data = await buoyQuery.promise.catch(() => {
       setProductErrorByProduct(Product.WAVE_BUOYS, true);
-    }
+      return {
+        type: 'FeatureCollection',
+        features: [],
+      } as GeoJSON.FeatureCollection;
+    });
+
+    addOrUpdateGeoJsonSource({
+      map: map.current!,
+      id: sourceId,
+      data,
+      enableCluser: true,
+      clusterRadius: 40,
+    });
   }, [buoyQuery.promise, map, sourceId]);
 
   const setupLayer = useCallback(async () => {
@@ -109,7 +113,7 @@ export function useWaveBuoysLayer({ map, layerId, sourceId, product }: UseWaveBu
     buoyLayers.forEach(layer => addLayerInOrder(map, layer));
   }, [buoyLayers, map, setDataByDataset]);
 
-  const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [waveBuoysLayer]);
+  const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [setupLayer]);
 
   useMapboxLayerVisibility(
     map,

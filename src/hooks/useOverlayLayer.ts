@@ -24,26 +24,19 @@ export function useOverlayLayer({ map, layerId, sourceId, product }: UseOverlayL
       isError: s.productError[product],
     })),
   );
-
   const overlayLayer = useMemo(
     () => imageLayer({ id: layerId, source: sourceId, ...overlayLayerConfig }, enabled),
-    [layerId, enabled, sourceId],
+    [layerId, sourceId, enabled],
   );
 
   const setDataByDataset = useCallback(async () => {
-    //NOTICE!!! This trycatch only catch error from const url = await rasterUrl(sourceId, new Date(date))
-    //Error from addOrUpdateWMSSource handled by useProductErrorDetect. This trycatch is for GSLA_ANOMALY_SEA_LEVELS,
-    //because when generate its url, api called, which might throw error. But for SST_ANOMALY_MOSAIC no error will be
-    //thrown when generate url. And even this url did not have image, addOrUpdateWMSSource will not throw error, so
-    //need useProductErrorDetect to detect error.
-    try {
-      setProductErrorByProduct(product, false);
-      const url = await rasterUrl(sourceId, new Date(date));
-      await addOrUpdateWMSSource({ map: map.current!, url, sourceId });
-    } catch (error) {
-      console.log(error);
-      setProductErrorByProduct(product, true);
-    }
+    setProductErrorByProduct(product, false);
+    // this will not throw any error and return invalid url when there is error instead.
+    // when invalid url, useOverlayProductErrorDetect will handle it, So that addOrUpdateWMSSource
+    // will always add source to map. This can fix the bug that overlay layer fail to appear when
+    // jump from date no data to date owning data.
+    const url = await rasterUrl(sourceId, new Date(date));
+    addOrUpdateWMSSource({ map: map.current!, url, sourceId });
   }, [date, map, product, sourceId]);
 
   const setupLayer = useCallback(async () => {
@@ -52,7 +45,7 @@ export function useOverlayLayer({ map, layerId, sourceId, product }: UseOverlayL
     addLayerInOrder(map, overlayLayer);
   }, [map, overlayLayer, setDataByDataset]);
 
-  const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [overlayLayer]);
+  const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [setupLayer]);
 
   useMapboxLayerVisibility(map, loadComplete, [overlayLayer], enabled && !isError);
 

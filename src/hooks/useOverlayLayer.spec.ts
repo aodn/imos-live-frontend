@@ -112,11 +112,9 @@ describe('useOverlayLayer', () => {
   it('should initialize with overlay enabled and setup layer on load', () => {
     renderHook(() => useOverlayLayer(defaultProps));
 
+    // setupLayer is now passed as dependency instead of overlayLayer
     expect(useMapboxLayerSetup).toHaveBeenCalledWith(mockMap, expect.any(Function), [
-      {
-        id: 'gsla-overlay-layer',
-        source: 'gsla-overlay-source',
-      },
+      expect.any(Function),
     ]);
 
     expect(useMapboxLayerVisibility).toHaveBeenCalledWith(
@@ -179,8 +177,9 @@ describe('useOverlayLayer', () => {
     expect(setProductErrorByProduct).toHaveBeenCalledWith('gsla', false);
   });
 
-  it('should set product error when rasterUrl fails', async () => {
-    (rasterUrl as Mock).mockRejectedValue(new Error('Failed to fetch URL'));
+  it('should reset error and add source even when rasterUrl returns invalid URL', async () => {
+    // In the new approach, rasterUrl returns an invalid URL instead of throwing
+    (rasterUrl as Mock).mockResolvedValue('invalid-url');
 
     renderHook(() => useOverlayLayer(defaultProps));
 
@@ -191,9 +190,16 @@ describe('useOverlayLayer', () => {
       await setupLayerFn();
     });
 
+    // Error is reset to false at the beginning to allow layer to be added
     expect(setProductErrorByProduct).toHaveBeenCalledWith('gsla', false);
-    expect(setProductErrorByProduct).toHaveBeenCalledWith('gsla', true);
-    expect(addOrUpdateWMSSource).not.toHaveBeenCalled();
+
+    // Source is always added (even with invalid URL)
+    // Error detection happens later via useOverlayProductErrorDetect listening to sourcedata events
+    expect(addOrUpdateWMSSource).toHaveBeenCalledWith({
+      map: mockMap.current,
+      url: 'invalid-url',
+      sourceId: 'gsla-overlay-source',
+    });
   });
 
   it('should update data source when date changes', () => {

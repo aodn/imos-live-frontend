@@ -7,20 +7,26 @@ import { getThreddsCatalog } from '@/api';
 
 const baseUrl = async (id: OverlaySource, date: Date): Promise<string> => {
   return {
+    // always return url and let mapbox handle error, avoid break mapbox add gsla-overlay-source source to map.
     [GSLA_OVERLAY_SOURCE_ID]: async (date: Date) => {
-      const catalog = await getThreddsCatalog(date);
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(catalog, 'text/html');
-      const link =
-        Array.from(doc.querySelectorAll('.section-content a[href]'))
-          .map(item => {
-            return (item as HTMLAnchorElement).href;
-          })
-          .find(link =>
-            link.includes(
-              `IMOS_OceanCurrent_HV_${date.getFullYear()}${(date.getUTCMonth() + 1).toString().padStart(2, '0')}${date.getDate().toString().padStart(2, '0')}T`,
-            ),
-          ) || '';
+      let link = 'http://www.example.com'; //this is an intentional fallback url, stop new URL(link) throw error.
+      try {
+        const catalog = await getThreddsCatalog(date);
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(catalog, 'text/html');
+        link =
+          Array.from(doc.querySelectorAll('.section-content a[href]'))
+            .map(item => {
+              return (item as HTMLAnchorElement).href;
+            })
+            .find(link =>
+              link.includes(
+                `IMOS_OceanCurrent_HV_${date.getFullYear()}${(date.getUTCMonth() + 1).toString().padStart(2, '0')}${date.getDate().toString().padStart(2, '0')}T`,
+              ),
+            ) || link;
+      } catch (error) {
+        console.log(error);
+      }
       const url = new URL(link);
       return `/thredds/wms/${url.searchParams.get('dataset')}`;
     },
