@@ -25,10 +25,10 @@ export function useOverlayProductErrorDetect(map: React.RefObject<mapboxgl.Map |
     if (!mapInstance) return;
 
     const handleError = (e: MapSourceDataEvent) => {
-      if (e.sourceDataType !== 'error' || !e.isSourceLoaded || !e.sourceId) return;
-      if (isOverlaySourceId(e.sourceId)) {
+      if (!e.sourceId || !isOverlaySourceId(e.sourceId) || !e.isSourceLoaded) return;
+
+      if (e.sourceDataType === 'error')
         setProductErrorByProduct(sourceIdToProduct(e.sourceId), true);
-      }
     };
 
     mapInstance.on('sourcedata', handleError);
