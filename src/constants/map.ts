@@ -17,26 +17,34 @@ export const ProductSourceIds: ProductSourceId[] = [
   WAVE_BUOYS_SOURCE_ID,
 ];
 
-export const isProductSourceId = (id: string): id is ProductSourceId =>
-  ProductSourceIds.includes(id as ProductSourceId);
-
-// these two are intermediate layer on fly
-export const WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID = 'wave-buoys-cluster-label-layer';
-export const UNCLUSTERED_WAVE_BUOYS_LAYER_ID = 'unclustered_wave-buoys-layer';
-
-export type OverlaySource =
-  | typeof GSLA_OVERLAY_SOURCE_ID
-  | typeof SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID;
+export const OverlayProductSourceIds: OverlaySource[] = [
+  GSLA_OVERLAY_SOURCE_ID,
+  SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID,
+];
 
 export type OverlayLayer =
   | typeof GSLA_OVERLAY_LAYER_ID
   | typeof SST_ANOMALY_MOSAIC_OVERLAY_LAYER_ID;
+
+export type OverlaySource =
+  | typeof GSLA_OVERLAY_SOURCE_ID
+  | typeof SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID;
 
 export type BuoySource = typeof WAVE_BUOYS_SOURCE_ID;
 export type BuoyLayer = typeof WAVE_BUOYS_LAYER_ID;
 
 export type ParticleLayer = typeof PARTICLE_LAYER_ID;
 export type ParticleSource = typeof PARTICLE_SOURCE_ID;
+
+export const isProductSourceId = (id: string): id is ProductSourceId =>
+  ProductSourceIds.includes(id as ProductSourceId);
+
+export const isOverlaySourceId = (id: string): id is OverlaySource =>
+  OverlayProductSourceIds.includes(id as OverlaySource);
+
+// these two are intermediate layer on fly
+export const WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID = 'wave-buoys-cluster-label-layer';
+export const UNCLUSTERED_WAVE_BUOYS_LAYER_ID = 'unclustered_wave-buoys-layer';
 
 export const ZOOM_LIMIT_TEMP_POINTS_SOURCE_ID = 'zoom-limit-temp-points-source';
 export const ZOOM_LIMIT_TEMP_POINTS_CONNECTION_LINES_SOURCE_ID =

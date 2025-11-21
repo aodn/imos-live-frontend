@@ -10,7 +10,7 @@ import {
   useWaveBuoysLayer,
   useWaveBuoysLayerClickHandler,
   useWorldLandLayer,
-  useProductErrorDetect,
+  useOverlayProductErrorDetect,
 } from '@/hooks';
 import { useMapUIStore } from '@/store';
 import { cn } from '@/utils';
@@ -83,7 +83,7 @@ export const MapComponent = memo(() => {
     product: Product.WAVE_BUOYS,
   });
 
-  useProductErrorDetect(map);
+  useOverlayProductErrorDetect(map);
 
   //3. add click event listners to map and layers.
   const {
