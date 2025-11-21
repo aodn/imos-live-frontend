@@ -19,6 +19,7 @@ interface ImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   onLoadComplete?: () => void;
   onError?: () => void;
   loading?: 'lazy' | 'eager';
+  showErrorIcon?: boolean;
 }
 
 const isDataURI = (str: string) => str.startsWith('data:');
@@ -41,6 +42,7 @@ export const Image = ({
   onLoadComplete,
   onError,
   loading = 'lazy',
+  showErrorIcon = true,
   ...imgProps
 }: ImageProps) => {
   const [isLoading, setIsLoading] = useState(!isDataURI(src));
@@ -129,10 +131,12 @@ export const Image = ({
             ...(typeof skeletonWidth === 'number' ? { width: skeletonWidth } : {}),
           }}
         >
-          <div className="text-center text-gray-500">
-            <ImageErrorIcon size="xl" className="mx-auto text-gray-500" aria-hidden="true" />
-            <p className="text-xs">Failed to load image</p>
-          </div>
+          {showErrorIcon && (
+            <div className="text-center text-gray-500">
+              <ImageErrorIcon size="xl" className="mx-auto text-gray-500" aria-hidden="true" />
+              <p className="text-xs">Failed to load image</p>
+            </div>
+          )}
         </div>
       )}
 

@@ -53,6 +53,7 @@ export const LayerCard = ({
   };
   return (
     <CollapsibleComponent
+      overlayEnabled={isError}
       wrapperClassName="md:rounded-lg md:shadow-lg bg-white md:border border-b border-gray-300"
       defaultOpen
       isWidthFiexed
@@ -81,23 +82,13 @@ export const LayerCard = ({
           </div>
 
           {!visible && (
-            <Button
-              variant={'outline'}
-              onClick={handleClick}
-              className="self-end"
-              disabled={isError}
-            >
+            <Button variant={'outline'} onClick={handleClick} className="self-end">
               <MapLayersIcon />
               {firstButtonLabel}
             </Button>
           )}
           {visible && (
-            <Button
-              variant={'outline'}
-              onClick={handleClick}
-              className="self-end"
-              disabled={isError}
-            >
+            <Button variant={'outline'} onClick={handleClick} className="self-end">
               <MapLayersIcon />
               {secondButtonLabel}
             </Button>

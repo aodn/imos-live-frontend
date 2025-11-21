@@ -2,7 +2,7 @@ import { overlayLayerConfig } from '@/config';
 import { OverlayLayer, OverlaySource, Product } from '@/constants';
 import { addLayerInOrder, addOrUpdateWMSSource, rasterUrl } from '@/helpers';
 import { imageLayer } from '@/layers';
-import { useMapUIStore, setProductErrorByProduct } from '@/store';
+import { setProductErrorByProduct, useMapUIStore } from '@/store';
 import { useCallback, useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { useDidMountEffect } from './useDidMountEffect';
