@@ -29,7 +29,7 @@ export const RasterLegend = ({ date, overlaySource, scales, label }: RasterLegen
     setProductErrorByProduct(sourceIdToProduct(overlaySource), v);
   };
   return (
-    <div>
+    <div className="w-full">
       <div className="w-full">
         <Image
           src={legendUrl || 'invalid-url'}

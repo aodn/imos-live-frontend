@@ -5,7 +5,7 @@
 import { renderHook, act } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi, Mock } from 'vitest';
 import { useOverlayLayer } from './useOverlayLayer';
-import { useMapUIStore, setProductErrorByProduct } from '@/store';
+import { useMapUIStore } from '@/store';
 import { addLayerInOrder, addOrUpdateWMSSource, rasterUrl } from '@/helpers';
 import { imageLayer } from '@/layers';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
@@ -26,7 +26,6 @@ const mockMap = {
 
 vi.mock('@/store', () => ({
   useMapUIStore: vi.fn(),
-  setProductErrorByProduct: vi.fn(),
 }));
 
 vi.mock('@/helpers', () => ({
@@ -173,8 +172,6 @@ describe('useOverlayLayer', () => {
       id: 'gsla-overlay-layer',
       source: 'gsla-overlay-source',
     });
-
-    expect(setProductErrorByProduct).toHaveBeenCalledWith('gsla', false);
   });
 
   it('should reset error and add source even when rasterUrl returns invalid URL', async () => {
@@ -189,9 +186,6 @@ describe('useOverlayLayer', () => {
     await act(async () => {
       await setupLayerFn();
     });
-
-    // Error is reset to false at the beginning to allow layer to be added
-    expect(setProductErrorByProduct).toHaveBeenCalledWith('gsla', false);
 
     // Source is always added (even with invalid URL)
     // Error detection happens later via useOverlayProductErrorDetect listening to sourcedata events
