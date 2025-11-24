@@ -19,7 +19,6 @@ import {
 import { Product } from '@/constants';
 import { useViewportSize } from '@/hooks';
 import { useDrawerStore, refreshDates, closeLeftDrawer } from '@/store';
-import { cn } from '@/utils';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useEffect, useMemo } from 'react';
 
@@ -96,24 +95,13 @@ export const Map = () => {
 
   return (
     <div className="overflow-hidden h-full w-full">
-      <div
-        className={cn('h-full w-full', {
-          hidden: !isSmallScreen,
-        })}
-      >
-        {mapContent}
-      </div>
-
-      <Sidebar
-        className={cn({
-          hidden: isSmallScreen,
-        })}
-        width={540}
-        defaultOpen={true}
-        sidebarContent={<MainSidebarContent />}
-      >
-        {mapContent}
-      </Sidebar>
+      {isSmallScreen ? (
+        <div className="h-full w-full">{mapContent}</div>
+      ) : (
+        <Sidebar width={540} defaultOpen={true} sidebarContent={<MainSidebarContent />}>
+          {mapContent}
+        </Sidebar>
+      )}
     </div>
   );
 };
