@@ -140,7 +140,7 @@ export const Dropdown = ({
   const hasValue = value && (Array.isArray(value) ? value.length > 0 : value);
 
   return (
-    <div className={`relative ${className}`} ref={!usePortal ? dropdownRef : undefined}>
+    <div className={cn('relative', className)} ref={!usePortal ? dropdownRef : undefined}>
       {label && (
         <label className="block text-sm font-medium text-gray-700 mb-1">
           {label}
