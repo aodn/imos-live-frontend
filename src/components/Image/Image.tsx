@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { cn } from '@/utils';
 import { Skeleton } from '../Skeleton';
 import { ImageErrorIcon } from '../Icons';
@@ -48,47 +48,34 @@ export const Image = ({
   const [isLoading, setIsLoading] = useState(!isDataURI(src));
   const [hasError, setHasError] = useState(false);
   const [currentSrc, setCurrentSrc] = useState(src);
-  const imgRef = useRef<HTMLImageElement>(null);
 
-  // Reset state when src changes
   useEffect(() => {
     setCurrentSrc(src);
     setIsLoading(!isDataURI(src));
     setHasError(false);
-  }, [src]);
 
-  // Handle image loading
-  useEffect(() => {
-    if (!imgRef.current || isDataURI(currentSrc)) return;
-    let cancelled = false;
-    onLoadStart?.();
+    if (!isDataURI(src)) {
+      onLoadStart?.();
+    }
+  }, [src, onLoadStart]);
 
-    imgRef.current
-      .decode()
-      .then(() => {
-        if (cancelled) return;
-        setIsLoading(false);
-        setHasError(false);
-        onLoadComplete?.();
-      })
-      .catch(() => {
-        if (cancelled) return;
-        if (fallbackSrc && currentSrc !== fallbackSrc) {
-          setCurrentSrc(fallbackSrc);
-          setIsLoading(true);
-          setHasError(false);
-        } else {
-          setIsLoading(false);
-          setHasError(true);
-          onError?.();
-        }
-      });
+  const handleLoad = () => {
+    setIsLoading(false);
+    setHasError(false);
+    onLoadComplete?.();
+  };
 
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentSrc, fallbackSrc]);
+  const handleError = () => {
+    if (fallbackSrc && currentSrc !== fallbackSrc) {
+      setCurrentSrc(fallbackSrc);
+      setIsLoading(true);
+      setHasError(false);
+    } else {
+      setIsLoading(false);
+      setHasError(true);
+      onError?.();
+    }
+  };
 
   return (
     <div
@@ -143,11 +130,12 @@ export const Image = ({
       {/* Actual Image - Only render when not in error state */}
       {!hasError && (
         <img
-          ref={imgRef}
           {...imgProps}
           src={currentSrc}
           alt={alt}
           loading={loading}
+          onLoad={handleLoad}
+          onError={handleError}
           className={cn(
             imageClassName,
             'transition-opacity duration-300',

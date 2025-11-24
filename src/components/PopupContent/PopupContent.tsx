@@ -95,6 +95,7 @@ export const PopupContent = ({ onClose, lngLat, mapBounds, mapSize, point }: Pop
                 </span>
               </div>
             )}
+
             {sstAnomMosaicEnabled && data['sst-anom-mosaic'] && (
               <div
                 className="flex-col md:flex-row flex justify-between md:items-center"
