@@ -12,6 +12,7 @@ import {
   MapsIcon,
   SatelliteIcon,
   Sidebar,
+  ThermometerIcon,
   WaterSurfaceIcon,
   WaveIcon,
 } from '@/components';
@@ -60,12 +61,13 @@ export const Map = () => {
               { Icon: WaveIcon, product: Product.GSLA_OCEAN_GEOSTROPHIC_CURRENT },
               { Icon: WaterSurfaceIcon, product: Product.GSLA_ANOMALY_SEA_LEVELS },
               { Icon: SatelliteIcon, product: Product.WAVE_BUOYS },
+              { Icon: ThermometerIcon, product: Product.SST_ANOMALY_MOSAIC },
             ]}
           />
           <MapComponent key={isSmallScreen ? 'mobile' : 'desktop'} />
           <DateSelectionBar className="absolute bottom-2 left-1/2 -translate-x-1/2 w-full pointer-events-none" />
           <FloatingPanel
-            wrapperClassName="w-14 md:w-fit bg-imos-light rounded-xl"
+            wrapperClassName="w-14 md:min-w-60 bg-imos-light rounded-xl"
             boundary="parent"
             collapsible
             initialOpen={!isSmallScreen}

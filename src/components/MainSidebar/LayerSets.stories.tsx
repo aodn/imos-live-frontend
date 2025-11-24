@@ -18,6 +18,5 @@ export const Primary: Story = {
   args: {
     layersDatasets: featuredDataset,
     title: 'OC Products',
-    date: '',
   },
 };

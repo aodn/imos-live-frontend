@@ -79,13 +79,13 @@ export function FeaturesMenu({
   };
   return (
     <aside
-      className={cn('bg-white shadow-lg py-2 w-40 md:w-fit', className)}
+      className={cn('bg-white shadow-lg py-2 w-40 md:w-full', className)}
       aria-label="Map features configuration menu"
     >
-      <div>
-        <ul className="outline-none flex justify-between" role="menu" tabIndex={0}>
+      <div className="w-full">
+        <ul className="outline-none flex justify-between gap-x-1" role="menu" tabIndex={0}>
           {features.map(({ icon: Icon, label, fn }) => (
-            <li key={label} role="none">
+            <li key={label} role="none" className="flex-1">
               <Button
                 variant="ghost"
                 onClick={handleItemClick(label, fn)}
@@ -106,44 +106,39 @@ export function FeaturesMenu({
         </ul>
       </div>
       {!!activeItem && (
-        <div className="mt-2 p-2">
+        <div className="md:mt-2 px-4 py-2 w-full">
           {activeItem === 'Options' && (
-            <>
-              <div className="pr-2 pl-2 pb-2">
-                <Dropdown
-                  label="number of particles"
-                  onChange={
-                    handleNumParticlesSelect as (
-                      value: string | number | (string | number)[],
-                    ) => void
-                  }
-                  options={numParticlesDropdownSelections}
-                  initialValue={numParticles || numParticlesDropdownSelections[0].value}
-                  position="auto"
-                  usePortal
-                />
-              </div>
-              <div className="pt-2">
-                <Switch
-                  label="Measure distance"
-                  labelPosition="left"
-                  initialValue={distanceMeasurement}
-                  onChange={handleDistanceMeasurementSelect}
-                  dataTestId="switch-distancemeasurement"
-                />
-              </div>
-              <div className="pt-2">
-                <Switch
-                  label="World boundaries"
-                  labelPosition="left"
-                  initialValue={worldBoundaries}
-                  onChange={handleWorldBoundariesSelect}
-                />
-              </div>
-            </>
+            <div className="w-full flex flex-col gap-y-2 items-start">
+              <Dropdown
+                label="number of particles"
+                className="w-full"
+                onChange={
+                  handleNumParticlesSelect as (value: string | number | (string | number)[]) => void
+                }
+                options={numParticlesDropdownSelections}
+                initialValue={numParticles || numParticlesDropdownSelections[0].value}
+                position="auto"
+                usePortal
+              />
+
+              <Switch
+                label="Measure distance"
+                labelPosition="left"
+                initialValue={distanceMeasurement}
+                onChange={handleDistanceMeasurementSelect}
+                dataTestId="switch-distancemeasurement"
+              />
+
+              <Switch
+                label="World boundaries"
+                labelPosition="left"
+                initialValue={worldBoundaries}
+                onChange={handleWorldBoundariesSelect}
+              />
+            </div>
           )}
           {activeItem === 'Maps' && (
-            <div className="pl-2 pr-2">
+            <div className="w-full">
               <Dropdown
                 label="map style"
                 onChange={

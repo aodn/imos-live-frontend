@@ -14,8 +14,9 @@ import {
 } from '@/constants';
 import { RadarIcon, SatelliteIcon, ThermometerIcon, WaterSurfaceIcon, WaveIcon } from '../Icons';
 import { LayersDataset } from './MainSidebarContent';
-import { RasterLegend } from '../ColorScaleBar';
+import { LogColorScaleBar, RasterLegend } from '../ColorScaleBar';
 import { setProductEnabledByProduct } from '@/store';
+import { gslaOceanCurrentColorsLegendConfig } from '@/config';
 
 export const headerData = {
   title: 'IMOS Live',
@@ -44,6 +45,7 @@ export const featuredDataset: LayersDataset[] = [
     visible: false,
     isError: false,
     product: Product.GSLA_OCEAN_GEOSTROPHIC_CURRENT,
+    legend: <LogColorScaleBar className="w-full" {...gslaOceanCurrentColorsLegendConfig} />,
     addToMap: setProductEnabledByProduct,
   },
   {
@@ -63,9 +65,8 @@ export const featuredDataset: LayersDataset[] = [
     visible: false,
     isError: false,
     product: Product.GSLA_ANOMALY_SEA_LEVELS,
-    legend: date => (
+    legend: (
       <RasterLegend
-        date={date}
         overlaySource={GSLA_OVERLAY_SOURCE_ID}
         scales={[-1.2, -0.5, -0.2, -0.1, 0, 0.1, 0.2, 0.5, 1.2]}
         label="anomaly sea level (m)"
@@ -86,9 +87,8 @@ export const featuredDataset: LayersDataset[] = [
     visible: false,
     isError: false,
     product: Product.SST_ANOMALY_MOSAIC,
-    legend: date => (
+    legend: (
       <RasterLegend
-        date={date}
         overlaySource={SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID}
         scales={[-10, -5, 0, 5, 10]}
         label="degrees Celsius (°C)"

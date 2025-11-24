@@ -23,7 +23,7 @@ export const CollapsibleTrigger = ({
   return (
     <div
       className={cn(
-        'w-full min-h-10 flex items-center relative cursor-grab h-12 md:h-auto',
+        'w-full min-h-10 px-2 flex items-center relative cursor-grab h-12 md:h-auto',
         dragHandleClass,
         clasName,
       )}

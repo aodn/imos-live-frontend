@@ -1,11 +1,9 @@
-import { gslaOceanCurrentColorsLegendConfig } from '@/config';
-import { WAVE_BUOYS_LAYER_ID, Product } from '@/constants';
+import { WAVE_BUOYS_LAYER_ID } from '@/constants';
 import { useViewportSize } from '@/hooks';
 import { cn } from '@/utils';
-import { ReactNode, useMemo } from 'react';
+import { ReactNode } from 'react';
 import { Button } from '../Button';
 import { CollapsibleComponent, TriggerArgs } from '../Collapsible';
-import { LogColorScaleBar } from '../ColorScaleBar';
 import { ArrowDownIcon, MapLayersIcon } from '../Icons';
 import { Image } from '../Image';
 import { LayersDataset } from './MainSidebarContent';
@@ -13,13 +11,11 @@ import { LayersDataset } from './MainSidebarContent';
 export type LayerCardProps = LayersDataset & {
   firstButtonLabel: string;
   secondButtonLabel: string;
-  date: string;
 };
 
 export const LayerCard = ({
   image,
   title,
-  date,
   description,
   firstButtonLabel,
   secondButtonLabel,
@@ -32,25 +28,12 @@ export const LayerCard = ({
   legend,
 }: LayerCardProps) => {
   const { isSmallScreen } = useViewportSize();
-  const products = useMemo(
-    () => ({
-      [Product.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: {
-        ...gslaOceanCurrentColorsLegendConfig,
-      },
-    }),
-    [],
-  );
-
-  const colorScaleBars = useMemo(() => {
-    if (product === Product.GSLA_OCEAN_GEOSTROPHIC_CURRENT)
-      return <LogColorScaleBar className="w-full" {...products[product]} />;
-    //the reaaon to use LogColorScaleBar is most data points are between 0~2, so log scale is better to show the color difference.
-  }, [product, products]);
 
   const handleClick = () => {
     if (addToMap) addToMap(product, !visible);
     if (layerId === WAVE_BUOYS_LAYER_ID) import('../Highcharts/WaveBuoyChart'); //preload wavebuoy chart when wavebuoylayer added.
   };
+
   return (
     <CollapsibleComponent
       overlayEnabled={isError}
@@ -94,8 +77,7 @@ export const LayerCard = ({
             </Button>
           )}
         </div>
-        {!!colorScaleBars && <div className="col-span-2 md:mt-4">{colorScaleBars}</div>}
-        {!!legend && <div className="col-span-2 md:mt-4">{legend(date)}</div>}
+        {!!legend && <div className="col-span-2 md:mt-4">{legend}</div>}
       </div>
     </CollapsibleComponent>
   );
