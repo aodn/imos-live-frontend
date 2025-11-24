@@ -63,7 +63,17 @@ export const Image = ({
     let cancelled = false;
     onLoadStart?.();
 
-    imgRef.current
+    const img = imgRef.current;
+
+    // If image is already complete (loaded from cache), don't call decode again
+    if (img.complete && img.naturalWidth > 0) {
+      setIsLoading(false);
+      setHasError(false);
+      onLoadComplete?.();
+      return;
+    }
+
+    img
       .decode()
       .then(() => {
         if (cancelled) return;
