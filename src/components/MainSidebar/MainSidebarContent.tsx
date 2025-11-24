@@ -23,7 +23,7 @@ export type LayersDataset = {
   layerId: string;
   visible: boolean;
   isError: boolean;
-  legend?: (date: string) => ReactNode;
+  legend?: ReactNode;
   product: Product;
 };
 

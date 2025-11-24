@@ -2,10 +2,9 @@ import { OverlaySource, sourceIdToProduct } from '@/constants';
 import { rasterLegendUrl } from '@/helpers';
 import { useQuery } from '@tanstack/react-query';
 import { Image } from '../Image';
-import { setProductErrorByProduct } from '@/store';
+import { setProductErrorByProduct, useMapUIStore } from '@/store';
 
 type RasterLegendProps = {
-  date: string;
   overlaySource: OverlaySource;
   scales: number[];
   label: string;
@@ -19,7 +18,8 @@ type RasterLegendProps = {
  * if failed, the corresponding product tile images in useOverlayLayer should also fail.
  * While the tiles iamge validation are checked in useOverlayProductErrorDetect.
  */
-export const RasterLegend = ({ date, overlaySource, scales, label }: RasterLegendProps) => {
+export const RasterLegend = ({ overlaySource, scales, label }: RasterLegendProps) => {
+  const date = useMapUIStore(s => s.date);
   const { data: legendUrl } = useQuery({
     queryKey: ['legend', overlaySource, date],
     queryFn: () => rasterLegendUrl(overlaySource, new Date(date)),
