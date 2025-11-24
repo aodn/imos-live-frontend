@@ -39,9 +39,8 @@ type MainSidebarProps = {
 
 export const MainSidebarContent: React.FC<MainSidebarProps> = ({ className = '' }) => {
   const [searchQuery] = useState('');
-  const { date, productEnabled, productError } = useMapUIStore(
+  const { productEnabled, productError } = useMapUIStore(
     useShallow(s => ({
-      date: s.date,
       productEnabled: s.productEnabled,
       productError: s.productError,
     })),
@@ -70,7 +69,6 @@ export const MainSidebarContent: React.FC<MainSidebarProps> = ({ className = '' 
         title="Featured Data"
         layersDatasets={filteredLayerSets}
         className="md:px-2 mt-4"
-        date={date}
       />
 
       <LayerProducts

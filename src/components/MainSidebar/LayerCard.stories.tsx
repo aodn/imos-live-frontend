@@ -28,7 +28,6 @@ export const Primary: Story = {
     secondButtonLabel: 'Remove from map',
     visible: false,
     layerId: 'test layerid',
-    date: '',
     legend: undefined,
     isError: false,
     product: 'gsla-anomaly-sea-levels',
