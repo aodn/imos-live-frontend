@@ -68,5 +68,6 @@ export function useWorldLandLayer(map: React.RefObject<mapboxgl.Map | null>) {
 
   const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [setupLayer]);
 
+  // the transparent worldLandFillLayer is always enabled.
   useMapboxLayerVisibility(map, loadComplete, [worldLandBorderLayer], enabled);
 }
