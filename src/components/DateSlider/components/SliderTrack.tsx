@@ -110,7 +110,6 @@ export const SliderTrack = memo(
     scales,
     scaleUnitConfig,
     trackRef,
-    timeUnit,
     startDate,
     endDate,
     onDragging,
@@ -128,31 +127,31 @@ export const SliderTrack = memo(
     const handleMouseMove = useCallback(
       (e: React.MouseEvent<Element, MouseEvent>) => {
         const percentage = getPercentageFromMouseEvent(e, trackRef);
-        const label = formatDateForDisplay(
-          getDateFromPercent(percentage, startDate, endDate),
-          timeUnit,
-        );
+        const label = formatDateForDisplay({
+          date: getDateFromPercent(percentage, startDate, endDate),
+          fullDate: true,
+        });
 
         setIsHover(true);
         setDateLabel(label);
         setMouseHoverPosition(percentage);
       },
-      [trackRef, startDate, endDate, timeUnit],
+      [trackRef, startDate, endDate],
     );
 
     const handleTouchMove = useCallback(
       (e: React.TouchEvent<Element>) => {
         const percentage = getPercentageFromTouchEvent(e, trackRef);
-        const label = formatDateForDisplay(
-          getDateFromPercent(percentage, startDate, endDate),
-          timeUnit,
-        );
+        const label = formatDateForDisplay({
+          date: getDateFromPercent(percentage, startDate, endDate),
+          fullDate: true,
+        });
 
         setIsHover(false);
         setDateLabel(label);
         setMouseHoverPosition(percentage);
       },
-      [trackRef, startDate, endDate, timeUnit],
+      [trackRef, startDate, endDate],
     );
 
     const handleTouchEnd = useCallback(() => {

@@ -90,7 +90,6 @@ export const RenderSliderHandle = memo<UpdatedRenderSliderHandleProps>(
     pointPosition,
     startDate,
     endDate,
-    timeUnit,
     isDragging,
     rangeHandleIcon,
     pointHandleIcon,
@@ -121,10 +120,10 @@ export const RenderSliderHandle = memo<UpdatedRenderSliderHandleProps>(
               icon={rangeHandleIcon}
               onDragging={isDragging === 'start'}
               position={rangeStart}
-              label={formatDateForDisplay(
-                getDateFromPercent(rangeStart, startDate, endDate),
-                timeUnit,
-              )}
+              label={formatDateForDisplay({
+                date: getDateFromPercent(rangeStart, startDate, endDate),
+                fullDate: true,
+              })}
               onMouseDown={onMouseDown('start')}
               onTouchStart={onTouchStart('start')}
               value={rangeStart}
@@ -137,10 +136,10 @@ export const RenderSliderHandle = memo<UpdatedRenderSliderHandleProps>(
               icon={rangeHandleIcon}
               onDragging={isDragging === 'end'}
               position={rangeEnd}
-              label={formatDateForDisplay(
-                getDateFromPercent(rangeEnd, startDate, endDate),
-                timeUnit,
-              )}
+              label={formatDateForDisplay({
+                date: getDateFromPercent(rangeEnd, startDate, endDate),
+                fullDate: true,
+              })}
               onMouseDown={onMouseDown('end')}
               onTouchStart={onTouchStart('end')}
               value={rangeEnd}
@@ -157,10 +156,10 @@ export const RenderSliderHandle = memo<UpdatedRenderSliderHandleProps>(
             icon={pointHandleIcon}
             onDragging={isDragging === 'point'}
             position={pointPosition}
-            label={formatDateForDisplay(
-              getDateFromPercent(pointPosition, startDate, endDate),
-              timeUnit,
-            )}
+            label={formatDateForDisplay({
+              date: getDateFromPercent(pointPosition, startDate, endDate),
+              fullDate: true,
+            })}
             onMouseDown={onMouseDown('point')}
             onTouchStart={onTouchStart('point')}
             value={pointPosition}

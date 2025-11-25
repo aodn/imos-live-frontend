@@ -58,8 +58,8 @@ export const DateSlider = memo(
     sliderHeight,
     imperativeHandleRef,
     pointLabelPersistent,
-    isTimeLabelPerDay = false,
     withEndLabel = true,
+    timeUnitSelectionEnabled = true,
     freeSelectionOnTrackClick = false,
   }: SliderProps) => {
     const [dimensions, setDimensions] = useState({ parent: 0, slider: 0 });
@@ -143,9 +143,12 @@ export const DateSlider = memo(
       return generateTrackWidth(totalScaleUnits, numberOfScales, safeScaleUnitConfig);
     }, [numberOfScales, scaleUnitConfig, sliderContainerWidth, totalScaleUnits]);
 
+    //TODO: could refactor this to always generate full labels regardless of time unit. But later,
+    // in formatDateForDisplay to decide what to dispaly and how display format.
+    //day unit, generate all labels per day. month unit, generate per month. year unit, per year.
     const timeLabels = useMemo(
-      () => generateTimeLabelsWithPositions(startDate, endDate, timeUnit, isTimeLabelPerDay),
-      [startDate, endDate, timeUnit, isTimeLabelPerDay],
+      () => generateTimeLabelsWithPositions(startDate, endDate, timeUnit),
+      [startDate, endDate, timeUnit],
     );
 
     const updateDimensions = useCallback(() => {
@@ -365,7 +368,6 @@ export const DateSlider = memo(
                   activeTrackClassName={trackActiveClassName}
                   trackRef={trackRef}
                   aria-label="Date slider track"
-                  timeUnit={timeUnit}
                   startDate={startDate}
                   endDate={endDate}
                   onDragging={!!isDragging}
@@ -374,8 +376,6 @@ export const DateSlider = memo(
                   timeLabels={timeLabels}
                   scales={scales}
                   trackWidth={trackWidth}
-                  timeUnit={timeUnit}
-                  isTimeLabelPerDay={isTimeLabelPerDay}
                   withEndLabel={withEndLabel}
                 />
                 <RenderSliderHandle
@@ -403,16 +403,18 @@ export const DateSlider = memo(
           </div>
         </div>
 
-        <div className="flex flex-col">
-          <Spacer height={40} />
-          <TimeUnitSelection
-            className={cn('pointer-events-auto flex-1', timeUnitSlectionClassName)}
-            isMonthValid={checkDateDuration(startDate, endDate).moreThanOneMonth}
-            isYearValid={checkDateDuration(startDate, endDate).moreThanOneYear}
-            onChange={handleTimeUnitChange}
-            initialTimeUnit={initialTimeUnit}
-          />
-        </div>
+        {timeUnitSelectionEnabled && (
+          <div className="flex flex-col">
+            <Spacer height={40} />
+            <TimeUnitSelection
+              className={cn('pointer-events-auto flex-1', timeUnitSlectionClassName)}
+              isMonthValid={checkDateDuration(startDate, endDate).moreThanOneMonth}
+              isYearValid={checkDateDuration(startDate, endDate).moreThanOneYear}
+              onChange={handleTimeUnitChange}
+              initialTimeUnit={initialTimeUnit}
+            />
+          </div>
+        )}
       </div>
     );
   },

@@ -66,8 +66,8 @@ export type SliderProps = {
   sliderHeight?: number;
   imperativeHandleRef?: React.Ref<SliderExposedMethod>;
   pointLabelPersistent?: boolean;
-  isTimeLabelPerDay?: boolean;
   withEndLabel?: boolean;
+  timeUnitSelectionEnabled?: boolean;
   freeSelectionOnTrackClick?: boolean; //if true, the datetime can be freely selected when click on track, if false, the selection will be limited to datetime per scale units.
 };
 
@@ -82,7 +82,6 @@ type BaseSliderTrackProps = {
   scales: Scale[];
   scaleUnitConfig: ScaleUnitConfig;
   trackRef: RefObject<HTMLDivElement | null>;
-  timeUnit: TimeUnit;
   startDate: Date;
   endDate: Date;
   onDragging: boolean;
@@ -164,9 +163,7 @@ export type TimeLabelsProps = {
   timeLabels: TimeLabel[];
   scales: Scale[];
   trackWidth: number;
-  timeUnit: TimeUnit;
   minDistance?: number;
   className?: string;
-  isTimeLabelPerDay?: boolean;
   withEndLabel?: boolean;
 };

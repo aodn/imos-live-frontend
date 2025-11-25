@@ -57,16 +57,10 @@ export const getTotalScales = (start: Date, end: Date, unit: TimeUnit): number =
   }
 };
 
-export const getRepresentativeDate = (
-  date: Date,
-  unit: TimeUnit,
-  isPerDay: boolean = false,
-): Date => {
+export const getRepresentativeDate = (date: Date, unit: TimeUnit): Date => {
   switch (unit) {
     case 'day':
-      return isPerDay
-        ? new Date(date.getFullYear(), date.getMonth(), date.getDate())
-        : new Date(date.getFullYear(), date.getMonth(), 1);
+      return new Date(date.getFullYear(), date.getMonth(), date.getDate());
     case 'month':
       return new Date(date.getFullYear(), 0, 1);
     case 'year':
@@ -74,30 +68,29 @@ export const getRepresentativeDate = (
   }
 };
 
-// Display Formatting
-export const formatDateForDisplay = (
-  date: Date,
-  unit: TimeUnit,
-  isDayVisible: boolean = true,
-): string => {
-  switch (unit) {
-    case 'day':
-      return date.toLocaleDateString('en-US', {
-        month: 'short',
-        day: isDayVisible ? 'numeric' : undefined,
-        year: 'numeric',
-      });
+export const formatDateForDisplay = ({
+  date,
+  fullDate = false,
+}: {
+  date: Date;
+  fullDate?: boolean;
+}): string => {
+  const day = date.getDate();
+  const month = date.getMonth();
 
-    case 'month':
-      return date.toLocaleDateString('en-US', {
-        day: isDayVisible ? 'numeric' : undefined,
-        month: 'short',
-        year: 'numeric',
-      });
-
-    case 'year':
-      return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  if (fullDate) {
+    return date.toLocaleDateString('en-AU', { year: 'numeric', month: 'short', day: 'numeric' });
   }
+
+  if (month === 0 && day === 1) {
+    return date.toLocaleDateString('en-AU', { year: 'numeric' });
+  }
+
+  if (day === 1) {
+    return date.toLocaleDateString('en-AU', { month: 'short' });
+  }
+
+  return date.toLocaleDateString('en-AU', { day: 'numeric' });
 };
 
 // Slider/Track Measurements
@@ -173,7 +166,6 @@ export const generateTimeLabelsWithPositions = (
   start: Date,
   end: Date,
   unit: TimeUnit,
-  isPerDay: boolean = false,
 ): TimeLabel[] => {
   const labels: TimeLabel[] = [];
   const current = new Date(start);
@@ -186,14 +178,8 @@ export const generateTimeLabelsWithPositions = (
     let labelDate: Date | undefined;
     switch (unit) {
       case 'day':
-        if (isPerDay) {
-          labelDate = new Date(current.getFullYear(), current.getMonth(), current.getDate());
-          current.setDate(current.getDate() + 1);
-        } else {
-          labelDate = new Date(current.getFullYear(), current.getMonth(), 1);
-          current.setMonth(current.getMonth() + 1);
-        }
-
+        labelDate = new Date(current.getFullYear(), current.getMonth(), current.getDate());
+        current.setDate(current.getDate() + 1);
         break;
       case 'month':
         labelDate = new Date(current.getFullYear(), 0, 1);
@@ -221,7 +207,7 @@ export const generateTimeLabelsWithPositions = (
   }
 
   // Add end label if needed
-  const endLabel = getRepresentativeDate(end, unit, isPerDay);
+  const endLabel = getRepresentativeDate(end, unit);
   if (labels.length === 0 || labels[labels.length - 1].date.getTime() !== endLabel.getTime()) {
     const labelTime = endLabel.getTime();
     const percentage = totalTimeSpan === 0 ? 0 : ((labelTime - startTime) / totalTimeSpan) * 100;

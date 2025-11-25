@@ -44,8 +44,8 @@ export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
         sliderHeight={110}
         sliderWidth={'fill'}
         pointLabelPersistent
-        isTimeLabelPerDay
         withEndLabel={false}
+        timeUnitSelectionEnabled={false}
       />
     </div>
   );
