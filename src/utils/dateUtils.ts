@@ -1,5 +1,33 @@
 import { FixedLengthArray } from '@/types';
 
+export function getLastDates<const T extends number>(length: T) {
+  return (format: string = 'yyyy-mm-dd'): FixedLengthArray<string, T> => {
+    const dates: string[] = [];
+    const today = new Date();
+    const endDate = new Date(today);
+    endDate.setDate(today.getDate());
+
+    for (let i = length; i >= 0; i--) {
+      const date = new Date(endDate);
+      date.setDate(endDate.getDate() - i);
+
+      const yyyy = date.getFullYear();
+      const yy = String(yyyy).slice(-2);
+      const mm = String(date.getMonth() + 1).padStart(2, '0');
+      const dd = String(date.getDate()).padStart(2, '0');
+
+      const formattedDate = format
+        .replace(/yyyy/g, String(yyyy))
+        .replace(/yy/g, yy)
+        .replace(/mm/g, mm)
+        .replace(/dd/g, dd);
+
+      dates.push(formattedDate);
+    }
+
+    return dates as FixedLengthArray<string, T>;
+  };
+}
 /**
  * Get the last 7 dates in the format "YYYY-MM-DD".
  * The dates are in descending order, starting from 6 days ago.
@@ -16,32 +44,9 @@ import { FixedLengthArray } from '@/types';
     getLast7Dates('dd.mm.yyyy');
     → ['25.05.2024', ..., '31.05.2024']
  */
-export function getLast7Dates(format: string = 'yyyy-mm-dd'): FixedLengthArray<string, 7> {
-  const dates: string[] = [];
-  const today = new Date();
-  const endDate = new Date(today);
-  endDate.setDate(today.getDate());
+export const getLast7Dates = getLastDates(7);
 
-  for (let i = 6; i >= 0; i--) {
-    const date = new Date(endDate);
-    date.setDate(endDate.getDate() - i);
-
-    const yyyy = date.getFullYear();
-    const yy = String(yyyy).slice(-2);
-    const mm = String(date.getMonth() + 1).padStart(2, '0');
-    const dd = String(date.getDate()).padStart(2, '0');
-
-    const formattedDate = format
-      .replace(/yyyy/g, String(yyyy))
-      .replace(/yy/g, yy)
-      .replace(/mm/g, mm)
-      .replace(/dd/g, dd);
-
-    dates.push(formattedDate);
-  }
-
-  return dates as FixedLengthArray<string, 7>;
-}
+export const getLast30Dates = getLastDates(30);
 
 /**
  * Convert dateString to yy-mm-dd type, beacuse current GSLA data for ocean current particles are named in yy-mm-dd format, which should be changed
