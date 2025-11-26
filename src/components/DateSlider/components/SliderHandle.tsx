@@ -26,7 +26,6 @@ export const SliderHandle = ({
   onKeyDown,
   onFocus,
   setIsHandleHover,
-  // labelPersistent = false,
 }: UpdatedSliderHandleProps) => {
   const handleMouseMove = () => {
     setIsHandleHover(true);
@@ -41,6 +40,8 @@ export const SliderHandle = ({
       variant={'ghost'}
       className={cn(
         'group absolute pointer-events-auto z-20 transform  -translate-x-1/2 transition-all duration-50 hover:scale-110 hover:bg-transparent active:bg-transparent touch-none',
+        'focus-visible:outline  focus-visible:outline-offset-2 focus-visible:outline-blue-500',
+        'motion-reduce:transition-none',
         className,
         { 'scale-110': onDragging },
       )}
@@ -67,7 +68,6 @@ export const SliderHandle = ({
 
 type UpdatedRenderSliderHandleProps = RenderSliderHandleProps & {
   onTouchStart: (handle: 'start' | 'end' | 'point') => (e: React.TouchEvent) => void;
-  pointLabelPersistent?: boolean;
 };
 
 export const RenderSliderHandle = memo<UpdatedRenderSliderHandleProps>(
@@ -88,7 +88,6 @@ export const RenderSliderHandle = memo<UpdatedRenderSliderHandleProps>(
     onMouseDown,
     onTouchStart,
     onKeyDown,
-    pointLabelPersistent,
     setIsHandleHover,
   }) => {
     const commonProps = {
@@ -159,7 +158,6 @@ export const RenderSliderHandle = memo<UpdatedRenderSliderHandleProps>(
             value={pointPosition}
             handleType="point"
             onKeyDown={onKeyDown('point')}
-            labelPersistent={pointLabelPersistent}
             setIsHandleHover={setIsHandleHover}
           />
         )}

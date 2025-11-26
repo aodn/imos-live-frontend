@@ -11,8 +11,25 @@ import {
 import { clampPercent } from '@/utils';
 import { RefObject } from 'react';
 
-//add a certain amount of scale unit to a date to get new date, when unit is day, it is to add some amount of days.
-//when unit is month, it is to add some amount of months. when unit is year, it is to add some amount of years.
+/**
+ * Add a certain amount of scale units to a date to get a new date.
+ *
+ * When unit is 'day', adds days. When unit is 'month', adds months.
+ * When unit is 'year', adds years.
+ *
+ * @param date - The base date to add to
+ * @param amount - The number of units to add (can be negative)
+ * @param unit - The time unit to add
+ * @returns A new Date object with the added time
+ *
+ * @example
+ * generateNewDateByAddingScaleUnit(new Date('2024-01-15'), 5, 'day')
+ * // Returns: Date('2024-01-20')
+ *
+ * @example
+ * generateNewDateByAddingScaleUnit(new Date('2024-01-15'), 2, 'month')
+ * // Returns: Date('2024-03-15')
+ */
 export const generateNewDateByAddingScaleUnit = (
   date: Date,
   amount: number,
@@ -34,14 +51,24 @@ export const generateNewDateByAddingScaleUnit = (
 };
 
 /**
- * calculate total number of scales for different combination of start date, end date and unit as 'day'|'month'|'year'.
- * when unit is day, if there are 49 hours between start and end, the number of scales will be Math.round(49 / 24 )=3.
- * when unit is month, if 2 months from start to end, the number of scales will be 2.
- * when unit is year, if 2 years from start to end, the number of scales will be 2.
- * @param start Date
- * @param end Date
- * @param unit 'day'|'month'|'year'
- * @returns
+ * Calculate total number of scales for different combination of start date, end date and unit as 'day'|'month'|'year'.
+ *
+ * @param start - Start date
+ * @param end - End date
+ * @param unit - Time unit ('day', 'month', or 'year')
+ * @returns Total number of scale units
+ *
+ * @example
+ * // For days: if there are 49 hours between start and end, returns Math.ceil(49/24) = 3
+ * getTotalScales(new Date('2024-01-01'), new Date('2024-01-03'), 'day') // 2
+ *
+ * @example
+ * // For months: from Jan to Mar (inclusive) returns 3
+ * getTotalScales(new Date('2024-01-01'), new Date('2024-03-31'), 'month') // 3
+ *
+ * @example
+ * // For years: from 2024 to 2026 (inclusive) returns 3
+ * getTotalScales(new Date('2024-01-01'), new Date('2026-12-31'), 'year') // 3
  */
 export const getTotalScales = (start: Date, end: Date, unit: TimeUnit): number => {
   const msDiff = end.getTime() - start.getTime();
@@ -49,15 +76,32 @@ export const getTotalScales = (start: Date, end: Date, unit: TimeUnit): number =
   switch (unit) {
     case 'day':
       return Math.ceil(msDiff / (1000 * 60 * 60 * 24));
-    case 'month':
-      return (
-        (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth() + 1)
-      );
+    case 'month': {
+      // Calculate the difference in months
+      // Note: Adding 1 to include both start and end months
+      const yearDiff = end.getFullYear() - start.getFullYear();
+      const monthDiff = end.getMonth() - start.getMonth();
+      return yearDiff * 12 + monthDiff + 1;
+    }
     case 'year':
+      // Calculate the difference in years (inclusive)
       return end.getFullYear() - start.getFullYear() + 1;
   }
 };
 
+/**
+ * Get a representative date for labeling based on the time unit.
+ *
+ * This function returns the most appropriate date to use for labels
+ * at different zoom levels:
+ * - day: returns the date normalized to midnight
+ * - month: returns January 1st of the year
+ * - year: returns January 1st of the decade
+ *
+ * @param date - The date to get representative date for
+ * @param unit - The time unit context
+ * @returns A representative date for labeling
+ */
 export const getRepresentativeDate = (date: Date, unit: TimeUnit): Date => {
   switch (unit) {
     case 'day':
@@ -69,6 +113,20 @@ export const getRepresentativeDate = (date: Date, unit: TimeUnit): Date => {
   }
 };
 
+/**
+ * Format a date for display based on its significance.
+ *
+ * Formats dates intelligently:
+ * - If fullDate is true: "1 Jan 2024" format
+ * - If Jan 1: show only year "2024"
+ * - If 1st of month: show only month "Jan"
+ * - Otherwise: show only day "15"
+ *
+ * @param params - Formatting parameters
+ * @param params.date - The date to format
+ * @param params.fullDate - Whether to show full date format
+ * @returns Formatted date string
+ */
 export const formatDateForDisplay = ({
   date,
   fullDate = false,
@@ -94,7 +152,18 @@ export const formatDateForDisplay = ({
   return date.toLocaleDateString('en-AU', { day: 'numeric' });
 };
 
-// Slider/Track Measurements
+/**
+ * Calculate the total width of the slider track in pixels.
+ *
+ * The track width is calculated based on:
+ * - Total number of scale units × gap between units
+ * - Plus the widths of all scale marks (short, medium, long)
+ *
+ * @param total - Total number of scale units
+ * @param scales - Count of each scale type
+ * @param scaleUnitConfig - Configuration for scale appearance
+ * @returns Total track width in pixels
+ */
 export const generateTrackWidth = (
   total: number,
   scales: NumOfScales,
@@ -108,7 +177,21 @@ export const generateTrackWidth = (
   );
 };
 
-// Scale Generation
+/**
+ * Generate scale marks with position and type information.
+ *
+ * Creates an array of scale objects representing tick marks on the slider.
+ * Scale types (short/medium/long) are determined by date significance:
+ * - Day mode: long=1st of month, medium=Monday, short=other days
+ * - Month mode: long=January, medium=quarter start, short=other months
+ * - Year mode: long=decade start, medium=5-year mark, short=other years
+ *
+ * @param start - Start date of the range
+ * @param end - End date of the range
+ * @param unit - Time unit for scales
+ * @param totalUnits - Total number of scale units
+ * @returns Object containing scales array and count by type
+ */
 export const generateScalesWithInfo = (
   start: Date,
   end: Date,
@@ -154,8 +237,14 @@ export const generateScalesWithInfo = (
     scales.push({ date: current, position, type });
   }
 
-  // If we don't have a scale exactly at the end date, add one
-  if (scales.length > 0 && scales[scales.length - 1].date.getTime() !== endTime) {
+  // Add an end scale if we don't have one exactly at the end date
+  // Check both date and position to avoid duplicates
+  const lastScale = scales[scales.length - 1];
+  if (
+    scales.length > 0 &&
+    lastScale &&
+    (lastScale.date.getTime() !== endTime || lastScale.position !== 100)
+  ) {
     const type: ScaleType = 'short';
     scaleCounts[type]++;
     scales.push({ date: end, position: 100, type });
@@ -218,6 +307,13 @@ export const generateTimeLabelsWithPositions = (
   return labels;
 };
 
+/**
+ * Convert a mouse event position to a percentage along the track.
+ *
+ * @param e - Mouse event
+ * @param trackRef - Reference to the track element
+ * @returns Percentage (0-100) of the mouse position along the track
+ */
 export const getPercentageFromMouseEvent = (
   e: React.MouseEvent<Element, MouseEvent> | MouseEvent,
   trackRef: React.RefObject<HTMLDivElement | null>,
@@ -227,6 +323,13 @@ export const getPercentageFromMouseEvent = (
   return clampPercent(((e.clientX - rect.left) / rect.width) * 100);
 };
 
+/**
+ * Convert a touch event position to a percentage along the track.
+ *
+ * @param e - Touch event
+ * @param trackRef - Reference to the track element
+ * @returns Percentage (0-100) of the touch position along the track
+ */
 export const getPercentageFromTouchEvent = (
   e: React.TouchEvent<Element> | TouchEvent,
   trackRef: React.RefObject<HTMLDivElement | null>,
@@ -248,6 +351,14 @@ export const calculateLabelPosition = (
   return { x, y };
 };
 
+/**
+ * Convert a percentage position to a date within the given range.
+ *
+ * @param percent - Percentage (0-100) along the timeline
+ * @param startDate - Start date of the range
+ * @param endDate - End date of the range
+ * @returns The date corresponding to the percentage
+ */
 export const getDateFromPercent = (percent: number, startDate: Date, endDate: Date): Date => {
   const startTime = startDate.getTime();
   const endTime = endDate.getTime();
@@ -255,6 +366,16 @@ export const getDateFromPercent = (percent: number, startDate: Date, endDate: Da
   return new Date(targetTime);
 };
 
+/**
+ * Convert a date to a percentage position within the given range.
+ *
+ * The date is clamped to be within [startDate, endDate] range.
+ *
+ * @param date - The date to convert
+ * @param startDate - Start date of the range
+ * @param endDate - End date of the range
+ * @returns Percentage (0-100) of the date's position in the range
+ */
 export const getPercentFromDate = (date: Date, startDate: Date, endDate: Date): number => {
   const startTime = startDate.getTime();
   const endTime = endDate.getTime();
@@ -264,6 +385,17 @@ export const getPercentFromDate = (date: Date, startDate: Date, endDate: Date): 
   return clampPercent(percent);
 };
 
+/**
+ * Create a selection result object based on the view mode.
+ *
+ * @param rangeStart - Start percentage for range mode
+ * @param startDate - Start date of the overall range
+ * @param endDate - End date of the overall range
+ * @param rangeEnd - End percentage for range mode
+ * @param pointPosition - Point percentage for point mode
+ * @param viewMode - The current view mode
+ * @returns Selection result containing selected date(s) based on view mode
+ */
 export const createSelectionResult = (
   rangeStart: number,
   startDate: Date,

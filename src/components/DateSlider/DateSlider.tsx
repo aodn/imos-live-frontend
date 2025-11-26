@@ -10,7 +10,7 @@ import {
 import { checkDateDuration, clampPercent, clamp, toLocalDate, cn, debounce } from '@/utils';
 import { useDrag, useElementSize, useResizeObserver, useRAFDFn } from '@/hooks';
 import { SliderProps, DragHandle, SelectionResult, TimeUnit } from './type';
-import { useDragState, useFocusManagement, usePositionState, useEventHanlders } from './hooks';
+import { useDragState, useFocusManagement, usePositionState, useEventHandlers } from './hooks';
 import {
   getTotalScales,
   generateScalesWithInfo,
@@ -20,12 +20,14 @@ import {
   createSelectionResult,
 } from './utils';
 import { TimeLabels, RenderSliderHandle, SliderTrack, TimeUnitSelection } from './components';
-
-const DEFAULT_SCALE_CONFIG = {
-  gap: 36,
-  width: { short: 1, medium: 1, long: 1 },
-  height: { short: 8, medium: 16, long: 64 },
-} as const;
+import {
+  DEFAULT_SCALE_CONFIG,
+  LAYOUT,
+  PERCENTAGE,
+  DEFAULTS,
+  ACCESSIBILITY,
+  TIMING,
+} from './constants';
 
 export const DateSlider = memo(
   ({
@@ -39,19 +41,18 @@ export const DateSlider = memo(
     trackActiveClassName,
     trackBaseClassName,
     sliderClassName,
-    timeUnitSlectionClassName,
+    timeUnitSelectionClassName,
     pointHandleIcon,
     rangeHandleIcon,
     scrollable = true,
     isTrackFixedWidth = false,
-    minGapScaleUnits = 3,
+    minGapScaleUnits = DEFAULTS.MIN_GAP_SCALE_UNITS,
     onChange,
-    trackPaddingX = 36,
+    trackPaddingX = LAYOUT.TRACK_PADDING_X,
     scaleUnitConfig = DEFAULT_SCALE_CONFIG,
     sliderWidth,
     sliderHeight,
     imperativeHandleRef,
-    pointLabelPersistent,
     withEndLabel = true,
     timeUnitSelectionEnabled = true,
     freeSelectionOnTrackClick = false,
@@ -208,7 +209,7 @@ export const DateSlider = memo(
               break;
           }
         }
-        const clampPercentage = clampPercent(percentage, 99.9999);
+        const clampPercentage = clampPercent(percentage, PERCENTAGE.MAX);
         switch (actualTarget) {
           case 'rangeStart': {
             const newStart = clamp(clampPercentage, 0, rangeEndRef.current - minGapPercent);
@@ -250,7 +251,7 @@ export const DateSlider = memo(
 
     const updateHandlePosition = useCallback(
       (handle: DragHandle, percentage: number) => {
-        const clampedPercentage = clampPercent(percentage, 99.9999);
+        const clampedPercentage = clampPercent(percentage, PERCENTAGE.MAX);
 
         switch (handle) {
           case 'start': {
@@ -284,7 +285,7 @@ export const DateSlider = memo(
       handleTrackClick,
       handleTrackTouch,
       handleHandleKeyDown,
-    } = useEventHanlders(
+    } = useEventHandlers(
       startDate,
       endDate,
       timeUnit,
@@ -307,9 +308,17 @@ export const DateSlider = memo(
       freeSelectionOnTrackClick,
     );
 
+    const onChangeRef = useRef(onChange);
+    useEffect(() => {
+      onChangeRef.current = onChange;
+    }, [onChange]);
     const debouncedOnChange = useMemo(
-      () => debounce((selection: SelectionResult) => onChange(selection), 100),
-      [onChange],
+      () =>
+        debounce(
+          (selection: SelectionResult) => onChangeRef.current(selection),
+          TIMING.DEBOUNCE_DELAY,
+        ),
+      [],
     );
 
     useEffect(() => {
@@ -331,11 +340,11 @@ export const DateSlider = memo(
         })}
         style={
           sliderWidth !== 'fill'
-            ? { height: sliderHeight ?? 64, width: sliderWidth }
-            : { height: sliderHeight ?? 64 }
+            ? { height: sliderHeight ?? LAYOUT.DEFAULT_SLIDER_HEIGHT, width: sliderWidth }
+            : { height: sliderHeight ?? LAYOUT.DEFAULT_SLIDER_HEIGHT }
         }
         role="group"
-        aria-label="Date and Time Slider"
+        aria-label={ACCESSIBILITY.SLIDER_ARIA_LABEL}
       >
         <div ref={sliderContainerRef} className="overflow-hidden h-full flex-1 rounded-2xl">
           <div
@@ -361,7 +370,7 @@ export const DateSlider = memo(
                   baseTrackclassName={trackBaseClassName}
                   activeTrackClassName={trackActiveClassName}
                   trackRef={trackRef}
-                  aria-label="Date slider track"
+                  aria-label={ACCESSIBILITY.TRACK_ARIA_LABEL}
                   startDate={startDate}
                   endDate={endDate}
                   onDragging={!!isDragging}
@@ -391,7 +400,6 @@ export const DateSlider = memo(
                   onMouseDown={handleMouseDown}
                   onTouchStart={handleTouchStart}
                   onKeyDown={handleHandleKeyDown}
-                  pointLabelPersistent={pointLabelPersistent}
                   setIsHandleHover={setIsHandleHover}
                 />
               </div>
@@ -401,7 +409,7 @@ export const DateSlider = memo(
 
         {timeUnitSelectionEnabled && (
           <TimeUnitSelection
-            className={cn('pointer-events-auto h-full', timeUnitSlectionClassName)}
+            className={cn('pointer-events-auto h-full', timeUnitSelectionClassName)}
             isMonthValid={checkDateDuration(startDate, endDate).moreThanOneMonth}
             isYearValid={checkDateDuration(startDate, endDate).moreThanOneYear}
             onChange={handleTimeUnitChange}

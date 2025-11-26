@@ -6,8 +6,42 @@ import {
   getPercentageFromTouchEvent,
 } from '../utils';
 import { clampToLowerBound, snapToClosestStep } from '@/utils';
+import { PERCENTAGE } from '../constants';
 
-export function useEventHanlders(
+/**
+ * Custom hook to manage all user interaction event handlers for the slider.
+ *
+ * Handles:
+ * - Mouse/touch drag interactions on handles
+ * - Click/touch interactions on the track
+ * - Keyboard navigation (arrow keys, Home, End)
+ * - Automatic snapping to scale units (optional)
+ *
+ * Sets up global event listeners for drag operations and cleans them up properly.
+ *
+ * @param startDate - Start date of the slider range
+ * @param endDate - End date of the slider range
+ * @param timeUnit - Current time unit
+ * @param rangeStartRef - Ref to current range start percentage
+ * @param rangeEndRef - Ref to current range end percentage
+ * @param pointPositionRef - Ref to current point percentage
+ * @param viewMode - Current view mode (point/range/combined)
+ * @param updateHandlePosition - Function to update handle positions
+ * @param requestHandleFocus - Function to request focus on a handle
+ * @param setIsDragging - Function to set drag state
+ * @param setDragStarted - Function to set drag started state
+ * @param setLastInteractionType - Function to set last interaction type
+ * @param isDragging - Current dragging handle (if any)
+ * @param trackRef - Reference to the track element
+ * @param handleDragComplete - Function to call when drag completes
+ * @param sliderRef - Reference to the slider container
+ * @param dragStarted - Whether a drag has started
+ * @param isContainerDragging - Whether the container is being dragged
+ * @param totalScaleUnits - Total number of scale units
+ * @param freeSelectionOnTrackClick - Whether to allow free selection or snap to scales
+ * @returns Event handler functions for mouse, touch, and keyboard events
+ */
+export function useEventHandlers(
   startDate: Date,
   endDate: Date,
   timeUnit: TimeUnit,
@@ -204,7 +238,7 @@ export function useEventHanlders(
           break;
         case 'End':
           e.preventDefault();
-          newPercentage = 99.9999;
+          newPercentage = PERCENTAGE.MAX;
           break;
       }
 

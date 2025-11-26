@@ -3,6 +3,19 @@ import { useCallback, useState, useRef, useEffect } from 'react';
 import { SliderProps, TimeUnit } from '../type';
 import { getTotalScales } from '../utils';
 
+/**
+ * Custom hook to manage slider position state (range start/end and point position).
+ *
+ * Manages both state and refs for position values to avoid stale closures in callbacks.
+ * Calculates initial positions based on the provided dates and time unit.
+ *
+ * @param initialRange - Optional initial range selection
+ * @param initialPoint - Optional initial point selection
+ * @param startDate - Start date of the slider range
+ * @param timeUnit - Current time unit (day/month/year)
+ * @param totalScaleUnits - Total number of scale units in the range
+ * @returns Position state and setters, plus refs for stable access in callbacks
+ */
 export function usePositionState(
   initialRange: SliderProps['initialRange'],
   initialPoint: SliderProps['initialPoint'],

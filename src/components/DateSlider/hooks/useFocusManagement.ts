@@ -1,6 +1,16 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { DragHandle } from '../type';
+import { TIMING } from '../constants';
 
+/**
+ * Custom hook to manage focus state for slider handles.
+ *
+ * Handles programmatic focusing of handles after user interactions,
+ * with different behavior for mouse vs keyboard interactions.
+ * Uses a small delay for mouse interactions to ensure DOM updates complete.
+ *
+ * @returns Focus management utilities and handle refs
+ */
 export function useFocusManagement() {
   const [pendingFocus, setPendingFocus] = useState<DragHandle>(null);
   const [lastInteractionType, setLastInteractionType] = useState<'mouse' | 'keyboard' | null>(null);
@@ -32,7 +42,7 @@ export function useFocusManagement() {
       if (focusTarget && document.activeElement !== focusTarget) {
         setTimeout(() => {
           focusTarget.focus();
-        }, 50);
+        }, TIMING.FOCUS_DELAY);
       }
       setPendingFocus(null);
     }

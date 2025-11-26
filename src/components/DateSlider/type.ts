@@ -44,14 +44,14 @@ export type SliderExposedMethod = {
 
 export type SliderProps = {
   viewMode: ViewMode;
-  startDate: Date; //this should be loca date time
-  endDate: Date; //this should be loca date time
+  startDate: Date; //this should be local date time
+  endDate: Date; //this should be local date time
   initialTimeUnit: TimeUnit;
   initialRange?: { start: Date; end: Date };
   initialPoint?: Date;
   wrapperClassName?: string;
   sliderClassName?: string;
-  timeUnitSlectionClassName?: string;
+  timeUnitSelectionClassName?: string;
   trackBaseClassName?: string;
   trackActiveClassName?: string;
   pointHandleIcon?: ReactNode;
@@ -65,7 +65,6 @@ export type SliderProps = {
   sliderWidth?: 'fill' | number; //fill means its width will fill parent.
   sliderHeight?: number;
   imperativeHandleRef?: React.Ref<SliderExposedMethod>;
-  pointLabelPersistent?: boolean;
   withEndLabel?: boolean;
   timeUnitSelectionEnabled?: boolean;
   freeSelectionOnTrackClick?: boolean; //if true, the datetime can be freely selected when click on track, if false, the selection will be limited to datetime per scale units.

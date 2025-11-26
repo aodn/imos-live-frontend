@@ -32,7 +32,7 @@ export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
         initialPoint={dateToUTC(date)}
         pointHandleIcon={<TriangleIcon size="xxl" className="text-slate-700! text-shadow" />}
         sliderClassName="frosted"
-        timeUnitSlectionClassName="frosted"
+        timeUnitSelectionClassName="frosted"
         trackActiveClassName="hidden"
         onChange={handleSelect as (v: SelectionResult) => void}
         scrollable
@@ -43,7 +43,6 @@ export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
         }}
         sliderHeight={64}
         sliderWidth={'fill'}
-        pointLabelPersistent
         withEndLabel={false}
         timeUnitSelectionEnabled={false}
       />

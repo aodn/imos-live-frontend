@@ -58,6 +58,7 @@ const CursorLine = memo(
         style={{ left: `${position}%` }}
         className={cn(
           'hidden md:block absolute top-0 h-full w-[1px] bg-red-500/70 transform -translate-x-0.5 pointer-events-none z-20 transition-opacity duration-150',
+          'motion-reduce:transition-none',
           className,
         )}
         aria-hidden="true"
@@ -219,6 +220,7 @@ export const SliderTrack = memo(
           <div
             className={cn(
               'absolute h-full bg-red-300 rounded-full transition-all duration-200 z-10',
+              'motion-reduce:transition-none',
               props.activeTrackClassName,
             )}
             style={{ width: `${props.pointPosition}%` }}
@@ -247,6 +249,7 @@ export const SliderTrack = memo(
           <div
             className={cn(
               'absolute h-full bg-blue-500/30 transition-all duration-200 z-10',
+              'motion-reduce:transition-none',
               props.activeTrackClassName,
             )}
             style={{
