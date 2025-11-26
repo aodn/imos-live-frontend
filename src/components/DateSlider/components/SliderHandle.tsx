@@ -18,7 +18,6 @@ export const SliderHandle = ({
   onMouseDown,
   onTouchStart,
   className,
-  labelClassName,
   ref,
   min,
   max,
@@ -26,8 +25,15 @@ export const SliderHandle = ({
   handleType,
   onKeyDown,
   onFocus,
-  labelPersistent = false,
+  setIsHandleHover,
+  // labelPersistent = false,
 }: UpdatedSliderHandleProps) => {
+  const handleMouseMove = () => {
+    setIsHandleHover(true);
+  };
+  const handleMouseLeave = () => {
+    setIsHandleHover(false);
+  };
   return (
     <Button
       ref={ref}
@@ -39,6 +45,8 @@ export const SliderHandle = ({
         { 'scale-110': onDragging },
       )}
       style={{ left: `${position}%` }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
       onMouseDown={onMouseDown}
       onTouchStart={onTouchStart}
       role="slider"
@@ -52,26 +60,6 @@ export const SliderHandle = ({
       onKeyDown={onKeyDown}
       onFocus={onFocus}
     >
-      {(onDragging || labelPersistent) && (
-        <div
-          className={cn(
-            'absolute top-0  left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap',
-            labelClassName,
-          )}
-        >
-          {label}
-        </div>
-      )}
-      {!onDragging && (
-        <div
-          className={cn(
-            'hidden group-hover:block absolute top-0  left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap',
-            labelClassName,
-          )}
-        >
-          {label}
-        </div>
-      )}
       {icon}
     </Button>
   );
@@ -101,6 +89,7 @@ export const RenderSliderHandle = memo<UpdatedRenderSliderHandleProps>(
     onTouchStart,
     onKeyDown,
     pointLabelPersistent,
+    setIsHandleHover,
   }) => {
     const commonProps = {
       className: 'top-0',
@@ -115,6 +104,8 @@ export const RenderSliderHandle = memo<UpdatedRenderSliderHandleProps>(
         {(viewMode === 'range' || viewMode === 'combined') && (
           <>
             <SliderHandle
+              setIsHandleHover={setIsHandleHover}
+              viewMode={viewMode}
               ref={startHandleRef}
               {...commonProps}
               icon={rangeHandleIcon}
@@ -131,6 +122,7 @@ export const RenderSliderHandle = memo<UpdatedRenderSliderHandleProps>(
               onKeyDown={onKeyDown('start')}
             />
             <SliderHandle
+              viewMode={viewMode}
               ref={endHandleRef}
               {...commonProps}
               icon={rangeHandleIcon}
@@ -145,12 +137,14 @@ export const RenderSliderHandle = memo<UpdatedRenderSliderHandleProps>(
               value={rangeEnd}
               handleType="range end"
               onKeyDown={onKeyDown('end')}
+              setIsHandleHover={setIsHandleHover}
             />
           </>
         )}
 
         {(viewMode === 'point' || viewMode === 'combined') && (
           <SliderHandle
+            viewMode={viewMode}
             ref={pointHandleRef}
             {...commonProps}
             icon={pointHandleIcon}
@@ -166,6 +160,7 @@ export const RenderSliderHandle = memo<UpdatedRenderSliderHandleProps>(
             handleType="point"
             onKeyDown={onKeyDown('point')}
             labelPersistent={pointLabelPersistent}
+            setIsHandleHover={setIsHandleHover}
           />
         )}
       </>

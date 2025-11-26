@@ -37,11 +37,11 @@ export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
         onChange={handleSelect as (v: SelectionResult) => void}
         scrollable
         scaleUnitConfig={{
-          gap: 80,
+          gap: 100,
           width: { short: 1, medium: 2, long: 2 },
           height: { short: 18, medium: 36, long: 60 },
         }}
-        sliderHeight={110}
+        sliderHeight={72}
         sliderWidth={'fill'}
         pointLabelPersistent
         withEndLabel={false}

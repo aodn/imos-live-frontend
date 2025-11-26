@@ -85,6 +85,7 @@ type BaseSliderTrackProps = {
   startDate: Date;
   endDate: Date;
   onDragging: boolean;
+  onHandleHover?: boolean;
 };
 
 type PointModeProps = {
@@ -129,6 +130,8 @@ export type SliderHandleProps = {
   handleType: string;
   onKeyDown: (e: React.KeyboardEvent) => void;
   onFocus: (event: React.FocusEvent<HTMLButtonElement>) => void;
+  viewMode?: 'point' | 'range' | 'combined';
+  setIsHandleHover: (hover: boolean) => void;
 };
 
 export type RenderSliderHandleProps = {
@@ -149,6 +152,7 @@ export type RenderSliderHandleProps = {
   onMouseDown: (handle: DragHandle) => (e: React.MouseEvent) => void;
   onTouchStart: (handle: DragHandle) => (e: React.TouchEvent) => void;
   onKeyDown: (handle: DragHandle) => (e: React.KeyboardEvent) => void;
+  setIsHandleHover: (hover: boolean) => void;
 };
 
 export type TimeUnitSelectionProps = {

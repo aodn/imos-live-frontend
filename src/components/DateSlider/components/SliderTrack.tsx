@@ -1,40 +1,44 @@
 import { cn } from '@/utils';
-import { useState, useCallback, useMemo, memo } from 'react';
+import { useState, useCallback, useMemo, memo, useEffect } from 'react';
 import { SliderTrackProps, ScaleType } from '../type';
 import {
+  calculateLabelPosition,
   formatDateForDisplay,
   getDateFromPercent,
   getPercentageFromMouseEvent,
   getPercentageFromTouchEvent,
 } from '../utils';
+import { createPortal } from 'react-dom';
 
-const DateLabel = memo(
+export const DateLabel = memo(
   ({
     position,
     label,
     labelClassName,
   }: {
-    position?: number;
+    position?: { x: number; y: number };
     label?: string;
     labelClassName?: string;
   }) => {
     if (!position || !label) return null;
 
-    return (
+    return createPortal(
       <div
-        style={{ left: `${position}%` }}
+        style={{ left: position.x, top: position.y }}
         className={cn(
-          'hidden md:block absolute top-0 left-1/2 transform -translate-x-1/2 bg-red-600 text-white text-xs px-2 py-1 rounded whitespace-nowrap pointer-events-none',
+          'hidden md:block fixed z-50 transform -translate-x-1/2 bg-red-600 text-white text-xs px-2 py-1 rounded whitespace-nowrap pointer-events-none',
           labelClassName,
         )}
         role="tooltip"
         aria-live="polite"
       >
         {label}
-      </div>
+      </div>,
+      document.body,
     );
   },
 );
+
 DateLabel.displayName = 'DateLabel';
 
 const CursorLine = memo(
@@ -113,71 +117,93 @@ export const SliderTrack = memo(
     startDate,
     endDate,
     onDragging,
+    onHandleHover,
     ...props
   }: UpdatedSliderTrackProps) => {
+    const [isHoverTrack, setIsHoverTrack] = useState(false);
+
     const [mouseHoverPosition, setMouseHoverPosition] = useState<number>();
-    const [isHover, setIsHover] = useState(false);
+    const [labelPosition, setLabelPosition] = useState<{ x: number; y: number }>();
     const [dateLabel, setDateLabel] = useState<string>();
 
     const handleMouseLeave = useCallback(() => {
-      setIsHover(false);
+      setIsHoverTrack(false);
       setMouseHoverPosition(undefined);
-    }, []);
+      setLabelPosition(undefined);
+    }, [setIsHoverTrack]);
 
     const handleMouseMove = useCallback(
-      (e: React.MouseEvent<Element, MouseEvent>) => {
+      (e: MouseEvent) => {
+        if (!trackRef.current) return;
         const percentage = getPercentageFromMouseEvent(e, trackRef);
         const label = formatDateForDisplay({
           date: getDateFromPercent(percentage, startDate, endDate),
           fullDate: true,
         });
 
-        setIsHover(true);
+        setIsHoverTrack(true);
         setDateLabel(label);
         setMouseHoverPosition(percentage);
+        setLabelPosition(calculateLabelPosition(trackRef, e.clientX));
       },
-      [trackRef, startDate, endDate],
+      [trackRef, startDate, endDate, setIsHoverTrack],
     );
 
     const handleTouchMove = useCallback(
-      (e: React.TouchEvent<Element>) => {
+      (e: TouchEvent) => {
         const percentage = getPercentageFromTouchEvent(e, trackRef);
         const label = formatDateForDisplay({
           date: getDateFromPercent(percentage, startDate, endDate),
           fullDate: true,
         });
 
-        setIsHover(false);
+        setIsHoverTrack(false);
         setDateLabel(label);
         setMouseHoverPosition(percentage);
+        // guard touches access to satisfy TypeScript
+        const touchX = e.touches && e.touches[0] ? e.touches[0].clientX : 0;
+        setLabelPosition(calculateLabelPosition(trackRef, touchX));
       },
-      [trackRef, startDate, endDate],
+      [trackRef, startDate, endDate, setIsHoverTrack],
     );
 
     const handleTouchEnd = useCallback(() => {
-      setIsHover(false);
+      setIsHoverTrack(false);
       setMouseHoverPosition(undefined);
-    }, []);
+      setLabelPosition(undefined);
+    }, [setIsHoverTrack]);
+
+    useEffect(() => {
+      const trackRefInstance = trackRef.current;
+      if (!trackRefInstance) return;
+      trackRefInstance.addEventListener('touchend', handleTouchEnd);
+      trackRefInstance.addEventListener('touchmove', handleTouchMove);
+      trackRefInstance.addEventListener('mousemove', handleMouseMove);
+      trackRefInstance.addEventListener('mouseleave', handleMouseLeave);
+
+      return () => {
+        if (!trackRefInstance) return;
+        trackRefInstance.removeEventListener('touchend', handleTouchEnd);
+        trackRefInstance.removeEventListener('touchmove', handleTouchMove);
+        trackRefInstance.removeEventListener('mousemove', handleMouseMove);
+        trackRefInstance.removeEventListener('mouseleave', handleMouseLeave);
+      };
+    }, [handleMouseLeave, handleMouseMove, handleTouchEnd, handleTouchMove, trackRef]);
 
     const baseClassName = useMemo(
       () =>
         cn('h-full w-full relative overflow-visible cursor-pointer touch-none', baseTrackclassName),
       [baseTrackclassName],
     );
-
     // Show cursor line when hovering and not dragging
-    const showCursorLine = isHover && !onDragging;
+    const showCursorLine = isHoverTrack && !onDragging && !onHandleHover;
+    const showDateLabel = isHoverTrack;
 
     if (props.mode === 'point') {
       return (
         <div
-          ref={trackRef}
           onClick={onTrackClick}
           onTouchStart={onTrackTouch}
-          onMouseMove={handleMouseMove}
-          onMouseLeave={handleMouseLeave}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
           className={baseClassName}
           aria-hidden="true"
         >
@@ -187,9 +213,7 @@ export const SliderTrack = memo(
           <CursorLine position={mouseHoverPosition} isVisible={showCursorLine} />
 
           {/* Date label */}
-          {showCursorLine && (
-            <DateLabel label={dateLabel} position={mouseHoverPosition} labelClassName="-top-8" />
-          )}
+          {showDateLabel && <DateLabel label={dateLabel} position={labelPosition} />}
 
           {/* Active track */}
           <div
@@ -206,14 +230,9 @@ export const SliderTrack = memo(
     if (props.mode === 'range' || props.mode === 'combined') {
       return (
         <div
-          ref={trackRef}
           className={baseClassName}
           onClick={onTrackClick}
           onTouchStart={onTrackTouch}
-          onMouseMove={handleMouseMove}
-          onMouseLeave={handleMouseLeave}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
           aria-hidden="true"
         >
           <Scales scales={scales} scaleUnitConfig={scaleUnitConfig} />
@@ -222,9 +241,7 @@ export const SliderTrack = memo(
           <CursorLine position={mouseHoverPosition} isVisible={showCursorLine} />
 
           {/* Date label */}
-          {showCursorLine && (
-            <DateLabel label={dateLabel} position={mouseHoverPosition} labelClassName="-top-8" />
-          )}
+          {showDateLabel && <DateLabel label={dateLabel} position={labelPosition} />}
 
           {/* Active track */}
           <div

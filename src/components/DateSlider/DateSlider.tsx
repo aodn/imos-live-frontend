@@ -64,6 +64,7 @@ export const DateSlider = memo(
   }: SliderProps) => {
     const [dimensions, setDimensions] = useState({ parent: 0, slider: 0 });
     const [timeUnit, setTimeUnit] = useState<TimeUnit>(initialTimeUnit);
+    const [isHandleHover, setIsHandleHover] = useState(false);
 
     const startDate = useMemo(() => toLocalDate(propStartDate), [propStartDate]);
 
@@ -336,16 +337,15 @@ export const DateSlider = memo(
         })}
         style={
           sliderWidth !== 'fill'
-            ? { height: sliderHeight ?? 96, width: sliderWidth }
-            : { height: sliderHeight ?? 96 }
+            ? { height: sliderHeight ?? 72, width: sliderWidth }
+            : { height: sliderHeight ?? 72 }
         }
         role="group"
         aria-label="Date and Time Slider"
       >
-        <div ref={sliderContainerRef} className="overflow-hidden h-full flex-1 flex flex-col">
-          <Spacer height={40} />
+        <div ref={sliderContainerRef} className="overflow-hidden h-full flex-1 rounded-2xl">
           <div
-            className="flex-1"
+            className="h-full"
             style={isTrackFixedWidth ? { width: '100%' } : { width: trackWidth }}
             ref={sliderRef}
             {...dragHandlers}
@@ -354,7 +354,7 @@ export const DateSlider = memo(
               style={{ paddingLeft: trackPaddingX, paddingRight: trackPaddingX }}
               className={cn('h-full w-full pointer-events-auto', sliderClassName)}
             >
-              <div className="relative h-full w-full">
+              <div className="relative h-full w-full" ref={trackRef}>
                 <SliderTrack
                   mode={viewMode}
                   pointPosition={pointPosition}
@@ -371,6 +371,7 @@ export const DateSlider = memo(
                   startDate={startDate}
                   endDate={endDate}
                   onDragging={!!isDragging}
+                  onHandleHover={isHandleHover}
                 />
                 <TimeLabels
                   timeLabels={timeLabels}
@@ -397,6 +398,7 @@ export const DateSlider = memo(
                   onTouchStart={handleTouchStart}
                   onKeyDown={handleHandleKeyDown}
                   pointLabelPersistent={pointLabelPersistent}
+                  setIsHandleHover={setIsHandleHover}
                 />
               </div>
             </div>

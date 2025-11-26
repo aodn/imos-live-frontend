@@ -9,6 +9,7 @@ import {
   ViewMode,
 } from '@/components/DateSlider/type';
 import { clampPercent } from '@/utils';
+import { RefObject } from 'react';
 
 //add a certain amount of scale unit to a date to get new date, when unit is day, it is to add some amount of days.
 //when unit is month, it is to add some amount of months. when unit is year, it is to add some amount of years.
@@ -234,6 +235,17 @@ export const getPercentageFromTouchEvent = (
   const rect = trackRef.current.getBoundingClientRect();
   const touch = e.touches[0] || e.changedTouches[0];
   return clampPercent(((touch.clientX - rect.left) / rect.width) * 100);
+};
+
+export const calculateLabelPosition = (
+  trackRef: RefObject<HTMLDivElement | null>,
+  cursorPosition: number,
+) => {
+  if (!trackRef.current) return;
+  const trackRect = trackRef.current.getBoundingClientRect();
+  const x = cursorPosition;
+  const y = trackRect.top - 32;
+  return { x, y };
 };
 
 export const getDateFromPercent = (percent: number, startDate: Date, endDate: Date): Date => {
