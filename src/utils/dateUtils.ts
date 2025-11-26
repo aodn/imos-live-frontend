@@ -46,7 +46,7 @@ export function getLastDates<const T extends number>(length: T) {
  */
 export const getLast7Dates = getLastDates(7);
 
-export const getLast30Dates = getLastDates(30);
+export const getLast31Dates = getLastDates(31);
 
 /**
  * Convert dateString to yy-mm-dd type, beacuse current GSLA data for ocean current particles are named in yy-mm-dd format, which should be changed

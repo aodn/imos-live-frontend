@@ -1,6 +1,6 @@
 import { TriangleIcon } from '../Icons';
 import { DateSlider, PointSelection, SelectionResult } from '../DateSlider';
-import { dateToUTC, toDateFormatString, cn, getLast30Dates } from '@/utils';
+import { dateToUTC, toDateFormatString, cn, getLast31Dates } from '@/utils';
 import { useMapUIStore, setDate } from '@/store';
 import { memo, useCallback, useMemo } from 'react';
 
@@ -9,7 +9,7 @@ type DateSelectionBarProps = { className?: string };
 export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
   const date = useMapUIStore(s => s.date);
 
-  const last30Days = useMemo(() => getLast30Dates('yyyy-mm-dd'), []);
+  const last30Days = useMemo(() => getLast31Dates('yyyy-mm-dd'), []);
   const startDate = useMemo(() => new Date(last30Days[0]), [last30Days]);
   const endDate = useMemo(() => {
     const last = new Date(last30Days.at(-1)!);

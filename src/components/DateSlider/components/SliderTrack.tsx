@@ -118,10 +118,13 @@ export const SliderTrack = memo(
     startDate,
     endDate,
     onDragging,
-    onHandleHover,
+    startHandleRef,
+    endHandleRef,
+    pointHandleRef,
     ...props
   }: UpdatedSliderTrackProps) => {
     const [isHoverTrack, setIsHoverTrack] = useState(false);
+    const [isHandleHover, setIsHandleHover] = useState(false);
 
     const [mouseHoverPosition, setMouseHoverPosition] = useState<number>();
     const [labelPosition, setLabelPosition] = useState<{ x: number; y: number }>();
@@ -174,13 +177,29 @@ export const SliderTrack = memo(
       setLabelPosition(undefined);
     }, [setIsHoverTrack]);
 
+    const handleHandlerMouseMove = () => {
+      setIsHandleHover(true);
+    };
+    const handleHandlerMouseLeave = () => {
+      setIsHandleHover(false);
+    };
+
     useEffect(() => {
       const trackRefInstance = trackRef.current;
+      const startHandleRefInstance = startHandleRef.current;
+      const endHandleRefInstance = endHandleRef.current;
+      const pointHandleRefInstance = pointHandleRef.current;
       if (!trackRefInstance) return;
       trackRefInstance.addEventListener('touchend', handleTouchEnd);
       trackRefInstance.addEventListener('touchmove', handleTouchMove);
       trackRefInstance.addEventListener('mousemove', handleMouseMove);
       trackRefInstance.addEventListener('mouseleave', handleMouseLeave);
+      startHandleRefInstance?.addEventListener('mousemove', handleHandlerMouseMove);
+      endHandleRefInstance?.addEventListener('mousemove', handleHandlerMouseMove);
+      pointHandleRefInstance?.addEventListener('mousemove', handleHandlerMouseMove);
+      startHandleRefInstance?.addEventListener('mouseleave', handleHandlerMouseLeave);
+      endHandleRefInstance?.addEventListener('mouseleave', handleHandlerMouseLeave);
+      pointHandleRefInstance?.addEventListener('mouseleave', handleHandlerMouseLeave);
 
       return () => {
         if (!trackRefInstance) return;
@@ -188,8 +207,23 @@ export const SliderTrack = memo(
         trackRefInstance.removeEventListener('touchmove', handleTouchMove);
         trackRefInstance.removeEventListener('mousemove', handleMouseMove);
         trackRefInstance.removeEventListener('mouseleave', handleMouseLeave);
+        startHandleRefInstance?.removeEventListener('mousemove', handleHandlerMouseMove);
+        endHandleRefInstance?.removeEventListener('mousemove', handleHandlerMouseMove);
+        pointHandleRefInstance?.removeEventListener('mousemove', handleHandlerMouseMove);
+        startHandleRefInstance?.removeEventListener('mouseleave', handleHandlerMouseLeave);
+        endHandleRefInstance?.removeEventListener('mouseleave', handleHandlerMouseLeave);
+        pointHandleRefInstance?.removeEventListener('mouseleave', handleHandlerMouseLeave);
       };
-    }, [handleMouseLeave, handleMouseMove, handleTouchEnd, handleTouchMove, trackRef]);
+    }, [
+      endHandleRef,
+      handleMouseLeave,
+      handleMouseMove,
+      handleTouchEnd,
+      handleTouchMove,
+      pointHandleRef,
+      startHandleRef,
+      trackRef,
+    ]);
 
     const baseClassName = useMemo(
       () =>
@@ -197,7 +231,7 @@ export const SliderTrack = memo(
       [baseTrackclassName],
     );
     // Show cursor line when hovering and not dragging
-    const showCursorLine = isHoverTrack && !onDragging && !onHandleHover;
+    const showCursorLine = isHoverTrack && !onDragging && !isHandleHover;
     const showDateLabel = isHoverTrack;
 
     if (props.mode === 'point') {

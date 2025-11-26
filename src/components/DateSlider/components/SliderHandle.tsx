@@ -25,14 +25,7 @@ export const SliderHandle = ({
   handleType,
   onKeyDown,
   onFocus,
-  setIsHandleHover,
 }: UpdatedSliderHandleProps) => {
-  const handleMouseMove = () => {
-    setIsHandleHover(true);
-  };
-  const handleMouseLeave = () => {
-    setIsHandleHover(false);
-  };
   return (
     <Button
       ref={ref}
@@ -46,8 +39,6 @@ export const SliderHandle = ({
         { 'scale-110': onDragging },
       )}
       style={{ left: `${position}%` }}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
       onMouseDown={onMouseDown}
       onTouchStart={onTouchStart}
       role="slider"
@@ -88,7 +79,6 @@ export const RenderSliderHandle = memo<UpdatedRenderSliderHandleProps>(
     onMouseDown,
     onTouchStart,
     onKeyDown,
-    setIsHandleHover,
   }) => {
     const commonProps = {
       className: 'top-0',
@@ -103,7 +93,6 @@ export const RenderSliderHandle = memo<UpdatedRenderSliderHandleProps>(
         {(viewMode === 'range' || viewMode === 'combined') && (
           <>
             <SliderHandle
-              setIsHandleHover={setIsHandleHover}
               viewMode={viewMode}
               ref={startHandleRef}
               {...commonProps}
@@ -136,7 +125,6 @@ export const RenderSliderHandle = memo<UpdatedRenderSliderHandleProps>(
               value={rangeEnd}
               handleType="range end"
               onKeyDown={onKeyDown('end')}
-              setIsHandleHover={setIsHandleHover}
             />
           </>
         )}
@@ -158,7 +146,6 @@ export const RenderSliderHandle = memo<UpdatedRenderSliderHandleProps>(
             value={pointPosition}
             handleType="point"
             onKeyDown={onKeyDown('point')}
-            setIsHandleHover={setIsHandleHover}
           />
         )}
       </>

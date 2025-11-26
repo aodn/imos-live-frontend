@@ -10,7 +10,13 @@ import {
 import { checkDateDuration, clampPercent, clamp, toLocalDate, cn, debounce } from '@/utils';
 import { useDrag, useElementSize, useResizeObserver, useRAFDFn } from '@/hooks';
 import { SliderProps, DragHandle, SelectionResult, TimeUnit } from './type';
-import { useDragState, useFocusManagement, usePositionState, useEventHandlers } from './hooks';
+import {
+  useDragState,
+  useFocusManagement,
+  usePositionState,
+  useEventHandlers,
+  useInitialAutoScrollPosition,
+} from './hooks';
 import {
   getTotalScales,
   generateScalesWithInfo,
@@ -59,10 +65,8 @@ export const DateSlider = memo(
   }: SliderProps) => {
     const [dimensions, setDimensions] = useState({ parent: 0, slider: 0 });
     const [timeUnit, setTimeUnit] = useState<TimeUnit>(initialTimeUnit);
-    const [isHandleHover, setIsHandleHover] = useState(false);
 
     const startDate = useMemo(() => toLocalDate(propStartDate), [propStartDate]);
-
     const endDate = useMemo(() => toLocalDate(propEndDate), [propEndDate]);
 
     const initialPoint = useMemo(() => {
@@ -180,13 +184,23 @@ export const DateSlider = memo(
       onDragStarted: () => setDragStarted(true),
     });
 
-    const resetPositionRef = useRef(resetPosition);
-    resetPositionRef.current = resetPosition;
+    useInitialAutoScrollPosition({
+      scrollable,
+      dimensions,
+      viewMode,
+      pointPosition,
+      rangeStart,
+      rangeEnd,
+      resetPosition,
+    });
 
-    const handleTimeUnitChange = useCallback((unit: TimeUnit) => {
-      setTimeUnit(unit);
-      resetPositionRef.current({ x: 0, y: 0 });
-    }, []);
+    const handleTimeUnitChange = useCallback(
+      (unit: TimeUnit) => {
+        setTimeUnit(unit);
+        resetPosition({ x: 0, y: 0 });
+      },
+      [resetPosition],
+    );
 
     const setDateTime = useCallback(
       (date: Date, target?: 'point' | 'rangeStart' | 'rangeEnd') => {
@@ -374,7 +388,9 @@ export const DateSlider = memo(
                   startDate={startDate}
                   endDate={endDate}
                   onDragging={!!isDragging}
-                  onHandleHover={isHandleHover}
+                  startHandleRef={startHandleRef}
+                  endHandleRef={endHandleRef}
+                  pointHandleRef={pointHandleRef}
                 />
                 <TimeLabels
                   timeLabels={timeLabels}
@@ -400,7 +416,6 @@ export const DateSlider = memo(
                   onMouseDown={handleMouseDown}
                   onTouchStart={handleTouchStart}
                   onKeyDown={handleHandleKeyDown}
-                  setIsHandleHover={setIsHandleHover}
                 />
               </div>
             </div>
