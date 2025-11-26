@@ -337,8 +337,8 @@ export const DateSlider = memo(
         })}
         style={
           sliderWidth !== 'fill'
-            ? { height: sliderHeight ?? 72, width: sliderWidth }
-            : { height: sliderHeight ?? 72 }
+            ? { height: sliderHeight ?? 64, width: sliderWidth }
+            : { height: sliderHeight ?? 64 }
         }
         role="group"
         aria-label="Date and Time Slider"

@@ -65,7 +65,7 @@ export const Map = () => {
             ]}
           />
           <MapComponent key={isSmallScreen ? 'mobile' : 'desktop'} />
-          <DateSelectionBar className="absolute bottom-2 left-1/2 -translate-x-1/2 w-3/4 pointer-events-none" />
+          <DateSelectionBar className="absolute bottom-2 left-1/2 -translate-x-1/2 w-full md:w-3/4 pointer-events-none" />
           <FloatingPanel
             wrapperClassName="w-14 md:min-w-60 bg-imos-light rounded-xl"
             boundary="parent"

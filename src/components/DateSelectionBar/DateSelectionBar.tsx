@@ -41,7 +41,7 @@ export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
           width: { short: 1, medium: 2, long: 2 },
           height: { short: 18, medium: 36, long: 60 },
         }}
-        sliderHeight={72}
+        sliderHeight={64}
         sliderWidth={'fill'}
         pointLabelPersistent
         withEndLabel={false}
