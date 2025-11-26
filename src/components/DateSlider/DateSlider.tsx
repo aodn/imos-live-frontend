@@ -19,13 +19,7 @@ import {
   getPercentFromDate,
   createSelectionResult,
 } from './utils';
-import {
-  TimeLabels,
-  RenderSliderHandle,
-  SliderTrack,
-  TimeUnitSelection,
-  Spacer,
-} from './components';
+import { TimeLabels, RenderSliderHandle, SliderTrack, TimeUnitSelection } from './components';
 
 const DEFAULT_SCALE_CONFIG = {
   gap: 36,
@@ -406,16 +400,13 @@ export const DateSlider = memo(
         </div>
 
         {timeUnitSelectionEnabled && (
-          <div className="flex flex-col">
-            <Spacer height={40} />
-            <TimeUnitSelection
-              className={cn('pointer-events-auto flex-1', timeUnitSlectionClassName)}
-              isMonthValid={checkDateDuration(startDate, endDate).moreThanOneMonth}
-              isYearValid={checkDateDuration(startDate, endDate).moreThanOneYear}
-              onChange={handleTimeUnitChange}
-              initialTimeUnit={initialTimeUnit}
-            />
-          </div>
+          <TimeUnitSelection
+            className={cn('pointer-events-auto h-full', timeUnitSlectionClassName)}
+            isMonthValid={checkDateDuration(startDate, endDate).moreThanOneMonth}
+            isYearValid={checkDateDuration(startDate, endDate).moreThanOneYear}
+            onChange={handleTimeUnitChange}
+            initialTimeUnit={initialTimeUnit}
+          />
         )}
       </div>
     );
