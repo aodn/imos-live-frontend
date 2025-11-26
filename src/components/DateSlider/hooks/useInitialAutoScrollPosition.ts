@@ -31,6 +31,7 @@ export const useInitialAutoScrollPosition = ({
     }
 
     let targetPercent = 0;
+
     if (viewMode === 'point') {
       targetPercent = pointPosition;
     } else if (viewMode === 'range') {

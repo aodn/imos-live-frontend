@@ -218,7 +218,7 @@ RangeMode.args = {
   trackActiveClassName: 'bg-blue-400/20',
   trackBaseClassName: 'bg-gray-400',
   minGapScaleUnits: 1,
-  timeUnitSlectionClassName: 'bg-gray-300 p-3 rounded-lg border border-indigo-200',
+  timeUnitSelectionClassName: 'bg-gray-300 p-3 rounded-lg border border-indigo-200',
 };
 
 export const PointMode = Template.bind({});
@@ -232,7 +232,7 @@ PointMode.args = {
   sliderHeight: 90,
   trackActiveClassName: 'bg-green-400/20',
   trackBaseClassName: 'bg-gray-400',
-  timeUnitSlectionClassName: 'bg-gray-300 p-3 rounded-lg border border-indigo-200',
+  timeUnitSelectionClassName: 'bg-gray-300 p-3 rounded-lg border border-indigo-200',
 };
 
 export const CombinedMode = Template.bind({});
@@ -251,7 +251,7 @@ CombinedMode.args = {
   trackActiveClassName: 'bg-purple-400/20',
   trackBaseClassName: 'bg-gray-300',
   minGapScaleUnits: 2,
-  timeUnitSlectionClassName: 'bg-gray-300 p-3 rounded-lg border border-indigo-200',
+  timeUnitSelectionClassName: 'bg-gray-300 p-3 rounded-lg border border-indigo-200',
 };
 
 export const FixedTRackWidthSlider = Template.bind({});
@@ -269,7 +269,7 @@ FixedTRackWidthSlider.args = {
   sliderHeight: 100,
   trackActiveClassName: 'bg-orange-400/20',
   trackBaseClassName: 'bg-gray-400',
-  timeUnitSlectionClassName: 'bg-gray-300 p-3 rounded-lg border border-indigo-200',
+  timeUnitSelectionClassName: 'bg-gray-300 p-3 rounded-lg border border-indigo-200',
 };
 
 export const CustomStyles = Template.bind({});
@@ -289,7 +289,7 @@ CustomStyles.args = {
   sliderClassName: 'rounded-lg border border-gray-300 bg-gradient-to-r from-indigo-50 to-purple-50',
   trackActiveClassName: 'bg-gradient-to-r from-indigo-400/30 to-purple-400/30',
   trackBaseClassName: 'bg-gray-400 border border-gray-200',
-  timeUnitSlectionClassName: 'bg-gray-300 p-3 rounded-lg border border-indigo-200',
+  timeUnitSelectionClassName: 'bg-gray-300 p-3 rounded-lg border border-indigo-200',
   minGapScaleUnits: 1,
   trackPaddingX: 48,
 };
@@ -305,7 +305,7 @@ YearlyOverview.args = {
   sliderHeight: 100,
   trackActiveClassName: 'bg-rose-400/20',
   trackBaseClassName: 'bg-gray-300',
-  timeUnitSlectionClassName: 'bg-gray-300 p-3 rounded-lg border border-indigo-200',
+  timeUnitSelectionClassName: 'bg-gray-300 p-3 rounded-lg border border-indigo-200',
   scaleUnitConfig: {
     gap: 60,
     width: { short: 1, medium: 1, long: 1 },
