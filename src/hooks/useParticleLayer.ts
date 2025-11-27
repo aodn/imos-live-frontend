@@ -46,7 +46,8 @@ export function useParticleLayer({ map, layerId, sourceId, product }: UseOPartic
    * NOTICE!!!
    * addOrUpdateImageSource will not throw error, even image fail to add, because on this
    * stage Mapbox only validates the shape of your source definition. The actual image load
-   * happens asynchronously.
+   * happens asynchronously. We only check meta data load error here, as meta data and images
+   * are generated from the same prefect flow. So either both are valid or both are invalid.
    */
   const setDataByDataset = useCallback(async () => {
     const data = await currentParticleQuery.promise.catch(() =>

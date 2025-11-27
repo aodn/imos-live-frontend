@@ -23,5 +23,4 @@ export * from './useParticleLayerVisibility';
 export * from './useMapboxLayerVisibility';
 export * from './useWorldLandLayer';
 export * from './usePopContentData';
-export * from './useProductErrorDetect';
 export * from './useDateSliderDates';
