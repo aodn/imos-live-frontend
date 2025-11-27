@@ -1,6 +1,6 @@
 import { Product } from '@/constants';
 import { StyleTitle } from '@/styles';
-import { getLast7Dates } from '@/utils';
+import { getLast31Dates, getLast7Dates } from '@/utils';
 import { LngLat } from 'mapbox-gl';
 import { create } from 'zustand';
 import { createJSONStorage, persist, StateStorage } from 'zustand/middleware';
@@ -9,7 +9,7 @@ export type NumParticles = 10000 | 30000 | 60000 | 100000;
 type ProductError = Record<Product, boolean>;
 export type ProductEnabled = Record<Product, boolean>;
 
-export const INITIAL_DATE = getLast7Dates().at(0)!;
+export const INITIAL_DATE = getLast31Dates().at(0)!;
 
 export interface MapUIState {
   center: LngLat;

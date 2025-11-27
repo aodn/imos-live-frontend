@@ -50,7 +50,7 @@ export const DateSlider = memo(
     timeUnitSelectionClassName,
     pointHandleIcon,
     rangeHandleIcon,
-    scrollable = true,
+    scrollable = false,
     isTrackFixedWidth = false,
     minGapScaleUnits = DEFAULTS.MIN_GAP_SCALE_UNITS,
     onChange,

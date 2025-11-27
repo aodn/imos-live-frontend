@@ -205,8 +205,8 @@ const buoys = {
 };
 
 const currentDate = new Date('2025-08-01T00:00:00.000Z');
-const defaultDaySelected = '2025-07-26';
-const nextDaySelected = '2025-07-27';
+const defaultDaySelected = '2025-07-01';
+const nextDaySelected = '2025-07-02';
 
 test.beforeEach(async ({ page }) => {
   await page.clock.install({ time: currentDate });
@@ -214,7 +214,7 @@ test.beforeEach(async ({ page }) => {
   await page.route('**/*', async route => {
     const url = new URL(route.request().url());
     if (url.searchParams.get('REQUEST') === 'GetFeatureInfo') {
-      if (url.pathname.includes('OceanCurrent_HV_20250726')) {
+      if (url.pathname.includes('OceanCurrent_HV_20250701')) {
         await route.fulfill({
           body: `
           <FeatureInfoResponse>
@@ -260,7 +260,7 @@ test.beforeEach(async ({ page }) => {
   });
 
   await page.route(
-    '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items/first_data_available?datetime=2025-07-25T14:00:00.000Z',
+    '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items/first_data_available?datetime=2025-06-30T14:00:00.000Z',
     async route => {
       const buoyLocations = {
         type: 'FeatureCollection',
@@ -286,7 +286,7 @@ test.beforeEach(async ({ page }) => {
   );
 
   await page.route(
-    '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items/first_data_available?datetime=2025-07-26T14:00:00.000Z',
+    '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items/first_data_available?datetime=2025-07-01T14:00:00.000Z',
     async route => {
       const buoyLocations = {
         type: 'FeatureCollection',
@@ -373,7 +373,11 @@ test.describe('Ocean Current', () => {
     await expect
       .poll(() => mapComponent.getSourceURL(page, PARTICLE_LAYER_ID))
       .toContain(`/${defaultDaySelected}/`);
-    await page.getByRole('slider', { name: 'point handle' }).click();
+    // Wait for auto-scroll to complete and slider to be stable
+    const sliderHandle = page.getByRole('slider', { name: 'point handle' });
+    await sliderHandle.waitFor({ state: 'visible' });
+    await page.waitForTimeout(1000);
+    await sliderHandle.focus();
     await page.keyboard.press('ArrowRight');
     await expect
       .poll(() => mapComponent.getSourceURL(page, PARTICLE_LAYER_ID))
@@ -387,7 +391,11 @@ test.describe('Ocean Current', () => {
       bearing: `${toCompassStandard(2.0).toFixed(2)}`,
     });
 
-    await page.getByRole('slider', { name: 'point handle' }).click();
+    // Wait for auto-scroll to complete and slider to be stable
+    const sliderHandle = page.getByRole('slider', { name: 'point handle' });
+    await sliderHandle.waitFor({ state: 'visible' });
+    await page.waitForTimeout(1000);
+    await sliderHandle.focus();
     await page.keyboard.press('ArrowRight');
 
     await mapComponent.waitUntilIdle(page);
@@ -413,18 +421,26 @@ test.describe('Anomaly sea levels', () => {
 
     await expect
       .poll(() => mapComponent.getTilesURL(page, GSLA_OVERLAY_LAYER_ID))
-      .toContain(`20250726T000000`);
-    await page.getByRole('slider', { name: 'point handle' }).click();
+      .toContain(`20250701T000000`);
+    // Wait for auto-scroll to complete and slider to be stable
+    const sliderHandle = page.getByRole('slider', { name: 'point handle' });
+    await sliderHandle.waitFor({ state: 'visible' });
+    await page.waitForTimeout(1000);
+    await sliderHandle.focus();
     await page.keyboard.press('ArrowRight');
     await expect
       .poll(() => mapComponent.getTilesURL(page, GSLA_OVERLAY_LAYER_ID))
-      .toContain(`20250727T000000`);
+      .toContain(`20250702T000000`);
   });
 
   test('User can see the current value from a map particle of different days', async ({ page }) => {
     await mapComponent.waitUntilLayerLoaded(page, GSLA_OVERLAY_LAYER_ID);
 
-    await page.getByRole('slider', { name: 'point handle' }).click();
+    // Wait for auto-scroll to complete and slider to be stable
+    const sliderHandle = page.getByRole('slider', { name: 'point handle' });
+    await sliderHandle.waitFor({ state: 'visible' });
+    await page.waitForTimeout(1000);
+    await sliderHandle.focus();
     await page.keyboard.press('ArrowRight');
 
     await mapComponent.waitUntilIdle(page);
@@ -451,7 +467,11 @@ test.describe('Anomaly sea levels and Ocean Current', () => {
       bearing: `${toCompassStandard(2.0).toFixed(2)}`,
     });
 
-    await page.getByRole('slider', { name: 'point handle' }).click();
+    // Wait for auto-scroll to complete and slider to be stable
+    const sliderHandle = page.getByRole('slider', { name: 'point handle' });
+    await sliderHandle.waitFor({ state: 'visible' });
+    await page.waitForTimeout(1000);
+    await sliderHandle.focus();
     await page.keyboard.press('ArrowRight');
 
     await mapComponent.waitUntilIdle(page);
@@ -508,7 +528,11 @@ test.describe('Wave Buoys', () => {
       { layer: UNCLUSTERED_WAVE_BUOYS_LAYER_ID, expectedBuoyName: buoys.HOBARITO.name },
     );
 
-    await page.getByRole('slider', { name: 'point handle' }).click();
+    // Wait for auto-scroll to complete and slider to be stable
+    const sliderHandle = page.getByRole('slider', { name: 'point handle' });
+    await sliderHandle.waitFor({ state: 'visible' });
+    await page.waitForTimeout(1000);
+    await sliderHandle.focus();
     await page.keyboard.press('ArrowRight');
 
     await page.waitForFunction(
