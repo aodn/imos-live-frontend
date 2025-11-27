@@ -194,11 +194,13 @@ export const DateSlider = memo(
       resetPosition,
     });
 
-    const handleTimeUnitChange = useCallback((unit: TimeUnit) => {
-      setTimeUnit(unit);
-      resetPosition({ x: 0, y: 0 });
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    const handleTimeUnitChange = useCallback(
+      (unit: TimeUnit) => {
+        setTimeUnit(unit);
+        resetPosition({ x: 0, y: 0 });
+      },
+      [resetPosition],
+    );
 
     const setDateTime = useCallback(
       (date: Date, target?: 'point' | 'rangeStart' | 'rangeEnd') => {
