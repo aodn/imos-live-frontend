@@ -1,6 +1,6 @@
 import { Product } from '@/constants';
 import { StyleTitle } from '@/styles';
-import { getLast31Dates, getLast7Dates } from '@/utils';
+import { getLast31Dates } from '@/utils';
 import { LngLat } from 'mapbox-gl';
 import { create } from 'zustand';
 import { createJSONStorage, persist, StateStorage } from 'zustand/middleware';
@@ -75,7 +75,7 @@ export const useMapUIStore = create(
       numParticles: 10000,
       distanceMeasurement: false,
       worldBoundaries: false,
-      dates: getLast7Dates(),
+      dates: getLast31Dates(),
       date: INITIAL_DATE,
       productEnabled: {
         [Product.GSLA_ANOMALY_SEA_LEVELS]: true,
@@ -97,7 +97,7 @@ export const useMapUIStore = create(
       setWorldBoundaries: worldBoundaries => set({ worldBoundaries }),
       setDate: date => set({ date }),
       refreshDates: () => {
-        const newDates = getLast7Dates();
+        const newDates = getLast31Dates();
         set(prev => ({ ...prev, dates: newDates }));
       },
       setProductEnabledByProduct: (product, enabled) => {

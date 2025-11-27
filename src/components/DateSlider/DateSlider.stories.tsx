@@ -312,3 +312,23 @@ YearlyOverview.args = {
     height: { short: 10, medium: 20, long: 40 },
   },
 };
+
+export const ScrollableSlider = Template.bind({});
+ScrollableSlider.args = {
+  viewMode: 'point',
+  startDate: new Date('2020-01-01'),
+  endDate: new Date('2024-12-31'),
+  initialTimeUnit: 'day' as TimeUnit,
+  initialPoint: new Date('2022-06-15'),
+  sliderWidth: 600,
+  sliderHeight: 80,
+  scrollable: true,
+  trackActiveClassName: 'bg-teal-400/20',
+  trackBaseClassName: 'bg-gray-300',
+  timeUnitSelectionClassName: 'bg-gray-300 p-3 rounded-lg border border-indigo-200',
+  scaleUnitConfig: {
+    gap: 100,
+    width: { short: 1, medium: 2, long: 2 },
+    height: { short: 18, medium: 36, long: 60 },
+  },
+};

@@ -50,7 +50,7 @@ export const DateSlider = memo(
     timeUnitSelectionClassName,
     pointHandleIcon,
     rangeHandleIcon,
-    scrollable = false,
+    scrollable = true,
     isTrackFixedWidth = false,
     minGapScaleUnits = DEFAULTS.MIN_GAP_SCALE_UNITS,
     onChange,
@@ -194,13 +194,11 @@ export const DateSlider = memo(
       resetPosition,
     });
 
-    const handleTimeUnitChange = useCallback(
-      (unit: TimeUnit) => {
-        setTimeUnit(unit);
-        resetPosition({ x: 0, y: 0 });
-      },
-      [resetPosition],
-    );
+    const handleTimeUnitChange = useCallback((unit: TimeUnit) => {
+      setTimeUnit(unit);
+      resetPosition({ x: 0, y: 0 });
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const setDateTime = useCallback(
       (date: Date, target?: 'point' | 'rangeStart' | 'rangeEnd') => {
