@@ -237,5 +237,8 @@ export const useDrag = ({
       onMouseDown: handleMouseDown,
       onTouchStart: handleTouchStart,
     },
+    draggable:
+      (bounds?.right !== undefined && position.x < bounds.right) ||
+      (bounds?.left !== undefined && position.x > bounds.left),
   };
 };

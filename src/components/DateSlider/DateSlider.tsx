@@ -11,7 +11,7 @@ import { checkDateDuration, clampPercent, clamp, cn, debounce } from '@/utils';
 import { useDrag, useElementSize, useResizeObserver, useRAFDFn } from '@/hooks';
 import { SliderProps, DragHandle, SelectionResult, TimeUnit } from './type';
 import {
-  useDragState,
+  useHandlerDragState as useHandleDragState,
   useFocusManagement,
   usePositionState,
   useEventHandlers,
@@ -115,8 +115,13 @@ export const DateSlider = memo(
       pointHandleRef,
     } = useFocusManagement();
 
-    const { isDragging, dragStarted, setIsDragging, setDragStarted, handleDragComplete } =
-      useDragState();
+    const {
+      isHandleDragging,
+      handleDragStarted,
+      setIsHandleDragging,
+      setHandleDragStarted,
+      handleDragComplete,
+    } = useHandleDragState();
 
     const {
       ref: sliderContainerRef,
@@ -173,18 +178,54 @@ export const DateSlider = memo(
       [dimensions.parent, dimensions.slider],
     );
 
+    const autoScrollToVisibleAreaEnabled = useRef(false);
+
     const {
+      draggable,
       dragHandlers,
-      isDragging: isContainerDragging,
+      isDragging: isSliderDragging,
       resetPosition,
     } = useDrag({
       targetRef: scrollable ? sliderRef : undefined,
       initialPosition: { x: 0, y: 0 },
       constrainToAxis: 'x',
       bounds: dragBounds,
+      //inform slider is being dragged to prevent handle interactions
       onDragEnd: handleDragComplete,
-      onDragStarted: () => setDragStarted(true),
+      onDragStarted: () => {
+        setHandleDragStarted(true);
+        autoScrollToVisibleAreaEnabled.current = false;
+      },
     });
+
+    if (
+      !isSliderDragging &&
+      !isHandleDragging &&
+      draggable &&
+      pointHandleRef.current &&
+      sliderContainerRef.current &&
+      autoScrollToVisibleAreaEnabled.current
+    ) {
+      const pointHandleRect = pointHandleRef.current.getBoundingClientRect();
+      const containerRect = sliderContainerRef.current.getBoundingClientRect();
+
+      const distanceFromRightEdge = containerRect.right - pointHandleRect.right;
+      const distanceFromLeftEdge = pointHandleRect.left - containerRect.left;
+
+      if (distanceFromRightEdge < 0) {
+        sliderContainerRef.current.scrollBy({
+          left: dimensions.parent / 2,
+          behavior: 'smooth',
+        });
+        autoScrollToVisibleAreaEnabled.current = false;
+      } else if (distanceFromLeftEdge < 0) {
+        sliderContainerRef.current.scrollBy({
+          left: -dimensions.parent / 2,
+          behavior: 'smooth',
+        });
+        autoScrollToVisibleAreaEnabled.current = false;
+      }
+    }
 
     useInitialAutoScrollPosition({
       scrollable,
@@ -253,6 +294,7 @@ export const DateSlider = memo(
             break;
           }
         }
+        autoScrollToVisibleAreaEnabled.current = true;
       },
       [
         startDate,
@@ -322,15 +364,15 @@ export const DateSlider = memo(
       viewMode,
       updateHandlePosition,
       requestHandleFocus,
-      setIsDragging,
-      setDragStarted,
+      setIsHandleDragging,
+      setHandleDragStarted,
       setLastInteractionType,
-      isDragging,
+      isHandleDragging,
       trackRef,
       handleDragComplete,
       sliderRef,
-      dragStarted,
-      isContainerDragging,
+      handleDragStarted,
+      isSliderDragging,
       totalScaleUnits,
       freeSelectionOnTrackClick,
     );
@@ -339,6 +381,7 @@ export const DateSlider = memo(
     useEffect(() => {
       onChangeRef.current = onChange;
     }, [onChange]);
+
     const debouncedOnChange = useMemo(
       () =>
         debounce(
@@ -410,7 +453,7 @@ export const DateSlider = memo(
                   aria-label={ACCESSIBILITY.TRACK_ARIA_LABEL}
                   startDate={startDate}
                   endDate={endDate}
-                  onDragging={!!isDragging}
+                  onDragging={!!isHandleDragging}
                   startHandleRef={startHandleRef}
                   endHandleRef={endHandleRef}
                   pointHandleRef={pointHandleRef}
@@ -429,7 +472,7 @@ export const DateSlider = memo(
                   startDate={startDate}
                   endDate={endDate}
                   timeUnit={timeUnit}
-                  isDragging={isDragging}
+                  isDragging={isHandleDragging}
                   rangeHandleIcon={rangeHandleIcon}
                   pointHandleIcon={pointHandleIcon}
                   startHandleRef={startHandleRef}

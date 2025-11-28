@@ -10,20 +10,20 @@ import { TIMING } from '../constants';
  *
  * @returns Drag state and control functions
  */
-export function useDragState() {
-  const [isDragging, setIsDragging] = useState<DragHandle>(null);
-  const [dragStarted, setDragStarted] = useState(false);
+export function useHandlerDragState() {
+  const [isHandleDragging, setIsHandleDragging] = useState<DragHandle>(null);
+  const [handleDragStarted, setHandleDragStarted] = useState(false);
 
   const handleDragComplete = useCallback(() => {
-    setTimeout(() => setDragStarted(false), TIMING.DRAG_COMPLETE_DELAY);
-    setIsDragging(null);
+    setTimeout(() => setHandleDragStarted(false), TIMING.DRAG_COMPLETE_DELAY);
+    setIsHandleDragging(null);
   }, []);
 
   return {
-    isDragging,
-    dragStarted,
-    setIsDragging,
-    setDragStarted,
+    isHandleDragging,
+    handleDragStarted,
+    setIsHandleDragging,
+    setHandleDragStarted,
     handleDragComplete,
   };
 }

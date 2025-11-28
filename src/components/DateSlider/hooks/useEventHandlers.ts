@@ -35,7 +35,7 @@ import { PERCENTAGE } from '../constants';
  * @param trackRef - Reference to the track element
  * @param handleDragComplete - Function to call when drag completes
  * @param sliderRef - Reference to the slider container
- * @param dragStarted - Whether a drag has started
+ * @param handleDragStarted - Whether a drag has started
  * @param isContainerDragging - Whether the container is being dragged
  * @param totalScaleUnits - Total number of scale units
  * @param freeSelectionOnTrackClick - Whether to allow free selection or snap to scales
@@ -58,7 +58,7 @@ export function useEventHandlers(
   trackRef: React.RefObject<HTMLDivElement | null>,
   handleDragComplete: () => void,
   sliderRef: React.RefObject<HTMLDivElement | null>,
-  dragStarted: boolean,
+  handleDragStarted: boolean,
   isContainerDragging: boolean,
   totalScaleUnits: number,
   freeSelectionOnTrackClick: boolean,
@@ -134,7 +134,7 @@ export function useEventHandlers(
 
   const handleTrackInteraction = useCallback(
     (e: React.MouseEvent | React.TouchEvent) => {
-      if (isDragging || dragStarted || isContainerDragging || !sliderRef.current) {
+      if (isDragging || handleDragStarted || isContainerDragging || !sliderRef.current) {
         return;
       }
 
@@ -172,7 +172,7 @@ export function useEventHandlers(
     },
     [
       isDragging,
-      dragStarted,
+      handleDragStarted,
       isContainerDragging,
       sliderRef,
       startDate,
