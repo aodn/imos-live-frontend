@@ -181,7 +181,7 @@ export const DateSlider = memo(
     const autoScrollToVisibleAreaEnabled = useRef(false);
 
     const {
-      draggable,
+      position: sliderPosition,
       dragHandlers,
       isDragging: isSliderDragging,
       resetPosition,
@@ -198,10 +198,10 @@ export const DateSlider = memo(
       },
     });
 
+    // auto scroll slider to keep point handle in view when point date changes by moving point handle
     if (
       !isSliderDragging &&
       !isHandleDragging &&
-      draggable &&
       pointHandleRef.current &&
       sliderContainerRef.current &&
       autoScrollToVisibleAreaEnabled.current
@@ -213,16 +213,14 @@ export const DateSlider = memo(
       const distanceFromLeftEdge = pointHandleRect.left - containerRect.left;
 
       if (distanceFromRightEdge < 0) {
-        sliderContainerRef.current.scrollBy({
-          left: dimensions.parent / 2,
-          behavior: 'smooth',
-        });
+        const newX = sliderPosition.x - dimensions.parent / 2;
+        const clampedX = Math.max(newX, dragBounds.left);
+        resetPosition({ x: clampedX, y: 0 });
         autoScrollToVisibleAreaEnabled.current = false;
       } else if (distanceFromLeftEdge < 0) {
-        sliderContainerRef.current.scrollBy({
-          left: -dimensions.parent / 2,
-          behavior: 'smooth',
-        });
+        const newX = sliderPosition.x + dimensions.parent / 2;
+        const clampedX = Math.min(newX, dragBounds.right);
+        resetPosition({ x: clampedX, y: 0 });
         autoScrollToVisibleAreaEnabled.current = false;
       }
     }
