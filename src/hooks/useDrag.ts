@@ -118,7 +118,7 @@ export const useDrag = ({
 
       setIsDragging(true);
       dragStartPositionRef.current = { ...position };
-      hasStartedDraggingRef.current = false; // Reset the flag
+      hasStartedDraggingRef.current = false;
 
       setDragState({
         isDragging: true,
@@ -167,7 +167,7 @@ export const useDrag = ({
 
       setIsDragging(true);
       dragStartPositionRef.current = { ...position };
-      hasStartedDraggingRef.current = false; // Reset the flag
+      hasStartedDraggingRef.current = false;
 
       setDragState({
         isDragging: true,

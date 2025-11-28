@@ -198,6 +198,10 @@ export const DateSlider = memo(
       },
     });
 
+    //TODO: 1. when scroll handle outside of view, then click on left/right button, it should scroll to make handle fully visible.
+    // 2. currently, the auto scroll only works when left/right button clicked. keyboard arrow navigation does not trigger auto scroll. Should fix this.
+    // 3. after a new date selected either way, a date label should show above the handle for better UX, only persist for a short time, then fade out.
+
     // auto scroll slider to keep point handle in view when point date changes by moving point handle
     if (
       !isSliderDragging &&
@@ -414,6 +418,7 @@ export const DateSlider = memo(
         role="group"
         aria-label={ACCESSIBILITY.SLIDER_ARIA_LABEL}
       >
+        {/* Time display and date selection operation */}
         {timeDisplayEnabled && (
           <TimeDisplay
             className={cn('pointer-events-auto', timeDisplayCLassName)}
@@ -424,6 +429,8 @@ export const DateSlider = memo(
             setDateTime={setDateTime}
           />
         )}
+
+        {/* Date slider */}
         <div ref={sliderContainerRef} className="overflow-hidden h-full flex-1 rounded-2xl">
           <div
             className="h-full"
@@ -486,6 +493,7 @@ export const DateSlider = memo(
           </div>
         </div>
 
+        {/* toggle time unit */}
         {timeUnitSelectionEnabled && (
           <TimeUnitSelection
             className={cn('pointer-events-auto h-full', timeUnitSelectionClassName)}
