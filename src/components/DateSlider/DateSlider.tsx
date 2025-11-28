@@ -151,7 +151,7 @@ export const DateSlider = memo(
     }, [numberOfScales, scaleUnitConfig, sliderContainerWidth, totalScaleUnits]);
 
     //TODO: could refactor this to always generate full labels regardless of time unit. But later,
-    // in formatDateForDisplay to decide what to dispaly and how display format.
+    // in formatForDisplay to decide what to display and how display format.
     //day unit, generate all labels per day. month unit, generate per month. year unit, per year.
     const timeLabels = useMemo(
       () => generateTimeLabelsWithPositions(startDate, endDate, timeUnit),

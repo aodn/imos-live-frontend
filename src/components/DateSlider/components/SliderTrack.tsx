@@ -3,11 +3,11 @@ import { useState, useCallback, useMemo, memo, useEffect } from 'react';
 import { SliderTrackProps, ScaleType } from '../type';
 import {
   calculateLabelPosition,
-  formatDateForDisplay,
+  formatForDisplay,
   getDateFromPercent,
   getPercentageFromMouseEvent,
   getPercentageFromTouchEvent,
-} from '../utils/utils';
+} from '../utils';
 import { createPortal } from 'react-dom';
 
 export const DateLabel = memo(
@@ -140,10 +140,12 @@ export const SliderTrack = memo(
       (e: MouseEvent) => {
         if (!trackRef.current) return;
         const percentage = getPercentageFromMouseEvent(e, trackRef);
-        const label = formatDateForDisplay({
-          date: getDateFromPercent(percentage, startDate, endDate),
-          fullDate: true,
-        });
+        const label = formatForDisplay(
+          getDateFromPercent(percentage, startDate, endDate),
+          'day',
+          'en-AU',
+          true,
+        );
 
         setIsHoverTrack(true);
         setDateLabel(label);
@@ -156,10 +158,12 @@ export const SliderTrack = memo(
     const handleTouchMove = useCallback(
       (e: TouchEvent) => {
         const percentage = getPercentageFromTouchEvent(e, trackRef);
-        const label = formatDateForDisplay({
-          date: getDateFromPercent(percentage, startDate, endDate),
-          fullDate: true,
-        });
+        const label = formatForDisplay(
+          getDateFromPercent(percentage, startDate, endDate),
+          'day',
+          'en-AU',
+          true,
+        );
 
         setIsHoverTrack(false);
         setDateLabel(label);

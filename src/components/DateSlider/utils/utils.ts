@@ -133,71 +133,6 @@ export const getRepresentativeDate = (date: Date, unit: TimeUnit): Date => {
 };
 
 /**
- * Format a date for display based on its significance.
- *
- * Formats dates intelligently:
- * - If fullDate is true: "1 Jan 2024" format
- * - If Jan 1: show only year "2024"
- * - If 1st of month: show only month "Jan"
- * - Otherwise: show only day "15"
- *
- * @param params - Formatting parameters
- * @param params.date - The date to format
- * @param params.fullDate - Whether to show full date format
- * @returns Formatted date string
- *
- * TODO: add format param to support different locale formats
- */
-/**
- * Format a UTC date for display
- *
- * Uses UTC methods to ensure consistent display regardless of user timezone
- *
- * @param params - Formatting parameters
- * @param params.date - The UTC date to format
- * @param params.fullDate - Whether to show full date format
- * @returns Formatted date string
- */
-export const formatDateForDisplay = ({
-  date,
-  fullDate = false,
-}: {
-  date: Date;
-  fullDate?: boolean;
-}): string => {
-  const day = date.getUTCDate();
-  const month = date.getUTCMonth();
-
-  if (fullDate) {
-    return date.toLocaleDateString('en-AU', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      timeZone: 'UTC',
-    });
-  }
-
-  if (month === 0 && day === 1) {
-    return date.toLocaleDateString('en-AU', {
-      year: 'numeric',
-      timeZone: 'UTC',
-    });
-  }
-
-  if (day === 1) {
-    return date.toLocaleDateString('en-AU', {
-      month: 'short',
-      timeZone: 'UTC',
-    });
-  }
-
-  return date.toLocaleDateString('en-AU', {
-    day: 'numeric',
-    timeZone: 'UTC',
-  });
-};
-
-/**
  * Calculate the total width of the slider track in pixels.
  *
  * The track width is calculated based on:
@@ -497,10 +432,6 @@ export const getAllScalesPercentage = (
  * - Supports future hourly/minute granularity
  */
 
-// ============================================================================
-// PUBLIC TYPES
-// ============================================================================
-
 /**
  * Date granularity supported by the slider
  */
@@ -533,45 +464,6 @@ export function toUTCDate(dateString: string): Date {
     throw new Error(`Invalid date string: ${dateString}`);
   }
   return date;
-}
-
-/**
- * Create a UTC date at the START of a time unit
- * Supports different granularities for future flexibility
- *
- * @param date - The date to truncate
- * @param granularity - The time unit to truncate to
- * @returns New Date at the start of the specified unit
- *
- * @example
- * // Day granularity - midnight UTC
- * startOf(new Date("2024-01-15T14:30:00Z"), 'day')
- * // → "2024-01-15T00:00:00Z"
- *
- * // Hour granularity - top of the hour
- * startOf(new Date("2024-01-15T14:30:00Z"), 'hour')
- * // → "2024-01-15T14:00:00Z"
- *
- * // Minute granularity - start of the minute
- * startOf(new Date("2024-01-15T14:30:45Z"), 'minute')
- * // → "2024-01-15T14:30:00Z"
- */
-export function startOf(date: Date, granularity: DateGranularity): Date {
-  const result = new Date(date);
-
-  switch (granularity) {
-    case 'day':
-      result.setUTCHours(0, 0, 0, 0);
-      break;
-    case 'hour':
-      result.setUTCMinutes(0, 0, 0);
-      break;
-    case 'minute':
-      result.setUTCSeconds(0, 0);
-      break;
-  }
-
-  return result;
 }
 
 /**
@@ -750,23 +642,4 @@ export function toISODateString(date: Date): string {
   const day = String(date.getUTCDate()).padStart(2, '0');
 
   return `${year}-${month}-${day}`;
-}
-
-/**
- * Convert UTC date to ISO datetime string (YYYY-MM-DDTHH:mm:ss)
- *
- * @param date - UTC date
- * @returns ISO datetime string
- *
- * @example
- * toISODateTimeString(new Date("2024-01-15T14:30:00Z"))
- * // → "2024-01-15T14:30:00"
- */
-export function toISODateTimeString(date: Date): string {
-  const datePart = toISODateString(date);
-  const hour = String(date.getUTCHours()).padStart(2, '0');
-  const minute = String(date.getUTCMinutes()).padStart(2, '0');
-  const second = String(date.getUTCSeconds()).padStart(2, '0');
-
-  return `${datePart}T${hour}:${minute}:${second}`;
 }

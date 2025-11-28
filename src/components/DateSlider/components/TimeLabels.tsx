@@ -1,6 +1,6 @@
 import { memo, useMemo, useCallback } from 'react';
 import { TimeLabel, TimeLabelsProps } from '../type';
-import { formatDateForDisplay } from '../utils/utils';
+import { formatForDisplay } from '../utils';
 
 export const TimeLabels = memo(
   ({
@@ -45,7 +45,7 @@ export const TimeLabels = memo(
             style={{ left: `${position}%` }}
             aria-hidden="true"
           >
-            {formatDateForDisplay({ date }).toUpperCase()}
+            {formatForDisplay(date, 'day', 'en-AU', false).toUpperCase()}
           </span>
         ))}
       </>

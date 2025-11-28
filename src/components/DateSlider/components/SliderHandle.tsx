@@ -2,7 +2,7 @@ import { cn } from '@/utils';
 import { Button } from '../../Button';
 import { RenderSliderHandleProps, SliderHandleProps } from '../type';
 import { memo } from 'react';
-import { formatDateForDisplay, getDateFromPercent } from '../utils/utils';
+import { formatForDisplay, getDateFromPercent } from '../utils';
 
 // Updated SliderHandleProps type to include touch event handlers
 type UpdatedSliderHandleProps = SliderHandleProps & {
@@ -99,10 +99,12 @@ export const RenderSliderHandle = memo<UpdatedRenderSliderHandleProps>(
               icon={rangeHandleIcon}
               onDragging={isDragging === 'start'}
               position={rangeStart}
-              label={formatDateForDisplay({
-                date: getDateFromPercent(rangeStart, startDate, endDate),
-                fullDate: true,
-              })}
+              label={formatForDisplay(
+                getDateFromPercent(rangeStart, startDate, endDate),
+                'day',
+                'en-AU',
+                true,
+              )}
               onMouseDown={onMouseDown('start')}
               onTouchStart={onTouchStart('start')}
               value={rangeStart}
@@ -116,10 +118,12 @@ export const RenderSliderHandle = memo<UpdatedRenderSliderHandleProps>(
               icon={rangeHandleIcon}
               onDragging={isDragging === 'end'}
               position={rangeEnd}
-              label={formatDateForDisplay({
-                date: getDateFromPercent(rangeEnd, startDate, endDate),
-                fullDate: true,
-              })}
+              label={formatForDisplay(
+                getDateFromPercent(rangeEnd, startDate, endDate),
+                'day',
+                'en-AU',
+                true,
+              )}
               onMouseDown={onMouseDown('end')}
               onTouchStart={onTouchStart('end')}
               value={rangeEnd}
@@ -137,10 +141,12 @@ export const RenderSliderHandle = memo<UpdatedRenderSliderHandleProps>(
             icon={pointHandleIcon}
             onDragging={isDragging === 'point'}
             position={pointPosition}
-            label={formatDateForDisplay({
-              date: getDateFromPercent(pointPosition, startDate, endDate),
-              fullDate: true,
-            })}
+            label={formatForDisplay(
+              getDateFromPercent(pointPosition, startDate, endDate),
+              'day',
+              'en-AU',
+              true,
+            )}
             onMouseDown={onMouseDown('point')}
             onTouchStart={onTouchStart('point')}
             value={pointPosition}
