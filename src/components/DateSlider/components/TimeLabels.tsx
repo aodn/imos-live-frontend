@@ -1,6 +1,6 @@
 import { memo, useMemo, useCallback } from 'react';
 import { TimeLabel, TimeLabelsProps } from '../type';
-import { formatDateForDisplay } from '../utils';
+import { formatDateForDisplay } from '../utils/utils';
 
 export const TimeLabels = memo(
   ({

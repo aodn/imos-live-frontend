@@ -4,7 +4,7 @@ import {
   getAllScalesPercentage,
   getPercentageFromMouseEvent,
   getPercentageFromTouchEvent,
-} from '../utils';
+} from '../utils/utils';
 import { clampToLowerBound, snapToClosestStep } from '@/utils';
 import { PERCENTAGE } from '../constants';
 

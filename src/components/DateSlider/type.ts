@@ -1,8 +1,12 @@
 import { ReactNode, RefObject } from 'react';
+import { DateGranularity } from './utils';
 
 export type ViewMode = 'range' | 'point' | 'combined';
 export type TimeUnit = 'day' | 'month' | 'year';
 export type DragHandle = 'start' | 'end' | 'point' | null;
+
+// Re-export for convenience
+export type { DateGranularity };
 
 type RangeSelection = {
   range: {
@@ -40,18 +44,21 @@ export type ScaleUnitConfig = {
 
 export type SliderExposedMethod = {
   setDateTime: (date: Date, target?: 'point' | 'rangeStart' | 'rangeEnd') => void;
+  focusHandle: (handleType: DragHandle) => void;
 };
 
 export type SliderProps = {
   viewMode: ViewMode;
-  startDate: Date; //this should be local date time
-  endDate: Date; //this should be local date time
+  startDate: Date; // Must be UTC Date
+  endDate: Date; // Must be UTC Date
   initialTimeUnit: TimeUnit;
-  initialRange?: { start: Date; end: Date };
-  initialPoint?: Date;
+  initialRange?: { start: Date; end: Date }; // Must be UTC Dates
+  initialPoint?: Date; // Must be UTC Date
+  granularity?: DateGranularity; // Controls display granularity (day/hour/minute)
   wrapperClassName?: string;
   sliderClassName?: string;
   timeUnitSelectionClassName?: string;
+  timeDisplayCLassName?: string;
   trackBaseClassName?: string;
   trackActiveClassName?: string;
   pointHandleIcon?: ReactNode;
@@ -67,6 +74,7 @@ export type SliderProps = {
   imperativeHandleRef?: React.Ref<SliderExposedMethod>;
   withEndLabel?: boolean;
   timeUnitSelectionEnabled?: boolean;
+  timeDisplayEnabled?: boolean;
   freeSelectionOnTrackClick?: boolean; //if true, the datetime can be freely selected when click on track, if false, the selection will be limited to datetime per scale units.
 };
 

@@ -1,6 +1,7 @@
 import { TriangleIcon } from '../Icons';
 import { DateSlider, PointSelection, SelectionResult } from '../DateSlider';
-import { dateToUTC, toDateFormatString, cn } from '@/utils';
+import { toISODateString } from '../DateSlider/utils';
+import { cn } from '@/utils';
 import { setDate } from '@/store';
 import { memo, useCallback } from 'react';
 import { useDateSliderDates } from '@/hooks';
@@ -11,8 +12,8 @@ export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
   const { date, startDate, endDate } = useDateSliderDates();
 
   const handleSelect = useCallback(async (v: PointSelection) => {
-    const date = toDateFormatString(v.point);
-    setDate(date);
+    const dateString = toISODateString(v.point);
+    setDate(dateString);
   }, []);
 
   return (
@@ -20,12 +21,14 @@ export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
       <DateSlider
         viewMode="point"
         initialTimeUnit="day"
+        granularity="day"
         startDate={startDate}
         endDate={endDate}
-        initialPoint={dateToUTC(date)}
+        initialPoint={date}
         pointHandleIcon={<TriangleIcon size="xxl" className="text-slate-700! text-shadow" />}
         sliderClassName="frosted"
         timeUnitSelectionClassName="frosted"
+        timeDisplayCLassName="frosted"
         trackActiveClassName="hidden"
         onChange={handleSelect as (v: SelectionResult) => void}
         scrollable
@@ -38,6 +41,7 @@ export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
         sliderWidth={'fill'}
         withEndLabel={false}
         timeUnitSelectionEnabled={false}
+        timeDisplayEnabled
       />
     </div>
   );

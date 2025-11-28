@@ -2,7 +2,7 @@ import { cn } from '@/utils';
 import { Button } from '../../Button';
 import { RenderSliderHandleProps, SliderHandleProps } from '../type';
 import { memo } from 'react';
-import { formatDateForDisplay, getDateFromPercent } from '../utils';
+import { formatDateForDisplay, getDateFromPercent } from '../utils/utils';
 
 // Updated SliderHandleProps type to include touch event handlers
 type UpdatedSliderHandleProps = SliderHandleProps & {

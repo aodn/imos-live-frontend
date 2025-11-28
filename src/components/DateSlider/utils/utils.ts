@@ -30,6 +30,16 @@ import { RefObject } from 'react';
  * generateNewDateByAddingScaleUnit(new Date('2024-01-15'), 2, 'month')
  * // Returns: Date('2024-03-15')
  */
+/**
+ * Add scale units to a UTC date
+ *
+ * Uses UTC methods to ensure consistent behavior across timezones
+ *
+ * @param date - The base UTC date
+ * @param amount - Number of units to add (can be negative)
+ * @param unit - The time unit to add
+ * @returns New UTC Date with the time added
+ */
 export const generateNewDateByAddingScaleUnit = (
   date: Date,
   amount: number,
@@ -38,13 +48,13 @@ export const generateNewDateByAddingScaleUnit = (
   const newDate = new Date(date);
   switch (unit) {
     case 'day':
-      newDate.setDate(newDate.getDate() + amount);
+      newDate.setUTCDate(newDate.getUTCDate() + amount);
       break;
     case 'month':
-      newDate.setMonth(newDate.getMonth() + amount);
+      newDate.setUTCMonth(newDate.getUTCMonth() + amount);
       break;
     case 'year':
-      newDate.setFullYear(newDate.getFullYear() + amount);
+      newDate.setUTCFullYear(newDate.getUTCFullYear() + amount);
       break;
   }
   return newDate;
@@ -77,15 +87,15 @@ export const getTotalScales = (start: Date, end: Date, unit: TimeUnit): number =
     case 'day':
       return Math.ceil(msDiff / (1000 * 60 * 60 * 24));
     case 'month': {
-      // Calculate the difference in months
+      // Calculate the difference in months using UTC methods
       // Note: Adding 1 to include both start and end months
-      const yearDiff = end.getFullYear() - start.getFullYear();
-      const monthDiff = end.getMonth() - start.getMonth();
+      const yearDiff = end.getUTCFullYear() - start.getUTCFullYear();
+      const monthDiff = end.getUTCMonth() - start.getUTCMonth();
       return yearDiff * 12 + monthDiff + 1;
     }
     case 'year':
-      // Calculate the difference in years (inclusive)
-      return end.getFullYear() - start.getFullYear() + 1;
+      // Calculate the difference in years (inclusive) using UTC methods
+      return end.getUTCFullYear() - start.getUTCFullYear() + 1;
   }
 };
 
@@ -102,14 +112,23 @@ export const getTotalScales = (start: Date, end: Date, unit: TimeUnit): number =
  * @param unit - The time unit context
  * @returns A representative date for labeling
  */
+/**
+ * Get a representative UTC date for labeling based on the time unit
+ *
+ * Uses UTC methods to ensure consistent behavior across timezones
+ *
+ * @param date - The UTC date to get representative date for
+ * @param unit - The time unit context
+ * @returns A representative UTC date for labeling
+ */
 export const getRepresentativeDate = (date: Date, unit: TimeUnit): Date => {
   switch (unit) {
     case 'day':
-      return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
     case 'month':
-      return new Date(date.getFullYear(), 0, 1);
+      return new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
     case 'year':
-      return new Date(Math.floor(date.getFullYear() / 10) * 10, 0, 1);
+      return new Date(Date.UTC(Math.floor(date.getUTCFullYear() / 10) * 10, 0, 1));
   }
 };
 
@@ -126,6 +145,18 @@ export const getRepresentativeDate = (date: Date, unit: TimeUnit): Date => {
  * @param params.date - The date to format
  * @param params.fullDate - Whether to show full date format
  * @returns Formatted date string
+ *
+ * TODO: add format param to support different locale formats
+ */
+/**
+ * Format a UTC date for display
+ *
+ * Uses UTC methods to ensure consistent display regardless of user timezone
+ *
+ * @param params - Formatting parameters
+ * @param params.date - The UTC date to format
+ * @param params.fullDate - Whether to show full date format
+ * @returns Formatted date string
  */
 export const formatDateForDisplay = ({
   date,
@@ -134,22 +165,36 @@ export const formatDateForDisplay = ({
   date: Date;
   fullDate?: boolean;
 }): string => {
-  const day = date.getDate();
-  const month = date.getMonth();
+  const day = date.getUTCDate();
+  const month = date.getUTCMonth();
 
   if (fullDate) {
-    return date.toLocaleDateString('en-AU', { year: 'numeric', month: 'short', day: 'numeric' });
+    return date.toLocaleDateString('en-AU', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      timeZone: 'UTC',
+    });
   }
 
   if (month === 0 && day === 1) {
-    return date.toLocaleDateString('en-AU', { year: 'numeric' });
+    return date.toLocaleDateString('en-AU', {
+      year: 'numeric',
+      timeZone: 'UTC',
+    });
   }
 
   if (day === 1) {
-    return date.toLocaleDateString('en-AU', { month: 'short' });
+    return date.toLocaleDateString('en-AU', {
+      month: 'short',
+      timeZone: 'UTC',
+    });
   }
 
-  return date.toLocaleDateString('en-AU', { day: 'numeric' });
+  return date.toLocaleDateString('en-AU', {
+    day: 'numeric',
+    timeZone: 'UTC',
+  });
 };
 
 /**
@@ -217,17 +262,21 @@ export const generateScalesWithInfo = (
     let type: ScaleType = 'short';
     switch (unit) {
       case 'day':
-        type = current.getDate() === 1 ? 'long' : current.getDay() === 1 ? 'medium' : 'short';
+        type = current.getUTCDate() === 1 ? 'long' : current.getUTCDay() === 1 ? 'medium' : 'short';
         break;
       case 'month':
         type =
-          current.getMonth() === 0 ? 'long' : current.getMonth() % 3 === 0 ? 'medium' : 'short';
+          current.getUTCMonth() === 0
+            ? 'long'
+            : current.getUTCMonth() % 3 === 0
+              ? 'medium'
+              : 'short';
         break;
       case 'year':
         type =
-          current.getFullYear() % 10 === 0
+          current.getUTCFullYear() % 10 === 0
             ? 'long'
-            : current.getFullYear() % 5 === 0
+            : current.getUTCFullYear() % 5 === 0
               ? 'medium'
               : 'short';
         break;
@@ -268,17 +317,19 @@ export const generateTimeLabelsWithPositions = (
     let labelDate: Date | undefined;
     switch (unit) {
       case 'day':
-        labelDate = new Date(current.getFullYear(), current.getMonth(), current.getDate());
-        current.setDate(current.getDate() + 1);
+        labelDate = new Date(
+          Date.UTC(current.getUTCFullYear(), current.getUTCMonth(), current.getUTCDate()),
+        );
+        current.setUTCDate(current.getUTCDate() + 1);
         break;
       case 'month':
-        labelDate = new Date(current.getFullYear(), 0, 1);
-        current.setFullYear(current.getFullYear() + 1);
+        labelDate = new Date(Date.UTC(current.getUTCFullYear(), 0, 1));
+        current.setUTCFullYear(current.getUTCFullYear() + 1);
         break;
       case 'year': {
-        const decade = Math.floor(current.getFullYear() / 10) * 10;
-        labelDate = new Date(decade, 0, 1);
-        current.setFullYear(decade + 10);
+        const decade = Math.floor(current.getUTCFullYear() / 10) * 10;
+        labelDate = new Date(Date.UTC(decade, 0, 1));
+        current.setUTCFullYear(decade + 10);
         break;
       }
     }
@@ -367,25 +418,6 @@ export const getDateFromPercent = (percent: number, startDate: Date, endDate: Da
 };
 
 /**
- * Convert a date to a percentage position within the given range.
- *
- * The date is clamped to be within [startDate, endDate] range.
- *
- * @param date - The date to convert
- * @param startDate - Start date of the range
- * @param endDate - End date of the range
- * @returns Percentage (0-100) of the date's position in the range
- */
-export const getPercentFromDate = (date: Date, startDate: Date, endDate: Date): number => {
-  const startTime = startDate.getTime();
-  const endTime = endDate.getTime();
-  const targetTime = date.getTime();
-  const clampedTime = Math.max(startTime, Math.min(endTime, targetTime));
-  const percent = ((clampedTime - startTime) / (endTime - startTime)) * 100;
-  return clampPercent(percent);
-};
-
-/**
  * Create a selection result object based on the view mode.
  *
  * @param rangeStart - Start percentage for range mode
@@ -453,3 +485,288 @@ export const getAllScalesPercentage = (
 
   return scales;
 };
+
+/**
+ * DateSlider Date Utilities
+ *
+ * Core Principle: UTC Everywhere, Display Locally
+ *
+ * - All dates are stored and manipulated as UTC timestamps
+ * - Only convert to local timezone for display purposes
+ * - Date-only data is represented as UTC midnight
+ * - Supports future hourly/minute granularity
+ */
+
+// ============================================================================
+// PUBLIC TYPES
+// ============================================================================
+
+/**
+ * Date granularity supported by the slider
+ */
+export type DateGranularity = 'day' | 'hour' | 'minute';
+
+// ============================================================================
+// PUBLIC UTILITIES FOR CONSUMERS
+// These functions help convert external date formats to UTC Date objects
+// that DateSlider requires
+// ============================================================================
+
+/**
+ * Convert an ISO date string (YYYY-MM-DD) to UTC midnight
+ *
+ * USE THIS: When passing date strings to DateSlider props
+ *
+ * @param dateString - ISO date string (YYYY-MM-DD) or ISO datetime string
+ * @returns UTC Date at midnight (for date strings) or as-is (for datetime strings)
+ *
+ * @example
+ * toUTCDate("2024-01-15") → Date("2024-01-15T00:00:00.000Z")
+ * toUTCDate("2024-01-15T14:30:00Z") → Date("2024-01-15T14:30:00.000Z")
+ */
+export function toUTCDate(dateString: string): Date {
+  // If the string doesn't include time, append midnight UTC
+  const isoString = dateString.includes('T') ? dateString : dateString + 'T00:00:00.000Z';
+  const date = new Date(isoString);
+
+  if (isNaN(date.getTime())) {
+    throw new Error(`Invalid date string: ${dateString}`);
+  }
+  return date;
+}
+
+/**
+ * Create a UTC date at the START of a time unit
+ * Supports different granularities for future flexibility
+ *
+ * @param date - The date to truncate
+ * @param granularity - The time unit to truncate to
+ * @returns New Date at the start of the specified unit
+ *
+ * @example
+ * // Day granularity - midnight UTC
+ * startOf(new Date("2024-01-15T14:30:00Z"), 'day')
+ * // → "2024-01-15T00:00:00Z"
+ *
+ * // Hour granularity - top of the hour
+ * startOf(new Date("2024-01-15T14:30:00Z"), 'hour')
+ * // → "2024-01-15T14:00:00Z"
+ *
+ * // Minute granularity - start of the minute
+ * startOf(new Date("2024-01-15T14:30:45Z"), 'minute')
+ * // → "2024-01-15T14:30:00Z"
+ */
+export function startOf(date: Date, granularity: DateGranularity): Date {
+  const result = new Date(date);
+
+  switch (granularity) {
+    case 'day':
+      result.setUTCHours(0, 0, 0, 0);
+      break;
+    case 'hour':
+      result.setUTCMinutes(0, 0, 0);
+      break;
+    case 'minute':
+      result.setUTCSeconds(0, 0);
+      break;
+  }
+
+  return result;
+}
+
+/**
+ * Add time units to a UTC date
+ *
+ * @param date - The base date
+ * @param amount - Number of units to add (can be negative)
+ * @param unit - The time unit to add
+ * @returns New Date with the time added
+ *
+ * @example
+ * addTime(new Date("2024-01-15T00:00:00Z"), 1, 'day')
+ * // → "2024-01-16T00:00:00Z"
+ *
+ * addTime(new Date("2024-01-15T14:00:00Z"), 3, 'hour')
+ * // → "2024-01-15T17:00:00Z"
+ *
+ * addTime(new Date("2024-01-15T14:00:00Z"), -2, 'hour')
+ * // → "2024-01-15T12:00:00Z"
+ */
+export function addTime(
+  date: Date,
+  amount: number,
+  unit: 'day' | 'month' | 'year' | 'hour' | 'minute',
+): Date {
+  const result = new Date(date);
+
+  switch (unit) {
+    case 'minute':
+      result.setUTCMinutes(result.getUTCMinutes() + amount);
+      break;
+    case 'hour':
+      result.setUTCHours(result.getUTCHours() + amount);
+      break;
+    case 'day':
+      result.setUTCDate(result.getUTCDate() + amount);
+      break;
+    case 'month':
+      result.setUTCMonth(result.getUTCMonth() + amount);
+      break;
+    case 'year':
+      result.setUTCFullYear(result.getUTCFullYear() + amount);
+      break;
+  }
+
+  return result;
+}
+
+/**
+ * Format UTC date for display
+ *
+ * Uses the browser's Intl API to format dates according to locale.
+ * Always displays in UTC timezone to avoid confusion.
+ *
+ * @param date - UTC date to format
+ * @param granularity - Display granularity
+ * @param locale - Locale string (default: en-AU)
+ * @param fullDate - For day granularity, whether to show full date or abbreviated
+ * @returns Formatted date string
+ *
+ * @example
+ * // Daily granularity - show only date
+ * formatForDisplay(new Date("2024-01-15T00:00:00Z"), 'day', 'en-AU', true)
+ * // → "15 Jan 2024"
+ *
+ * // Hourly granularity - show date and time
+ * formatForDisplay(new Date("2024-01-15T14:00:00Z"), 'hour')
+ * // → "15 Jan 2024, 14:00"
+ */
+export function formatForDisplay(
+  date: Date,
+  granularity: DateGranularity,
+  locale: string = 'en-AU',
+  fullDate: boolean = false,
+): string {
+  switch (granularity) {
+    case 'day': {
+      if (fullDate) {
+        return date.toLocaleDateString(locale, {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          timeZone: 'UTC',
+        });
+      }
+
+      // Abbreviated format for labels
+      const day = date.getUTCDate();
+      const month = date.getUTCMonth();
+
+      if (month === 0 && day === 1) {
+        // New Year - show year
+        return date.toLocaleDateString(locale, { year: 'numeric', timeZone: 'UTC' });
+      }
+
+      if (day === 1) {
+        // First of month - show month
+        return date.toLocaleDateString(locale, { month: 'short', timeZone: 'UTC' });
+      }
+
+      // Regular day - show day number
+      return date.toLocaleDateString(locale, { day: 'numeric', timeZone: 'UTC' });
+    }
+
+    case 'hour':
+      return date.toLocaleString(locale, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'UTC',
+      });
+
+    case 'minute':
+      return date.toLocaleString(locale, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        timeZone: 'UTC',
+      });
+  }
+}
+
+/**
+ * Calculate percentage position of a date within a range
+ *
+ * @param date - The date to position
+ * @param startDate - Start of the range
+ * @param endDate - End of the range
+ * @returns Percentage (0-100) of the date's position
+ *
+ * @example
+ * const start = new Date("2024-01-01T00:00:00Z");
+ * const end = new Date("2024-01-31T00:00:00Z");
+ * const mid = new Date("2024-01-16T00:00:00Z");
+ * getPercentFromDate(mid, start, end) // → ~50
+ */
+export function getPercentFromDate(date: Date, startDate: Date, endDate: Date): number {
+  const startTime = startDate.getTime();
+  const endTime = endDate.getTime();
+  const targetTime = date.getTime();
+
+  // Clamp to range
+  const clampedTime = Math.max(startTime, Math.min(endTime, targetTime));
+
+  // Calculate percentage
+  const totalSpan = endTime - startTime;
+  if (totalSpan === 0) return 0;
+
+  const percent = ((clampedTime - startTime) / totalSpan) * 100;
+
+  // Clamp to 0-100
+  return Math.max(0, Math.min(100, percent));
+}
+
+/**
+ * Convert UTC date to ISO date string (YYYY-MM-DD)
+ *
+ * Useful for API calls and storage that expect date strings.
+ * Uses UTC date components to avoid timezone issues.
+ *
+ * @param date - UTC date
+ * @returns ISO date string
+ *
+ * @example
+ * toISODateString(new Date("2024-01-15T14:30:00Z"))
+ * // → "2024-01-15"
+ */
+export function toISODateString(date: Date): string {
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(date.getUTCDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Convert UTC date to ISO datetime string (YYYY-MM-DDTHH:mm:ss)
+ *
+ * @param date - UTC date
+ * @returns ISO datetime string
+ *
+ * @example
+ * toISODateTimeString(new Date("2024-01-15T14:30:00Z"))
+ * // → "2024-01-15T14:30:00"
+ */
+export function toISODateTimeString(date: Date): string {
+  const datePart = toISODateString(date);
+  const hour = String(date.getUTCHours()).padStart(2, '0');
+  const minute = String(date.getUTCMinutes()).padStart(2, '0');
+  const second = String(date.getUTCSeconds()).padStart(2, '0');
+
+  return `${datePart}T${hour}:${minute}:${second}`;
+}

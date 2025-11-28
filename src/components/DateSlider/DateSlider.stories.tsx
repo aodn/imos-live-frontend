@@ -1,6 +1,7 @@
 import { useRef, useState, useCallback, memo } from 'react';
 import { DateSlider } from './DateSlider';
 import type { SliderProps, TimeUnit, SelectionResult } from './type';
+import { toUTCDate } from './utils';
 import { FaDotCircle, FaArrowsAltH } from 'react-icons/fa';
 import { Button } from '../Button';
 import type { StoryFn } from '@storybook/react';
@@ -17,6 +18,10 @@ export default {
       control: { type: 'select' },
       options: ['day', 'month', 'year'],
     },
+    granularity: {
+      control: { type: 'select' },
+      options: ['day', 'hour', 'minute'],
+    },
     isTrackFixedWidth: { control: 'boolean' },
     scrollable: { control: 'boolean' },
     sliderWidth: { control: 'text' },
@@ -27,7 +32,7 @@ export default {
     docs: {
       description: {
         component:
-          'A flexible date slider component supporting point, range, and combined selection modes.',
+          'A flexible date slider component supporting point, range, and combined selection modes with UTC date architecture.',
       },
     },
   },
@@ -95,7 +100,7 @@ const ControlButtons = memo(
       <div style={{ marginTop: 16, display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
         {(viewMode === 'point' || viewMode === 'combined') && (
           <>
-            <Button onClick={() => handleSetDateTime(new Date('2022-01-01'), 'point')} size="sm">
+            <Button onClick={() => handleSetDateTime(toUTCDate('2022-01-01'), 'point')} size="sm">
               Set Point to 2022-01-01
             </Button>
             <Button onClick={() => handleFocusHandle('point')} variant="outline" size="sm">
@@ -107,14 +112,14 @@ const ControlButtons = memo(
         {(viewMode === 'range' || viewMode === 'combined') && (
           <>
             <Button
-              onClick={() => handleSetDateTime(new Date('2021-06-01'), 'rangeStart')}
+              onClick={() => handleSetDateTime(toUTCDate('2021-06-01'), 'rangeStart')}
               size="sm"
               style={buttonStyle}
             >
               Set Range Start to 2021-06-01
             </Button>
             <Button
-              onClick={() => handleSetDateTime(new Date('2021-09-01'), 'rangeEnd')}
+              onClick={() => handleSetDateTime(toUTCDate('2021-09-01'), 'rangeEnd')}
               size="sm"
               style={buttonStyle}
             >
@@ -140,7 +145,7 @@ const ControlButtons = memo(
         )}
 
         <Button
-          onClick={() => handleSetDateTime(new Date())}
+          onClick={() => handleSetDateTime(new Date(Date.now()))}
           variant="secondary"
           size="sm"
           style={buttonStyle}
@@ -182,10 +187,11 @@ const DateSliderTemplate = (args: Partial<SliderProps>) => {
       >
         <DateSlider
           {...args}
-          startDate={args.startDate ?? new Date('2000-01-01')}
-          endDate={args.endDate ?? new Date('2030-12-31')}
+          startDate={args.startDate ?? toUTCDate('2000-01-01')}
+          endDate={args.endDate ?? toUTCDate('2030-12-31')}
           viewMode={args.viewMode ?? 'point'}
           initialTimeUnit={args.initialTimeUnit ?? 'day'}
+          granularity={args.granularity ?? 'day'}
           onChange={handleSelectionChange}
           imperativeHandleRef={sliderRef}
           pointHandleIcon={<FaDotCircle />}
@@ -206,12 +212,12 @@ const Template: StoryFn<Partial<SliderProps>> = DateSliderTemplate;
 export const RangeMode = Template.bind({});
 RangeMode.args = {
   viewMode: 'range',
-  startDate: new Date('2020-01-01'),
-  endDate: new Date('2025-03-15'),
+  startDate: toUTCDate('2020-01-01'),
+  endDate: toUTCDate('2025-03-15'),
   initialTimeUnit: 'month' as TimeUnit,
   initialRange: {
-    start: new Date('2021-03-01'),
-    end: new Date('2021-06-01'),
+    start: toUTCDate('2021-03-01'),
+    end: toUTCDate('2021-06-01'),
   },
   sliderWidth: 800,
   sliderHeight: 120,
@@ -224,10 +230,10 @@ RangeMode.args = {
 export const PointMode = Template.bind({});
 PointMode.args = {
   viewMode: 'point',
-  startDate: new Date('2019-01-01'),
-  endDate: new Date('2019-02-08'),
+  startDate: toUTCDate('2019-01-01'),
+  endDate: toUTCDate('2019-02-08'),
   initialTimeUnit: 'day' as TimeUnit,
-  initialPoint: new Date('2019-01-01'),
+  initialPoint: toUTCDate('2019-01-01'),
   sliderWidth: 600,
   sliderHeight: 90,
   trackActiveClassName: 'bg-green-400/20',
@@ -238,14 +244,14 @@ PointMode.args = {
 export const CombinedMode = Template.bind({});
 CombinedMode.args = {
   viewMode: 'combined',
-  startDate: new Date('2020-10-05'),
-  endDate: new Date('2025-11-11'),
+  startDate: toUTCDate('2020-10-05'),
+  endDate: toUTCDate('2025-11-11'),
   initialTimeUnit: 'month' as TimeUnit,
   initialRange: {
-    start: new Date('2021-03-01'),
-    end: new Date('2021-06-01'),
+    start: toUTCDate('2021-03-01'),
+    end: toUTCDate('2021-06-01'),
   },
-  initialPoint: new Date('2023-08-01'),
+  initialPoint: toUTCDate('2023-08-01'),
   sliderWidth: 900,
   sliderHeight: 140,
   trackActiveClassName: 'bg-purple-400/20',
@@ -257,12 +263,12 @@ CombinedMode.args = {
 export const FixedTRackWidthSlider = Template.bind({});
 FixedTRackWidthSlider.args = {
   viewMode: 'range',
-  startDate: new Date('2020-10-05'),
-  endDate: new Date('2025-11-11'),
+  startDate: toUTCDate('2020-10-05'),
+  endDate: toUTCDate('2025-11-11'),
   initialTimeUnit: 'month' as TimeUnit,
   initialRange: {
-    start: new Date('2021-11-05'),
-    end: new Date('2022-01-05'),
+    start: toUTCDate('2021-11-05'),
+    end: toUTCDate('2022-01-05'),
   },
   sliderWidth: 'fill',
   isTrackFixedWidth: true,
@@ -275,14 +281,14 @@ FixedTRackWidthSlider.args = {
 export const CustomStyles = Template.bind({});
 CustomStyles.args = {
   viewMode: 'combined',
-  startDate: new Date('2020-10-01'),
-  endDate: new Date('2025-11-11'),
+  startDate: toUTCDate('2020-10-01'),
+  endDate: toUTCDate('2025-11-11'),
   initialTimeUnit: 'month' as TimeUnit,
   initialRange: {
-    start: new Date('2021-11-05'),
-    end: new Date('2022-01-05'),
+    start: toUTCDate('2021-11-05'),
+    end: toUTCDate('2022-01-05'),
   },
-  initialPoint: new Date('2023-10-10'),
+  initialPoint: toUTCDate('2023-10-10'),
   sliderWidth: 700,
   sliderHeight: 110,
   wrapperClassName: 'rounded-xl shadow-lg bg-white border-2 border-indigo-200',
@@ -297,10 +303,10 @@ CustomStyles.args = {
 export const YearlyOverview = Template.bind({});
 YearlyOverview.args = {
   viewMode: 'point',
-  startDate: new Date('2000-01-01'),
-  endDate: new Date('2030-12-31'),
+  startDate: toUTCDate('2000-01-01'),
+  endDate: toUTCDate('2030-12-31'),
   initialTimeUnit: 'year' as TimeUnit,
-  initialPoint: new Date('2024-01-01'),
+  initialPoint: toUTCDate('2024-01-01'),
   sliderWidth: 800,
   sliderHeight: 100,
   trackActiveClassName: 'bg-rose-400/20',
@@ -316,10 +322,10 @@ YearlyOverview.args = {
 export const ScrollableSlider = Template.bind({});
 ScrollableSlider.args = {
   viewMode: 'point',
-  startDate: new Date('2020-01-01'),
-  endDate: new Date('2024-12-31'),
+  startDate: toUTCDate('2020-01-01'),
+  endDate: toUTCDate('2024-12-31'),
   initialTimeUnit: 'day' as TimeUnit,
-  initialPoint: new Date('2022-06-15'),
+  initialPoint: toUTCDate('2022-06-15'),
   sliderWidth: 600,
   sliderHeight: 80,
   scrollable: true,

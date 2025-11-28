@@ -67,10 +67,9 @@ export function toDateFormatString(dateString: string | Date): string {
   return `${yy}-${mm}-${dd}`;
 }
 
-export function dateToUTC(dateString: string): Date {
-  const date = new Date(dateString);
+export function dateToUTC(date: Date): Date {
   if (isNaN(date.getTime())) {
-    throw new Error(`Invalid date string: "${dateString}"`);
+    throw new Error(`Invalid date string: "${date}"`);
   }
   return new Date(
     Date.UTC(

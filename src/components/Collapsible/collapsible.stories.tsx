@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { CollapsibleComponent, TriggerArgs } from '../Collapsible';
 import { Button } from '../Button';
-import { ArrowDownIcon } from '../Icons';
+import { ArrowIcon } from '../Icons';
 import clsx from 'clsx';
 
 const meta: Meta<typeof CollapsibleComponent> = {
@@ -48,7 +48,7 @@ const CollapsibleTrigger = ({
             aria-expanded={open}
             aria-label={`${open ? 'Collapse' : 'Expand'} content`}
           >
-            <ArrowDownIcon
+            <ArrowIcon
               color="imos-white"
               className={clsx(
                 'transition-transform duration-300 ease-in-out',

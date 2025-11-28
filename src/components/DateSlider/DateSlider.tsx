@@ -7,7 +7,7 @@ import {
   useImperativeHandle,
   memo,
 } from 'react';
-import { checkDateDuration, clampPercent, clamp, toLocalDate, cn, debounce } from '@/utils';
+import { checkDateDuration, clampPercent, clamp, cn, debounce } from '@/utils';
 import { useDrag, useElementSize, useResizeObserver, useRAFDFn } from '@/hooks';
 import { SliderProps, DragHandle, SelectionResult, TimeUnit } from './type';
 import {
@@ -22,10 +22,16 @@ import {
   generateScalesWithInfo,
   generateTrackWidth,
   generateTimeLabelsWithPositions,
-  getPercentFromDate,
   createSelectionResult,
+  getPercentFromDate,
 } from './utils';
-import { TimeLabels, RenderSliderHandle, SliderTrack, TimeUnitSelection } from './components';
+import {
+  TimeLabels,
+  RenderSliderHandle,
+  SliderTrack,
+  TimeUnitSelection,
+  TimeDisplay,
+} from './components';
 import {
   DEFAULT_SCALE_CONFIG,
   LAYOUT,
@@ -43,11 +49,13 @@ export const DateSlider = memo(
     initialTimeUnit,
     initialRange: propInitialRange,
     initialPoint: propInitialPoint,
+    granularity = 'day',
     wrapperClassName,
     trackActiveClassName,
     trackBaseClassName,
     sliderClassName,
     timeUnitSelectionClassName,
+    timeDisplayCLassName,
     pointHandleIcon,
     rangeHandleIcon,
     scrollable = true,
@@ -62,25 +70,19 @@ export const DateSlider = memo(
     withEndLabel = true,
     timeUnitSelectionEnabled = true,
     freeSelectionOnTrackClick = false,
+    timeDisplayEnabled = false,
   }: SliderProps) => {
     const [dimensions, setDimensions] = useState({ parent: 0, slider: 0 });
     const [timeUnit, setTimeUnit] = useState<TimeUnit>(initialTimeUnit);
 
-    const startDate = useMemo(() => toLocalDate(propStartDate), [propStartDate]);
-    const endDate = useMemo(() => toLocalDate(propEndDate), [propEndDate]);
-
-    const initialPoint = useMemo(() => {
-      if (!propInitialPoint) return undefined;
-      return toLocalDate(propInitialPoint);
-    }, [propInitialPoint]);
-
-    const initialRange = useMemo(() => {
-      if (!propInitialRange) return undefined;
-      return {
-        start: toLocalDate(propInitialRange?.start),
-        end: toLocalDate(propInitialRange?.end),
-      };
-    }, [propInitialRange]);
+    /**
+     * All prop dates are expected to be UTC Date objects
+     * No conversion needed - consumers use toUTCDate()  helpers
+     */
+    const startDate = propStartDate;
+    const endDate = propEndDate;
+    const initialPoint = propInitialPoint;
+    const initialRange = propInitialRange;
 
     const totalScaleUnits = useMemo(
       () => getTotalScales(startDate, endDate, timeUnit),
@@ -202,9 +204,19 @@ export const DateSlider = memo(
       [resetPosition],
     );
 
+    /**
+     * Sets the date time for the specified target handle
+     *
+     * Accepts UTC Date objects only. Consumers should use toUTCDate()
+     * to convert their data before passing to this function.
+     *
+     * @param date - UTC Date object
+     * @param target - The target handle ('point', 'rangeStart', 'rangeEnd')
+     */
     const setDateTime = useCallback(
       (date: Date, target?: 'point' | 'rangeStart' | 'rangeEnd') => {
-        const percentage = getPercentFromDate(toLocalDate(date), startDate, endDate);
+        // Date is expected to be UTC, no conversion needed
+        const percentage = getPercentFromDate(date, startDate, endDate);
 
         let actualTarget = target;
         if (!actualTarget) {
@@ -224,6 +236,7 @@ export const DateSlider = memo(
           }
         }
         const clampPercentage = clampPercent(percentage, PERCENTAGE.MAX);
+
         switch (actualTarget) {
           case 'rangeStart': {
             const newStart = clamp(clampPercentage, 0, rangeEndRef.current - minGapPercent);
@@ -360,6 +373,16 @@ export const DateSlider = memo(
         role="group"
         aria-label={ACCESSIBILITY.SLIDER_ARIA_LABEL}
       >
+        {timeDisplayEnabled && (
+          <TimeDisplay
+            className={cn('pointer-events-auto', timeDisplayCLassName)}
+            startDate={startDate}
+            endDate={endDate}
+            position={pointPosition}
+            granularity={granularity}
+            setDateTime={setDateTime}
+          />
+        )}
         <div ref={sliderContainerRef} className="overflow-hidden h-full flex-1 rounded-2xl">
           <div
             className="h-full"

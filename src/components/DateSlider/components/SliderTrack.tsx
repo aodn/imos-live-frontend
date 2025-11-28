@@ -7,7 +7,7 @@ import {
   getDateFromPercent,
   getPercentageFromMouseEvent,
   getPercentageFromTouchEvent,
-} from '../utils';
+} from '../utils/utils';
 import { createPortal } from 'react-dom';
 
 export const DateLabel = memo(
