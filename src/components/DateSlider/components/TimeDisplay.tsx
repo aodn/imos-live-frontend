@@ -38,10 +38,10 @@ export const TimeDisplay = ({
 
   return (
     <div className={cn('flex rounded-xl overflow-hidden', className)}>
-      <div className="h-full flex items-center justify-center w-28">
-        <p className="text-imos-grey font-semibold">{dateLabel}</p>
+      <div className="h-full flex items-center justify-center md:w-28">
+        <p className="text-imos-grey font-semibold text-xs md:text-base">{dateLabel}</p>
       </div>
-      <div className="h-full flex items-center">
+      <div className="h-full  items-center hidden md:flex">
         <Button variant="ghost" onClick={() => handleDateUpdate('backward')} className="p-0!">
           <ArrowIcon className="rotate-90" color="imos-grey" size="xxl" />
         </Button>
