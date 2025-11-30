@@ -199,8 +199,9 @@ export const DateSlider = memo(
     });
 
     //TODO: 1. when scroll handle outside of view, then click on left/right button, it should scroll to make handle fully visible.
-    // 2. currently, the auto scroll only works when left/right button clicked. keyboard arrow navigation does not trigger auto scroll. Should fix this.
-    // 3. after a new date selected either way, a date label should show above the handle for better UX, only persist for a short time, then fade out.
+    //TODO: 2. currently, the auto scroll only works when left/right button clicked. keyboard arrow navigation does not trigger auto scroll. Should fix this.
+    //TODO: 3. after a new date selected either way, a date label should show above the handle for better UX, only persist for a short time, then fade out.
+    //TODO: 4. investigate shader extension.
 
     // auto scroll slider to keep point handle in view when point date changes by moving point handle
     if (
