@@ -134,3 +134,50 @@ export function isSameDay(date1: Date, date2: Date) {
     d1.getDate() === d2.getDate()
   );
 }
+
+export function toUTCDate(dateString: string): Date {
+  // If the string doesn't include time, append midnight UTC
+  const isoString = dateString.includes('T') ? dateString : dateString + 'T00:00:00.000Z';
+  const date = new Date(isoString);
+
+  if (isNaN(date.getTime())) {
+    throw new Error(`Invalid date string: ${dateString}`);
+  }
+  return date;
+}
+
+export function addTime(
+  date: Date,
+  amount: number,
+  unit: 'day' | 'month' | 'year' | 'hour' | 'minute',
+): Date {
+  const result = new Date(date);
+
+  switch (unit) {
+    case 'minute':
+      result.setUTCMinutes(result.getUTCMinutes() + amount);
+      break;
+    case 'hour':
+      result.setUTCHours(result.getUTCHours() + amount);
+      break;
+    case 'day':
+      result.setUTCDate(result.getUTCDate() + amount);
+      break;
+    case 'month':
+      result.setUTCMonth(result.getUTCMonth() + amount);
+      break;
+    case 'year':
+      result.setUTCFullYear(result.getUTCFullYear() + amount);
+      break;
+  }
+
+  return result;
+}
+
+export function toISODateString(date: Date): string {
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(date.getUTCDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+}
