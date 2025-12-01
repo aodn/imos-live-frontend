@@ -146,7 +146,7 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
       },
       // Secondary axis for arrows (small space at bottom)
       {
-        title: { text: null },
+        title: { text: undefined },
         labels: { enabled: false },
         gridLineWidth: 0,
         lineWidth: 0,

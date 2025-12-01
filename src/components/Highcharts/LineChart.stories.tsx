@@ -367,7 +367,7 @@ export const MinimalDesign: Story = {
       gridLineWidth: 1,
       lineWidth: 0,
       tickWidth: 0,
-      title: { text: null },
+      title: { text: undefined },
       labels: { style: { fontSize: '12px' } },
     },
     legend: { enabled: false },
