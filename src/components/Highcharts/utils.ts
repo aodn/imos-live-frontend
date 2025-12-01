@@ -1,10 +1,11 @@
 import { BuoyItemContent } from '@/types';
 import Highcharts from 'highcharts/highstock'; // Use highstock
-import accessibility from 'highcharts/modules/accessibility';
-import boost from 'highcharts/modules/boost';
-import exportData from 'highcharts/modules/export-data';
-import exporting from 'highcharts/modules/exporting';
-import offlineExporting from 'highcharts/modules/offline-exporting';
+// Import modules - they auto-register in Highcharts 12.4.0+
+import 'highcharts/modules/accessibility';
+import 'highcharts/modules/boost';
+import 'highcharts/modules/exporting';
+import 'highcharts/modules/export-data';
+import 'highcharts/modules/offline-exporting';
 import { buoyDataDirectionVariant, colors, directionColors, VariantReadableName } from './config';
 import {
   AnimationConfig,
@@ -35,11 +36,8 @@ export const DEFAULT_THEME = {
 };
 
 export const initializeHighchartsModules = () => {
-  [accessibility, boost, exporting, exportData, offlineExporting].forEach(module => {
-    if (typeof module === 'function') {
-      (module as any)(Highcharts);
-    }
-  });
+  // Modules auto-register when imported in Highcharts 12.4.0+
+  // This function is kept for backwards compatibility but does nothing
 };
 
 export const buildRangeSelectorConfig = (
