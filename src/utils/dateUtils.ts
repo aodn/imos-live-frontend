@@ -49,56 +49,6 @@ export const getLast7Dates = getLastDates(7);
 export const getLast31Dates = getLastDates(31);
 
 /**
- * Convert dateString to yy-mm-dd type, beacuse current GSLA data for ocean current particles are named in yy-mm-dd format, which should be changed
- * in the future.
- * @param dateString
- * @returns
- */
-export function toDateFormatString(dateString: string | Date): string {
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) {
-    throw new Error(`Invalid date string: "${dateString}"`);
-  }
-
-  const yy = String(date.getFullYear());
-  const mm = String(date.getMonth() + 1).padStart(2, '0');
-  const dd = String(date.getDate()).padStart(2, '0');
-
-  return `${yy}-${mm}-${dd}`;
-}
-
-export function dateToUTC(date: Date): Date {
-  if (isNaN(date.getTime())) {
-    throw new Error(`Invalid date string: "${date}"`);
-  }
-  return new Date(
-    Date.UTC(
-      date.getUTCFullYear(),
-      date.getUTCMonth(),
-      date.getUTCDate(),
-      date.getUTCHours(),
-      date.getUTCMinutes(),
-      date.getUTCSeconds(),
-      date.getUTCMilliseconds(),
-    ),
-  );
-}
-
-/**
- * Converts a UTC date string to local timezone
- * @param input
- * @returns Date object in local timezone, which is 00:00:00 (midnight) in local time on the same year/month/day as in UTC.
- */
-export function toLocalDate(input: number | string | Date): Date {
-  const utcDate = new Date(input);
-  if (isNaN(utcDate.getTime())) {
-    throw new Error(`Invalid UTC date: ${input}`);
-  }
-
-  return new Date(utcDate.getUTCFullYear(), utcDate.getUTCMonth(), utcDate.getUTCDate());
-}
-
-/**
  * Converts a UTC date string to local time string
  * @param input
  * @param locales
@@ -135,45 +85,19 @@ export function isSameDay(date1: Date, date2: Date) {
   );
 }
 
-export function toUTCDate(dateString: string): Date {
-  // If the string doesn't include time, append midnight UTC
-  const isoString = dateString.includes('T') ? dateString : dateString + 'T00:00:00.000Z';
-  const date = new Date(isoString);
-
-  if (isNaN(date.getTime())) {
-    throw new Error(`Invalid date string: ${dateString}`);
-  }
-  return date;
-}
-
-export function addTime(
-  date: Date,
-  amount: number,
-  unit: 'day' | 'month' | 'year' | 'hour' | 'minute',
-): Date {
-  const result = new Date(date);
-
-  switch (unit) {
-    case 'minute':
-      result.setUTCMinutes(result.getUTCMinutes() + amount);
-      break;
-    case 'hour':
-      result.setUTCHours(result.getUTCHours() + amount);
-      break;
-    case 'day':
-      result.setUTCDate(result.getUTCDate() + amount);
-      break;
-    case 'month':
-      result.setUTCMonth(result.getUTCMonth() + amount);
-      break;
-    case 'year':
-      result.setUTCFullYear(result.getUTCFullYear() + amount);
-      break;
-  }
-
-  return result;
-}
-
+/**
+ * Convert UTC date to ISO date string (YYYY-MM-DD)
+ *
+ * Useful for API calls and storage that expect date strings.
+ * Uses UTC date components to avoid timezone issues.
+ *
+ * @param date - UTC date
+ * @returns ISO date string
+ *
+ * @example
+ * toISODateString(new Date("2024-01-15T14:30:00Z"))
+ * // → "2024-01-15"
+ */
 export function toISODateString(date: Date): string {
   const year = date.getUTCFullYear();
   const month = String(date.getUTCMonth() + 1).padStart(2, '0');

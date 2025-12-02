@@ -1,5 +1,4 @@
 import { TriangleIcon } from '../Icons';
-import { cn, toISODateString } from '@/utils';
 import { setDate } from '@/store';
 import { memo, useCallback } from 'react';
 import { useDateSliderDates } from '@/hooks';
@@ -11,6 +10,7 @@ import {
   timeDisplayRender,
   timeUnitSelectionRender,
 } from '../DateSlider';
+import { cn, toISODateString } from '@/utils';
 
 type DateSelectionBarProps = { className?: string };
 
