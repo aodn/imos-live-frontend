@@ -1,3 +1,4 @@
+import { CustomizableParticleConfig, ParticleConfig, particleInitialConfig } from '@/config';
 import { Product } from '@/constants';
 import { StyleTitle } from '@/styles';
 import { getLast7Dates } from '@/utils';
@@ -5,7 +6,6 @@ import { LngLat } from 'mapbox-gl';
 import { create } from 'zustand';
 import { createJSONStorage, persist, StateStorage } from 'zustand/middleware';
 
-export type NumParticles = 10000 | 30000 | 60000 | 100000;
 type ProductError = Record<Product, boolean>;
 export type ProductEnabled = Record<Product, boolean>;
 
@@ -15,7 +15,7 @@ export interface MapUIState {
   center: LngLat;
   zoom: number;
   style: StyleTitle;
-  numParticles: NumParticles;
+  particleConfig: ParticleConfig;
   distanceMeasurement: boolean;
   worldBoundaries: boolean;
   date: string;
@@ -25,7 +25,7 @@ export interface MapUIState {
   setCenter: (center: LngLat) => void;
   setZoom: (zoom: number) => void;
   setStyle: (style: StyleTitle) => void;
-  setNumParticles: (n: NumParticles) => void;
+  setParticleConfig: (config: Partial<CustomizableParticleConfig>) => void;
   setDistanceMeasurement: (v: boolean) => void;
   setWorldBoundaries: (v: boolean) => void;
   setDate: (d: string) => void;
@@ -39,10 +39,20 @@ const stateKeysToExcludeFromUrl = ['dates', 'productError'];
 const hashStorage: StateStorage = {
   getItem: () => {
     const url = new URL(location.href);
-    const restoredState: Record<string, string> = {};
+    const restoredState: Record<string, any> = {};
     for (const [key, value] of url.searchParams.entries()) {
       restoredState[key] = JSON.parse(value);
     }
+
+    // restore particleConfig with maxSpeed and colours from initial config
+    if (restoredState.particleConfig) {
+      restoredState.particleConfig = {
+        maxSpeed: particleInitialConfig.maxSpeed,
+        colours: particleInitialConfig.colours,
+        ...restoredState.particleConfig,
+      };
+    }
+
     return JSON.stringify({ state: restoredState });
   },
   setItem: (_key, newValue) => {
@@ -50,7 +60,15 @@ const hashStorage: StateStorage = {
     const url = new URL(location.href);
     for (const [k, v] of Object.entries(state)) {
       if (stateKeysToExcludeFromUrl.includes(k)) continue;
-      url.searchParams.set(k, JSON.stringify(v));
+
+      // filter out maxSpeed and colours from particleConfig
+      if (k === 'particleConfig') {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { maxSpeed, colours, ...customizableConfig } = v as ParticleConfig;
+        url.searchParams.set(k, JSON.stringify(customizableConfig));
+      } else {
+        url.searchParams.set(k, JSON.stringify(v));
+      }
     }
     window.history.replaceState({}, '', url.toString());
   },
@@ -72,7 +90,7 @@ export const useMapUIStore = create(
       center: new LngLat(133.7751, -25.2744),
       zoom: 3,
       style: 'ESRIWorldImagery',
-      numParticles: 10000,
+      particleConfig: particleInitialConfig,
       distanceMeasurement: false,
       worldBoundaries: false,
       dates: getLast7Dates(),
@@ -92,7 +110,10 @@ export const useMapUIStore = create(
       setCenter: center => set({ center }),
       setZoom: zoom => set({ zoom }),
       setStyle: style => set({ style }),
-      setNumParticles: numParticles => set({ numParticles }),
+      setParticleConfig: customizableParticleConfig =>
+        set(prev => ({
+          particleConfig: { ...prev.particleConfig, ...customizableParticleConfig },
+        })),
       setDistanceMeasurement: distanceMeasurement => set({ distanceMeasurement }),
       setWorldBoundaries: worldBoundaries => set({ worldBoundaries }),
       setDate: date => set({ date }),
@@ -136,10 +157,11 @@ export const useMapUIStore = create(
 
 //utils
 export const {
+  particleConfig,
   setCenter,
   setDate,
   setDistanceMeasurement,
-  setNumParticles,
+  setParticleConfig,
   setStyle,
   setWorldBoundaries,
   setZoom,

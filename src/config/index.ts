@@ -1,4 +1,4 @@
 export * from './layerConfig';
-export * from './vectorConfig';
+export * from './particleConfig';
 export * from './reactQueryConfig';
 export * from './map';

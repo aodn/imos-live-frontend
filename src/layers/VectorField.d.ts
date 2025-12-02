@@ -1,4 +1,5 @@
 import mapboxgl from 'mapbox-gl';
+import { CustomizableParticleConfig } from '@/config';
 
 export interface VectorFieldAPI {
   /**
@@ -11,9 +12,10 @@ export interface VectorFieldAPI {
   }): void;
 
   /**
-   * Set how many particles are used in the simulation.
+   * Update particle configuration dynamically.
+   * This allows updating parameters like fadeOpacity, speedFactor, dropRate, etc.
    */
-  setParticleNum(num: number): void;
+  updateConfig(config: Partial<CustomizableParticleConfig>): void;
 
   /**
    * Start animating particles.

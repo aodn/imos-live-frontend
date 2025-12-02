@@ -151,7 +151,7 @@ gsla_input.png, gsla_overlay.png and gsla_meta.json are expected to be served as
 
 ### Configuration Parameters
 
-The particle system behavior can be adjusted through the `vectorConfig.js` file:
+The particle system behavior can be adjusted through the `particleConfig.js` file:
 
 - `nParticles` - Default number of particles (10,000)
 - `fadeOpacity` - Controls the persistence of particle trails (0.985)

@@ -25,14 +25,20 @@ type UseOParticleLayer = {
 };
 
 export function useParticleLayer({ map, layerId, sourceId, product }: UseOParticleLayer) {
-  const { date, numParticles, isError, enabled } = useMapUIStore(
-    useShallow(s => ({
-      date: s.date,
-      numParticles: s.numParticles,
-      isError: s.productError[product],
-      enabled: s.productEnabled[product],
-    })),
-  );
+  const { date, nParticles, fadeOpacity, speedFactor, dropRate, pointSize, isError, enabled } =
+    useMapUIStore(
+      useShallow(s => ({
+        date: s.date,
+        nParticles: s.particleConfig.nParticles,
+        fadeOpacity: s.particleConfig.fadeOpacity,
+        speedFactor: s.particleConfig.speedFactor,
+        dropRate: s.particleConfig.dropRate,
+        dropRateBump: s.particleConfig.dropRateBump,
+        pointSize: s.particleConfig.pointSize,
+        isError: s.productError[product],
+        enabled: s.productEnabled[product],
+      })),
+    );
 
   const currentParticleQuery = useQuery({
     queryKey: [GSLA_META_NAME, date],
@@ -84,9 +90,16 @@ export function useParticleLayer({ map, layerId, sourceId, product }: UseOPartic
 
   useEffect(() => {
     if (!map || !loadComplete || !particleLayer) return;
-    particleLayer.vectorField?.setParticleNum(numParticles);
+    const customizableConfig = {
+      fadeOpacity,
+      speedFactor,
+      dropRate,
+      pointSize,
+      nParticles,
+    };
+    particleLayer.vectorField?.updateConfig(customizableConfig);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loadComplete, numParticles]);
+  }, [loadComplete, fadeOpacity, speedFactor, dropRate, pointSize, nParticles]);
 
   useDidMountEffect(() => {
     if (!map.current || !loadComplete) return;
