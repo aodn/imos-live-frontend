@@ -1,6 +1,6 @@
 import { Button } from '@/components/Button';
 import { ArrowIcon } from '@/components/Icons';
-import { TimeDisplayRenderProps } from 'date-slider-lib';
+import { TimeDisplayRenderProps } from '../type';
 
 export const timeDisplayRender = ({
   dateLabel,

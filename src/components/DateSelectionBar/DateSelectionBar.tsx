@@ -2,9 +2,15 @@ import { TriangleIcon } from '../Icons';
 import { cn, toISODateString } from '@/utils';
 import { setDate } from '@/store';
 import { memo, useCallback } from 'react';
-import { DateSlider, PointValue, SelectionResult } from 'date-slider-lib';
-import { dateLabelRender, timeDisplayRender, timeUnitSelectionRender } from '../DateSlider';
 import { useDateSliderDates } from '@/hooks';
+import {
+  dateLabelRender,
+  DateSlider,
+  PointValue,
+  SelectionResult,
+  timeDisplayRender,
+  timeUnitSelectionRender,
+} from '../DateSlider';
 
 type DateSelectionBarProps = { className?: string };
 
@@ -38,7 +44,7 @@ export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
         onChange={handleSelect as (v: SelectionResult) => void}
         layout={{
           width: 'fill',
-          height: 80,
+          height: 82,
           scaleUnitConfig: {
             gap: 100,
             width: { short: 1, medium: 2, long: 2 },
@@ -46,7 +52,7 @@ export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
           },
           trackPaddingX: 24,
         }}
-        behaviour={{ scrollable: true, handleLabelDisabled: true }}
+        behavior={{ scrollable: true, handleLabelDisabled: false }}
         renderProps={{
           renderDateLabel: dateLabelRender,
           renderTimeDisplay: timeDisplayRender,

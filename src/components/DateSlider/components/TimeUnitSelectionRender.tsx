@@ -1,5 +1,5 @@
-import { TriangleIcon } from '..';
-import { TimeUnitSelectionRenderProps } from 'date-slider-lib';
+import { TriangleIcon } from '@/components';
+import { TimeUnitSelectionRenderProps } from '../type';
 
 export const timeUnitSelectionRender = ({
   timeUnit,
@@ -13,7 +13,7 @@ export const timeUnitSelectionRender = ({
       <button
         onClick={handleTimeUnitPreviousSelect}
         disabled={isPrevBtnDisabled()}
-        className="p-1 hover:bg-blue-50 rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0 cursor-pointer"
+        className=" hover:bg-blue-50 rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0 cursor-pointer"
         aria-label="Previous time unit"
       >
         <TriangleIcon className="text-slate-700!" />
@@ -22,7 +22,7 @@ export const timeUnitSelectionRender = ({
       <button
         onClick={handleTimeUnitNextSelect}
         disabled={isNextBtnDisabled()}
-        className="p-1 hover:bg-blue-50 rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0 cursor-pointer"
+        className=" hover:bg-blue-50 rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0 cursor-pointer"
         aria-label="Next time unit"
       >
         <TriangleIcon className="text-slate-700! rotate-180" />

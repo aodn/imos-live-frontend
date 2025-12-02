@@ -27,7 +27,6 @@
     "axios": "^1.8.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "date-slider-lib": "^0.1.8",
     "highcharts": "^12.2.0",
     "highcharts-react-official": "^3.2.2",
     "lucide-react": "^0.512.0",

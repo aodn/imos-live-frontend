@@ -1,3 +1,2 @@
-export * from './TimeUnitSelectionRender';
-export * from './TimeDisplayRender';
-export * from './DateLabelRender';
+export * from './components';
+export * from './type';
