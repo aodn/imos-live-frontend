@@ -2,18 +2,8 @@ import { useState } from 'react';
 import { IconProps } from '../Icons';
 import { Button } from '../Button';
 import { cn } from '@/utils';
-import { Dropdown } from '../Dropdown';
-import { styles, StyleTitle } from '@/styles';
-import {
-  useMapUIStore,
-  setStyle,
-  setDistanceMeasurement,
-  setWorldBoundaries,
-  setParticleConfig,
-} from '@/store';
-import { useShallow } from 'zustand/shallow';
-import { Switch } from '../Switch';
-import { CustomizableParticleConfig } from '@/config';
+import { OptionsSection } from './OptionsSection';
+import { MapsSection } from './MapsSection';
 
 export type Label = 'Options' | 'Maps';
 
@@ -28,32 +18,7 @@ export type FeaturesMenuProps = {
   className?: string;
   selectionClassName?: string;
   iconSize?: IconProps['size'];
-  activeStye?: string;
-  inactiveStye?: string;
 };
-
-const styleDropdownSelections = styles.map(s => ({
-  label: s.title,
-  value: s.title,
-}));
-
-const NUM_PARTICLES = [10000, 30000, 60000, 100000];
-const numParticlesDropdownSelections = NUM_PARTICLES.map(num => ({
-  label: num,
-  value: num,
-}));
-
-// test
-const pointSizeSelections = [
-  {
-    label: 1.5,
-    value: 1.5,
-  },
-  {
-    label: 3,
-    value: 3,
-  },
-];
 
 export function FeaturesMenu({
   features,
@@ -62,28 +27,6 @@ export function FeaturesMenu({
   iconSize,
 }: FeaturesMenuProps) {
   const [activeItem, setActiveItem] = useState<Label>();
-  const {
-    style,
-    distanceMeasurement,
-    worldBoundaries,
-    nParticles,
-    // adeOpacity,
-    // speedFactor,
-    // dropRate,
-    pointSize,
-  } = useMapUIStore(
-    useShallow(s => ({
-      style: s.style,
-      nParticles: s.particleConfig.nParticles,
-      distanceMeasurement: s.distanceMeasurement,
-      worldBoundaries: s.worldBoundaries,
-      fadeOpacity: s.particleConfig.fadeOpacity,
-      speedFactor: s.particleConfig.speedFactor,
-      dropRate: s.particleConfig.dropRate,
-      dropRateBump: s.particleConfig.dropRateBump,
-      pointSize: s.particleConfig.pointSize,
-    })),
-  );
 
   const isActive = (label: Label) => activeItem === label;
 
@@ -93,23 +36,6 @@ export function FeaturesMenu({
       fn();
     }
   };
-  const handleStyleSelect = (style: StyleTitle) => {
-    setStyle(style);
-  };
-
-  const handleDistanceMeasurementSelect = (distanceMeasurement: boolean) => {
-    setDistanceMeasurement(distanceMeasurement);
-  };
-  const handleWorldBoundariesSelect = (worldBoundaries: boolean) => {
-    setWorldBoundaries(worldBoundaries);
-  };
-
-  //TEST
-  const handleSetParticleConfig =
-    (key: keyof CustomizableParticleConfig) => (value: string | number) => {
-      console.log(key, value);
-      setParticleConfig({ [key]: value });
-    };
 
   return (
     <aside
@@ -141,70 +67,9 @@ export function FeaturesMenu({
       </div>
 
       {!!activeItem && (
-        // OPTIONS SECTION
         <div className="md:mt-2 px-4 py-2 w-full">
-          {activeItem === 'Options' && (
-            <div className="w-full flex flex-col gap-y-2 items-start">
-              <Dropdown
-                label="number of particles"
-                className="w-full"
-                onChange={
-                  handleSetParticleConfig('nParticles') as (
-                    value: string | number | (string | number)[],
-                  ) => void
-                }
-                options={numParticlesDropdownSelections}
-                initialValue={nParticles}
-                position="auto"
-                usePortal
-              />
-
-              <Dropdown
-                label="point size"
-                className="w-full"
-                onChange={
-                  handleSetParticleConfig('pointSize') as (
-                    value: string | number | (string | number)[],
-                  ) => void
-                }
-                options={pointSizeSelections}
-                initialValue={pointSize}
-                position="auto"
-                usePortal
-              />
-
-              <Switch
-                label="Measure distance"
-                labelPosition="left"
-                initialValue={distanceMeasurement}
-                onChange={handleDistanceMeasurementSelect}
-                dataTestId="switch-distancemeasurement"
-              />
-
-              <Switch
-                label="World boundaries"
-                labelPosition="left"
-                initialValue={worldBoundaries}
-                onChange={handleWorldBoundariesSelect}
-              />
-            </div>
-          )}
-
-          {activeItem === 'Maps' && (
-            //MAPS SECTION
-            <div className="w-full">
-              <Dropdown
-                label="map style"
-                onChange={
-                  handleStyleSelect as (value: string | number | (string | number)[]) => void
-                }
-                options={styleDropdownSelections}
-                initialValue={style || styleDropdownSelections[0].value}
-                position="auto"
-                usePortal
-              />
-            </div>
-          )}
+          {activeItem === 'Options' && <OptionsSection />}
+          {activeItem === 'Maps' && <MapsSection />}
         </div>
       )}
     </aside>
