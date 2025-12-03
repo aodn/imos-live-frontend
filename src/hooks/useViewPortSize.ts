@@ -1,3 +1,4 @@
+import { BREAKPOINT } from '@/constants';
 import { useEffect, useState } from 'react';
 
 export function useViewportSize() {
@@ -6,7 +7,7 @@ export function useViewportSize() {
   );
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(max-width: 767px)');
+    const mediaQuery = window.matchMedia(`(max-width: ${BREAKPOINT}px)`);
 
     const handler = (e: MediaQueryListEvent) => setIsSmallScreen(e.matches);
 
