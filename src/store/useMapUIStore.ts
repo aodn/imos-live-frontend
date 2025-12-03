@@ -1,7 +1,7 @@
 import { CustomizableParticleConfig, ParticleConfig, particleInitialConfig } from '@/config';
 import { Product } from '@/constants';
 import { StyleTitle } from '@/styles';
-import { getLast7Dates } from '@/utils';
+import { getLast31Dates } from '@/utils';
 import { LngLat } from 'mapbox-gl';
 import { create } from 'zustand';
 import { createJSONStorage, persist, StateStorage } from 'zustand/middleware';
@@ -9,7 +9,7 @@ import { createJSONStorage, persist, StateStorage } from 'zustand/middleware';
 type ProductError = Record<Product, boolean>;
 export type ProductEnabled = Record<Product, boolean>;
 
-export const INITIAL_DATE = getLast7Dates().at(0)!;
+export const INITIAL_DATE = getLast31Dates().at(0)!;
 
 export interface MapUIState {
   center: LngLat;
@@ -93,7 +93,7 @@ export const useMapUIStore = create(
       particleConfig: particleInitialConfig,
       distanceMeasurement: false,
       worldBoundaries: false,
-      dates: getLast7Dates(),
+      dates: getLast31Dates(),
       date: INITIAL_DATE,
       productEnabled: {
         [Product.GSLA_ANOMALY_SEA_LEVELS]: true,
@@ -118,7 +118,7 @@ export const useMapUIStore = create(
       setWorldBoundaries: worldBoundaries => set({ worldBoundaries }),
       setDate: date => set({ date }),
       refreshDates: () => {
-        const newDates = getLast7Dates();
+        const newDates = getLast31Dates();
         set(prev => ({ ...prev, dates: newDates }));
       },
       setProductEnabledByProduct: (product, enabled) => {

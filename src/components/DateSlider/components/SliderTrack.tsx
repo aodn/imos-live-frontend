@@ -1,41 +1,14 @@
+import { memo, useCallback, useState, useEffect, useMemo } from 'react';
+import { DateLabel } from './DateLabel';
 import { cn } from '@/utils';
-import { useState, useCallback, useMemo, memo } from 'react';
-import { SliderTrackProps, ScaleType } from '../type';
+import { ScaleType, SliderTrackProps } from '../type';
 import {
-  formatDateForDisplay,
-  getDateFromPercent,
   getPercentageFromMouseEvent,
+  formatForDisplay,
+  getDateFromPercent,
+  calculateLabelPosition,
   getPercentageFromTouchEvent,
 } from '../utils';
-
-const DateLabel = memo(
-  ({
-    position,
-    label,
-    labelClassName,
-  }: {
-    position?: number;
-    label?: string;
-    labelClassName?: string;
-  }) => {
-    if (!position || !label) return null;
-
-    return (
-      <div
-        style={{ left: `${position}%` }}
-        className={cn(
-          'hidden md:block absolute top-0 left-1/2 transform -translate-x-1/2 bg-red-600 text-white text-xs px-2 py-1 rounded whitespace-nowrap pointer-events-none',
-          labelClassName,
-        )}
-        role="tooltip"
-        aria-live="polite"
-      >
-        {label}
-      </div>
-    );
-  },
-);
-DateLabel.displayName = 'DateLabel';
 
 const CursorLine = memo(
   ({
@@ -53,23 +26,36 @@ const CursorLine = memo(
       <div
         style={{ left: `${position}%` }}
         className={cn(
-          'hidden md:block absolute top-0 h-full w-[1px] bg-red-500/70 transform -translate-x-0.5 pointer-events-none z-20 transition-opacity duration-150',
-          className,
+          'hidden md:block absolute top-0 h-full w-px transform -translate-x-0.5 pointer-events-none z-20 transition-opacity duration-150',
+          'motion-reduce:transition-none',
+          className || 'bg-blue-500/70',
         )}
         aria-hidden="true"
       />
     );
   },
 );
+
 CursorLine.displayName = 'CursorLine';
 
 const Scales = memo(
   ({
     scales,
     scaleUnitConfig,
+    scaleMarkClassName,
+    scaleMarkMajorClassName,
+    scaleMarkMediumClassName,
+    scaleMarkMinorClassName,
   }: {
     scales?: Array<{ position: number; type: ScaleType }>;
-    scaleUnitConfig: { width: Record<ScaleType, number>; height: Record<ScaleType, number> };
+    scaleUnitConfig: {
+      width: Record<ScaleType, number>;
+      height: Record<ScaleType, number>;
+    };
+    scaleMarkClassName?: string;
+    scaleMarkMajorClassName?: string;
+    scaleMarkMediumClassName?: string;
+    scaleMarkMinorClassName?: string;
   }) => {
     const getSize = useCallback(
       (type: ScaleType) => ({
@@ -79,6 +65,26 @@ const Scales = memo(
       [scaleUnitConfig],
     );
 
+    const getScaleClassName = useCallback(
+      (type: ScaleType) => {
+        const baseClass = 'absolute transform -translate-x-0.5 top-0';
+        const typeSpecificClass =
+          type === 'long'
+            ? scaleMarkMajorClassName
+            : type === 'medium'
+              ? scaleMarkMediumClassName
+              : scaleMarkMinorClassName;
+
+        return cn(baseClass, typeSpecificClass || scaleMarkClassName || 'bg-slate-600');
+      },
+      [
+        scaleMarkClassName,
+        scaleMarkMajorClassName,
+        scaleMarkMediumClassName,
+        scaleMarkMinorClassName,
+      ],
+    );
+
     if (!scales?.length) return null;
 
     return (
@@ -86,7 +92,7 @@ const Scales = memo(
         {scales.map((scale, index) => (
           <div
             key={index}
-            className="absolute  bg-slate-700 transform -translate-x-0.5 top-0"
+            className={getScaleClassName(scale.type)}
             style={{ left: `${scale.position}%`, ...getSize(scale.type) }}
             aria-hidden="true"
           />
@@ -97,106 +103,180 @@ const Scales = memo(
 );
 Scales.displayName = 'Scales';
 
-// Updated props type to include touch event handler
-type UpdatedSliderTrackProps = SliderTrackProps & {
-  onTrackTouch: (e: React.TouchEvent) => void;
-};
-
 export const SliderTrack = memo(
   ({
     onTrackClick,
     onTrackTouch,
-    baseTrackclassName,
     scales,
     scaleUnitConfig,
     trackRef,
-    timeUnit,
     startDate,
     endDate,
     onDragging,
+    startHandleRef,
+    endHandleRef,
+    pointHandleRef,
+    classNames,
+    renderDateLabel,
     ...props
-  }: UpdatedSliderTrackProps) => {
+  }: SliderTrackProps) => {
+    const [isHoverTrack, setIsHoverTrack] = useState(false);
+    const [isHandleHover, setIsHandleHover] = useState(false);
+
     const [mouseHoverPosition, setMouseHoverPosition] = useState<number>();
-    const [isHover, setIsHover] = useState(false);
+    const [labelPosition, setLabelPosition] = useState<{
+      x: number;
+      y: number;
+    }>();
     const [dateLabel, setDateLabel] = useState<string>();
 
     const handleMouseLeave = useCallback(() => {
-      setIsHover(false);
+      setIsHoverTrack(false);
       setMouseHoverPosition(undefined);
-    }, []);
+      setLabelPosition(undefined);
+    }, [setIsHoverTrack]);
 
     const handleMouseMove = useCallback(
-      (e: React.MouseEvent<Element, MouseEvent>) => {
+      (e: MouseEvent) => {
+        if (!trackRef.current) return;
         const percentage = getPercentageFromMouseEvent(e, trackRef);
-        const label = formatDateForDisplay(
+        const label = formatForDisplay(
           getDateFromPercent(percentage, startDate, endDate),
-          timeUnit,
+          'day',
+          'en-AU',
+          true,
         );
 
-        setIsHover(true);
+        setIsHoverTrack(true);
         setDateLabel(label);
         setMouseHoverPosition(percentage);
+        setLabelPosition(calculateLabelPosition(trackRef, e.clientX));
       },
-      [trackRef, startDate, endDate, timeUnit],
+      [trackRef, startDate, endDate, setIsHoverTrack],
     );
 
     const handleTouchMove = useCallback(
-      (e: React.TouchEvent<Element>) => {
+      (e: TouchEvent) => {
         const percentage = getPercentageFromTouchEvent(e, trackRef);
-        const label = formatDateForDisplay(
+        const label = formatForDisplay(
           getDateFromPercent(percentage, startDate, endDate),
-          timeUnit,
+          'day',
+          'en-AU',
+          true,
         );
 
-        setIsHover(false);
+        setIsHoverTrack(false);
         setDateLabel(label);
         setMouseHoverPosition(percentage);
+        // guard touches access to satisfy TypeScript
+        const touchX = e.touches && e.touches[0] ? e.touches[0].clientX : 0;
+        setLabelPosition(calculateLabelPosition(trackRef, touchX));
       },
-      [trackRef, startDate, endDate, timeUnit],
+      [trackRef, startDate, endDate, setIsHoverTrack],
     );
 
     const handleTouchEnd = useCallback(() => {
-      setIsHover(false);
+      setIsHoverTrack(false);
       setMouseHoverPosition(undefined);
-    }, []);
+      setLabelPosition(undefined);
+    }, [setIsHoverTrack]);
+
+    const handleHandlerMouseMove = () => {
+      setIsHandleHover(true);
+    };
+    const handleHandlerMouseLeave = () => {
+      setIsHandleHover(false);
+    };
+
+    useEffect(() => {
+      const trackRefInstance = trackRef.current;
+      const startHandleRefInstance = startHandleRef.current;
+      const endHandleRefInstance = endHandleRef.current;
+      const pointHandleRefInstance = pointHandleRef.current;
+      if (!trackRefInstance) return;
+      trackRefInstance.addEventListener('touchend', handleTouchEnd);
+      trackRefInstance.addEventListener('touchmove', handleTouchMove);
+      trackRefInstance.addEventListener('mousemove', handleMouseMove);
+      trackRefInstance.addEventListener('mouseleave', handleMouseLeave);
+      startHandleRefInstance?.addEventListener('mousemove', handleHandlerMouseMove);
+      endHandleRefInstance?.addEventListener('mousemove', handleHandlerMouseMove);
+      pointHandleRefInstance?.addEventListener('mousemove', handleHandlerMouseMove);
+      startHandleRefInstance?.addEventListener('mouseleave', handleHandlerMouseLeave);
+      endHandleRefInstance?.addEventListener('mouseleave', handleHandlerMouseLeave);
+      pointHandleRefInstance?.addEventListener('mouseleave', handleHandlerMouseLeave);
+
+      return () => {
+        if (!trackRefInstance) return;
+        trackRefInstance.removeEventListener('touchend', handleTouchEnd);
+        trackRefInstance.removeEventListener('touchmove', handleTouchMove);
+        trackRefInstance.removeEventListener('mousemove', handleMouseMove);
+        trackRefInstance.removeEventListener('mouseleave', handleMouseLeave);
+        startHandleRefInstance?.removeEventListener('mousemove', handleHandlerMouseMove);
+        endHandleRefInstance?.removeEventListener('mousemove', handleHandlerMouseMove);
+        pointHandleRefInstance?.removeEventListener('mousemove', handleHandlerMouseMove);
+        startHandleRefInstance?.removeEventListener('mouseleave', handleHandlerMouseLeave);
+        endHandleRefInstance?.removeEventListener('mouseleave', handleHandlerMouseLeave);
+        pointHandleRefInstance?.removeEventListener('mouseleave', handleHandlerMouseLeave);
+      };
+    }, [
+      endHandleRef,
+      handleMouseLeave,
+      handleMouseMove,
+      handleTouchEnd,
+      handleTouchMove,
+      pointHandleRef,
+      startHandleRef,
+      trackRef,
+    ]);
 
     const baseClassName = useMemo(
       () =>
-        cn('h-full w-full relative overflow-visible cursor-pointer touch-none', baseTrackclassName),
-      [baseTrackclassName],
+        cn('h-full w-full relative overflow-visible cursor-pointer touch-none', classNames?.track),
+      [classNames?.track],
     );
-
     // Show cursor line when hovering and not dragging
-    const showCursorLine = isHover && !onDragging;
+    const showCursorLine = isHoverTrack && !onDragging && !isHandleHover;
+    const showDateLabel = isHoverTrack;
 
     if (props.mode === 'point') {
       return (
         <div
-          ref={trackRef}
           onClick={onTrackClick}
           onTouchStart={onTrackTouch}
-          onMouseMove={handleMouseMove}
-          onMouseLeave={handleMouseLeave}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
           className={baseClassName}
           aria-hidden="true"
         >
-          <Scales scales={scales} scaleUnitConfig={scaleUnitConfig} />
+          <Scales
+            scales={scales}
+            scaleUnitConfig={scaleUnitConfig}
+            scaleMarkClassName={classNames?.scaleMark}
+            scaleMarkMajorClassName={classNames?.scaleMarkMajor}
+            scaleMarkMediumClassName={classNames?.scaleMarkMedium}
+            scaleMarkMinorClassName={classNames?.scaleMarkMinor}
+          />
 
           {/* Cursor line */}
-          <CursorLine position={mouseHoverPosition} isVisible={showCursorLine} />
+          <CursorLine
+            position={mouseHoverPosition}
+            isVisible={showCursorLine}
+            className={classNames?.cursorLine}
+          />
 
           {/* Date label */}
-          {showCursorLine && (
-            <DateLabel label={dateLabel} position={mouseHoverPosition} labelClassName="-top-8" />
+          {showDateLabel && (
+            <DateLabel
+              label={dateLabel}
+              position={labelPosition}
+              renderDateLabel={renderDateLabel}
+            />
           )}
 
           {/* Active track */}
           <div
             className={cn(
-              'absolute h-full bg-red-300 rounded-full transition-all duration-200 z-10',
-              props.activeTrackClassName,
+              'absolute h-full rounded-full transition-all duration-200 z-10',
+              'motion-reduce:transition-none',
+              classNames?.trackActive || 'bg-blue-500/30',
             )}
             style={{ width: `${props.pointPosition}%` }}
           />
@@ -207,31 +287,36 @@ export const SliderTrack = memo(
     if (props.mode === 'range' || props.mode === 'combined') {
       return (
         <div
-          ref={trackRef}
           className={baseClassName}
           onClick={onTrackClick}
           onTouchStart={onTrackTouch}
-          onMouseMove={handleMouseMove}
-          onMouseLeave={handleMouseLeave}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
           aria-hidden="true"
         >
-          <Scales scales={scales} scaleUnitConfig={scaleUnitConfig} />
+          <Scales
+            scales={scales}
+            scaleUnitConfig={scaleUnitConfig}
+            scaleMarkClassName={classNames?.scaleMark}
+            scaleMarkMajorClassName={classNames?.scaleMarkMajor}
+            scaleMarkMediumClassName={classNames?.scaleMarkMedium}
+            scaleMarkMinorClassName={classNames?.scaleMarkMinor}
+          />
 
           {/* Cursor line */}
-          <CursorLine position={mouseHoverPosition} isVisible={showCursorLine} />
+          <CursorLine
+            position={mouseHoverPosition}
+            isVisible={showCursorLine}
+            className={classNames?.cursorLine}
+          />
 
           {/* Date label */}
-          {showCursorLine && (
-            <DateLabel label={dateLabel} position={mouseHoverPosition} labelClassName="-top-8" />
-          )}
+          {showDateLabel && <DateLabel label={dateLabel} position={labelPosition} />}
 
           {/* Active track */}
           <div
             className={cn(
-              'absolute h-full bg-blue-500/30 transition-all duration-200 z-10',
-              props.activeTrackClassName,
+              'absolute h-full transition-all duration-200 z-10',
+              'motion-reduce:transition-none',
+              classNames?.trackActive || 'bg-blue-500/30',
             )}
             style={{
               left: `${props.rangeStart}%`,

@@ -1,13 +1,48 @@
-import { useCallback, useEffect } from 'react';
-import { DragHandle, TimeUnit, ViewMode } from '../type';
-import {
-  getAllScalesPercentage,
-  getPercentageFromMouseEvent,
-  getPercentageFromTouchEvent,
-} from '../utils';
 import { clampToLowerBound, snapToClosestStep } from '@/utils';
+import { useCallback, useEffect } from 'react';
+import { PERCENTAGE } from '../constants';
+import { TimeUnit, ViewMode, DragHandle } from '../type';
+import {
+  getPercentageFromTouchEvent,
+  getPercentageFromMouseEvent,
+  getAllScalesPercentage,
+} from '../utils';
 
-export function useEventHanlders(
+/**
+ * Custom hook to manage all user interaction event handlers for the slider.
+ *
+ * Handles:
+ * - Mouse/touch drag interactions on handles
+ * - Click/touch interactions on the track
+ * - Keyboard navigation (arrow keys, Home, End)
+ * - Automatic snapping to scale units (optional)
+ *
+ * Sets up global event listeners for drag operations and cleans them up properly.
+ *
+ * @param startDate - Start date of the slider range
+ * @param endDate - End date of the slider range
+ * @param timeUnit - Current time unit
+ * @param rangeStartRef - Ref to current range start percentage
+ * @param rangeEndRef - Ref to current range end percentage
+ * @param pointPositionRef - Ref to current point percentage
+ * @param viewMode - Current view mode (point/range/combined)
+ * @param updateHandlePosition - Function to update handle positions
+ * @param requestHandleFocus - Function to request focus on a handle
+ * @param setIsDragging - Function to set drag state
+ * @param setDragStarted - Function to set drag started state
+ * @param setLastInteractionType - Function to set last interaction type
+ * @param isDragging - Current dragging handle (if any)
+ * @param trackRef - Reference to the track element
+ * @param handleDragComplete - Function to call when drag completes
+ * @param sliderRef - Reference to the slider container
+ * @param handleDragStarted - Whether a drag has started
+ * @param isContainerDragging - Whether the container is being dragged
+ * @param totalScaleUnits - Total number of scale units
+ * @param freeSelectionOnTrackClick - Whether to allow free selection or snap to scales
+ * @param autoScrollToVisibleAreaEnabled - Ref to enable auto-scroll to bring handle into view
+ * @returns Event handler functions for mouse, touch, and keyboard events
+ */
+export function useEventHandlers(
   startDate: Date,
   endDate: Date,
   timeUnit: TimeUnit,
@@ -24,10 +59,11 @@ export function useEventHanlders(
   trackRef: React.RefObject<HTMLDivElement | null>,
   handleDragComplete: () => void,
   sliderRef: React.RefObject<HTMLDivElement | null>,
-  dragStarted: boolean,
+  handleDragStarted: boolean,
   isContainerDragging: boolean,
   totalScaleUnits: number,
   freeSelectionOnTrackClick: boolean,
+  autoScrollToVisibleAreaEnabled: React.MutableRefObject<boolean>,
 ) {
   const findClosestHandle = useCallback(
     (percentage: number): DragHandle => {
@@ -76,7 +112,6 @@ export function useEventHanlders(
       if (!isDragging) return;
 
       if ('touches' in e) {
-        // TouchEvent
         e.preventDefault(); // prevent scrolling when touch event
       }
 
@@ -100,7 +135,7 @@ export function useEventHanlders(
 
   const handleTrackInteraction = useCallback(
     (e: React.MouseEvent | React.TouchEvent) => {
-      if (isDragging || dragStarted || isContainerDragging || !sliderRef.current) {
+      if (isDragging || handleDragStarted || isContainerDragging || !sliderRef.current) {
         return;
       }
 
@@ -138,7 +173,7 @@ export function useEventHanlders(
     },
     [
       isDragging,
-      dragStarted,
+      handleDragStarted,
       isContainerDragging,
       sliderRef,
       startDate,
@@ -204,13 +239,14 @@ export function useEventHanlders(
           break;
         case 'End':
           e.preventDefault();
-          newPercentage = 99.9999;
+          newPercentage = PERCENTAGE.MAX;
           break;
       }
 
       if (newPercentage !== undefined) {
         setLastInteractionType('keyboard');
         updateHandlePosition(handle, newPercentage);
+        autoScrollToVisibleAreaEnabled.current = true;
       }
     },
     [
@@ -224,6 +260,7 @@ export function useEventHanlders(
       freeSelectionOnTrackClick,
       setLastInteractionType,
       updateHandlePosition,
+      autoScrollToVisibleAreaEnabled,
     ],
   );
 

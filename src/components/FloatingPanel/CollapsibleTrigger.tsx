@@ -1,5 +1,5 @@
 import { cn } from '@/utils';
-import { ArrowDownIcon, Button, DragIndicatorIcon, IconProps, LayersIcon } from '..';
+import { ArrowIcon, Button, DragIndicatorIcon, IconProps, LayersIcon } from '..';
 
 export type CollapsibleTriggerProps = {
   dragHandleClass: string;
@@ -42,7 +42,7 @@ export const CollapsibleTrigger = ({
               className={cn('transition-transform duration-300', open && 'rotate-180')}
             />
           ) : (
-            <ArrowDownIcon
+            <ArrowIcon
               color="imos-grey"
               className={cn('transition-transform duration-300', open && 'rotate-180')}
             />

@@ -1,14 +1,8 @@
-import { cn } from '@/utils';
-import { Button } from '../../Button';
-import { RenderSliderHandleProps, SliderHandleProps } from '../type';
 import { memo } from 'react';
-import { formatDateForDisplay, getDateFromPercent } from '../utils';
-
-// Updated SliderHandleProps type to include touch event handlers
-type UpdatedSliderHandleProps = SliderHandleProps & {
-  onTouchStart?: (e: React.TouchEvent) => void;
-  labelPersistent?: boolean;
-};
+import { DateLabel } from './DateLabel';
+import { cn } from '@/utils';
+import { SliderHandleProps, RenderSliderHandleProps } from '../type';
+import { formatForDisplay, getDateFromPercent } from '../utils';
 
 export const SliderHandle = ({
   onDragging,
@@ -17,8 +11,6 @@ export const SliderHandle = ({
   icon,
   onMouseDown,
   onTouchStart,
-  className,
-  labelClassName,
   ref,
   min,
   max,
@@ -26,17 +18,42 @@ export const SliderHandle = ({
   handleType,
   onKeyDown,
   onFocus,
-  labelPersistent = false,
-}: UpdatedSliderHandleProps) => {
+  isSliderDragging,
+  handleLabelPersistent,
+  handleLabelDisabled,
+  classNames,
+  renderDateLabel,
+}: SliderHandleProps) => {
+  const generateLabelPosition = () => {
+    if (!ref.current || handleType !== 'point') return;
+    return {
+      x: ref.current.getBoundingClientRect().left + ref.current.getBoundingClientRect().width / 2,
+      y: ref.current.getBoundingClientRect().top - 32,
+    };
+  };
+
+  // Get handle-specific className
+  const handleSpecificClass =
+    handleType === 'point'
+      ? classNames?.handlePoint
+      : handleType === 'start'
+        ? classNames?.handleStart
+        : classNames?.handleEnd;
+
+  const handleBaseClass = classNames?.handle || handleSpecificClass;
+  const handleDraggingClass = onDragging ? classNames?.handleDragging : '';
+
   return (
-    <Button
+    <button
       ref={ref}
-      size={'icon'}
-      variant={'ghost'}
+      type="button"
       className={cn(
-        'group absolute pointer-events-auto z-20 transform  -translate-x-1/2 transition-all duration-50 hover:scale-110 hover:bg-transparent active:bg-transparent touch-none',
-        className,
-        { 'scale-110': onDragging },
+        'group absolute cursor-pointer z-20 transform -translate-x-1/2 hover:scale-110 hover:bg-transparent active:bg-transparent touch-none top-0',
+        'w-9 h-9 inline-flex items-center justify-center rounded-md',
+        'focus-visible:outline focus-visible:outline-offset-2',
+        handleBaseClass,
+        handleSpecificClass,
+        handleDraggingClass || (onDragging ? 'scale-110' : ''),
       )}
       style={{ left: `${position}%` }}
       onMouseDown={onMouseDown}
@@ -52,37 +69,22 @@ export const SliderHandle = ({
       onKeyDown={onKeyDown}
       onFocus={onFocus}
     >
-      {(onDragging || labelPersistent) && (
-        <div
-          className={cn(
-            'absolute top-0  left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap',
-            labelClassName,
-          )}
-        >
-          {label}
-        </div>
-      )}
-      {!onDragging && (
-        <div
-          className={cn(
-            'hidden group-hover:block absolute top-0  left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded whitespace-nowrap',
-            labelClassName,
-          )}
-        >
-          {label}
-        </div>
-      )}
       {icon}
-    </Button>
+      {!onDragging && handleType === 'point' && (
+        <DateLabel
+          position={generateLabelPosition()}
+          label={label}
+          immediateDisappear={isSliderDragging}
+          handleLabelPersistent={handleLabelPersistent}
+          handleLabelDisabled={handleLabelDisabled}
+          renderDateLabel={renderDateLabel}
+        />
+      )}
+    </button>
   );
 };
 
-type UpdatedRenderSliderHandleProps = RenderSliderHandleProps & {
-  onTouchStart: (handle: 'start' | 'end' | 'point') => (e: React.TouchEvent) => void;
-  pointLabelPersistent?: boolean;
-};
-
-export const RenderSliderHandle = memo<UpdatedRenderSliderHandleProps>(
+export const RenderSliderHandle = memo<RenderSliderHandleProps>(
   ({
     viewMode,
     rangeStart,
@@ -90,7 +92,6 @@ export const RenderSliderHandle = memo<UpdatedRenderSliderHandleProps>(
     pointPosition,
     startDate,
     endDate,
-    timeUnit,
     isDragging,
     rangeHandleIcon,
     pointHandleIcon,
@@ -101,14 +102,17 @@ export const RenderSliderHandle = memo<UpdatedRenderSliderHandleProps>(
     onMouseDown,
     onTouchStart,
     onKeyDown,
-    pointLabelPersistent,
+    isSliderDragging,
+    handleLabelPersistent,
+    handleLabelDisabled,
+    classNames,
+    renderDateLabel,
   }) => {
     const commonProps = {
-      className: 'top-0',
-      labelClassName: '-top-8 bg-red-600',
       onFocus: onHandleFocus,
       min: 0,
       max: 100,
+      classNames,
     };
 
     return (
@@ -116,60 +120,80 @@ export const RenderSliderHandle = memo<UpdatedRenderSliderHandleProps>(
         {(viewMode === 'range' || viewMode === 'combined') && (
           <>
             <SliderHandle
+              viewMode={viewMode}
               ref={startHandleRef}
               {...commonProps}
               icon={rangeHandleIcon}
               onDragging={isDragging === 'start'}
               position={rangeStart}
-              label={formatDateForDisplay(
+              label={formatForDisplay(
                 getDateFromPercent(rangeStart, startDate, endDate),
-                timeUnit,
+                'day',
+                'en-AU',
+                true,
               )}
               onMouseDown={onMouseDown('start')}
               onTouchStart={onTouchStart('start')}
               value={rangeStart}
-              handleType="range start"
+              handleType="start"
               onKeyDown={onKeyDown('start')}
+              handleLabelPersistent={handleLabelPersistent}
+              handleLabelDisabled={handleLabelDisabled}
+              renderDateLabel={renderDateLabel}
             />
             <SliderHandle
+              viewMode={viewMode}
               ref={endHandleRef}
               {...commonProps}
               icon={rangeHandleIcon}
               onDragging={isDragging === 'end'}
               position={rangeEnd}
-              label={formatDateForDisplay(
+              label={formatForDisplay(
                 getDateFromPercent(rangeEnd, startDate, endDate),
-                timeUnit,
+                'day',
+                'en-AU',
+                true,
               )}
               onMouseDown={onMouseDown('end')}
               onTouchStart={onTouchStart('end')}
               value={rangeEnd}
-              handleType="range end"
+              handleType="end"
               onKeyDown={onKeyDown('end')}
+              handleLabelPersistent={handleLabelPersistent}
+              handleLabelDisabled={handleLabelDisabled}
+              renderDateLabel={renderDateLabel}
             />
           </>
         )}
 
         {(viewMode === 'point' || viewMode === 'combined') && (
           <SliderHandle
+            viewMode={viewMode}
             ref={pointHandleRef}
             {...commonProps}
             icon={pointHandleIcon}
             onDragging={isDragging === 'point'}
             position={pointPosition}
-            label={formatDateForDisplay(
+            label={formatForDisplay(
               getDateFromPercent(pointPosition, startDate, endDate),
-              timeUnit,
+              'day',
+              'en-AU',
+              true,
             )}
             onMouseDown={onMouseDown('point')}
             onTouchStart={onTouchStart('point')}
             value={pointPosition}
             handleType="point"
             onKeyDown={onKeyDown('point')}
-            labelPersistent={pointLabelPersistent}
+            isSliderDragging={isSliderDragging}
+            handleLabelPersistent={handleLabelPersistent}
+            handleLabelDisabled={handleLabelDisabled}
+            renderDateLabel={renderDateLabel}
           />
         )}
       </>
     );
   },
 );
+
+RenderSliderHandle.displayName = 'RenderSliderHandle';

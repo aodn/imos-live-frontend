@@ -4,7 +4,7 @@ import { cn } from '@/utils';
 import { ReactNode } from 'react';
 import { Button } from '../Button';
 import { CollapsibleComponent, TriggerArgs } from '../Collapsible';
-import { ArrowDownIcon, MapLayersIcon } from '../Icons';
+import { ArrowIcon, MapLayersIcon } from '../Icons';
 import { Image } from '../Image';
 import { LayersDataset } from './MainSidebarContent';
 
@@ -108,7 +108,7 @@ const CardTrigger = ({
             aria-expanded={open}
             aria-label={`${open ? 'Collapse' : 'Expand'} content`}
           >
-            <ArrowDownIcon
+            <ArrowIcon
               color="imos-grey"
               className={cn(
                 'transition-transform duration-300 ease-in-out',

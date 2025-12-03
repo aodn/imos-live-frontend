@@ -1,32 +1,18 @@
-import { cn } from '@/utils';
-import { Button, TriangleIcon } from '../..';
+import { memo, useState, useRef, useEffect } from 'react';
 import { TimeUnit, TimeUnitSelectionProps } from '../type';
-import { useState, useRef, useEffect, memo } from 'react';
-import { useElementSize } from '@/hooks';
 
 const TIME_UNITS: Array<TimeUnit> = ['day', 'month', 'year'];
 
 export const TimeUnitSelection = memo(
-  ({ initialTimeUnit, isMonthValid, isYearValid, className, onChange }: TimeUnitSelectionProps) => {
+  ({
+    initialTimeUnit,
+    isMonthValid,
+    isYearValid,
+    onChange,
+    renderTimeUnitSelection,
+  }: TimeUnitSelectionProps) => {
     const [timeUnit, setTimeUnit] = useState<TimeUnit>(initialTimeUnit);
     const timeUnitSelectionIndexRef = useRef(TIME_UNITS.indexOf(timeUnit) ?? 0);
-    const { ref, heightBreakpoint } = useElementSize<HTMLDivElement>({
-      debounceMs: 100,
-      heightBreakpoints: {
-        xs: 48,
-        sm: 64,
-        md: 96,
-        xl: Infinity,
-      },
-    });
-
-    const getIconSize = (heightBreakpoint?: string) => {
-      if (heightBreakpoint === 'xs') return 'xs';
-      if (heightBreakpoint === 'sm') return 'sm';
-      if (heightBreakpoint === 'md') return 'base';
-      if (heightBreakpoint === 'xl') return 'lg';
-      return 'base';
-    };
 
     const isPrevBtnDisabled = () => {
       return timeUnitSelectionIndexRef.current === 0;
@@ -54,46 +40,13 @@ export const TimeUnitSelection = memo(
       setTimeUnit(TIME_UNITS[timeUnitSelectionIndexRef.current]);
     };
 
-    return (
-      <div className={cn('border-l', className)}>
-        <div
-          ref={ref}
-          className={cn('flex flex-col grow-0 shrink-0 items-center h-full w-16 mx-auto', {
-            'justify-between': heightBreakpoint === 'lg' || heightBreakpoint === 'base',
-            'gap-y-1': heightBreakpoint === 'sm' || heightBreakpoint === 'xs',
-          })}
-        >
-          <p
-            className={cn('text-center text-base font-bold text-slate-700', {
-              'text-xs': heightBreakpoint === 'sm' || heightBreakpoint === 'xs',
-            })}
-          >
-            {timeUnit.toUpperCase()}
-          </p>
-          <div className="flex flex-col justify-between">
-            <Button
-              aria-label="previous time unit"
-              size={'icon-only'}
-              variant={'ghost'}
-              onClick={handleTimeUnitPreviousSelect}
-              disabled={isPrevBtnDisabled()}
-            >
-              <TriangleIcon size={getIconSize(heightBreakpoint)} className="text-slate-700!" />
-            </Button>
-            <Button
-              aria-label="next time unit"
-              size={'icon-only'}
-              variant={'ghost'}
-              className="rotate-180"
-              onClick={handleTimeUnitNextSelect}
-              disabled={isNextBtnDisabled()}
-            >
-              <TriangleIcon size={getIconSize(heightBreakpoint)} className="text-slate-700!" />
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
+    return renderTimeUnitSelection({
+      timeUnit,
+      handleTimeUnitNextSelect,
+      handleTimeUnitPreviousSelect,
+      isNextBtnDisabled,
+      isPrevBtnDisabled,
+    });
   },
 );
 

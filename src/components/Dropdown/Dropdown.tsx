@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowDownIcon, CloseIcon } from '../Icons';
+import { ArrowIcon, CloseIcon } from '../Icons';
 import { cn } from '@/utils';
 import { useDropdownOutsideClick, useDropdownPosition } from '@/hooks';
 import { DropdownProps, DropdownOption } from './type';
@@ -186,7 +186,7 @@ export const Dropdown = ({
               onClick={handleClear}
             />
           )}
-          <ArrowDownIcon
+          <ArrowIcon
             className={cn('text-gray-400 transition-transform duration-200', {
               'rotate-180': isOpen,
             })}

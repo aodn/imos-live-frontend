@@ -1,5 +1,5 @@
 import { Button } from '../Button';
-import { ArrowDownIcon, WidgetsIcon } from '../Icons';
+import { ArrowIcon, WidgetsIcon } from '../Icons';
 import { cn } from '@/utils';
 
 export const LayerProductsCollapsibleTrigger = ({
@@ -25,7 +25,7 @@ export const LayerProductsCollapsibleTrigger = ({
     >
       <WidgetsIcon color="imos-white" size="xl" />
       <span>{title}</span>
-      <ArrowDownIcon
+      <ArrowIcon
         color="imos-white"
         size="xl"
         className={cn(
