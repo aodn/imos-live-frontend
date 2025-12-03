@@ -1,50 +1,63 @@
 import { TriangleIcon } from '../Icons';
-import { DateSlider, PointSelection, SelectionResult } from '../DateSlider';
-import { getLast7Dates, dateToUTC, toDateFormatString, cn } from '@/utils';
-import { useMapUIStore, setDate } from '@/store';
-import { memo, useCallback, useMemo } from 'react';
+import { setDate } from '@/store';
+import { memo, useCallback } from 'react';
+import { useDateSliderDates } from '@/hooks';
+import {
+  dateLabelRender,
+  DateSlider,
+  PointValue,
+  SelectionResult,
+  timeDisplayRender,
+  timeUnitSelectionRender,
+} from '../DateSlider';
+import { cn, toISODateString } from '@/utils';
 
 type DateSelectionBarProps = { className?: string };
 
 export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
-  const date = useMapUIStore(s => s.date);
+  const { date, startDate, endDate } = useDateSliderDates();
 
-  const lastSevenDays = useMemo(() => getLast7Dates('yyyy-mm-dd'), []);
-  const startDate = useMemo(() => new Date(lastSevenDays[0]), [lastSevenDays]);
-  const endDate = useMemo(() => {
-    const last = new Date(lastSevenDays.at(-1)!);
-    last.setDate(last.getDate() + 1);
-    return last;
-  }, [lastSevenDays]);
-
-  const handleSelect = useCallback(async (v: PointSelection) => {
-    const date = toDateFormatString(v.point);
-    setDate(date);
+  const handleSelect = useCallback(async (v: SelectionResult) => {
+    setDate(toISODateString((v as PointValue).point));
   }, []);
 
   return (
     <div className={cn('shadow-xl', className)}>
       <DateSlider
-        viewMode="point"
-        initialTimeUnit="day"
-        startDate={startDate}
-        endDate={endDate}
-        initialPoint={dateToUTC(date)}
-        pointHandleIcon={<TriangleIcon size="xxl" className="text-slate-700! text-shadow" />}
-        sliderClassName="frosted"
-        timeUnitSlectionClassName="frosted"
-        trackActiveClassName="hidden"
-        onChange={handleSelect as (v: SelectionResult) => void}
-        scrollable
-        scaleUnitConfig={{
-          width: { short: 1, medium: 2, long: 2 },
-          height: { short: 18, medium: 36, long: 60 },
+        mode="point"
+        granularity="day"
+        min={startDate}
+        max={endDate}
+        value={{
+          point: date,
         }}
-        sliderHeight={110}
-        sliderWidth={'fill'}
-        pointLabelPersistent
-        isTimeLabelPerDay
-        withEndLabel={false}
+        initialTimeUnit="day"
+        icons={{
+          point: <TriangleIcon size="lg" className="text-slate-700! text-shadow" />,
+        }}
+        classNames={{
+          slider: 'frosted',
+          trackActive: 'bg-white/30',
+          track: 'bg-white/10',
+          scaleMark: 'bg-imos-grey',
+        }}
+        onChange={handleSelect as (v: SelectionResult) => void}
+        layout={{
+          width: 'fill',
+          height: 82,
+          scaleUnitConfig: {
+            gap: 100,
+            width: { short: 1, medium: 2, long: 2 },
+            height: { short: 18, medium: 36, long: 60 },
+          },
+          trackPaddingX: 24,
+        }}
+        behavior={{ scrollable: true, handleLabelDisabled: false }}
+        renderProps={{
+          renderDateLabel: dateLabelRender,
+          renderTimeDisplay: timeDisplayRender,
+          renderTimeUnitSelection: timeUnitSelectionRender,
+        }}
       />
     </div>
   );

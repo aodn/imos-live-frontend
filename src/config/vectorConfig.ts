@@ -1,4 +1,4 @@
-import { convertLogColorScaleToRamp } from '@/components';
+import { convertLogColorScaleToRamp } from '@/components/ColorScaleBar/utils';
 import speedColors from './speed_colormap.json';
 
 const MAX_SPEED = 3.0;

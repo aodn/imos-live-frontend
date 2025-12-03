@@ -3,7 +3,7 @@ import { DragWrapper } from './DragWrapper';
 import { cn } from '@/utils';
 import { CollapsibleComponent } from '../Collapsible';
 import { Button } from '../Button';
-import { ArrowDownIcon } from '../Icons';
+import { ArrowIcon } from '../Icons';
 import { useState } from 'react';
 
 const meta = {
@@ -71,7 +71,7 @@ const CollapsibleTrigger = ({
           aria-expanded={open}
           aria-label={`${open ? 'Collapse' : 'Expand'} content`}
         >
-          <ArrowDownIcon
+          <ArrowIcon
             color="imos-white"
             className={cn(
               'transition-transform duration-300 ease-in-out',

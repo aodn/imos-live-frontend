@@ -1,7 +1,7 @@
 import { withIcon } from './withIcon';
 import Close from './close.svg?react';
 import Menu from './menu.svg?react';
-import ArrowDown from './arrow_down.svg?react';
+import Arrow from './arrow_down.svg?react';
 import DragIndicator from './drag_indicator.svg?react';
 import Maps from './maps.svg?react';
 import Layers from './layers.svg?react';
@@ -27,7 +27,7 @@ import { Thermometer } from 'lucide-react';
 
 export const CloseIcon = withIcon(Close);
 export const MenuIcon = withIcon(Menu);
-export const ArrowDownIcon = withIcon(ArrowDown);
+export const ArrowIcon = withIcon(Arrow);
 export const DragIndicatorIcon = withIcon(DragIndicator);
 export const MapsIcon = withIcon(Maps);
 export const LayersIcon = withIcon(Layers);
@@ -55,7 +55,7 @@ export const icons = {
   ThermometerIcon,
   CloseIcon,
   MenuIcon,
-  ArrowDownIcon,
+  ArrowDownIcon: ArrowIcon,
   DragIndicatorIcon,
   MapsIcon,
   LayersIcon,

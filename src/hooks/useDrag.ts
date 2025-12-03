@@ -3,6 +3,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 
 type UseDragProps = {
   targetRef?: React.RefObject<HTMLElement | null>;
+  // initialPosition expects an object with x and y coordinates and not updates after initial render.
   initialPosition?: { x: number; y: number };
   constrainToAxis?: 'x' | 'y' | 'both';
   bounds?: {
@@ -52,7 +53,6 @@ export const useDrag = ({
     position: initialPosition,
   });
 
-  // Apply bounds constraints
   const applyBounds = useCallback(
     (pos: { x: number; y: number }) => {
       if (!bounds) return pos;
@@ -65,7 +65,6 @@ export const useDrag = ({
     [bounds],
   );
 
-  // Apply transform to element
   const applyTransform = useCallback(
     (pos: { x: number; y: number }) => {
       if (targetRef?.current) {
@@ -119,7 +118,7 @@ export const useDrag = ({
 
       setIsDragging(true);
       dragStartPositionRef.current = { ...position };
-      hasStartedDraggingRef.current = false; // Reset the flag
+      hasStartedDraggingRef.current = false;
 
       setDragState({
         isDragging: true,
@@ -141,7 +140,7 @@ export const useDrag = ({
       const handleMouseUp = () => {
         if (!targetRef?.current) return;
         setIsDragging(false);
-        hasStartedDraggingRef.current = false; // Reset the flag
+        hasStartedDraggingRef.current = false;
         setDragState(prev => ({
           ...prev,
           isDragging: false,
@@ -168,7 +167,7 @@ export const useDrag = ({
 
       setIsDragging(true);
       dragStartPositionRef.current = { ...position };
-      hasStartedDraggingRef.current = false; // Reset the flag
+      hasStartedDraggingRef.current = false;
 
       setDragState({
         isDragging: true,
@@ -191,7 +190,7 @@ export const useDrag = ({
 
       const handleTouchEnd = () => {
         setIsDragging(false);
-        hasStartedDraggingRef.current = false; // Reset the flag
+        hasStartedDraggingRef.current = false;
         setDragState(prev => ({
           ...prev,
           isDragging: false,
@@ -220,7 +219,8 @@ export const useDrag = ({
       }));
       applyTransform(boundedPosition);
     },
-    [initialPosition, applyBounds, applyTransform],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [applyBounds, applyTransform],
   );
 
   // Initialize transform on mount and when position changes
