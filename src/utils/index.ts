@@ -15,7 +15,7 @@ export * from './normalizeWaveBuouysData';
 export * from './getFirstAndLast';
 export * from './addIdToFeatures';
 export * from './processOceanCurrentDetails';
-export * from './getViewPortSize';
+export * from './isSmallScreen';
 export * from './appendCacheBuster';
 export * from './sleep';
 export * from './snapToClosestStep';

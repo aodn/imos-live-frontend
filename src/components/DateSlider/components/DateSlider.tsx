@@ -12,7 +12,7 @@ import { SliderTrack } from './SliderTrack';
 import { TimeDisplay } from './TimeDisplay';
 import { TimeUnitLabels } from './TimeUnitLabels';
 import { TimeUnitSelection } from './TimeUnitSelection';
-import { useElementSize, useRAFDFn, useResizeObserver, useDrag } from '@/hooks';
+import { useElementSize, useRAFDFn, useResizeObserver, useDrag, useViewportSize } from '@/hooks';
 import { clampPercent, clamp, debounce, cn, checkDateDuration } from '@/utils';
 import {
   LAYOUT,
@@ -60,6 +60,7 @@ export const DateSlider = memo(
     granularity = 'day',
     imperativeRef: imperativeHandleRef,
   }: SliderProps) => {
+    const { isSmallScreen } = useViewportSize();
     // Extract icon config with defaults - safely handle discriminated union
     const pointHandleIcon = icons && 'point' in icons ? icons.point : undefined;
     const rangeHandleIcon =
@@ -70,7 +71,7 @@ export const DateSlider = memo(
     // Extract behavior config with defaults
     const scrollable = behavior?.scrollable ?? true;
     const freeSelectionOnTrackClick = behavior?.freeSelectionOnTrackClick ?? false;
-    const handleLabelPersistent = behavior?.handleLabelPersistent ?? false;
+    const handleLabelPersistent = isSmallScreen || (behavior?.handleLabelPersistent ?? false);
     const handleLabelDisabled = behavior?.handleLabelDisabled ?? false;
 
     // Extract layout config with defaults
@@ -545,6 +546,7 @@ export const DateSlider = memo(
                   handleLabelDisabled={handleLabelDisabled}
                   classNames={classNames}
                   renderDateLabel={renderProps?.renderDateLabel}
+                  sliderContainerRef={sliderContainerRef}
                 />
               </div>
             </div>

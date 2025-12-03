@@ -27,7 +27,7 @@ export const DateLabel = memo(
     return createPortal(
       <div
         style={{ left: position.x, top: position.y }}
-        className={cn('fixed z-50 transform -translate-x-1/2 pointer-events-none', className)}
+        className={cn('fixed transform -translate-x-1/2 pointer-events-none', className)}
         role="tooltip"
         aria-live="polite"
       >

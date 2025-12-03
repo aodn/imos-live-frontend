@@ -50,7 +50,7 @@ export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
           },
           trackPaddingX: 24,
         }}
-        behavior={{ scrollable: true, handleLabelDisabled: false, handleLabelPersistent: true }}
+        behavior={{ scrollable: true, handleLabelDisabled: false }}
         renderProps={{
           renderDateLabel: dateLabelRender,
           renderTimeDisplay: timeDisplayRender,
