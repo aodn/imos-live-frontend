@@ -2,7 +2,7 @@ import { memo } from 'react';
 import { DateLabel } from './DateLabel';
 import { cn } from '@/utils';
 import { SliderHandleProps, RenderSliderHandleProps } from '../type';
-import { formatForDisplay, getDateFromPercent } from '../utils';
+import { formatForDisplay, getDateFromPercent, handleOutsideVisibleArea } from '../utils';
 
 export const SliderHandle = ({
   onDragging,
@@ -23,7 +23,15 @@ export const SliderHandle = ({
   handleLabelDisabled,
   classNames,
   renderDateLabel,
+  sliderContainerRef,
 }: SliderHandleProps) => {
+  const { left, right } = handleOutsideVisibleArea({
+    handleRef: ref,
+    sliderContainerRef,
+  });
+
+  const outsideVisibleArea = left || right;
+
   const generateLabelPosition = () => {
     if (!ref.current || handleType !== 'point') return;
     return {
@@ -70,7 +78,7 @@ export const SliderHandle = ({
       onFocus={onFocus}
     >
       {icon}
-      {!onDragging && handleType === 'point' && (
+      {!onDragging && !isSliderDragging && !outsideVisibleArea && handleType === 'point' && (
         <DateLabel
           position={generateLabelPosition()}
           label={label}
@@ -107,6 +115,7 @@ export const RenderSliderHandle = memo<RenderSliderHandleProps>(
     handleLabelDisabled,
     classNames,
     renderDateLabel,
+    sliderContainerRef,
   }) => {
     const commonProps = {
       onFocus: onHandleFocus,
@@ -140,6 +149,7 @@ export const RenderSliderHandle = memo<RenderSliderHandleProps>(
               handleLabelPersistent={handleLabelPersistent}
               handleLabelDisabled={handleLabelDisabled}
               renderDateLabel={renderDateLabel}
+              sliderContainerRef={sliderContainerRef}
             />
             <SliderHandle
               viewMode={viewMode}
@@ -162,6 +172,7 @@ export const RenderSliderHandle = memo<RenderSliderHandleProps>(
               handleLabelPersistent={handleLabelPersistent}
               handleLabelDisabled={handleLabelDisabled}
               renderDateLabel={renderDateLabel}
+              sliderContainerRef={sliderContainerRef}
             />
           </>
         )}
@@ -189,6 +200,7 @@ export const RenderSliderHandle = memo<RenderSliderHandleProps>(
             handleLabelPersistent={handleLabelPersistent}
             handleLabelDisabled={handleLabelDisabled}
             renderDateLabel={renderDateLabel}
+            sliderContainerRef={sliderContainerRef}
           />
         )}
       </>

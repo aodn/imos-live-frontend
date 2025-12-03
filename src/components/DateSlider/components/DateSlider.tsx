@@ -545,6 +545,7 @@ export const DateSlider = memo(
                   handleLabelDisabled={handleLabelDisabled}
                   classNames={classNames}
                   renderDateLabel={renderProps?.renderDateLabel}
+                  sliderContainerRef={sliderContainerRef}
                 />
               </div>
             </div>
