@@ -264,7 +264,9 @@ export const SliderTrack = memo(
 
           {/* Date label */}
           {showDateLabel && (
+            //hide slider track date label on mobile
             <DateLabel
+              className="hidden md:block"
               label={dateLabel}
               position={labelPosition}
               renderDateLabel={renderDateLabel}
@@ -309,7 +311,10 @@ export const SliderTrack = memo(
           />
 
           {/* Date label */}
-          {showDateLabel && <DateLabel label={dateLabel} position={labelPosition} />}
+          {showDateLabel && (
+            //hide slider track date label on mobile
+            <DateLabel label={dateLabel} position={labelPosition} className="hidden md:block" />
+          )}
 
           {/* Active track */}
           <div

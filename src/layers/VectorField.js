@@ -1,60 +1,23 @@
 import mapboxgl from 'mapbox-gl';
 import * as twgl from 'twgl.js';
 import { vs, fs, vsQuad, fsScreen, fsUpdate } from '../utils/shader.js';
-import { vectorConfig } from '@/config';
+import { particleConfig } from '@/store';
 
-const config = vectorConfig;
 /**
+ * fadeOpacity, speedFactor, dropRate, pointSize, etc. are just values that get read during the animation loop, 
+ * whichi is cheap and immediate.
  * 
-Shaders (Vertex and Fragment) run efficiently on the GPU to handle thousands of particles simultaneously. This is ideal for real-time simulations of particle movements.
+ * changing nParticles requires GPU texture reallocation in setParticles() 
+  1. Calculate new texture dimensions: particleRes = Math.ceil(Math.sqrt(num))
+  2. Allocate new memory: new Uint8Array(numParticles * 4)
+  3. Create new WebGL textures: Two textures for ping-pong rendering
+  4. Create new vertex buffer: particleIndices array
+  5. Randomize all particles: Fresh random positions
 
-Your code uses two key shaders for this purpose:
-
-Update Shader (fsUpdate): Calculates updated particle positions based on velocity (direction/strength).
-
-Render Shader (fs): Renders particles visually. 
+  This is expensive and visually disruptive - all particles reset to random positions.
  */
 
-/*
-Particles are things that move around in a space, like little dots or points, each with their own position and speed. 
-Vectors are data, one per pixel, stored in png images that tell us how fast and in what direction the particles should move.
-
-
-Analogy: Wind Map
-Imagine you have:
-
-A weather map that shows wind direction everywhere (PNG = vector field)
-
-A bunch of leaves floating in the air (particles)
-
-You don’t have a leaf for every pixel. But:
-
-Each leaf moves by looking at the wind direction at its current position.
-
-Same thing here:
-
-The PNG is the wind map
-
-The particles are the leaves
-
-The shader is what says “move this leaf based on the wind underneath it”
-
-Sample
-Looking up the vector from the PNG field at the particle’s current position.
-After fonding the vector, the shader moves the particle in that direction. Then it moves the particle at its new position. Then it repeats.
-
-Say you have a particle at (0.5, 0.5) and the vector field says that at (0.5, 0.5) the wind velocity is (0.01,0.02) and speedFactor is 5.0.
-Then the particle will move to (0.5 + 0.01 * 5.0, 0.5 + 0.02 * 5.0) = (0.55, 0.6).
-
-Velocity has speed and direction. The speed is the length of the vector, and the direction is the angle of the vector.
-
-This is how the animation of particles works.
-
-
-speedFactor: determines how fast the particles move based on the vector field. A higher value means faster movement.
-dropRate: determines how often particles are removed and respawned in a new position. A higher value means more frequent respawning.
-dropRateBump: increases the drop rate for particles moving faster, preventing them from dominating the visual field.
-*/
+const config = particleConfig;
 
 function VectorField(map, gl) {
   let data;
@@ -103,12 +66,15 @@ function VectorField(map, gl) {
   }
 
   /**
-   * Set the number of particles generated.
-   * @param {number} num - Desired number of particles.
+   * Update particle configuration dynamically.
+   * @param {Object} newConfig - Partial config object with properties to update.
    */
-  function setParticleNum(num) {
-    nParticles = num;
-    setParticles(nParticles);
+  function updateConfig(newConfig) {
+    if (newConfig.nParticles !== undefined && newConfig.nParticles !== nParticles) {
+      nParticles = newConfig.nParticles;
+      setParticles(nParticles);
+    }
+    Object.assign(config, newConfig);
   }
 
   /**
@@ -540,8 +506,8 @@ function VectorField(map, gl) {
     startAnimation,
     stopAnimation,
     draw,
-    setParticleNum,
     resize,
+    updateConfig,
   };
 }
 

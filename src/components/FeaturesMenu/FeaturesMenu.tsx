@@ -2,18 +2,8 @@ import { useState } from 'react';
 import { IconProps } from '../Icons';
 import { Button } from '../Button';
 import { cn } from '@/utils';
-import { Dropdown } from '../Dropdown';
-import { styles, StyleTitle } from '@/styles';
-import {
-  NumParticles,
-  useMapUIStore,
-  setStyle,
-  setNumParticles,
-  setDistanceMeasurement,
-  setWorldBoundaries,
-} from '@/store';
-import { useShallow } from 'zustand/shallow';
-import { Switch } from '../Switch';
+import { OptionsSection } from './OptionsSection';
+import { MapsSection } from './MapsSection';
 
 export type Label = 'Options' | 'Maps';
 
@@ -28,19 +18,7 @@ export type FeaturesMenuProps = {
   className?: string;
   selectionClassName?: string;
   iconSize?: IconProps['size'];
-  activeStye?: string;
-  inactiveStye?: string;
 };
-
-const styleDropdownSelections = styles.map(s => ({
-  label: s.title,
-  value: s.title,
-}));
-const NUM_PARTICLES: NumParticles[] = [10000, 30000, 60000, 100000];
-const numParticlesDropdownSelections = NUM_PARTICLES.map(num => ({
-  label: num,
-  value: num,
-}));
 
 export function FeaturesMenu({
   features,
@@ -49,14 +27,7 @@ export function FeaturesMenu({
   iconSize,
 }: FeaturesMenuProps) {
   const [activeItem, setActiveItem] = useState<Label>();
-  const { style, numParticles, distanceMeasurement, worldBoundaries } = useMapUIStore(
-    useShallow(s => ({
-      style: s.style,
-      numParticles: s.numParticles,
-      distanceMeasurement: s.distanceMeasurement,
-      worldBoundaries: s.worldBoundaries,
-    })),
-  );
+
   const isActive = (label: Label) => activeItem === label;
 
   const handleItemClick = (label: Label, fn?: () => void) => () => {
@@ -65,18 +36,7 @@ export function FeaturesMenu({
       fn();
     }
   };
-  const handleStyleSelect = (style: StyleTitle) => {
-    setStyle(style);
-  };
-  const handleNumParticlesSelect = (numParticles: NumParticles) => {
-    setNumParticles(numParticles);
-  };
-  const handleDistanceMeasurementSelect = (distanceMeasurement: boolean) => {
-    setDistanceMeasurement(distanceMeasurement);
-  };
-  const handleWorldBoundariesSelect = (worldBoundaries: boolean) => {
-    setWorldBoundaries(worldBoundaries);
-  };
+
   return (
     <aside
       className={cn('bg-white shadow-lg py-2 w-40 md:w-full', className)}
@@ -105,52 +65,11 @@ export function FeaturesMenu({
           ))}
         </ul>
       </div>
+
       {!!activeItem && (
         <div className="md:mt-2 px-4 py-2 w-full">
-          {activeItem === 'Options' && (
-            <div className="w-full flex flex-col gap-y-2 items-start">
-              <Dropdown
-                label="number of particles"
-                className="w-full"
-                onChange={
-                  handleNumParticlesSelect as (value: string | number | (string | number)[]) => void
-                }
-                options={numParticlesDropdownSelections}
-                initialValue={numParticles || numParticlesDropdownSelections[0].value}
-                position="auto"
-                usePortal
-              />
-
-              <Switch
-                label="Measure distance"
-                labelPosition="left"
-                initialValue={distanceMeasurement}
-                onChange={handleDistanceMeasurementSelect}
-                dataTestId="switch-distancemeasurement"
-              />
-
-              <Switch
-                label="World boundaries"
-                labelPosition="left"
-                initialValue={worldBoundaries}
-                onChange={handleWorldBoundariesSelect}
-              />
-            </div>
-          )}
-          {activeItem === 'Maps' && (
-            <div className="w-full">
-              <Dropdown
-                label="map style"
-                onChange={
-                  handleStyleSelect as (value: string | number | (string | number)[]) => void
-                }
-                options={styleDropdownSelections}
-                initialValue={style || styleDropdownSelections[0].value}
-                position="auto"
-                usePortal
-              />
-            </div>
-          )}
+          {activeItem === 'Options' && <OptionsSection />}
+          {activeItem === 'Maps' && <MapsSection />}
         </div>
       )}
     </aside>

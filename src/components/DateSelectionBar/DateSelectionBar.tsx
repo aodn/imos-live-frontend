@@ -8,7 +8,6 @@ import {
   PointValue,
   SelectionResult,
   timeDisplayRender,
-  timeUnitSelectionRender,
 } from '../DateSlider';
 import { cn, toISODateString } from '@/utils';
 
@@ -16,7 +15,6 @@ type DateSelectionBarProps = { className?: string };
 
 export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
   const { date, startDate, endDate } = useDateSliderDates();
-
   const handleSelect = useCallback(async (v: SelectionResult) => {
     setDate(toISODateString((v as PointValue).point));
   }, []);
@@ -44,7 +42,7 @@ export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
         onChange={handleSelect as (v: SelectionResult) => void}
         layout={{
           width: 'fill',
-          height: 82,
+          height: 64,
           scaleUnitConfig: {
             gap: 100,
             width: { short: 1, medium: 2, long: 2 },
@@ -52,11 +50,11 @@ export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
           },
           trackPaddingX: 24,
         }}
-        behavior={{ scrollable: true, handleLabelDisabled: false }}
+        behavior={{ scrollable: true, handleLabelDisabled: false, handleLabelPersistent: true }}
         renderProps={{
           renderDateLabel: dateLabelRender,
           renderTimeDisplay: timeDisplayRender,
-          renderTimeUnitSelection: timeUnitSelectionRender,
+          // renderTimeUnitSelection: timeUnitSelectionRender,
         }}
       />
     </div>

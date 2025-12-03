@@ -640,6 +640,7 @@ export type DateLabelProps = {
   handleLabelPersistent?: boolean;
   handleLabelDisabled?: boolean;
   renderDateLabel?: (props: DateLabelRenderProps) => ReactNode;
+  className?: string;
 };
 
 export type Dimension = {
