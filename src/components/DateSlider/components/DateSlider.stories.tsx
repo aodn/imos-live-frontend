@@ -47,7 +47,6 @@ import { memo, useCallback, useRef, useState } from 'react';
 
 import { DateSlider } from './DateSlider';
 
-import { toUTCDate } from '@/utils';
 import {
   SliderProps,
   SelectionResult,
@@ -57,6 +56,7 @@ import {
   TimeUnitSelectionRenderProps,
   TimeUnit,
 } from '../type';
+import { toUTCDate } from '../utils';
 
 const meta: Meta<typeof DateSlider> = {
   title: 'Components/DateSlider',

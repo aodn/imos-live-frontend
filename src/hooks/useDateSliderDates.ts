@@ -1,5 +1,6 @@
+import { toUTCDate, addTime } from '@/components/DateSlider/utils';
 import { useMapUIStore } from '@/store';
-import { addTime, getLast31Dates, toUTCDate } from '@/utils';
+import { getLast31Dates } from '@/utils';
 import { useMemo } from 'react';
 
 export const useDateSliderDates = () => {
