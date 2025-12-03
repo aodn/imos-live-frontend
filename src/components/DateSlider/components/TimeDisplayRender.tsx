@@ -8,7 +8,7 @@ export const timeDisplayRender = ({
   toPrevDate,
 }: TimeDisplayRenderProps) => {
   return (
-    <div className="flex items-center gap-1 bg-white rounded-lg px-2 py-1.5 shadow-sm border border-gray-300 w-40 shrink-0">
+    <div className="hidden md:flex items-center gap-1 bg-white rounded-lg px-2 py-1.5 shadow-sm border border-gray-300 w-40 shrink-0">
       <div className="h-full flex items-center justify-center md:w-28">
         <p className="text-imos-grey font-semibold text-xs md:text-base">{dateLabel}</p>
       </div>

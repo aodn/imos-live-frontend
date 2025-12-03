@@ -48,5 +48,6 @@ export const useDateLabelPersist = (
       if (enableTimeoutId.current) clearTimeout(enableTimeoutId.current);
     };
   }, [label, handleLabelPersistent]);
+
   return { showDateLabel };
 };
