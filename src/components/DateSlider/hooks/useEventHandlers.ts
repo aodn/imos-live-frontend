@@ -138,7 +138,6 @@ export function useEventHandlers(
       if (isDragging || handleDragStarted || isContainerDragging || !sliderRef.current) {
         return;
       }
-
       let percentage: number;
       if ('touches' in e) {
         percentage = getPercentageFromTouchEvent(e, trackRef);

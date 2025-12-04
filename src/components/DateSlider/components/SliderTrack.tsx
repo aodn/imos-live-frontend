@@ -242,7 +242,7 @@ export const SliderTrack = memo(
       return (
         <div
           onClick={onTrackClick}
-          onTouchStart={onTrackTouch}
+          onTouchEnd={onTrackTouch}
           className={baseClassName}
           aria-hidden="true"
         >
@@ -291,7 +291,7 @@ export const SliderTrack = memo(
         <div
           className={baseClassName}
           onClick={onTrackClick}
-          onTouchStart={onTrackTouch}
+          onTouchEnd={onTrackTouch}
           aria-hidden="true"
         >
           <Scales
