@@ -1,5 +1,5 @@
 import { overlayLayerConfig } from '@/config';
-import { OverlayLayer, OverlaySource, Product } from '@/constants';
+import { OverlayLayer, OverlaySource, ProductType } from '@/constants';
 import { addLayerInOrder, addOrUpdateWMSSource, rasterUrl } from '@/helpers';
 import { imageLayer } from '@/layers';
 import { useMapUIStore } from '@/store';
@@ -13,7 +13,7 @@ type UseOverlayLayer = {
   map: React.RefObject<mapboxgl.Map | null>;
   layerId: OverlayLayer;
   sourceId: OverlaySource;
-  product: Product;
+  product: ProductType;
 };
 
 export function useOverlayLayer({ map, layerId, sourceId, product }: UseOverlayLayer) {

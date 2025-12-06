@@ -7,7 +7,8 @@ import {
 import {
   BuoyLayer,
   BuoySource,
-  Product,
+  PRODUCT,
+  ProductType,
   UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
   WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID,
 } from '@/constants';
@@ -26,7 +27,7 @@ type UseWaveBuoysLayer = {
   map: React.RefObject<mapboxgl.Map | null>;
   layerId: BuoyLayer;
   sourceId: BuoySource;
-  product: Product;
+  product: ProductType;
 };
 
 export function useWaveBuoysLayer({ map, layerId, sourceId, product }: UseWaveBuoysLayer) {
@@ -86,12 +87,12 @@ export function useWaveBuoysLayer({ map, layerId, sourceId, product }: UseWaveBu
   );
 
   const setDataByDataset = useCallback(async () => {
-    setProductErrorByProduct(Product.WAVE_BUOYS, false);
+    setProductErrorByProduct(PRODUCT.WAVE_BUOYS, false);
     // when error thrown no break code but set fallback to data.
     // this can fix the bug that when sylte change, or switch from
     // date no data to date owning data buouys displaying or hiding unexpectedly.
     const data = await buoyQuery.promise.catch(() => {
-      setProductErrorByProduct(Product.WAVE_BUOYS, true);
+      setProductErrorByProduct(PRODUCT.WAVE_BUOYS, true);
       return {
         type: 'FeatureCollection',
         features: [],

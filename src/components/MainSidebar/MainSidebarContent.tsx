@@ -8,7 +8,7 @@ import { useShallow } from 'zustand/shallow';
 import { ReactNode, useMemo, useState } from 'react';
 import { cn } from '@/utils';
 import { Button } from '../Button';
-import { Product } from '@/constants';
+import { ProductType } from '@/constants';
 
 export type HeaderData = {
   image: ImageType;
@@ -19,12 +19,12 @@ export type LayersDataset = {
   title: string;
   icon: ReactNode;
   description: string;
-  addToMap?: (product: Product, enabled: boolean) => void;
+  addToMap?: (product: ProductType, enabled: boolean) => void;
   layerId: string;
   visible: boolean;
   isError: boolean;
   legend?: ReactNode;
-  product: Product;
+  product: ProductType;
 };
 
 export type LayerProducts = {

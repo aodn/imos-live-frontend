@@ -11,7 +11,7 @@ import { imageLayer } from '@/layers';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
 import { useDidMountEffect } from './useDidMountEffect';
-import { OverlayLayer, OverlaySource, Product } from '@/constants';
+import { OverlayLayer, OverlaySource, ProductType } from '@/constants';
 
 const mockMap = {
   current: {
@@ -77,7 +77,7 @@ describe('useOverlayLayer', () => {
     map: mockMap as any,
     layerId: 'gsla-overlay-layer' as OverlayLayer,
     sourceId: 'gsla-overlay-source' as OverlaySource,
-    product: 'gsla' as Product,
+    product: 'gsla' as ProductType,
   };
 
   beforeEach(() => {
