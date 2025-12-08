@@ -149,9 +149,9 @@ export const Switch = ({
 
   const labelElement = label && (
     <div className="flex flex-col">
-      <span className={cn('text-sm font-medium text-gray-700', labelClassName)}>{label}</span>
+      <span className={cn('text-sm font-medium text-imos-grey', labelClassName)}>{label}</span>
       {description && (
-        <span className={cn('text-xs text-gray-500', descriptionClassName)}>{description}</span>
+        <span className={cn('text-xs text-imos-grey', descriptionClassName)}>{description}</span>
       )}
     </div>
   );
