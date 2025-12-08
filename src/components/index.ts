@@ -21,3 +21,4 @@ export * from './Toast';
 export * from './LayersIndicator';
 export * from './Highcharts';
 export * from './ColorScaleBar';
+export * from './Slider';

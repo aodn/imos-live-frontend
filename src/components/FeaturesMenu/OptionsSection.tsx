@@ -1,5 +1,6 @@
 import { Dropdown } from '../Dropdown';
 import { Switch } from '../Switch';
+import { LabeledSlider } from '../Slider';
 import {
   useMapUIStore,
   setDistanceMeasurement,
@@ -7,7 +8,14 @@ import {
   setParticleConfig,
 } from '@/store';
 import { useShallow } from 'zustand/shallow';
-import { CustomizableParticleConfig } from '@/config';
+import {
+  CustomizableParticleConfig,
+  DROP_RATE_BUMP_RANGE,
+  DROP_RATE_RANGE,
+  FADE_OPACITY_RANGE,
+  POINT_SIZE_RANGE,
+  SPEED_FACTOR_RANGE,
+} from '@/config';
 
 // Particle configuration options
 const NUM_PARTICLES_OPTIONS = [10000, 30000, 60000, 100000].map(num => ({
@@ -15,30 +23,30 @@ const NUM_PARTICLES_OPTIONS = [10000, 30000, 60000, 100000].map(num => ({
   value: num,
 }));
 
-const POINT_SIZE_OPTIONS = [0.5, 1.0, 1.5, 2.0, 2.5, 3.0].map(size => ({
-  label: size,
-  value: size,
-}));
+const POINT_SIZE_OPTIONS = {
+  label: 'Point size',
+  ...POINT_SIZE_RANGE,
+};
 
-const FADE_OPACITY_OPTIONS = [0.97, 0.975, 0.98, 0.985, 0.99, 0.995].map(opacity => ({
-  label: opacity.toFixed(3),
-  value: opacity,
-}));
+const FADE_OPACITY_OPTIONS = {
+  label: 'Fade opacity',
+  ...FADE_OPACITY_RANGE,
+};
 
-const SPEED_FACTOR_OPTIONS = [2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0].map(speed => ({
-  label: speed.toFixed(1),
-  value: speed,
-}));
+const SPEED_FACTOR_OPTIONS = {
+  label: 'Speed factor',
+  ...SPEED_FACTOR_RANGE,
+};
 
-const DROP_RATE_OPTIONS = [0.001, 0.002, 0.003, 0.005, 0.007, 0.01].map(rate => ({
-  label: rate.toFixed(3),
-  value: rate,
-}));
+const DROP_RATE_OPTIONS = {
+  label: 'Drop rate',
+  ...DROP_RATE_RANGE,
+};
 
-const DROP_RATE_BUMP_OPTIONS = [0.01, 0.03, 0.05, 0.07, 0.09, 0.1].map(bump => ({
-  label: bump.toFixed(2),
-  value: bump,
-}));
+const DROP_RATE_BUMP_OPTIONS = {
+  label: 'Drop rate bump',
+  ...DROP_RATE_BUMP_RANGE,
+};
 
 export function OptionsSection() {
   const { distanceMeasurement, worldBoundaries, particleConfig } = useMapUIStore(
@@ -58,7 +66,7 @@ export function OptionsSection() {
     <div className="w-full flex flex-col gap-y-2 items-start">
       {/* Particle Controls */}
       <div className="w-full">
-        <h3 className="text-xs font-semibold text-gray-500 uppercase mb-2">Particle Settings</h3>
+        <h3 className="text-xs font-semibold text-imos-grey uppercase mb-2">Particle Settings</h3>
 
         <div className="flex flex-col gap-y-2">
           <Dropdown
@@ -71,63 +79,67 @@ export function OptionsSection() {
             usePortal
           />
 
-          <Dropdown
-            label="Point size"
-            className="w-full"
+          <LabeledSlider
             onChange={handleParticleConfigChange('pointSize')}
-            options={POINT_SIZE_OPTIONS}
-            initialValue={particleConfig.pointSize}
-            position="auto"
-            usePortal
+            label={POINT_SIZE_OPTIONS.label}
+            value={particleConfig.pointSize}
+            min={POINT_SIZE_OPTIONS.min}
+            max={POINT_SIZE_OPTIONS.max}
+            labelClassName="w-26"
+            valueClassName="w-10"
           />
 
-          <Dropdown
-            label="Fade opacity"
-            className="w-full"
+          <LabeledSlider
             onChange={handleParticleConfigChange('fadeOpacity')}
-            options={FADE_OPACITY_OPTIONS}
-            initialValue={particleConfig.fadeOpacity}
-            position="auto"
-            usePortal
+            label={FADE_OPACITY_OPTIONS.label}
+            value={particleConfig.fadeOpacity}
+            min={FADE_OPACITY_OPTIONS.min}
+            max={FADE_OPACITY_OPTIONS.max}
+            step={0.005}
+            decimals={3}
+            labelClassName="w-26"
+            valueClassName="w-10"
           />
 
-          <Dropdown
-            label="Speed factor"
-            className="w-full"
+          <LabeledSlider
             onChange={handleParticleConfigChange('speedFactor')}
-            options={SPEED_FACTOR_OPTIONS}
-            initialValue={particleConfig.speedFactor}
-            position="auto"
-            usePortal
+            label={SPEED_FACTOR_OPTIONS.label}
+            value={particleConfig.speedFactor}
+            min={SPEED_FACTOR_OPTIONS.min}
+            max={SPEED_FACTOR_OPTIONS.max}
+            labelClassName="w-26"
+            valueClassName="w-10"
           />
 
-          <Dropdown
-            label="Drop rate"
-            className="w-full"
+          <LabeledSlider
             onChange={handleParticleConfigChange('dropRate')}
-            options={DROP_RATE_OPTIONS}
-            initialValue={particleConfig.dropRate}
-            position="auto"
-            usePortal
+            label={DROP_RATE_OPTIONS.label}
+            value={particleConfig.dropRate}
+            min={DROP_RATE_OPTIONS.min}
+            max={DROP_RATE_OPTIONS.max}
+            step={0.0001}
+            decimals={3}
+            labelClassName="w-26"
+            valueClassName="w-10"
           />
 
-          <Dropdown
-            label="Drop rate bump"
-            className="w-full"
+          <LabeledSlider
             onChange={handleParticleConfigChange('dropRateBump')}
-            options={DROP_RATE_BUMP_OPTIONS}
-            initialValue={particleConfig.dropRateBump}
-            position="auto"
-            usePortal
+            label={DROP_RATE_BUMP_OPTIONS.label}
+            value={particleConfig.dropRateBump}
+            min={DROP_RATE_BUMP_OPTIONS.min}
+            max={DROP_RATE_BUMP_OPTIONS.max}
+            labelClassName="w-26"
+            valueClassName="w-10"
           />
         </div>
       </div>
 
       {/* Map Controls */}
       <div className="w-full mt-2">
-        <h3 className="text-xs font-semibold text-gray-500 uppercase mb-2">Map Tools</h3>
+        <h3 className="text-xs font-semibold text-imos-grey uppercase mb-2">Map Tools</h3>
 
-        <div className="flex flex-col gap-y-2">
+        <div className="flex flex-col justify-self-start gap-y-2">
           <Switch
             label="Measure distance"
             labelPosition="left"
