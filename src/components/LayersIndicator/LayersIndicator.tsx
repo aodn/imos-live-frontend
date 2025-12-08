@@ -3,12 +3,12 @@ import { cn } from '@/utils';
 import { useShallow } from 'zustand/shallow';
 import { Button } from '../Button';
 import { CloseIcon } from '../Icons';
-import { Product } from '@/constants';
+import { ProductType } from '@/constants';
 
 type LayersIndicatorProps = {
   layers: {
     Icon: React.ComponentType<any>;
-    product: Product;
+    product: ProductType;
   }[];
   className?: string;
 };
@@ -20,7 +20,7 @@ export const LayersIndicator = ({ layers, className }: LayersIndicatorProps) => 
     })),
   );
 
-  const handleClick = (product: Product) => () => {
+  const handleClick = (product: ProductType) => () => {
     setProductEnabledByProduct(product, false);
   };
 

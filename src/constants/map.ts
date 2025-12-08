@@ -1,14 +1,14 @@
-import { Products, ProductSourceId } from './product';
+import { PRODUCTS, ProductSourceId } from './product';
 
-//product layer id and source id, keep single truth from: import { Products } from "./product";
-export const PARTICLE_LAYER_ID = Products['gsla-ocean-geostrophic-current'].layerId;
-export const PARTICLE_SOURCE_ID = Products['gsla-ocean-geostrophic-current'].sourceId;
-export const GSLA_OVERLAY_LAYER_ID = Products['gsla-anomaly-sea-levels'].layerId;
-export const GSLA_OVERLAY_SOURCE_ID = Products['gsla-anomaly-sea-levels'].sourceId;
-export const SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID = Products['sst-anom-mosaic'].sourceId;
-export const SST_ANOMALY_MOSAIC_OVERLAY_LAYER_ID = Products['sst-anom-mosaic'].layerId;
-export const WAVE_BUOYS_LAYER_ID = Products['wave-buoys'].layerId;
-export const WAVE_BUOYS_SOURCE_ID = Products['wave-buoys'].sourceId;
+//product layer id and source id, keep single truth from: import { PRODUCTS } from "./product";
+export const PARTICLE_LAYER_ID = PRODUCTS['gsla-ocean-geostrophic-current'].layerId;
+export const PARTICLE_SOURCE_ID = PRODUCTS['gsla-ocean-geostrophic-current'].sourceId;
+export const GSLA_OVERLAY_LAYER_ID = PRODUCTS['gsla-anomaly-sea-levels'].layerId;
+export const GSLA_OVERLAY_SOURCE_ID = PRODUCTS['gsla-anomaly-sea-levels'].sourceId;
+export const SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID = PRODUCTS['sst-anom-mosaic'].sourceId;
+export const SST_ANOMALY_MOSAIC_OVERLAY_LAYER_ID = PRODUCTS['sst-anom-mosaic'].layerId;
+export const WAVE_BUOYS_LAYER_ID = PRODUCTS['wave-buoys'].layerId;
+export const WAVE_BUOYS_SOURCE_ID = PRODUCTS['wave-buoys'].sourceId;
 
 export const ProductSourceIds: ProductSourceId[] = [
   PARTICLE_SOURCE_ID,

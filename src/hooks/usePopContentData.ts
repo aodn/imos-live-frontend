@@ -1,7 +1,7 @@
 import { getOceanCurrentData } from '@/api';
 import {
   GSLA_DATA_NAME,
-  Product,
+  PRODUCT,
   GSLA_OVERLAY_SOURCE_ID,
   SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID,
 } from '@/constants';
@@ -41,7 +41,7 @@ export const usePopupContentData = ({
     select: raw => {
       const oceanCurrentDetails = processOceanCurrentDetails(lngLat, raw);
       return {
-        [Product.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: {
+        [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: {
           speed: oceanCurrentDetails?.speed,
           direction: oceanCurrentDetails?.direction,
           degree: oceanCurrentDetails?.degree,
@@ -63,9 +63,9 @@ export const usePopupContentData = ({
   });
 
   const data = {
-    [Product.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: gslaOceanCurrent?.['gsla-ocean-geostrophic-current'],
-    [Product.GSLA_ANOMALY_SEA_LEVELS]: gslaAnomalySeaLevels?.['gsla-anomaly-sea-levels'],
-    [Product.SST_ANOMALY_MOSAIC]: sstAnomalyMosatic?.['sst-anom-mosaic'],
+    [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: gslaOceanCurrent?.['gsla-ocean-geostrophic-current'],
+    [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: gslaAnomalySeaLevels?.['gsla-anomaly-sea-levels'],
+    [PRODUCT.SST_ANOMALY_MOSAIC]: sstAnomalyMosatic?.['sst-anom-mosaic'],
   };
 
   return {

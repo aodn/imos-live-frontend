@@ -4,7 +4,7 @@ import {
   PARTICLE_LAYER_ID,
   UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
   WAVE_BUOYS_LAYER_ID,
-} from '@/constants/map';
+} from '@/constants';
 import { VectoryLayerInterface } from '@/layers';
 import { expect, Page, test } from '@playwright/test';
 import { type Map } from 'mapbox-gl';

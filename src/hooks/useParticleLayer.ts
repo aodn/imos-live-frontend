@@ -4,7 +4,8 @@ import {
   GSLA_PARTICLE_NAME,
   ParticleLayer,
   ParticleSource,
-  Product,
+  ProductType,
+  PRODUCT,
 } from '@/constants';
 import { addLayerInOrder, addOrUpdateImageSource } from '@/helpers';
 import { vectorLayer } from '@/layers';
@@ -21,7 +22,7 @@ type UseOParticleLayer = {
   map: React.RefObject<mapboxgl.Map | null>;
   layerId: ParticleLayer;
   sourceId: ParticleSource;
-  product: Product;
+  product: ProductType;
 };
 
 export function useParticleLayer({ map, layerId, sourceId, product }: UseOParticleLayer) {
@@ -57,10 +58,10 @@ export function useParticleLayer({ map, layerId, sourceId, product }: UseOPartic
    */
   const setDataByDataset = useCallback(async () => {
     const data = await currentParticleQuery.promise.catch(() =>
-      setProductErrorByProduct(Product.GSLA_OCEAN_GEOSTROPHIC_CURRENT, true),
+      setProductErrorByProduct(PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT, true),
     );
     if (!data) return;
-    setProductErrorByProduct(Product.GSLA_OCEAN_GEOSTROPHIC_CURRENT, false);
+    setProductErrorByProduct(PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT, false);
     const { bounds, lonRange, latRange, uRange, vRange } = processMetaData(data);
     particleLayer.metadata = {
       bounds,

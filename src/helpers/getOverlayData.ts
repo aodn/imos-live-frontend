@@ -4,7 +4,7 @@ import {
   OverlaySource,
   GSLA_OVERLAY_SOURCE_ID,
   SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID,
-  Product,
+  PRODUCT,
 } from '@/constants';
 
 /**
@@ -39,10 +39,10 @@ function parseFeatureInfoXML(xmlString: string): number | null {
 
 type OverlaySourceData = {
   [GSLA_OVERLAY_SOURCE_ID]: {
-    [Product.GSLA_ANOMALY_SEA_LEVELS]: { gsla: number };
+    [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: { gsla: number };
   };
   [SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID]: {
-    [Product.SST_ANOMALY_MOSAIC]: { sstAnom: number };
+    [PRODUCT.SST_ANOMALY_MOSAIC]: { sstAnom: number };
   };
 };
 
@@ -72,11 +72,11 @@ const fetchOverlayData =
       // Map the value to the appropriate Product field based on overlay source
       if (overlaySource === GSLA_OVERLAY_SOURCE_ID) {
         return {
-          [Product.GSLA_ANOMALY_SEA_LEVELS]: { gsla: value },
+          [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: { gsla: value },
         } as OverlaySourceData[T];
       } else if (overlaySource === SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID) {
         return {
-          [Product.SST_ANOMALY_MOSAIC]: { sstAnom: value },
+          [PRODUCT.SST_ANOMALY_MOSAIC]: { sstAnom: value },
         } as OverlaySourceData[T];
       }
 

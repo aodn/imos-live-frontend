@@ -23,7 +23,7 @@ import {
   GSLA_OVERLAY_SOURCE_ID,
   PARTICLE_LAYER_ID,
   PARTICLE_SOURCE_ID,
-  Product,
+  PRODUCT,
   SST_ANOMALY_MOSAIC_OVERLAY_LAYER_ID,
   SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID,
   WAVE_BUOYS_LAYER_ID,
@@ -61,25 +61,25 @@ export const MapComponent = memo(() => {
     map,
     layerId: GSLA_OVERLAY_LAYER_ID,
     sourceId: GSLA_OVERLAY_SOURCE_ID,
-    product: Product.GSLA_ANOMALY_SEA_LEVELS,
+    product: PRODUCT.GSLA_ANOMALY_SEA_LEVELS,
   });
   useOverlayLayer({
     map,
     layerId: SST_ANOMALY_MOSAIC_OVERLAY_LAYER_ID,
     sourceId: SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID,
-    product: Product.SST_ANOMALY_MOSAIC,
+    product: PRODUCT.SST_ANOMALY_MOSAIC,
   });
   useParticleLayer({
     map,
     layerId: PARTICLE_LAYER_ID,
     sourceId: PARTICLE_SOURCE_ID,
-    product: Product.GSLA_OCEAN_GEOSTROPHIC_CURRENT,
+    product: PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT,
   });
   useWaveBuoysLayer({
     map,
     layerId: WAVE_BUOYS_LAYER_ID,
     sourceId: WAVE_BUOYS_SOURCE_ID,
-    product: Product.WAVE_BUOYS,
+    product: PRODUCT.WAVE_BUOYS,
   });
 
   //3. add click event listners to map and layers.

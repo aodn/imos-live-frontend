@@ -1,13 +1,13 @@
 import { CustomizableParticleConfig, ParticleConfig, particleInitialConfig } from '@/config';
-import { Product } from '@/constants';
+import { PRODUCT, ProductType } from '@/constants';
 import { StyleTitle } from '@/styles';
 import { getLast31Dates } from '@/utils';
 import { LngLat } from 'mapbox-gl';
 import { create } from 'zustand';
 import { createJSONStorage, persist, StateStorage } from 'zustand/middleware';
 
-type ProductError = Record<Product, boolean>;
-export type ProductEnabled = Record<Product, boolean>;
+type ProductError = Record<ProductType, boolean>;
+export type ProductEnabled = Record<ProductType, boolean>;
 
 export const INITIAL_DATE = getLast31Dates().at(0)!;
 
@@ -30,8 +30,8 @@ export interface MapUIState {
   setWorldBoundaries: (v: boolean) => void;
   setDate: (d: string) => void;
   refreshDates: () => void;
-  setProductErrorByProduct: (product: Product, error: boolean) => void;
-  setProductEnabledByProduct: (product: Product, enabled: boolean) => void;
+  setProductErrorByProduct: (product: ProductType, error: boolean) => void;
+  setProductEnabledByProduct: (product: ProductType, enabled: boolean) => void;
 }
 
 const stateKeysToExcludeFromUrl = ['dates', 'productError'];
@@ -96,16 +96,16 @@ export const useMapUIStore = create(
       dates: getLast31Dates(),
       date: INITIAL_DATE,
       productEnabled: {
-        [Product.GSLA_ANOMALY_SEA_LEVELS]: true,
-        [Product.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: true,
-        [Product.SST_ANOMALY_MOSAIC]: false,
-        [Product.WAVE_BUOYS]: true,
+        [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: true,
+        [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: true,
+        [PRODUCT.SST_ANOMALY_MOSAIC]: false,
+        [PRODUCT.WAVE_BUOYS]: true,
       },
       productError: {
-        [Product.GSLA_ANOMALY_SEA_LEVELS]: false,
-        [Product.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: false,
-        [Product.SST_ANOMALY_MOSAIC]: false,
-        [Product.WAVE_BUOYS]: false,
+        [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: false,
+        [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: false,
+        [PRODUCT.SST_ANOMALY_MOSAIC]: false,
+        [PRODUCT.WAVE_BUOYS]: false,
       },
       setCenter: center => set({ center }),
       setZoom: zoom => set({ zoom }),
@@ -124,13 +124,13 @@ export const useMapUIStore = create(
       setProductEnabledByProduct: (product, enabled) => {
         set(prev => {
           const next = { ...prev.productEnabled };
-          if (product === Product.GSLA_ANOMALY_SEA_LEVELS) {
-            next[Product.GSLA_ANOMALY_SEA_LEVELS] = enabled;
-            if (next[Product.SST_ANOMALY_MOSAIC]) next[Product.SST_ANOMALY_MOSAIC] = !enabled;
-          } else if (product === Product.SST_ANOMALY_MOSAIC) {
-            next[Product.SST_ANOMALY_MOSAIC] = enabled;
-            if (next[Product.GSLA_ANOMALY_SEA_LEVELS])
-              next[Product.GSLA_ANOMALY_SEA_LEVELS] = !enabled;
+          if (product === PRODUCT.GSLA_ANOMALY_SEA_LEVELS) {
+            next[PRODUCT.GSLA_ANOMALY_SEA_LEVELS] = enabled;
+            if (next[PRODUCT.SST_ANOMALY_MOSAIC]) next[PRODUCT.SST_ANOMALY_MOSAIC] = !enabled;
+          } else if (product === PRODUCT.SST_ANOMALY_MOSAIC) {
+            next[PRODUCT.SST_ANOMALY_MOSAIC] = enabled;
+            if (next[PRODUCT.GSLA_ANOMALY_SEA_LEVELS])
+              next[PRODUCT.GSLA_ANOMALY_SEA_LEVELS] = !enabled;
           } else {
             next[product] = enabled;
           }

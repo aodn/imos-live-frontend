@@ -16,7 +16,7 @@ import {
   WaterSurfaceIcon,
   WaveIcon,
 } from '@/components';
-import { Product } from '@/constants';
+import { PRODUCT } from '@/constants';
 import { useViewportSize } from '@/hooks';
 import { useDrawerStore, refreshDates, closeLeftDrawer } from '@/store';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -58,10 +58,10 @@ export const Map = () => {
           <LayersIndicator
             className="md:hidden absolute top-10 left-4 z-10"
             layers={[
-              { Icon: WaveIcon, product: Product.GSLA_OCEAN_GEOSTROPHIC_CURRENT },
-              { Icon: WaterSurfaceIcon, product: Product.GSLA_ANOMALY_SEA_LEVELS },
-              { Icon: SatelliteIcon, product: Product.WAVE_BUOYS },
-              { Icon: ThermometerIcon, product: Product.SST_ANOMALY_MOSAIC },
+              { Icon: WaveIcon, product: PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT },
+              { Icon: WaterSurfaceIcon, product: PRODUCT.GSLA_ANOMALY_SEA_LEVELS },
+              { Icon: SatelliteIcon, product: PRODUCT.WAVE_BUOYS },
+              { Icon: ThermometerIcon, product: PRODUCT.SST_ANOMALY_MOSAIC },
             ]}
           />
           <MapComponent key={isSmallScreen ? 'mobile' : 'desktop'} />

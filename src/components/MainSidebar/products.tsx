@@ -9,7 +9,7 @@ import {
   PARTICLE_LAYER_ID,
   SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID,
   WAVE_BUOYS_LAYER_ID,
-  Product,
+  PRODUCT,
   SST_ANOMALY_MOSAIC_OVERLAY_LAYER_ID,
 } from '@/constants';
 import { RadarIcon, SatelliteIcon, ThermometerIcon, WaterSurfaceIcon, WaveIcon } from '../Icons';
@@ -44,7 +44,7 @@ export const featuredDataset: LayersDataset[] = [
     layerId: PARTICLE_LAYER_ID,
     visible: false,
     isError: false,
-    product: Product.GSLA_OCEAN_GEOSTROPHIC_CURRENT,
+    product: PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT,
     legend: <LogColorScaleBar className="w-full" {...gslaOceanCurrentColorsLegendConfig} />,
     addToMap: setProductEnabledByProduct,
   },
@@ -64,7 +64,7 @@ export const featuredDataset: LayersDataset[] = [
     layerId: GSLA_OVERLAY_LAYER_ID,
     visible: false,
     isError: false,
-    product: Product.GSLA_ANOMALY_SEA_LEVELS,
+    product: PRODUCT.GSLA_ANOMALY_SEA_LEVELS,
     legend: (
       <RasterLegend
         overlaySource={GSLA_OVERLAY_SOURCE_ID}
@@ -86,7 +86,7 @@ export const featuredDataset: LayersDataset[] = [
     layerId: SST_ANOMALY_MOSAIC_OVERLAY_LAYER_ID,
     visible: false,
     isError: false,
-    product: Product.SST_ANOMALY_MOSAIC,
+    product: PRODUCT.SST_ANOMALY_MOSAIC,
     legend: (
       <RasterLegend
         overlaySource={SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID}
@@ -108,7 +108,7 @@ export const featuredDataset: LayersDataset[] = [
     layerId: WAVE_BUOYS_LAYER_ID,
     visible: false,
     isError: false,
-    product: Product.WAVE_BUOYS,
+    product: PRODUCT.WAVE_BUOYS,
     addToMap: setProductEnabledByProduct,
   },
 ];
