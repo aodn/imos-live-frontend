@@ -67,7 +67,7 @@ export const Map = () => {
           <MapComponent key={isSmallScreen ? 'mobile' : 'desktop'} />
           <DateSelectionBar className="absolute bottom-2 left-1/2 -translate-x-1/2 w-full" />
           <FloatingPanel
-            wrapperClassName="w-14 md:min-w-84 bg-imos-light rounded-xl"
+            wrapperClassName="w-14 md:min-w-72 bg-imos-light rounded-xl"
             boundary="parent"
             collapsible
             initialOpen={!isSmallScreen}

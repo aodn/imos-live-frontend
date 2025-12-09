@@ -10,8 +10,6 @@ import {
 import { useShallow } from 'zustand/shallow';
 import {
   CustomizableParticleConfig,
-  DROP_RATE_BUMP_RANGE,
-  DROP_RATE_RANGE,
   FADE_OPACITY_RANGE,
   POINT_SIZE_RANGE,
   SPEED_FACTOR_RANGE,
@@ -24,28 +22,18 @@ const NUM_PARTICLES_OPTIONS = [10000, 30000, 60000, 100000].map(num => ({
 }));
 
 const POINT_SIZE_OPTIONS = {
-  label: 'Point size',
+  label: 'Size',
   ...POINT_SIZE_RANGE,
 };
 
 const FADE_OPACITY_OPTIONS = {
-  label: 'Fade opacity',
+  label: 'Length',
   ...FADE_OPACITY_RANGE,
 };
 
 const SPEED_FACTOR_OPTIONS = {
-  label: 'Speed factor',
+  label: 'Speed',
   ...SPEED_FACTOR_RANGE,
-};
-
-const DROP_RATE_OPTIONS = {
-  label: 'Drop rate',
-  ...DROP_RATE_RANGE,
-};
-
-const DROP_RATE_BUMP_OPTIONS = {
-  label: 'Drop rate bump',
-  ...DROP_RATE_BUMP_RANGE,
 };
 
 export function OptionsSection() {
@@ -85,8 +73,7 @@ export function OptionsSection() {
             value={particleConfig.pointSize}
             min={POINT_SIZE_OPTIONS.min}
             max={POINT_SIZE_OPTIONS.max}
-            labelClassName="w-26"
-            valueClassName="w-10"
+            labelClassName="w-12"
           />
 
           <LabeledSlider
@@ -97,8 +84,7 @@ export function OptionsSection() {
             max={FADE_OPACITY_OPTIONS.max}
             step={0.005}
             decimals={3}
-            labelClassName="w-26"
-            valueClassName="w-10"
+            labelClassName="w-12"
           />
 
           <LabeledSlider
@@ -107,30 +93,7 @@ export function OptionsSection() {
             value={particleConfig.speedFactor}
             min={SPEED_FACTOR_OPTIONS.min}
             max={SPEED_FACTOR_OPTIONS.max}
-            labelClassName="w-26"
-            valueClassName="w-10"
-          />
-
-          <LabeledSlider
-            onChange={handleParticleConfigChange('dropRate')}
-            label={DROP_RATE_OPTIONS.label}
-            value={particleConfig.dropRate}
-            min={DROP_RATE_OPTIONS.min}
-            max={DROP_RATE_OPTIONS.max}
-            step={0.0001}
-            decimals={3}
-            labelClassName="w-26"
-            valueClassName="w-10"
-          />
-
-          <LabeledSlider
-            onChange={handleParticleConfigChange('dropRateBump')}
-            label={DROP_RATE_BUMP_OPTIONS.label}
-            value={particleConfig.dropRateBump}
-            min={DROP_RATE_BUMP_OPTIONS.min}
-            max={DROP_RATE_BUMP_OPTIONS.max}
-            labelClassName="w-26"
-            valueClassName="w-10"
+            labelClassName="w-12"
           />
         </div>
       </div>

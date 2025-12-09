@@ -39,7 +39,7 @@ export function FeaturesMenu({
 
   return (
     <aside
-      className={cn('bg-white shadow-lg py-2 w-40 md:w-full', className)}
+      className={cn('bg-white shadow-lg py-2 w-72 md:w-full', className)}
       aria-label="Map features configuration menu"
     >
       <div className="w-full">
