@@ -16,7 +16,7 @@ export const LabeledSlider = forwardRef<HTMLInputElement, LabeledSliderProps>(
     {
       label,
       value,
-      decimals = 2,
+      // decimals = 2,
       className,
       sliderClassName,
       labelClassName,
@@ -45,7 +45,7 @@ export const LabeledSlider = forwardRef<HTMLInputElement, LabeledSliderProps>(
           className={cn('text-sm font-medium text-imos-grey min-w-fit', valueClassName)}
           data-testid="slider-value"
         >
-          {value.toFixed(decimals)}
+          max
         </span>
       </div>
     );
