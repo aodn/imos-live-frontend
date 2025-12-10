@@ -1,5 +1,5 @@
 import { OVERLAY_LAYER_CONFIG } from '@/config';
-import { OverlayLayer, OverlaySource, ProductType } from '@/constants';
+import type { OverlayLayer, OverlaySource, ProductType } from '@/constants';
 import { addLayerInOrder, addOrUpdateWMSSource, rasterUrl } from '@/helpers';
 import { imageLayer } from '@/layers';
 import { useMapUIStore } from '@/store';

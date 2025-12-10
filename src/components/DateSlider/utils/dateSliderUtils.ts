@@ -1,7 +1,7 @@
 import type { RefObject } from 'react';
 
 import { clampPercent } from '@/utils';
-import {
+import type {
   TimeUnit,
   NumOfScales,
   ScaleUnitConfig,

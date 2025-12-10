@@ -1,8 +1,5 @@
-import {
-  OverlaySource,
-  GSLA_OVERLAY_SOURCE_ID,
-  SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID,
-} from '@/constants';
+import type { OverlaySource } from '@/constants';
+import { GSLA_OVERLAY_SOURCE_ID, SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID } from '@/constants';
 import { getThreddsCatalog } from '@/api';
 
 const baseUrl = async (id: OverlaySource, date: Date): Promise<string> => {

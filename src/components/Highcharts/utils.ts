@@ -1,5 +1,5 @@
-import { BuoyItemContent } from '@/types';
-import Highcharts from 'highcharts/highstock'; // Use highstock
+import type { BuoyItemContent } from '@/types';
+import type Highcharts from 'highcharts/highstock'; // Use highstock
 // Import modules - they auto-register in Highcharts 12.4.0+
 import 'highcharts/modules/accessibility';
 import 'highcharts/modules/boost';
@@ -7,7 +7,7 @@ import 'highcharts/modules/exporting';
 import 'highcharts/modules/export-data';
 import 'highcharts/modules/offline-exporting';
 import { buoyDataDirectionVariant, colors, directionColors, VariantReadableName } from './config';
-import {
+import type {
   AnimationConfig,
   NavigatorConfig,
   RangeSelectorConfig,

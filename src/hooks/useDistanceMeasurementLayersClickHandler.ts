@@ -1,7 +1,7 @@
-import { Feature, FeatureCollection, GeoJsonProperties, Geometry } from 'geojson';
+import type { Feature, FeatureCollection, GeoJsonProperties, Geometry } from 'geojson';
 import { useCallback, useEffect, useState } from 'react';
 import * as turf from '@turf/turf';
-import { PointLike } from 'mapbox-gl';
+import type { PointLike } from 'mapbox-gl';
 import { MEASURE_POINTS_LAYER_ID } from '@/constants';
 
 export function useDistanceMeasurementLayersClickHandler(

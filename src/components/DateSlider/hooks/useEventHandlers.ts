@@ -1,7 +1,7 @@
 import { clampToLowerBound, snapToClosestStep } from '@/utils';
 import { useCallback, useEffect } from 'react';
 import { PERCENTAGE } from '../constants';
-import { TimeUnit, ViewMode, DragHandle } from '../type';
+import type { TimeUnit, ViewMode, DragHandle } from '../type';
 import {
   getPercentageFromTouchEvent,
   getPercentageFromMouseEvent,

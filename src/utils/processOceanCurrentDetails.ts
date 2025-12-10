@@ -1,4 +1,4 @@
-import { OceanCurrentDataResponse } from '@/api';
+import type { OceanCurrentDataResponse } from '@/api';
 
 type Coordinates = {
   lat: number;

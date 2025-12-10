@@ -3,7 +3,8 @@
  */
 
 import { renderHook, act } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi, Mock } from 'vitest';
+import type { Mock } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useMapInitialization } from './useMapInitialization';
 import { useMapUIStore } from '@/store';
 import mapboxgl from 'mapbox-gl';

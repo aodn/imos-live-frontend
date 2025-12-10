@@ -1,5 +1,6 @@
 import { cn } from '@/utils';
-import { ArrowIcon, Button, DragIndicatorIcon, IconProps, LayersIcon } from '..';
+import type { IconProps } from '..';
+import { ArrowIcon, Button, DragIndicatorIcon, LayersIcon } from '..';
 
 export type CollapsibleTriggerProps = {
   dragHandleClass: string;

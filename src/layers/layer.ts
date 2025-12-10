@@ -1,4 +1,4 @@
-import { Layer } from 'mapbox-gl';
+import type { Layer } from 'mapbox-gl';
 
 export function createLayer<
   T extends { id: string; source: string; paint?: any; layout?: any; filter?: any },

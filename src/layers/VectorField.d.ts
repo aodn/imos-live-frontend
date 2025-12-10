@@ -1,5 +1,5 @@
-import mapboxgl from 'mapbox-gl';
-import { CustomizableParticleConfig } from '@/config';
+import type mapboxgl from 'mapbox-gl';
+import type { CustomizableParticleConfig } from '@/config';
 
 export interface VectorFieldAPI {
   /**

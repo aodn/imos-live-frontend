@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { TIMING } from '../constants';
-import { DragHandle } from '../type';
+import type { DragHandle } from '../type';
 
 /**
  * Custom hook to manage focus state for slider handles.

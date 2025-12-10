@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { ReactNode } from 'react';
-import { DrawerProps } from '@/components';
+import type { ReactNode } from 'react';
+import type { DrawerProps } from '@/components';
 import { isSmallScreen } from '@/utils';
 
 type DrawerConfig = {

@@ -1,4 +1,4 @@
-import { OverlaySource } from '@/constants';
+import type { OverlaySource } from '@/constants';
 
 type AddOrUpdateWMSSource = {
   map: mapboxgl.Map;

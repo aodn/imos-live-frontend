@@ -1,4 +1,4 @@
-import { DateLabelRenderProps } from '../type';
+import type { DateLabelRenderProps } from '../type';
 
 export const dateLabelRender = ({ label }: DateLabelRenderProps) => {
   return (

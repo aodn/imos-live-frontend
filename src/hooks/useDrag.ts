@@ -1,5 +1,6 @@
 import { clamp } from '@/utils';
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import type React from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 
 type UseDragProps = {
   targetRef?: React.RefObject<HTMLElement | null>;

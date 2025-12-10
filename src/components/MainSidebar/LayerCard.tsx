@@ -1,12 +1,13 @@
 import { WAVE_BUOYS_LAYER_ID } from '@/constants';
 import { useViewportSize } from '@/hooks';
 import { cn } from '@/utils';
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { Button } from '../Button';
-import { CollapsibleComponent, TriggerArgs } from '../Collapsible';
+import type { TriggerArgs } from '../Collapsible';
+import { CollapsibleComponent } from '../Collapsible';
 import { ArrowIcon, MapLayersIcon } from '../Icons';
 import { Image } from '../Image';
-import { LayersDataset } from './MainSidebarContent';
+import type { LayersDataset } from './MainSidebarContent';
 
 export type LayerCardProps = LayersDataset & {
   firstButtonLabel: string;

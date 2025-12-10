@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { LineChart } from './LineChart';
 import Highcharts from 'highcharts';
 import { useRef } from 'react';
-import { SeriesData } from './type';
+import type { SeriesData } from './type';
 
 // Data generators for different scenarios
 const generateTimeSeriesData = (

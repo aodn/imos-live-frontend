@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Dimension } from '../type';
+import type { Dimension } from '../type';
 
 //if the slider is scrollable, auto scroll to center the selected date/range on initial render
 export const useInitialAutoScrollPosition = ({

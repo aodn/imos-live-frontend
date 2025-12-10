@@ -13,7 +13,7 @@ import {
   SST_ANOMALY_MOSAIC_OVERLAY_LAYER_ID,
 } from '@/constants';
 import { RadarIcon, SatelliteIcon, ThermometerIcon, WaterSurfaceIcon, WaveIcon } from '../Icons';
-import { LayersDataset } from './MainSidebarContent';
+import type { LayersDataset } from './MainSidebarContent';
 import { LogColorScaleBar, RasterLegend } from '../ColorScaleBar';
 import { setProductEnabledByProduct } from '@/store';
 import { GSLA_OCEAN_CURRENT_COLORS_LEGEND_CONFIG } from '@/config';

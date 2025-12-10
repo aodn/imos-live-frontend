@@ -1,6 +1,6 @@
 import { Button } from '../Button';
 import { cn } from '@/utils';
-import { LayerProducts as LayerProductsType } from './MainSidebarContent';
+import type { LayerProducts as LayerProductsType } from './MainSidebarContent';
 
 export type LayerProductsContentProps = {
   products: LayerProductsType;

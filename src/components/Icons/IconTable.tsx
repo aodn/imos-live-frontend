@@ -1,5 +1,6 @@
 import React from 'react';
-import { IconProps, icons } from '@/components/Icons';
+import type { IconProps } from '@/components/Icons';
+import { icons } from '@/components/Icons';
 
 type IconName = keyof typeof icons;
 

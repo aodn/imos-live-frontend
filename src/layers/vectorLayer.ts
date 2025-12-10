@@ -1,4 +1,5 @@
-import VectorField, { VectorFieldAPI } from './VectorField';
+import type { VectorFieldAPI } from './VectorField';
+import VectorField from './VectorField';
 
 type MetaData =
   | {

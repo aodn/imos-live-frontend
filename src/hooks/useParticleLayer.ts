@@ -1,12 +1,6 @@
 import { getMetaData } from '@/api';
-import {
-  GSLA_META_NAME,
-  GSLA_PARTICLE_NAME,
-  ParticleLayer,
-  ParticleSource,
-  ProductType,
-  PRODUCT,
-} from '@/constants';
+import type { ParticleLayer, ParticleSource, ProductType } from '@/constants';
+import { GSLA_META_NAME, GSLA_PARTICLE_NAME, PRODUCT } from '@/constants';
 import { addLayerInOrder, addOrUpdateImageSource } from '@/helpers';
 import { vectorLayer } from '@/layers';
 import { useMapUIStore, setProductErrorByProduct } from '@/store';

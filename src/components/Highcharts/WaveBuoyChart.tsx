@@ -1,14 +1,14 @@
 import { getWaveBuoyDetails } from '@/api';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
-import { WaveBuoyPositionFeature } from '@/types';
+import type { WaveBuoyPositionFeature } from '@/types';
 import { toLocalDateTime, toWaveBuoyChartData } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useMemo } from 'react';
 import { buoyDataDirectionVariant, noneDirectionVariants, VariantReadableName } from './config';
 import { LatestObservation } from './LatestObservation';
 import { LineChart } from './LineChart';
-import { SeriesData } from './type';
+import type { SeriesData } from './type';
 import {
   calculateDataRange,
   generateDynamicButtons,

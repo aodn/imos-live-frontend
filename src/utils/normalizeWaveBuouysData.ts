@@ -1,5 +1,5 @@
-import { WaveBuoyPositionFeature } from '@/types';
-import { GeoJSONFeature } from 'mapbox-gl';
+import type { WaveBuoyPositionFeature } from '@/types';
+import type { GeoJSONFeature } from 'mapbox-gl';
 
 export function normalizeWaveBuouysData(
   features: GeoJSONFeature[],

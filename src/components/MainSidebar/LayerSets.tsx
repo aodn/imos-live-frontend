@@ -1,5 +1,5 @@
 import { LayerCard } from './LayerCard';
-import { LayersDataset } from './MainSidebarContent';
+import type { LayersDataset } from './MainSidebarContent';
 
 type LayerSetsProps = {
   className?: string;

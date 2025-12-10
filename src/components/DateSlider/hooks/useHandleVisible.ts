@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import type { RefObject } from 'react';
-import { DragHandle } from '../type';
+import type { DragHandle } from '../type';
 
 type UseHandleVisible = {
   pointPosition: number;

@@ -1,4 +1,4 @@
-import { WaveBuoyDetailsFeature, WaveBuoyDetailsFeatureCollection } from '@/types';
+import type { WaveBuoyDetailsFeature, WaveBuoyDetailsFeatureCollection } from '@/types';
 import axios from 'axios';
 
 export const getWaveBuoyDetails = async (

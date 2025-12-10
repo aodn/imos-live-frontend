@@ -8,7 +8,7 @@ import {
 import { addLayerInOrder, addOrUpdateGeoJsonSource } from '@/helpers';
 import { circleLayer, lineLayer } from '@/layers';
 import { useMapUIStore } from '@/store';
-import { FeatureCollection, GeoJsonProperties, Geometry } from 'geojson';
+import type { FeatureCollection, GeoJsonProperties, Geometry } from 'geojson';
 import { useCallback, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';

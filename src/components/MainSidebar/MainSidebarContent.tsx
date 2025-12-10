@@ -1,14 +1,15 @@
 import { Header } from './Header';
-import { ImageType } from '@/types';
+import type { ImageType } from '@/types';
 import { LayerProducts } from './LayerProducts';
 import { LayerSets } from './LayerSets';
 import { headerData, layerProductsMock, featuredDataset } from './products';
 import { useMapUIStore } from '@/store';
 import { useShallow } from 'zustand/shallow';
-import { ReactNode, useMemo, useState } from 'react';
+import type { ReactNode } from 'react';
+import { useMemo, useState } from 'react';
 import { cn } from '@/utils';
 import { Button } from '../Button';
-import { ProductType } from '@/constants';
+import type { ProductType } from '@/constants';
 
 export type HeaderData = {
   image: ImageType;

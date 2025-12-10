@@ -1,5 +1,10 @@
 import { cn } from '@/utils';
-import { DropdownContentProps, OptionItemProps, OptionsListProps, SearchInputProps } from './type';
+import type {
+  DropdownContentProps,
+  OptionItemProps,
+  OptionsListProps,
+  SearchInputProps,
+} from './type';
 import { SearchIcon, CheckIcon } from '../Icons';
 
 const SearchInput = ({ value, onChange, placeholder = 'Search options...' }: SearchInputProps) => (

@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { TIMING } from '../constants';
-import { DragHandle } from '../type';
+import type { DragHandle } from '../type';
 
 /**
  * Custom hook to manage drag state for slider handles.

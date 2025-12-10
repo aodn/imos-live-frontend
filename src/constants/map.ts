@@ -1,4 +1,5 @@
-import { PRODUCTS, ProductSourceId } from './product';
+import type { ProductSourceId } from './product';
+import { PRODUCTS } from './product';
 
 //product layer id and source id, keep single truth from: import { PRODUCTS } from "./product";
 export const PARTICLE_LAYER_ID = PRODUCTS['gsla-ocean-geostrophic-current'].layerId;

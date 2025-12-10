@@ -2,13 +2,8 @@ import { TriangleIcon } from '../Icons';
 import { setDate } from '@/store';
 import { memo, useCallback } from 'react';
 import { useDateSliderDates } from '@/hooks';
-import {
-  dateLabelRender,
-  DateSlider,
-  PointValue,
-  SelectionResult,
-  timeDisplayRender,
-} from '../DateSlider';
+import type { PointValue, SelectionResult } from '../DateSlider';
+import { dateLabelRender, DateSlider, timeDisplayRender } from '../DateSlider';
 import { cn, toISODateString } from '@/utils';
 
 type DateSelectionBarProps = { className?: string };

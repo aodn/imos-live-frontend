@@ -1,11 +1,14 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { CustomizableParticleConfig, ParticleConfig, PARTICLE_INITIAL_CONFIG } from '@/config';
-import { PRODUCT, ProductType } from '@/constants';
-import { StyleTitle } from '@/styles';
+import type { CustomizableParticleConfig, ParticleConfig } from '@/config';
+import { PARTICLE_INITIAL_CONFIG } from '@/config';
+import type { ProductType } from '@/constants';
+import { PRODUCT } from '@/constants';
+import type { StyleTitle } from '@/styles';
 import { getLast31Dates } from '@/utils';
 import { LngLat } from 'mapbox-gl';
 import { create } from 'zustand';
-import { createJSONStorage, persist, StateStorage } from 'zustand/middleware';
+import type { StateStorage } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
 import { deserialize, serialize } from './serilization';
 
 type ProductError = Record<ProductType, boolean>;

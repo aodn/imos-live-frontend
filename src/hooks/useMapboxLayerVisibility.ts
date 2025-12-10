@@ -1,4 +1,4 @@
-import { Layer } from 'mapbox-gl';
+import type { Layer } from 'mapbox-gl';
 import { useEffect } from 'react';
 
 export function useMapboxLayerVisibility(

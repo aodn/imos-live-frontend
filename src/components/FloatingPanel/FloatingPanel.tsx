@@ -1,4 +1,5 @@
-import { CollapsibleComponent, CollapsibleComponentProps, DragWrapperProps, DragWrapper } from '..';
+import type { CollapsibleComponentProps, DragWrapperProps } from '..';
+import { CollapsibleComponent, DragWrapper } from '..';
 import { useId } from 'react';
 import { CollapsibleTrigger } from './CollapsibleTrigger';
 

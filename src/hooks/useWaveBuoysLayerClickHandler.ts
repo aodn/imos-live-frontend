@@ -8,7 +8,7 @@ import {
 } from '@/constants';
 import { createZoomLimitPoints, removeZoomLimitTempPoints } from '@/helpers';
 import { useDrawerStore, openBottomDrawer } from '@/store';
-import { WaveBuoyPositionFeature } from '@/types';
+import type { WaveBuoyPositionFeature } from '@/types';
 import { normalizeWaveBuouysData } from '@/utils';
 import { useCallback, useEffect, useRef, useState } from 'react';
 

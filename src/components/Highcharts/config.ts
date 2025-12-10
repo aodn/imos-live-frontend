@@ -1,4 +1,4 @@
-import { BuoyDataVariants } from '@/types';
+import type { BuoyDataVariants } from '@/types';
 
 export const colors = [
   '#e17055',

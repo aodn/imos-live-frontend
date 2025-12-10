@@ -1,11 +1,7 @@
-import { MapMouseEvent } from 'mapbox-gl';
+import type { MapMouseEvent } from 'mapbox-gl';
 import { getFeatureInfoUrl } from './threddsUrl';
-import {
-  OverlaySource,
-  GSLA_OVERLAY_SOURCE_ID,
-  SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID,
-  PRODUCT,
-} from '@/constants';
+import type { OverlaySource } from '@/constants';
+import { GSLA_OVERLAY_SOURCE_ID, SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID, PRODUCT } from '@/constants';
 
 /**
  * Parses XML response from WMS GetFeatureInfo request

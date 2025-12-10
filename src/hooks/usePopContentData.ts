@@ -8,7 +8,7 @@ import {
 import { fetchGslaAnomalySeaLevelsData, fetchSstAnomalyMosaic } from '@/helpers';
 import { processOceanCurrentDetails } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
-import { LngLat, Point } from 'mapbox-gl';
+import type { LngLat, Point } from 'mapbox-gl';
 
 type UsePopupContentData = {
   oceanCurrentEnabled: boolean;
