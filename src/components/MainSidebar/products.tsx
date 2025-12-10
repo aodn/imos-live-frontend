@@ -16,7 +16,7 @@ import { RadarIcon, SatelliteIcon, ThermometerIcon, WaterSurfaceIcon, WaveIcon }
 import { LayersDataset } from './MainSidebarContent';
 import { LogColorScaleBar, RasterLegend } from '../ColorScaleBar';
 import { setProductEnabledByProduct } from '@/store';
-import { gslaOceanCurrentColorsLegendConfig } from '@/config';
+import { GSLA_OCEAN_CURRENT_COLORS_LEGEND_CONFIG } from '@/config';
 
 export const headerData = {
   title: 'IMOS Live',
@@ -45,7 +45,7 @@ export const featuredDataset: LayersDataset[] = [
     visible: false,
     isError: false,
     product: PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT,
-    legend: <LogColorScaleBar className="w-full" {...gslaOceanCurrentColorsLegendConfig} />,
+    legend: <LogColorScaleBar className="w-full" {...GSLA_OCEAN_CURRENT_COLORS_LEGEND_CONFIG} />,
     addToMap: setProductEnabledByProduct,
   },
   {

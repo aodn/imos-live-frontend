@@ -39,7 +39,7 @@ vi.mock('@/layers', () => ({
 }));
 
 vi.mock('@/config', () => ({
-  overlayLayerConfig: { paint: {} },
+  OVERLAY_LAYER_CONFIG: { paint: {} },
 }));
 
 vi.mock('./useMapboxLayerSetup', () => ({

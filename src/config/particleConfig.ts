@@ -3,15 +3,28 @@ import speedColors from './speed_colormap.json';
 
 const MAX_SPEED = 3.0;
 
-export const gslaOceanCurrentColorsLegendConfig = {
+export const GSLA_OCEAN_CURRENT_COLORS_LEGEND_CONFIG = {
   title: 'ocean current speed (m/s)',
   numStops: 256,
   colors: speedColors as [number, number, number][],
   min: 0.01,
   max: MAX_SPEED,
+} as const;
+
+const colors = convertLogColorScaleToRamp(GSLA_OCEAN_CURRENT_COLORS_LEGEND_CONFIG);
+
+export type ParticleConfig = {
+  maxSpeed: number;
+  nParticles: number;
+  fadeOpacity: number;
+  speedFactor: number;
+  dropRate: number;
+  dropRateBump: number;
+  pointSize: number;
+  colours: Record<string, string>;
 };
 
-const colors = convertLogColorScaleToRamp(gslaOceanCurrentColorsLegendConfig);
+export type CustomizableParticleConfig = Omit<ParticleConfig, 'maxSpeed' | 'colours'>;
 
 /**
  * These are the intial configs for particles, useMapUiStore will set the initial particle configs using this.
@@ -19,7 +32,7 @@ const colors = convertLogColorScaleToRamp(gslaOceanCurrentColorsLegendConfig);
  * maxSpeed and colours are not customizable.
  * Others can be configured by user in real time.
  */
-export const particleInitialConfig = {
+export const PARTICLE_INITIAL_CONFIG = {
   // this is to set all dataset in the same maxSpeed. the maxSpeed determines how particles speed normilized in [0,1] then visualized corresponding color in graident colors ramp.
   // This should be the same to the maxSpeed of color legend (ColorScaleBar).
   maxSpeed: MAX_SPEED, //this has to be a float number and if maxSpeed is not larger than 0, it will use dataset's own max speed to visualize the particles.
@@ -53,29 +66,27 @@ export const particleInitialConfig = {
   colours: colors,
 } as const;
 
-export type ParticleConfig = typeof particleInitialConfig;
-export type CustomizableParticleConfig = Omit<ParticleConfig, 'maxSpeed' | 'colours'>;
-
 export const FADE_OPACITY_RANGE = {
   min: 0.9,
   max: 0.99,
-};
+} as const;
+
 export const SPEED_FACTOR_RANGE = {
   min: 1.0,
   max: 8.0,
-};
+} as const;
 export const DROP_RATE_RANGE = {
   min: 0.0001,
   max: 0.02,
-};
+} as const;
 export const DROP_RATE_BUMP_RANGE = {
   min: 0.0,
   max: 0.1,
-};
+} as const;
 export const POINT_SIZE_RANGE = {
   min: 0.5,
   max: 5.0,
-};
+} as const;
 
 /**
  * FADE_OPACITY_OPTIONS

@@ -7,7 +7,7 @@ import { useCallback, useMemo } from 'react';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { lineLayer, fillLayer } from '@/layers';
 import { addLayerInOrder, addOrUpdateVectorSource } from '@/helpers';
-import { worldLandBorderConfig, worldLandFillConfig } from '@/config';
+import { WORLD_LAND_BORDER_CONFIG, WORLD_LAND_FILL_CONFIG } from '@/config';
 import { worldLandStyle } from '@/styles';
 import { useMapUIStore } from '@/store';
 import { useShallow } from 'zustand/shallow';
@@ -31,7 +31,7 @@ export function useWorldLandLayer(map: React.RefObject<mapboxgl.Map | null>) {
         {
           id: WORLD_LAND_FILL_LAYER_ID,
           source: WORLD_LAND_SOURCE_ID,
-          ...worldLandFillConfig,
+          ...WORLD_LAND_FILL_CONFIG,
         },
         true,
       ),
@@ -44,7 +44,7 @@ export function useWorldLandLayer(map: React.RefObject<mapboxgl.Map | null>) {
         {
           id: WORLD_LAND_BORDER_LAYER_ID,
           source: WORLD_LAND_SOURCE_ID,
-          ...worldLandBorderConfig,
+          ...WORLD_LAND_BORDER_CONFIG,
         },
         enabled,
       ),

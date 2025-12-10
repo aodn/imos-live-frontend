@@ -1,8 +1,8 @@
 import { getWaveBuoyLocations } from '@/api';
 import {
-  unclusteredWaveBuoysLayerConfig,
-  waveBuoyCluserLabelLayerConfig,
-  waveBuoysLayerConfig,
+  UNCLUSTERED_WAVE_BUOYS_LAYER_CONFIG,
+  WAVE_BUOY_CLUSTER_LABEL_LAYER_CONFIG,
+  WAVE_BUOYS_LAYER_CONFIG,
 } from '@/config';
 import {
   BuoyLayer,
@@ -51,7 +51,7 @@ export function useWaveBuoysLayer({ map, layerId, sourceId, product }: UseWaveBu
         {
           id: layerId,
           source: sourceId,
-          ...waveBuoysLayerConfig,
+          ...WAVE_BUOYS_LAYER_CONFIG,
         },
         enabled,
       ),
@@ -63,7 +63,7 @@ export function useWaveBuoysLayer({ map, layerId, sourceId, product }: UseWaveBu
         {
           id: UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
           source: sourceId,
-          ...unclusteredWaveBuoysLayerConfig,
+          ...UNCLUSTERED_WAVE_BUOYS_LAYER_CONFIG,
         },
         enabled,
       ),
@@ -75,7 +75,7 @@ export function useWaveBuoysLayer({ map, layerId, sourceId, product }: UseWaveBu
         {
           id: WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID,
           source: sourceId,
-          ...waveBuoyCluserLabelLayerConfig,
+          ...WAVE_BUOY_CLUSTER_LABEL_LAYER_CONFIG,
         },
         enabled,
       ),

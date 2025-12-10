@@ -1,6 +1,6 @@
 import {
-  zoomLimitTempConnectiongLinesLayerPartial,
-  zoomLimitTempPointLayerPartial,
+  ZOOM_LIMIT_TEMP_CONNECTION_LINES_LAYER_PARTIAL,
+  ZOOM_LIMIT_TEMPPOINT_LAYER_PARTIAL,
 } from '@/config';
 import {
   ZOOM_LIMIT_TEMP_POINTS_CONNECTION_LINES_LAYER_ID,
@@ -92,13 +92,13 @@ export function createZoomLimitPoints(
     id: ZOOM_LIMIT_TEMP_POINTS_CONNECTION_LINES_LAYER_ID,
     type: 'line',
     source: ZOOM_LIMIT_TEMP_POINTS_CONNECTION_LINES_SOURCE_ID,
-    ...zoomLimitTempConnectiongLinesLayerPartial,
+    ...ZOOM_LIMIT_TEMP_CONNECTION_LINES_LAYER_PARTIAL,
   });
 
   mapInstace.addLayer({
     id: ZOOM_LIMIT_TEMP_POINTS_LAYER_ID,
     type: 'circle',
     source: ZOOM_LIMIT_TEMP_POINTS_SOURCE_ID,
-    ...zoomLimitTempPointLayerPartial,
+    ...ZOOM_LIMIT_TEMPPOINT_LAYER_PARTIAL,
   });
 }
