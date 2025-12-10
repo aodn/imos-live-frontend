@@ -18,7 +18,7 @@ import {
 } from 'mapbox-gl';
 import anomalySeaLevelColorMap from './anomaly_sea_level_colormap.json';
 
-export const waveBuoysLayerConfig: Partial<CircleLayerSpecification> = {
+export const WAVE_BUOYS_LAYER_CONFIG: Partial<CircleLayerSpecification> = {
   filter: ['has', 'point_count'], // Only show clustered points
   paint: {
     'circle-color': [
@@ -40,11 +40,11 @@ export const waveBuoysLayerConfig: Partial<CircleLayerSpecification> = {
       40, // Radius for clusters with > 750 points
     ],
   },
-};
+} as const;
 
 export const clusterMaxZoom = 14;
 
-export const unclusteredWaveBuoysLayerConfig: Partial<CircleLayerSpecification> = {
+export const UNCLUSTERED_WAVE_BUOYS_LAYER_CONFIG: Partial<CircleLayerSpecification> = {
   filter: ['!', ['has', 'point_count']],
   paint: {
     'circle-color': [
@@ -77,18 +77,18 @@ export const unclusteredWaveBuoysLayerConfig: Partial<CircleLayerSpecification> 
       delay: 0,
     },
   },
-};
+} as const;
 
-export const waveBuoyCluserLabelLayerConfig: Partial<SymbolLayerSpecification> = {
+export const WAVE_BUOY_CLUSTER_LABEL_LAYER_CONFIG: Partial<SymbolLayerSpecification> = {
   filter: ['has', 'point_count'],
   layout: {
     'text-field': '{point_count_abbreviated}',
     'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
     'text-size': 12,
   },
-};
+} as const;
 
-export const zoomLimitTempPointLayerPartial: Partial<CircleLayerSpecification> = {
+export const ZOOM_LIMIT_TEMPPOINT_LAYER_PARTIAL: Partial<CircleLayerSpecification> = {
   paint: {
     'circle-color': '#11b4da',
     'circle-radius': 8,
@@ -97,15 +97,15 @@ export const zoomLimitTempPointLayerPartial: Partial<CircleLayerSpecification> =
   },
 };
 
-export const zoomLimitTempConnectiongLinesLayerPartial: Partial<LineLayerSpecification> = {
+export const ZOOM_LIMIT_TEMP_CONNECTION_LINES_LAYER_PARTIAL: Partial<LineLayerSpecification> = {
   paint: {
     'line-color': '#666',
     'line-width': 1,
     'line-dasharray': [2, 2],
   },
-};
+} as const;
 
-export const overlayLayerConfig = {
+export const OVERLAY_LAYER_CONFIG = {
   paint: {
     'raster-fade-duration': 0,
     'raster-resampling': 'nearest',
@@ -114,15 +114,15 @@ export const overlayLayerConfig = {
   slot: 'middle',
 } as const;
 
-export const measurePointsConfig: Partial<CircleLayerSpecification> = {
+export const MEASURE_POINT_CONFIG: Partial<CircleLayerSpecification> = {
   paint: {
     'circle-radius': 5,
     'circle-color': '#fff',
   },
   filter: ['in', '$type', 'Point'],
-};
+} as const;
 
-export const measureLinesConfig: Partial<LineLayerSpecification> = {
+export const MEASURE_LINES_CONFIG: Partial<LineLayerSpecification> = {
   layout: { 'line-cap': 'round', 'line-join': 'round' },
   paint: {
     'line-color': '#ff0000',
@@ -130,27 +130,27 @@ export const measureLinesConfig: Partial<LineLayerSpecification> = {
     'line-opacity': 1,
   },
   filter: ['in', '$type', 'LineString'],
-};
+} as const;
 
-export const worldLandBorderConfig: Partial<LineLayerSpecification> = {
+export const WORLD_LAND_BORDER_CONFIG: Partial<LineLayerSpecification> = {
   'source-layer': 'country_boundaries',
   paint: {
     'line-color': '#333333',
     'line-width': 2,
     'line-blur': 0.5,
   },
-};
+} as const;
 
-export const worldLandFillConfig: Partial<FillLayerSpecification> = {
+export const WORLD_LAND_FILL_CONFIG: Partial<FillLayerSpecification> = {
   'source-layer': 'country_boundaries',
   paint: {
     'fill-color': 'transparent',
     'fill-outline-color': 'transparent',
   },
-};
+} as const;
 
 //last one is the top layer.
-export const layersOrder = [
+export const LAYERS_ORDER = [
   GSLA_OVERLAY_LAYER_ID,
   SST_ANOMALY_MOSAIC_OVERLAY_LAYER_ID,
   PARTICLE_LAYER_ID,
@@ -161,7 +161,7 @@ export const layersOrder = [
   WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID,
   MEASURE_LINES_LAYER_ID,
   MEASURE_POINTS_LAYER_ID,
-];
+] as const;
 
 //this is from Gabriela.Semolinipilo@csiro.au and this should be same in python script when generate the overlay image.
 export const gslaOverlayImageColors = anomalySeaLevelColorMap as [number, number, number][];

@@ -1,4 +1,4 @@
-import { measureLinesConfig, measurePointsConfig } from '@/config';
+import { MEASURE_LINES_CONFIG, MEASURE_POINT_CONFIG } from '@/config';
 import {
   MEASURE_LINES_LAYER_ID,
   MEASURE_LINES_SOURCE_ID,
@@ -35,7 +35,7 @@ export function useDistanceMeasurementLayers(map: React.RefObject<mapboxgl.Map |
         {
           id: MEASURE_POINTS_LAYER_ID,
           source: MEASURE_POINTS_SOURCE_ID,
-          ...measurePointsConfig,
+          ...MEASURE_POINT_CONFIG,
         },
         distanceMeasurement,
       ),
@@ -48,7 +48,7 @@ export function useDistanceMeasurementLayers(map: React.RefObject<mapboxgl.Map |
         {
           id: MEASURE_LINES_LAYER_ID,
           source: MEASURE_LINES_SOURCE_ID,
-          ...measureLinesConfig,
+          ...MEASURE_LINES_CONFIG,
         },
         distanceMeasurement,
       ),

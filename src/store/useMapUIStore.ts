@@ -1,10 +1,12 @@
-import { CustomizableParticleConfig, ParticleConfig, particleInitialConfig } from '@/config';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { CustomizableParticleConfig, ParticleConfig, PARTICLE_INITIAL_CONFIG } from '@/config';
 import { PRODUCT, ProductType } from '@/constants';
 import { StyleTitle } from '@/styles';
 import { getLast31Dates } from '@/utils';
 import { LngLat } from 'mapbox-gl';
 import { create } from 'zustand';
 import { createJSONStorage, persist, StateStorage } from 'zustand/middleware';
+import { deserialize, serialize } from './serilization';
 
 type ProductError = Record<ProductType, boolean>;
 export type ProductEnabled = Record<ProductType, boolean>;
@@ -34,22 +36,20 @@ export interface MapUIState {
   setProductEnabledByProduct: (product: ProductType, enabled: boolean) => void;
 }
 
-const stateKeysToExcludeFromUrl = ['dates', 'productError'];
-
 const hashStorage: StateStorage = {
   getItem: () => {
     const url = new URL(location.href);
     const restoredState: Record<string, any> = {};
     for (const [key, value] of url.searchParams.entries()) {
-      restoredState[key] = JSON.parse(value);
+      restoredState[key] = deserialize(value);
     }
 
     // restore particleConfig with maxSpeed and colours from initial config
     if (restoredState.particleConfig) {
       restoredState.particleConfig = {
-        maxSpeed: particleInitialConfig.maxSpeed,
-        colours: particleInitialConfig.colours,
         ...restoredState.particleConfig,
+        maxSpeed: PARTICLE_INITIAL_CONFIG.maxSpeed,
+        colours: PARTICLE_INITIAL_CONFIG.colours,
       };
     }
 
@@ -59,16 +59,7 @@ const hashStorage: StateStorage = {
     const { state } = JSON.parse(newValue);
     const url = new URL(location.href);
     for (const [k, v] of Object.entries(state)) {
-      if (stateKeysToExcludeFromUrl.includes(k)) continue;
-
-      // filter out maxSpeed and colours from particleConfig
-      if (k === 'particleConfig') {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { maxSpeed, colours, ...customizableConfig } = v as ParticleConfig;
-        url.searchParams.set(k, JSON.stringify(customizableConfig));
-      } else {
-        url.searchParams.set(k, JSON.stringify(v));
-      }
+      url.searchParams.set(k, serialize(v));
     }
     window.history.replaceState({}, '', url.toString());
   },
@@ -82,6 +73,19 @@ const hashStorage: StateStorage = {
 const storageOptions = {
   name: 'url-sync',
   storage: createJSONStorage<MapUIState>(() => hashStorage),
+  //select fields intended to sync in url
+  partialize: (state: MapUIState) => {
+    //filter out dates and productError to sync in url
+    const { dates, productError, ...rest } = state;
+
+    // Filter out maxSpeed and colours from particleConfig
+    const { maxSpeed, colours, ...customizableConfig } = rest.particleConfig;
+
+    return {
+      ...rest,
+      particleConfig: customizableConfig,
+    } as MapUIState;
+  },
 };
 
 export const useMapUIStore = create(
@@ -90,7 +94,7 @@ export const useMapUIStore = create(
       center: new LngLat(133.7751, -25.2744),
       zoom: 3,
       style: 'ESRIWorldImagery',
-      particleConfig: particleInitialConfig,
+      particleConfig: PARTICLE_INITIAL_CONFIG,
       distanceMeasurement: false,
       worldBoundaries: false,
       dates: getLast31Dates(),

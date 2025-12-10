@@ -1,4 +1,4 @@
-import { overlayLayerConfig } from '@/config';
+import { OVERLAY_LAYER_CONFIG } from '@/config';
 import { OverlayLayer, OverlaySource, ProductType } from '@/constants';
 import { addLayerInOrder, addOrUpdateWMSSource, rasterUrl } from '@/helpers';
 import { imageLayer } from '@/layers';
@@ -25,7 +25,7 @@ export function useOverlayLayer({ map, layerId, sourceId, product }: UseOverlayL
     })),
   );
   const overlayLayer = useMemo(
-    () => imageLayer({ id: layerId, source: sourceId, ...overlayLayerConfig }, enabled),
+    () => imageLayer({ id: layerId, source: sourceId, ...OVERLAY_LAYER_CONFIG }, enabled),
     [layerId, sourceId, enabled],
   );
 

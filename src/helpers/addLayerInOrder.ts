@@ -1,4 +1,4 @@
-import { layersOrder } from '@/config';
+import { LAYERS_ORDER } from '@/config';
 import { VectoryLayerInterface } from '@/layers';
 import { Layer } from 'mapbox-gl';
 
@@ -12,7 +12,7 @@ export function addLayerInOrder(
     map.current?.addLayer(layer);
   }
 
-  layersOrder.forEach(id => {
+  LAYERS_ORDER.forEach(id => {
     if (map.current?.getLayer(id)) {
       map.current?.moveLayer(id);
     }
