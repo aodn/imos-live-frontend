@@ -1,5 +1,5 @@
 import { Button, TriangleIcon } from '@/components';
-import { TimeUnitSelectionRenderProps } from '../type';
+import type { TimeUnitSelectionRenderProps } from '../type';
 
 export const timeUnitSelectionRender = ({
   timeUnit,

@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import React from 'react';
 import { action } from '@storybook/addon-actions';
 import { Heart, Star, Zap } from 'lucide-react';
-import { ToastData } from './Toast';
+import type { ToastData } from './Toast';
 import { ToastProvider } from './ToastProvider';
 import { useToast } from './useToast';
 

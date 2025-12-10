@@ -5,8 +5,9 @@ import {
   UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
   WAVE_BUOYS_LAYER_ID,
 } from '@/constants';
-import { VectoryLayerInterface } from '@/layers';
-import { expect, Page, test } from '@playwright/test';
+import type { VectoryLayerInterface } from '@/layers';
+import type { Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { type Map } from 'mapbox-gl';
 import { genData, toCompassStandard } from '../test-data/gsla';
 

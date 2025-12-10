@@ -1,6 +1,6 @@
 import { usePopupContentData } from '@/hooks';
 import { useMapUIStore } from '@/store';
-import { LngLat, Point } from 'mapbox-gl';
+import type { LngLat, Point } from 'mapbox-gl';
 import { useShallow } from 'zustand/shallow';
 import { LoaderIcon } from '../Icons';
 

@@ -1,6 +1,6 @@
 import { clampPercent } from '@/utils';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { TimeUnit } from '../type';
+import type { TimeUnit } from '../type';
 import { getTotalScales } from '../utils';
 
 /**

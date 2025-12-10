@@ -1,6 +1,7 @@
 import { maxZoom } from '@/config';
 import { useMapUIStore, setCenter, setZoom } from '@/store';
-import mapboxgl, { LngLatBoundsLike } from 'mapbox-gl';
+import type { LngLatBoundsLike } from 'mapbox-gl';
+import mapboxgl from 'mapbox-gl';
 import { useEffect, useRef } from 'react';
 import { useShallow } from 'zustand/shallow';
 

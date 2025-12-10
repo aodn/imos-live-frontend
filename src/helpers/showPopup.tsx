@@ -1,5 +1,7 @@
-import mapboxgl, { LngLat, Point } from 'mapbox-gl';
-import { createRoot, Root } from 'react-dom/client';
+import type { LngLat, Point } from 'mapbox-gl';
+import mapboxgl from 'mapbox-gl';
+import type { Root } from 'react-dom/client';
+import { createRoot } from 'react-dom/client';
 import { PopupContent } from '@/components';
 import { queryClient } from '@/config';
 import { QueryClientProvider } from '@tanstack/react-query';

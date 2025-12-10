@@ -1,4 +1,4 @@
-import { MetaType, RangeType } from '@/api';
+import type { MetaType, RangeType } from '@/api';
 
 type MaxBoundsType = [range: RangeType, range: RangeType];
 

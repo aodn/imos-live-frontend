@@ -1,4 +1,5 @@
-import { PageName, PathName, routeMap } from '@/routes';
+import type { PageName, PathName } from '@/routes';
+import { routeMap } from '@/routes';
 import { useLocation } from 'react-router-dom';
 
 /**

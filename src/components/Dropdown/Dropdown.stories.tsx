@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { useState } from 'react';
 import { Dropdown } from './Dropdown';
-import { DropdownOption } from './type';
+import type { DropdownOption } from './type';
 import { User, Mail, Phone, Settings, Heart, Star, Shield } from 'lucide-react';
 
 const meta: Meta<typeof Dropdown> = {

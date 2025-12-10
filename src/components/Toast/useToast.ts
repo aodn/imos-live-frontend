@@ -1,4 +1,4 @@
-import { ToastData } from '@/components/Toast/Toast';
+import type { ToastData } from '@/components/Toast/Toast';
 import { useContext, createContext } from 'react';
 
 export interface ToastContextType {

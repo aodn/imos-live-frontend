@@ -1,6 +1,6 @@
 import { useToggle } from '@/hooks';
 import { cn } from '@/utils';
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 export type TriggerArgs = {
   toggle: () => void;

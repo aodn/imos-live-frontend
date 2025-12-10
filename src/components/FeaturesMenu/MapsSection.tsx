@@ -1,7 +1,8 @@
 import { Dropdown } from '../Dropdown';
 import { useMapUIStore, setStyle } from '@/store';
 import { useShallow } from 'zustand/shallow';
-import { styles, StyleTitle } from '@/styles';
+import type { StyleTitle } from '@/styles';
+import { styles } from '@/styles';
 
 const STYLE_OPTIONS = styles.map(s => ({
   label: s.title,

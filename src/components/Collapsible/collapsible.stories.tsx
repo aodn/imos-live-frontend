@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { CollapsibleComponent, TriggerArgs } from '../Collapsible';
+import type { TriggerArgs } from '../Collapsible';
+import { CollapsibleComponent } from '../Collapsible';
 import { Button } from '../Button';
 import { ArrowIcon } from '../Icons';
 import clsx from 'clsx';

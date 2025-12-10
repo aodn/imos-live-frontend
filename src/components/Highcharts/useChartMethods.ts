@@ -1,6 +1,6 @@
-import HighchartsReact from 'highcharts-react-official';
+import type HighchartsReact from 'highcharts-react-official';
 import { useCallback } from 'react';
-import { DataPoint, SeriesData, ThemeConfig, AnimationConfig } from './type';
+import type { DataPoint, SeriesData, ThemeConfig, AnimationConfig } from './type';
 import { DEFAULT_THEME, processSeries, exportFallbacks } from './utils';
 
 export const useChartMethods = (

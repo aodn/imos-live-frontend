@@ -1,5 +1,5 @@
 import { memo, useCallback, useMemo } from 'react';
-import { TimeUnitLabelsProps, TimeLabel } from '../type';
+import type { TimeUnitLabelsProps, TimeLabel } from '../type';
 import { formatForDisplay } from '../utils';
 
 export const TimeUnitLabels = memo(

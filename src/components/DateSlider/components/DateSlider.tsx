@@ -30,7 +30,7 @@ import {
   useInitialAutoScrollPosition,
   useEventHandlers,
 } from '../hooks';
-import { SliderProps, Dimension, TimeUnit, DragHandle, SelectionResult } from '../type';
+import type { SliderProps, Dimension, TimeUnit, DragHandle, SelectionResult } from '../type';
 import {
   getTotalScales,
   generateScalesWithInfo,

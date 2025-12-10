@@ -4,11 +4,9 @@ import {
   WAVE_BUOY_CLUSTER_LABEL_LAYER_CONFIG,
   WAVE_BUOYS_LAYER_CONFIG,
 } from '@/config';
+import type { BuoyLayer, BuoySource, ProductType } from '@/constants';
 import {
-  BuoyLayer,
-  BuoySource,
   PRODUCT,
-  ProductType,
   UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
   WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID,
 } from '@/constants';

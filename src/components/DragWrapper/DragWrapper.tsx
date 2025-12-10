@@ -1,6 +1,7 @@
 import { useDidMountEffect, useDrag, useResizeObserver } from '@/hooks';
 import { cn, clamp, queryIncludingSelf } from '@/utils';
-import { ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 /**
  when in parent bounday its parent container needs to have position: relative

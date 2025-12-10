@@ -1,6 +1,7 @@
 import { showPopup } from '@/helpers';
 import { debounce } from '@/utils';
-import { RefObject, useCallback, useEffect } from 'react';
+import type { RefObject } from 'react';
+import { useCallback, useEffect } from 'react';
 import { WORLD_LAND_FILL_LAYER_ID } from '@/constants';
 
 type UseMapClickHandlersOptions = {

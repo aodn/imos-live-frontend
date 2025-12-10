@@ -3,7 +3,8 @@
  */
 
 import { renderHook, act } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi, Mock } from 'vitest';
+import type { Mock } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useOverlayLayer } from './useOverlayLayer';
 import { useMapUIStore } from '@/store';
 import { addLayerInOrder, addOrUpdateWMSSource, rasterUrl } from '@/helpers';
@@ -11,7 +12,7 @@ import { imageLayer } from '@/layers';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
 import { useDidMountEffect } from './useDidMountEffect';
-import { OverlayLayer, OverlaySource, ProductType } from '@/constants';
+import type { OverlayLayer, OverlaySource, ProductType } from '@/constants';
 
 const mockMap = {
   current: {

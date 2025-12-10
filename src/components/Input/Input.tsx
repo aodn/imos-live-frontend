@@ -1,4 +1,5 @@
-import { ChangeEvent, forwardRef, ReactNode } from 'react';
+import type { ChangeEvent, ReactNode } from 'react';
+import { forwardRef } from 'react';
 import { cn } from '@/utils';
 import style from './style.module.css';
 

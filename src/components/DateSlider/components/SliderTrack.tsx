@@ -1,7 +1,7 @@
 import { memo, useCallback, useState, useEffect, useMemo } from 'react';
 import { DateLabel } from './DateLabel';
 import { cn } from '@/utils';
-import { ScaleType, SliderTrackProps } from '../type';
+import type { ScaleType, SliderTrackProps } from '../type';
 import {
   getPercentageFromMouseEvent,
   formatForDisplay,

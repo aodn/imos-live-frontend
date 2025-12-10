@@ -1,4 +1,5 @@
-import { OverlaySource, sourceIdToProduct } from '@/constants';
+import type { OverlaySource } from '@/constants';
+import { sourceIdToProduct } from '@/constants';
 import { rasterLegendUrl } from '@/helpers';
 import { useQuery } from '@tanstack/react-query';
 import { Image } from '../Image';

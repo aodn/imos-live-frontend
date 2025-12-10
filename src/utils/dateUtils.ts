@@ -1,4 +1,4 @@
-import { FixedLengthArray } from '@/types';
+import type { FixedLengthArray } from '@/types';
 
 export function getLastDates<const T extends number>(length: T) {
   return (format: string = 'yyyy-mm-dd'): FixedLengthArray<string, T> => {

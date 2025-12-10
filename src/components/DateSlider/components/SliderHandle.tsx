@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { DateLabel } from './DateLabel';
 import { cn } from '@/utils';
-import { SliderHandleProps, RenderSliderHandleProps } from '../type';
+import type { SliderHandleProps, RenderSliderHandleProps } from '../type';
 import { formatForDisplay, getDateFromPercent, handleOutsideVisibleArea } from '../utils';
 
 export const SliderHandle = ({

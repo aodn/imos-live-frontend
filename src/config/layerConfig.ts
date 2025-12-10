@@ -10,7 +10,7 @@ import {
   WORLD_LAND_BORDER_LAYER_ID,
   WORLD_LAND_FILL_LAYER_ID,
 } from '@/constants';
-import {
+import type {
   CircleLayerSpecification,
   FillLayerSpecification,
   LineLayerSpecification,

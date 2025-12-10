@@ -1,7 +1,7 @@
 import { CollapsibleComponent } from '..';
 import { LayerProductsCollapsibleTrigger } from './LayerProductsCollapsibleTrigger';
 import { LayerProductsContent } from './LayerProductsContent';
-import { LayerProducts as LayerProductsType } from './MainSidebarContent';
+import type { LayerProducts as LayerProductsType } from './MainSidebarContent';
 
 type LayerProductsProps = {
   products: LayerProductsType;

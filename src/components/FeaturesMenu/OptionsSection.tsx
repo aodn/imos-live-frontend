@@ -8,12 +8,8 @@ import {
   setParticleConfig,
 } from '@/store';
 import { useShallow } from 'zustand/shallow';
-import {
-  CustomizableParticleConfig,
-  FADE_OPACITY_RANGE,
-  POINT_SIZE_RANGE,
-  SPEED_FACTOR_RANGE,
-} from '@/config';
+import type { CustomizableParticleConfig } from '@/config';
+import { FADE_OPACITY_RANGE, POINT_SIZE_RANGE, SPEED_FACTOR_RANGE } from '@/config';
 
 // Particle configuration options
 const NUM_PARTICLES_OPTIONS = [10000, 30000, 60000, 100000].map(num => ({

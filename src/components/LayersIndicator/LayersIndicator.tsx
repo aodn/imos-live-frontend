@@ -3,7 +3,7 @@ import { cn } from '@/utils';
 import { useShallow } from 'zustand/shallow';
 import { Button } from '../Button';
 import { CloseIcon } from '../Icons';
-import { ProductType } from '@/constants';
+import type { ProductType } from '@/constants';
 
 type LayersIndicatorProps = {
   layers: {

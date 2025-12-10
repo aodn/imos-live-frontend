@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { IconProps } from '../Icons';
+import type { IconProps } from '../Icons';
 import { Button } from '../Button';
 import { cn } from '@/utils';
 import { OptionsSection } from './OptionsSection';

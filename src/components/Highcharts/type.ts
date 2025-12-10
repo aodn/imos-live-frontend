@@ -1,4 +1,4 @@
-import { RefObject } from 'react';
+import type { RefObject } from 'react';
 
 export interface DataPoint {
   x?: number | string | Date;

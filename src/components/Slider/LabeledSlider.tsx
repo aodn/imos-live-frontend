@@ -1,6 +1,7 @@
 import { forwardRef } from 'react';
 import { cn } from '@/utils';
-import { Slider, SliderProps } from './Slider';
+import type { SliderProps } from './Slider';
+import { Slider } from './Slider';
 
 export type LabeledSliderProps = {
   label: string;

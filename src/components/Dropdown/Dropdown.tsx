@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { ArrowIcon, CloseIcon } from '../Icons';
 import { cn } from '@/utils';
 import { useDropdownOutsideClick, useDropdownPosition } from '@/hooks';
-import { DropdownProps, DropdownOption } from './type';
+import type { DropdownProps, DropdownOption } from './type';
 import { DropdownContent } from './DropdoenContent';
 
 const SIZE_CLASSES = {

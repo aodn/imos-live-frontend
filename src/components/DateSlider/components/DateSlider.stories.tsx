@@ -47,7 +47,7 @@ import { memo, useCallback, useRef, useState } from 'react';
 
 import { DateSlider } from './DateSlider';
 
-import {
+import type {
   SliderProps,
   SelectionResult,
   SliderExposedMethod,

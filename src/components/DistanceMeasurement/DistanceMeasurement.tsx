@@ -1,4 +1,4 @@
-import { FeatureCollection, Geometry, GeoJsonProperties } from 'geojson';
+import type { FeatureCollection, Geometry, GeoJsonProperties } from 'geojson';
 import { Button } from '../Button';
 
 export const DistanceMeasurement = ({

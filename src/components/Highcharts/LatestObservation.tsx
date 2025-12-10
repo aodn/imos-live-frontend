@@ -1,4 +1,4 @@
-import { WaveBuoyDetailsFeature } from '@/types';
+import type { WaveBuoyDetailsFeature } from '@/types';
 import { cn, toLocalDateTime } from '@/utils';
 import { useMemo } from 'react';
 import { obseravtionVariants } from './config';
