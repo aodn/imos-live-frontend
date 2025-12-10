@@ -9,7 +9,7 @@ import { LngLat } from 'mapbox-gl';
 import { create } from 'zustand';
 import type { StateStorage } from 'zustand/middleware';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { deserialize, serialize } from './serilization';
+import { deserialize, serialize } from './serialization';
 
 type ProductError = Record<ProductType, boolean>;
 export type ProductEnabled = Record<ProductType, boolean>;
