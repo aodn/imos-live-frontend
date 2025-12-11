@@ -1,5 +1,5 @@
 import type { WaveBuoyDetailsFeature } from '@/types';
-import { cn, toLocalDateTime } from '@/utils';
+import { cn, toLocalDateTime, prioritizeKey } from '@/utils';
 import { useMemo } from 'react';
 import { obseravtionVariants } from './config';
 
@@ -31,7 +31,7 @@ const productDescription = {
     long_name: 'sea surface wave significant height',
     units: 'm',
   },
-};
+} as const;
 
 export function LatestObservation({ feature }: { feature: WaveBuoyDetailsFeature | undefined }) {
   const gridColsClass = (numOfCols: number) =>
@@ -56,7 +56,7 @@ export function LatestObservation({ feature }: { feature: WaveBuoyDetailsFeature
     const properties = feature.properties;
     const keys = obseravtionVariants;
 
-    return keys
+    const data = keys
       .filter(key => (properties[key] ?? []).length > 0)
       .filter((key, _index, keys) => key !== 'WPMH' || (key === 'WPMH' && !keys.includes('WPFM')))
       .filter((key, _index, keys) => key !== 'WHTH' || (key === 'WHTH' && !keys.includes('WSSH')))
@@ -78,7 +78,10 @@ export function LatestObservation({ feature }: { feature: WaveBuoyDetailsFeature
           unit: productDescription[key].units,
         };
       });
+
+    return prioritizeKey(data, 'label', productDescription.WSSH.long_name);
   }, [feature]);
+
   return (
     <div className="w-full">
       <div className="border  border-gray-300 ">
