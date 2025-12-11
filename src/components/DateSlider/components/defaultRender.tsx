@@ -8,7 +8,7 @@ import type {
 // Custom render prop examples
 export const customDateLabelRenderer = ({ label }: DateLabelRenderProps) => {
   return (
-    <span className="bg-blue-700 text-white text-xs px-3 py-1.5 rounded shadow-md font-semibold">
+    <span className="bg-blue-700 text-white text-xs px-3 py-1.5 rounded shadow-md font-semibold whitespace-nowrap">
       {label}
     </span>
   );
