@@ -1,7 +1,5 @@
 import type { ReactNode, RefObject } from 'react';
 
-import type { DateGranularity } from './utils';
-
 /**
  * Selection mode for the DateSlider component
  * - `'point'`: Single date selection
@@ -12,11 +10,12 @@ export type ViewMode = 'range' | 'point' | 'combined';
 
 /**
  * Time unit granularity for date navigation and display
+ * - `'hour'`: Hourly granularity
  * - `'day'`: Daily granularity
  * - `'month'`: Monthly granularity
  * - `'year'`: Yearly granularity
  */
-export type TimeUnit = 'day' | 'month' | 'year';
+export type TimeUnit = 'hour' | 'day' | 'month' | 'year';
 
 /**
  * Handle type identifier for drag operations
@@ -27,8 +26,75 @@ export type TimeUnit = 'day' | 'month' | 'year';
  */
 export type DragHandle = 'start' | 'end' | 'point' | null;
 
-// Re-export for convenience
-export type { DateGranularity };
+/**
+ * Date format pattern using dayjs tokens with any separators.
+ * Uses standard dayjs formatting tokens. See: https://day.js.org/docs/en/display/format
+ *
+ * Common tokens:
+ * - 'YYYY': 4-digit year (e.g., "2024")
+ * - 'YY': 2-digit year (e.g., "24")
+ * - 'MM': 2-digit month (e.g., "06")
+ * - 'M': month without leading zero (e.g., "6")
+ * - 'DD': 2-digit day (e.g., "15")
+ * - 'D': day without leading zero (e.g., "15")
+ * - 'HH': 2-digit hour, 24-hour (e.g., "14")
+ * - 'H': hour without leading zero, 24-hour (e.g., "14")
+ * - 'hh': 2-digit hour, 12-hour (e.g., "02")
+ * - 'h': hour without leading zero, 12-hour (e.g., "2")
+ * - 'mm': 2-digit minutes (e.g., "30")
+ * - 'm': minutes without leading zero (e.g., "5")
+ * - 'ss': 2-digit seconds (e.g., "05")
+ * - 'MMM': short month name (e.g., "Jun")
+ * - 'MMMM': full month name (e.g., "June")
+ * - 'ddd': short day name (e.g., "Mon")
+ * - 'dddd': full day name (e.g., "Monday")
+ *
+ * Examples: 'YYYY-MM-DD', 'DD/MM/YYYY', 'MMM DD, YYYY', 'YYYY.MM.DD'
+ */
+type DatePattern = string;
+
+/**
+ * Date format function type used with `formatDate()` utility
+ *
+ * A function that takes a Date and returns a dayjs format string.
+ * Uses standard dayjs tokens. Separators are preserved in the output.
+ * See: https://day.js.org/docs/en/display/format
+ *
+ * Common format tokens:
+ * - `YYYY`: 4-digit year (e.g., "2024")
+ * - `MM`: 2-digit month (e.g., "06")
+ * - `DD`: 2-digit day (e.g., "15")
+ * - `HH`: 2-digit hour, 24-hour (e.g., "14")
+ * - `mm`: 2-digit minutes (e.g., "30")
+ * - `MMM`: Short month name (e.g., "Jun")
+ * - `MMMM`: Full month name (e.g., "June")
+ *
+ * @example
+ * // Hyphens preserved
+ * const format1: DateFormatFn = () => 'YYYY-MM-DD';
+ * formatDate(new Date('2024-06-15'), format1); // → "2024-06-15"
+ *
+ * @example
+ * // Slashes and other separators
+ * const format2: DateFormatFn = () => 'DD/MM/YYYY';
+ * formatDate(new Date('2024-06-15'), format2); // → "15/06/2024"
+ *
+ * @example
+ * // Dynamic format based on date
+ * const adaptiveFormat: DateFormatFn = (date) => {
+ *   return date.getUTCDate() === 1 ? 'MMM YYYY' : 'DD';
+ * };
+ * formatDate(new Date('2024-06-01'), adaptiveFormat); // → "Jun 2024"
+ * formatDate(new Date('2024-06-15'), adaptiveFormat); // → "15"
+ *
+ * @see {@link dateFormatFn} - Built-in format for scale and date labels
+ */
+export type DateFormatFn = ({ date, unit }: { date: Date; unit?: TimeUnit }) => DatePattern;
+
+export type DateFormat = {
+  scale?: DateFormatFn;
+  label?: DateFormatFn;
+};
 
 /**
  * Time label for scale marks on the slider track
@@ -95,6 +161,10 @@ export type ScaleUnitConfig = {
  * // Set a specific date
  * sliderRef.current?.setDateTime(new Date('2024-06-15'), 'point');
  *
+ * // Move by configured step
+ * sliderRef.current?.moveByStep('forward', 'point');
+ * sliderRef.current?.moveByStep('backward'); // Uses default target based on viewMode
+ *
  * // Focus a handle
  * sliderRef.current?.focusHandle('point');
  * ```
@@ -106,6 +176,13 @@ export type SliderExposedMethod = {
    * @param target - Which handle to update ('start', 'end', 'point'). Defaults to the current active handle.
    */
   setDateTime: (date: Date, target?: DragHandle) => void;
+
+  /**
+   * Move the handle by the configured step amount
+   * @param direction - 'forward' or 'backward'
+   * @param target - Which handle to move ('start', 'end', 'point'). Defaults based on viewMode.
+   */
+  moveByStep: (direction: 'forward' | 'backward', target?: DragHandle) => void;
 
   /**
    * Programmatically focus a specific handle
@@ -126,8 +203,10 @@ export type DateSliderClassNames = {
   slider?: string;
 
   // Track
-  /** Base track element */
+  /** Base track element wrapper*/
   track?: string;
+  /** The wrapper include all the track components */
+  trackInner?: string;
   /** Active portion of the track (point/range indicator) */
   trackActive?: string;
   /** Inactive/background portion of the track */
@@ -153,6 +232,9 @@ export type DateSliderClassNames = {
   // Visual Indicators
   /** Vertical cursor line on hover */
   cursorLine?: string;
+
+  /** scale wrapper */
+  scales?: string;
   /** Base styles for all scale marks */
   scaleMark?: string;
   /** Major scale tick marks */
@@ -175,6 +257,39 @@ export type IconsConfig = {
   rangeEnd?: ReactNode;
 };
 
+export type Step = {
+  amount: number;
+  unit: TimeUnit;
+};
+
+/**
+ * Context provided to step callback function
+ */
+export type StepFnContext = {
+  /** Current date at the handle position */
+  date: Date;
+  /** Current time unit (zoom level) */
+  unit: TimeUnit;
+  /** Which handle is being moved */
+  handle: DragHandle;
+};
+
+/**
+ * Function type for dynamic step calculation
+ * Allows step amount/unit to vary based on context
+ *
+ * @example
+ * ```tsx
+ * // Adaptive step based on timeUnit
+ * step={({ unit, date, handle }) => {
+ *   if (unit === 'hour') return { amount: 6, unit: 'hour' };
+ *   if (unit === 'day') return { amount: 7, unit: 'day' };
+ *   return { amount: 1, unit };
+ * }}
+ * ```
+ */
+export type StepFn = (context: StepFnContext) => Step;
+
 /**
  * Behavior configuration for slider interactions
  */
@@ -183,10 +298,45 @@ export type BehaviorConfig = {
   scrollable?: boolean;
   /** Allow free datetime selection on track click (not limited to scale units) */
   freeSelectionOnTrackClick?: boolean;
-  /** Keep handle date label visible persistently */
+  /**Keep point handle always visible, slider will auto scroll into point handle visible area */
+  sliderAutoScrollToPointHandleVisibleEnabled?: boolean;
+
+  /**
+   * Step configuration for navigation (keyboard arrows, SelectionPanel buttons, moveByStep API)
+   * Can be a static Step object or a function that returns a Step based on context
+   *
+   * @example Static step
+   * ```tsx
+   * step={{ amount: 7, unit: 'day' }}  // Always move 7 days
+   * ```
+   *
+   * @example Dynamic step
+   * ```tsx
+   * step={({ timeUnit }) => {
+   *   if (timeUnit === 'hour') return { amount: 6, unit: 'hour' };
+   *   if (timeUnit === 'day') return { amount: 7, unit: 'day' };
+   *   return { amount: 1, unit: timeUnit };
+   * }}
+   * ```
+   */
+  step?: Step | StepFn;
+
+  /** Keep handle date label visible persistently (applies to all handles if specific ones not set) */
   handleLabelPersistent?: boolean;
-  /** always disable hadle label */
+  /** Always disable handle label (applies to all handles if specific ones not set) */
   handleLabelDisabled?: boolean;
+  /** Keep point handle date label visible persistently */
+  pointHandleLabelPersistent?: boolean;
+  /** Always disable point handle label */
+  pointHandleLabelDisabled?: boolean;
+  /** Keep range handles (start/end) date labels visible persistently */
+  rangeHandleLabelPersistent?: boolean;
+  /** Always disable range handles (start/end) labels */
+  rangeHandleLabelDisabled?: boolean;
+  /** Disable date label when hovering over track */
+  trackHoverDateLabelDisabled?: boolean;
+  /** Disable cursor line when hovering over track */
+  trackHoverCursorLineDisabled?: boolean;
 };
 
 /**
@@ -205,6 +355,14 @@ export type LayoutConfig = {
   minGapScaleUnits?: number;
   /** Custom scale unit sizing configuration */
   scaleUnitConfig?: ScaleUnitConfig;
+  /** DateLabel distance over handle and track in pixels */
+  dateLabelDistanceOverHandle?: number;
+  /** Whether render SelectionPanel Component*/
+  selectionPanelEnabled?: boolean;
+  /**  Whether render TimeUnitSelection component*/
+  timeUnitSelectionEnabled?: boolean;
+  /** Whether render Date label */
+  dateLabelEnabled?: boolean;
 };
 
 /**
@@ -294,7 +452,7 @@ export type DateLabelRenderProps = {
  *
  * @example
  * ```tsx
- * renderTimeDisplay={({ dateLabel, toNextDate, toPrevDate }) => (
+ * renderSelectionPanel={({ dateLabel, toNextDate, toPrevDate }) => (
  *   <div>
  *     <button onClick={toPrevDate}>←</button>
  *     <span>{dateLabel}</span>
@@ -303,7 +461,7 @@ export type DateLabelRenderProps = {
  * )}
  * ```
  */
-export type TimeDisplayRenderProps = {
+export type SelectionPanelRenderProps = {
   /** Navigate to the next date based on current time unit */
   toNextDate: () => void;
   /** Navigate to the previous date based on current time unit */
@@ -345,8 +503,8 @@ export type TimeUnitSelectionRenderProps = {
 export type RenderPropsConfig = {
   /** Custom date label renderer */
   renderDateLabel?: (props: DateLabelRenderProps) => ReactNode;
-  /** Custom TimeDisplay renderer */
-  renderTimeDisplay?: (props: TimeDisplayRenderProps) => ReactNode;
+  /** Custom selectionPanel renderer */
+  renderSelectionPanel?: (props: SelectionPanelRenderProps) => ReactNode;
   /** Custom TimeUnitSelection renderer */
   renderTimeUnitSelection?: (props: TimeUnitSelectionRenderProps) => ReactNode;
 };
@@ -429,9 +587,65 @@ type CommonSliderProps = {
    */
   renderProps?: RenderPropsConfig;
 
-  // ===== Advanced Props (Optional) =====
-  /** Controls display granularity (day/hour/minute) */
-  granularity?: DateGranularity;
+  /**
+   * Date format configuration for scale marks and handle labels.
+   * Uses dayjs format tokens. Supports separate formats for scale and labels.
+   * @see {@link https://day.js.org/docs/en/display/format dayjs format tokens}
+   * @example
+   * ```tsx
+   * <DateSlider
+   *   dateFormat={{
+   *     scale: (date) => date.getUTCDate() === 1 ? 'MMM YYYY' : 'DD',
+   *     label: () => 'DD-MMM-YYYY'
+   *   }}
+   * />
+   * ```
+   */
+  dateFormat?: DateFormat;
+
+  /**
+   * Locale code for date formatting (month/day names).
+   * Requires importing the locale first: `import 'dayjs/locale/fr'`
+   * @default 'en'
+   * @see {@link https://github.com/iamkun/dayjs/tree/dev/src/locale Available locales}
+   * @example
+   * ```tsx
+   * import 'dayjs/locale/fr';
+   *
+   * <DateSlider
+   *   locale="fr"
+   *   dateFormat={{
+   *     label: () => 'dddd, DD MMMM YYYY' // "samedi, 15 juin 2024"
+   *   }}
+   * />
+   * ```
+   */
+  locale?: string;
+
+  /**
+   * Custom function to determine scale type (short/medium/long) for each date.
+   * Allows full control over visual hierarchy of scale marks.
+   * If not provided, uses sensible defaults based on timeUnit.
+   *
+   * @example
+   * ```tsx
+   * <DateSlider
+   *   initialTimeUnit="hour"
+   *   scaleTypeResolver={(date, timeUnit) => {
+   *     if (timeUnit === 'hour') {
+   *       const hour = date.getUTCHours();
+   *       const day = date.getUTCDate();
+   *       if (day === 1 && hour === 0) return 'long';   // Month start
+   *       if (hour === 0) return 'medium';               // Day start
+   *       return 'short';                                // Each hour
+   *     }
+   *     // ... handle other units
+   *   }}
+   * />
+   * ```
+   */
+  scaleTypeResolver?: ScaleTypeResolver;
+
   /** Imperative API reference for external control */
   imperativeRef?: React.Ref<SliderExposedMethod>;
 };
@@ -449,8 +663,7 @@ type PointModeSliderProps = {
   /** Icon configuration - only point icon is used */
   icons?: {
     point?: ReactNode;
-    rangeStart?: never;
-    rangeEnd?: never;
+    range?: never;
   };
 };
 
@@ -467,8 +680,7 @@ type RangeModeSliderProps = {
   /** Icon configuration - only range icons are used */
   icons?: {
     point?: never;
-    rangeStart?: ReactNode;
-    rangeEnd?: ReactNode;
+    range?: ReactNode;
   };
 };
 
@@ -485,8 +697,7 @@ type CombinedModeSliderProps = {
   /** Icon configuration - all icons can be used */
   icons?: {
     point?: ReactNode;
-    rangeStart?: ReactNode;
-    rangeEnd?: ReactNode;
+    range?: ReactNode;
   };
 };
 
@@ -521,6 +732,29 @@ export type ScaleType = 'short' | 'medium' | 'long';
 export type Scale = { position: number; type: ScaleType; date: Date };
 export type NumOfScales = { short: number; medium: number; long: number };
 
+/**
+ * Function type for determining scale type (short/medium/long) for a given date and time unit.
+ * Allows customization of how scale marks are visually categorized.
+ *
+ * @param date - The date to evaluate
+ * @param timeUnit - The current time unit context
+ * @returns The scale type for this date
+ *
+ * @example
+ * // Custom resolver for hour timeUnit
+ * const customResolver: ScaleTypeResolver = (date, timeUnit) => {
+ *   if (timeUnit === 'hour') {
+ *     const hour = date.getUTCHours();
+ *     const day = date.getUTCDate();
+ *     if (day === 1 && hour === 0) return 'long';   // Month boundaries
+ *     if (hour === 0) return 'medium';               // Day boundaries
+ *     return 'short';                                // Each hour
+ *   }
+ *   // ... handle other timeUnits
+ * };
+ */
+export type ScaleTypeResolver = (date: Date, timeUnit: TimeUnit) => ScaleType | undefined;
+
 type BaseSliderTrackProps = {
   onTrackClick: (e: React.MouseEvent) => void;
   onTrackTouch: (e: React.TouchEvent) => void;
@@ -533,10 +767,17 @@ type BaseSliderTrackProps = {
   startHandleRef: React.RefObject<HTMLButtonElement | null>;
   endHandleRef: React.RefObject<HTMLButtonElement | null>;
   pointHandleRef: React.RefObject<HTMLButtonElement | null>;
-  handleLabelPersistent?: boolean;
-  handleLabelDisabled?: boolean;
+  trackHoverDateLabelDisabled?: boolean;
+  trackHoverCursorLineDisabled?: boolean;
   classNames?: DateSliderClassNames;
   renderDateLabel?: (props: DateLabelRenderProps) => ReactNode;
+  trackWidth: number;
+  minDistance?: number;
+  withEndLabel?: boolean;
+  dateLabelDistanceOverHandle: number;
+  dateFormat: Required<DateFormat>;
+  locale: string;
+  timeUnit: TimeUnit;
 };
 
 type PointModeProps = {
@@ -546,15 +787,15 @@ type PointModeProps = {
 
 type CombinedModeProps = {
   mode: 'combined';
-  rangeStart: number;
-  rangeEnd: number;
+  rangeStartPosition: number;
+  rangeEndPosition: number;
   pointPosition: number;
 };
 
 type RangeModeProps = {
   mode: 'range';
-  rangeStart: number;
-  rangeEnd: number;
+  rangeStartPosition: number;
+  rangeEndPosition: number;
 };
 
 export type SliderTrackProps = BaseSliderTrackProps &
@@ -581,12 +822,15 @@ export type SliderHandleProps = {
   handleLabelDisabled?: boolean;
   renderDateLabel?: (props: DateLabelRenderProps) => ReactNode;
   sliderContainerRef: RefObject<HTMLDivElement | null>;
+  dateLabelDistanceOverHandle: number;
+  sliderPositionX: number;
+  trackWidth: number;
 };
 
 export type RenderSliderHandleProps = {
   viewMode: 'point' | 'range' | 'combined';
-  rangeStart: number;
-  rangeEnd: number;
+  rangeStartPosition: number;
+  rangeEndPosition: number;
   pointPosition: number;
   startDate: Date;
   endDate: Date;
@@ -602,11 +846,18 @@ export type RenderSliderHandleProps = {
   onTouchStart: (handle: DragHandle) => (e: React.TouchEvent) => void;
   onKeyDown: (handle: DragHandle) => (e: React.KeyboardEvent) => void;
   isSliderDragging: boolean;
-  handleLabelPersistent?: boolean;
-  handleLabelDisabled?: boolean;
+  pointHandleLabelPersistent?: boolean;
+  pointHandleLabelDisabled?: boolean;
+  rangeHandleLabelPersistent?: boolean;
+  rangeHandleLabelDisabled?: boolean;
   classNames?: DateSliderClassNames;
   renderDateLabel?: (props: DateLabelRenderProps) => ReactNode;
   sliderContainerRef: RefObject<HTMLDivElement | null>;
+  dateLabelDistanceOverHandle: number;
+  dateFormat: Required<DateFormat>;
+  locale: string;
+  sliderPositionX: number;
+  trackWidth: number;
 };
 
 export type TimeUnitSelectionProps = {
@@ -617,27 +868,32 @@ export type TimeUnitSelectionProps = {
   renderTimeUnitSelection: (props: TimeUnitSelectionRenderProps) => ReactNode;
 };
 
-export type TimeDisplayProps = {
+export type SelectionPanelProps = {
   position: number;
   startDate: Date;
   endDate: Date;
-  granularity: DateGranularity;
-  setDateTime: (date: Date, target?: DragHandle) => void;
-  renderTimeDisplay: (props: TimeDisplayRenderProps) => ReactNode;
+  moveByStep: (direction: 'forward' | 'backward', target?: DragHandle) => void;
+  renderSelectionPanel: (props: SelectionPanelRenderProps) => ReactNode;
+  dateFormat: Required<DateFormat>;
+  locale: string;
+  timeUnit: TimeUnit;
 };
 
-export type TimeUnitLabelsProps = {
-  timeLabels: TimeLabel[];
+export type ScalesUnitLabelsProps = {
   scales: Scale[];
   trackWidth: number;
   minDistance?: number;
   withEndLabel?: boolean;
   classNames?: DateSliderClassNames;
+  dateFormat: Required<DateFormat>;
+  locale: string;
+  timeUnit: TimeUnit;
 };
 
 export type DateLabelProps = {
   position?: { x: number; y: number };
   label?: string;
+  visible?: boolean;
   immediateDisappear?: boolean;
   handleLabelPersistent?: boolean;
   handleLabelDisabled?: boolean;

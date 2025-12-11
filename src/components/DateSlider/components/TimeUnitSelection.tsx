@@ -1,7 +1,7 @@
-import { memo, useState, useRef, useEffect } from 'react';
 import type { TimeUnit, TimeUnitSelectionProps } from '../type';
+import { memo, useState, useRef, useEffect } from 'react';
 
-const TIME_UNITS: Array<TimeUnit> = ['day', 'month', 'year'];
+const TIME_UNITS: Array<TimeUnit> = ['hour', 'day', 'month', 'year'];
 
 export const TimeUnitSelection = memo(
   ({

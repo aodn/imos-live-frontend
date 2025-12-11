@@ -27,6 +27,8 @@ export const LAYOUT = {
   DEFAULT_SLIDER_HEIGHT: 64,
   /** Minimum slider width in pixels (min-w-40 = 160px) */
   MIN_SLIDER_WIDTH: 160,
+  /** DEFAULT date label distance over handle and track in pixels */
+  DATE_LABEL_DISTANCE: 32,
 } as const;
 
 /**
@@ -49,6 +51,8 @@ export const TIMING = {
   DRAG_COMPLETE_DELAY: 50,
   /** Debounce delay for onChange callbacks in milliseconds */
   DEBOUNCE_DELAY: 100,
+  /** Delay before date label disappear */
+  LABEL_PERSISTENCE: 1500,
 } as const;
 
 /**
@@ -62,11 +66,6 @@ export const PERCENTAGE = {
    * Use this for most cases including keyboard navigation and position clamping
    */
   MAX: 100,
-  /**
-   * Near-maximum value for edge cases where exactly 100% causes issues
-   * @deprecated Use MAX instead and handle edge cases explicitly
-   */
-  NEAR_MAX: 99.9999,
 } as const;
 
 /**

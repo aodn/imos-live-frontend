@@ -1,16 +1,22 @@
 import type { RefObject } from 'react';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 
-import { clampPercent } from '@/utils';
+dayjs.extend(utc);
+
 import type {
-  TimeUnit,
+  DateFormat,
+  DateFormatFn,
   NumOfScales,
-  ScaleUnitConfig,
   Scale,
   ScaleType,
-  TimeLabel,
-  ViewMode,
+  ScaleTypeResolver,
+  ScaleUnitConfig,
   SelectionResult,
+  TimeUnit,
+  ViewMode,
 } from '../type';
+import { clampPercent } from '../utils';
 
 /**
  * Add a certain amount of scale units to a date to get a new date.
@@ -48,6 +54,9 @@ export const generateNewDateByAddingScaleUnit = (
 ): Date => {
   const newDate = new Date(date);
   switch (unit) {
+    case 'hour':
+      newDate.setUTCHours(newDate.getUTCHours() + amount);
+      break;
     case 'day':
       newDate.setUTCDate(newDate.getUTCDate() + amount);
       break;
@@ -62,12 +71,16 @@ export const generateNewDateByAddingScaleUnit = (
 };
 
 /**
- * Calculate total number of scales for different combination of start date, end date and unit as 'day'|'month'|'year'.
+ * Calculate total number of scales for different combination of start date, end date and unit as 'hour'|'day'|'month'|'year'.
  *
  * @param start - Start date
  * @param end - End date
- * @param unit - Time unit ('day', 'month', or 'year')
+ * @param unit - Time unit ('hour', 'day', 'month', or 'year')
  * @returns Total number of scale units
+ *
+ * @example
+ * // For hours: 25 hours between start and end returns 25
+ * getTotalScales(new Date('2024-01-01T00:00:00Z'), new Date('2024-01-02T01:00:00Z'), 'hour') // 25
  *
  * @example
  * // For days: if there are 49 hours between start and end, returns Math.ceil(49/24) = 3
@@ -85,6 +98,8 @@ export const getTotalScales = (start: Date, end: Date, unit: TimeUnit): number =
   const msDiff = end.getTime() - start.getTime();
 
   switch (unit) {
+    case 'hour':
+      return Math.ceil(msDiff / (1000 * 60 * 60));
     case 'day':
       return Math.ceil(msDiff / (1000 * 60 * 60 * 24));
     case 'month': {
@@ -105,6 +120,7 @@ export const getTotalScales = (start: Date, end: Date, unit: TimeUnit): number =
  *
  * This function returns the most appropriate date to use for labels
  * at different zoom levels:
+ * - hour: returns the date normalized to the hour (minutes/seconds set to 0)
  * - day: returns the date normalized to midnight
  * - month: returns January 1st of the year
  * - year: returns January 1st of the decade
@@ -124,6 +140,10 @@ export const getTotalScales = (start: Date, end: Date, unit: TimeUnit): number =
  */
 export const getRepresentativeDate = (date: Date, unit: TimeUnit): Date => {
   switch (unit) {
+    case 'hour':
+      return new Date(
+        Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), date.getUTCHours()),
+      );
     case 'day':
       return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
     case 'month':
@@ -162,22 +182,34 @@ export const generateTrackWidth = (
  * Generate scale marks with position and type information.
  *
  * Creates an array of scale objects representing tick marks on the slider.
- * Scale types (short/medium/long) are determined by date significance:
- * - Day mode: long=1st of month, medium=Monday, short=other days
- * - Month mode: long=January, medium=quarter start, short=other months
- * - Year mode: long=decade start, medium=5-year mark, short=other years
+ * Each scale tick points to the corresponding unit.
+ * Scale types (short/medium/long) are determined by the scaleTypeResolver function.
  *
  * @param start - Start date of the range
  * @param end - End date of the range
  * @param unit - Time unit for scales
  * @param totalUnits - Total number of scale units
+ * @param scaleTypeResolver - Function to determine scale type for each date (defaults to defaultScaleTypeResolver)
  * @returns Object containing scales array and count by type
  */
-export const generateScalesWithInfo = (
+/**
+ * Generate both scales and time labels in a single pass.
+ * This combines the logic of generateScalesWithInfo and generateTimeLabelsWithPositions
+ * to avoid duplicate iteration and position calculations.
+ *
+ * @param start - Start date
+ * @param end - End date
+ * @param unit - Time unit
+ * @param totalUnits - Total number of units
+ * @param scaleTypeResolver - Optional custom resolver for scale types
+ * @returns Object containing scales, timeLabels, and numberOfScales
+ */
+export const generateScales = (
   start: Date,
   end: Date,
   unit: TimeUnit,
   totalUnits: number,
+  scaleTypeResolver?: ScaleTypeResolver,
 ): { scales: Scale[]; numberOfScales: NumOfScales } => {
   const scales: Scale[] = [];
   const scaleCounts = { short: 0, medium: 0, long: 0 };
@@ -186,112 +218,39 @@ export const generateScalesWithInfo = (
   const endTime = end.getTime();
   const totalTimeSpan = endTime - startTime;
 
+  const resolverWithDefaultFallback = (...args: Parameters<ScaleTypeResolver>) => {
+    return (scaleTypeResolver?.(...args) || defaultScaleTypeResolver(...args)) as ScaleType;
+  };
+
+  // Generate both scales and time labels in a single loop
   for (let i = 0; i < totalUnits; i++) {
-    //i <= totalUnits to i < totalUnits
     const current = generateNewDateByAddingScaleUnit(start, i, unit);
     if (current > end) break;
 
-    // Calculate position based on actual time elapsed
     const currentTime = current.getTime();
     const position = totalTimeSpan === 0 ? 0 : ((currentTime - startTime) / totalTimeSpan) * 100;
 
-    let type: ScaleType = 'short';
-    switch (unit) {
-      case 'day':
-        type = current.getUTCDate() === 1 ? 'long' : current.getUTCDay() === 1 ? 'medium' : 'short';
-        break;
-      case 'month':
-        type =
-          current.getUTCMonth() === 0
-            ? 'long'
-            : current.getUTCMonth() % 3 === 0
-              ? 'medium'
-              : 'short';
-        break;
-      case 'year':
-        type =
-          current.getUTCFullYear() % 10 === 0
-            ? 'long'
-            : current.getUTCFullYear() % 5 === 0
-              ? 'medium'
-              : 'short';
-        break;
-    }
-
+    // Add scale with type
+    const type = resolverWithDefaultFallback(current, unit);
     scaleCounts[type]++;
     scales.push({ date: current, position, type });
   }
 
-  // Add an end scale if we don't have one exactly at the end date
-  // Check both date and position to avoid duplicates
   const lastScale = scales[scales.length - 1];
-  if (
-    scales.length > 0 &&
-    lastScale &&
-    (lastScale.date.getTime() !== endTime || lastScale.position !== 100)
-  ) {
-    const type: ScaleType = 'short';
-    scaleCounts[type]++;
-    scales.push({ date: end, position: 100, type });
-  }
-  return { scales, numberOfScales: scaleCounts };
-};
-
-export const generateTimeLabelsWithPositions = (
-  start: Date,
-  end: Date,
-  unit: TimeUnit,
-): TimeLabel[] => {
-  const labels: TimeLabel[] = [];
-  const current = new Date(start);
-
-  const startTime = start.getTime();
-  const endTime = end.getTime();
-  const totalTimeSpan = endTime - startTime;
-
-  while (current <= end) {
-    let labelDate: Date | undefined;
-    switch (unit) {
-      case 'day':
-        labelDate = new Date(
-          Date.UTC(current.getUTCFullYear(), current.getUTCMonth(), current.getUTCDate()),
-        );
-        current.setUTCDate(current.getUTCDate() + 1);
-        break;
-      case 'month':
-        labelDate = new Date(Date.UTC(current.getUTCFullYear(), 0, 1));
-        current.setUTCFullYear(current.getUTCFullYear() + 1);
-        break;
-      case 'year': {
-        const decade = Math.floor(current.getUTCFullYear() / 10) * 10;
-        labelDate = new Date(Date.UTC(decade, 0, 1));
-        current.setUTCFullYear(decade + 10);
-        break;
-      }
-    }
-
-    if (
-      labelDate &&
-      labelDate.getTime() <= end.getTime() &&
-      (labels.length === 0 || labels[labels.length - 1].date.getTime() !== labelDate.getTime())
-    ) {
-      // Calculate position using the same method as scales
-      const labelTime = labelDate.getTime();
-      const percentage = totalTimeSpan === 0 ? 0 : ((labelTime - startTime) / totalTimeSpan) * 100;
-
-      labels.push({ date: labelDate, position: percentage });
-    }
-  }
-
-  // Add end label if needed
   const endLabel = getRepresentativeDate(end, unit);
-  if (labels.length === 0 || labels[labels.length - 1].date.getTime() !== endLabel.getTime()) {
-    const labelTime = endLabel.getTime();
-    const percentage = totalTimeSpan === 0 ? 0 : ((labelTime - startTime) / totalTimeSpan) * 100;
-    labels.push({ date: endLabel, position: percentage });
+  const needsEndEntry = scales.length === 0 || lastScale.date.getTime() !== endLabel.getTime();
+
+  if (needsEndEntry) {
+    const endTime = endLabel.getTime();
+    const endPosition = totalTimeSpan === 0 ? 100 : ((endTime - startTime) / totalTimeSpan) * 100;
+
+    // Add end scale
+    const endScaleType: ScaleType = 'short';
+    scaleCounts[endScaleType]++;
+    scales.push({ date: endLabel, position: endPosition, type: endScaleType });
   }
 
-  return labels;
+  return { scales, numberOfScales: scaleCounts };
 };
 
 /**
@@ -328,13 +287,14 @@ export const getPercentageFromTouchEvent = (
 };
 
 export const calculateLabelPosition = (
-  trackRef: RefObject<HTMLDivElement | null>,
+  handleRef: RefObject<HTMLButtonElement | null>,
   cursorPosition: number,
+  distance: number,
 ) => {
-  if (!trackRef.current) return;
-  const trackRect = trackRef.current.getBoundingClientRect();
+  if (!handleRef.current) return;
+  const handleRect = handleRef.current.getBoundingClientRect();
   const x = cursorPosition;
-  const y = trackRect.top - 32;
+  const y = handleRect.top - distance;
   return { x, y };
 };
 
@@ -431,13 +391,7 @@ export const getAllScalesPercentage = (
  * - All dates are stored and manipulated as UTC timestamps
  * - Only convert to local timezone for display purposes
  * - Date-only data is represented as UTC midnight
- * - Supports future hourly/minute granularity
  */
-
-/**
- * Date granularity supported by the slider
- */
-export type DateGranularity = 'day' | 'hour' | 'minute';
 
 /**
  * Convert an ISO date string (YYYY-MM-DD) to UTC midnight
@@ -485,7 +439,7 @@ export function addTime(
   amount: number,
   unit: 'day' | 'month' | 'year' | 'hour' | 'minute',
 ): Date {
-  const result = new Date(date);
+  const result = new Date(date.getTime());
 
   switch (unit) {
     case 'minute':
@@ -508,83 +462,101 @@ export function addTime(
   return result;
 }
 
-/**
- * Format UTC date for display
- *
- * Uses the browser's Intl API to format dates according to locale.
- * Always displays in UTC timezone to avoid confusion.
- *
- * @param date - UTC date to format
- * @param granularity - Display granularity
- * @param locale - Locale string (default: en-AU)
- * @param fullDate - For day granularity, whether to show full date or abbreviated
- * @returns Formatted date string
- *
- * @example
- * // Daily granularity - show only date
- * formatForDisplay(new Date("2024-01-15T00:00:00Z"), 'day', 'en-AU', true)
- * // → "15 Jan 2024"
- *
- * // Hourly granularity - show date and time
- * formatForDisplay(new Date("2024-01-15T14:00:00Z"), 'hour')
- * // → "15 Jan 2024, 14:00"
- */
-export function formatForDisplay(
-  date: Date,
-  granularity: DateGranularity,
-  locale: string = 'en-AU',
-  fullDate: boolean = false,
-): string {
-  switch (granularity) {
-    case 'day': {
-      if (fullDate) {
-        return date.toLocaleDateString(locale, {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric',
-          timeZone: 'UTC',
-        });
-      }
+export const scaleDateFormatFn: DateFormatFn = ({ date }) => {
+  const month = date.getUTCMonth();
+  const day = date.getUTCDate();
 
-      // Abbreviated format for labels
+  if (month === 0 && day === 1) {
+    return 'YYYY';
+  }
+
+  if (day === 1) {
+    return 'MMM';
+  }
+
+  return 'DD';
+};
+
+export const labelDateFormatFn: DateFormatFn = () => {
+  return 'DD-MMM-YYYY';
+};
+
+/**
+ * Default scale type resolver function.
+ * Determines whether a date should be rendered as short/medium/long scale mark.
+ *
+ * Default logic:
+ * - hour: long=year start, medium=month start, short=each hour
+ * - day: long=month start, medium=Monday, short=each day
+ * - month: long=year start, medium=quarter start, short=each month
+ * - year: long=decade start, medium=5-year mark, short=each year
+ *
+ * @param date - The date to evaluate
+ * @param timeUnit - Current time unit context
+ * @returns Scale type for this date
+ */
+export const defaultScaleTypeResolver: ScaleTypeResolver = (
+  date: Date,
+  timeUnit: TimeUnit,
+): ScaleType => {
+  switch (timeUnit) {
+    case 'hour': {
+      const hour = date.getUTCHours();
       const day = date.getUTCDate();
       const month = date.getUTCMonth();
 
-      if (month === 0 && day === 1) {
-        // New Year - show year
-        return date.toLocaleDateString(locale, { year: 'numeric', timeZone: 'UTC' });
-      }
-
-      if (day === 1) {
-        // First of month - show month
-        return date.toLocaleDateString(locale, { month: 'short', timeZone: 'UTC' });
-      }
-
-      // Regular day - show day number
-      return date.toLocaleDateString(locale, { day: 'numeric', timeZone: 'UTC' });
+      // Year boundary: January 1st at 00:00
+      if (month === 0 && day === 1 && hour === 0) return 'long';
+      // Month boundary: 1st of month at 00:00
+      if (day === 1 && hour === 0) return 'medium';
+      // Each hour
+      return 'short';
     }
 
-    case 'hour':
-      return date.toLocaleString(locale, {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        timeZone: 'UTC',
-      });
+    case 'day':
+      // First day of month
+      if (date.getUTCDate() === 1) return 'long';
+      // Monday (week start)
+      if (date.getUTCDay() === 1) return 'medium';
+      // Each day
+      return 'short';
 
-    case 'minute':
-      return date.toLocaleString(locale, {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        timeZone: 'UTC',
-      });
+    case 'month':
+      // January (year start)
+      if (date.getUTCMonth() === 0) return 'long';
+      // Quarter starts (Apr, Jul, Oct)
+      if (date.getUTCMonth() % 3 === 0) return 'medium';
+      // Each month
+      return 'short';
+
+    case 'year':
+      // Decade start (2020, 2030, etc.)
+      if (date.getUTCFullYear() % 10 === 0) return 'long';
+      // 5-year mark (2025, 2035, etc.)
+      if (date.getUTCFullYear() % 5 === 0) return 'medium';
+      // Each year
+      return 'short';
   }
+};
+
+export function formatDate({
+  date,
+  format,
+  locale = 'en',
+  variant = 'scale',
+  timeUnit,
+}: {
+  date: Date;
+  format: Required<DateFormat>;
+  locale: string;
+  variant: 'scale' | 'label';
+  timeUnit: TimeUnit;
+}): string {
+  const pattern =
+    variant === 'scale'
+      ? format.scale({ date, unit: timeUnit })
+      : format.label({ date, unit: timeUnit });
+  return pattern ? dayjs.utc(date).locale(locale).format(pattern) : '';
 }
 
 /**
@@ -620,6 +592,27 @@ export function getPercentFromDate(date: Date, startDate: Date, endDate: Date): 
 }
 
 /**
+ * Convert UTC date to ISO date string (YYYY-MM-DD)
+ *
+ * Useful for API calls and storage that expect date strings.
+ * Uses UTC date components to avoid timezone issues.
+ *
+ * @param date - UTC date
+ * @returns ISO date string
+ *
+ * @example
+ * toISODateString(new Date("2024-01-15T14:30:00Z"))
+ * // → "2024-01-15"
+ */
+export function toISODateString(date: Date): string {
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(date.getUTCDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+}
+
+/**
  * Detect if handle is outside visible area in slider
  *
  * @param sliderContainerRef
@@ -639,7 +632,38 @@ export const handleOutsideVisibleArea = ({
   const distanceFromLeftEdge = (handleRect?.left || 0) - (containerRect?.left || 0);
 
   return {
-    left: distanceFromLeftEdge < 0,
-    right: distanceFromRightEdge < 0,
+    leftOut: distanceFromLeftEdge < 0,
+    rightOut: distanceFromRightEdge < 0,
   };
+};
+
+/**
+ * Calculate the current start and end position of visible track with additional buffer in percentage,
+ * the result can be used to filter out invisible scales and time labels.
+ *
+ * @param sliderPositionX - the horizontal position track scrolled
+ * @param sliderContainerWidth - the width of visible track
+ * @param trackWidth - the width of full track
+ * @returns the current start and end position of visible track in percentage
+ */
+export const getTrackVisibleRange = ({
+  sliderPositionX,
+  sliderContainerWidth,
+  trackWidth,
+}: {
+  sliderPositionX: number;
+  sliderContainerWidth: number;
+  trackWidth: number;
+}) => {
+  const scrollLeft = Math.abs(sliderPositionX);
+  const viewportWidth = sliderContainerWidth;
+
+  const visibleStartPercent = (scrollLeft / trackWidth) * 100;
+  const visibleEndPercent = ((scrollLeft + viewportWidth) / trackWidth) * 100;
+
+  const bufferPercent = ((viewportWidth * 0.5) / trackWidth) * 100;
+  const startWithBuffer = Math.max(0, visibleStartPercent - bufferPercent);
+  const endWithBuffer = Math.min(100, visibleEndPercent + bufferPercent);
+
+  return { start: startWithBuffer, end: endWithBuffer };
 };

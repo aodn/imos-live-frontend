@@ -1,4 +1,4 @@
-import { clampToLowerBound, snapToClosestStep } from '@/utils';
+import { clampToLowerBound } from '@/utils';
 import { useCallback, useEffect } from 'react';
 import { PERCENTAGE } from '../constants';
 import type { TimeUnit, ViewMode, DragHandle } from '../type';
@@ -7,6 +7,58 @@ import {
   getPercentageFromMouseEvent,
   getAllScalesPercentage,
 } from '../utils';
+
+interface UseEventHandlersParams {
+  // Date range and time settings
+  dates: {
+    startDate: Date;
+    endDate: Date;
+  };
+  timeUnit: TimeUnit;
+  viewMode: ViewMode;
+
+  // Position refs
+  positions: {
+    rangeStartRef: React.RefObject<number>;
+    rangeEndRef: React.RefObject<number>;
+    pointPositionRef: React.RefObject<number>;
+  };
+
+  // Handler callbacks
+  handlers: {
+    updateHandlePosition: (handle: DragHandle, percentage: number) => void;
+    moveByStep: (direction: 'forward' | 'backward', target?: DragHandle) => void;
+    requestHandleFocus: (handleType: DragHandle, interactionType?: 'mouse' | 'keyboard') => void;
+    handleDragComplete: () => void;
+  };
+
+  // Drag state
+  dragState: {
+    isDragging: DragHandle;
+    handleDragStarted: boolean;
+    isContainerDragging: boolean;
+  };
+
+  // State setters
+  setters: {
+    setIsDragging: React.Dispatch<React.SetStateAction<DragHandle>>;
+    setDragStarted: React.Dispatch<React.SetStateAction<boolean>>;
+    setLastInteractionType: React.Dispatch<React.SetStateAction<'mouse' | 'keyboard' | null>>;
+  };
+
+  // Element refs
+  refs: {
+    trackRef: React.RefObject<HTMLDivElement | null>;
+    sliderRef: React.RefObject<HTMLDivElement | null>;
+    autoScrollToVisibleAreaRef: React.MutableRefObject<boolean>;
+  };
+
+  // Configuration
+  config: {
+    totalScaleUnits: number;
+    freeSelectionOnTrackClick: boolean;
+  };
+}
 
 /**
  * Custom hook to manage all user interaction event handlers for the slider.
@@ -19,52 +71,26 @@ import {
  *
  * Sets up global event listeners for drag operations and cleans them up properly.
  *
- * @param startDate - Start date of the slider range
- * @param endDate - End date of the slider range
- * @param timeUnit - Current time unit
- * @param rangeStartRef - Ref to current range start percentage
- * @param rangeEndRef - Ref to current range end percentage
- * @param pointPositionRef - Ref to current point percentage
- * @param viewMode - Current view mode (point/range/combined)
- * @param updateHandlePosition - Function to update handle positions
- * @param requestHandleFocus - Function to request focus on a handle
- * @param setIsDragging - Function to set drag state
- * @param setDragStarted - Function to set drag started state
- * @param setLastInteractionType - Function to set last interaction type
- * @param isDragging - Current dragging handle (if any)
- * @param trackRef - Reference to the track element
- * @param handleDragComplete - Function to call when drag completes
- * @param sliderRef - Reference to the slider container
- * @param handleDragStarted - Whether a drag has started
- * @param isContainerDragging - Whether the container is being dragged
- * @param totalScaleUnits - Total number of scale units
- * @param freeSelectionOnTrackClick - Whether to allow free selection or snap to scales
- * @param autoScrollToVisibleAreaEnabled - Ref to enable auto-scroll to bring handle into view
  * @returns Event handler functions for mouse, touch, and keyboard events
  */
-export function useEventHandlers(
-  startDate: Date,
-  endDate: Date,
-  timeUnit: TimeUnit,
-  rangeStartRef: React.RefObject<number>,
-  rangeEndRef: React.RefObject<number>,
-  pointPositionRef: React.RefObject<number>,
-  viewMode: ViewMode,
-  updateHandlePosition: (handle: DragHandle, percentage: number) => void,
-  requestHandleFocus: (handleType: DragHandle, interactionType?: 'mouse' | 'keyboard') => void,
-  setIsDragging: React.Dispatch<React.SetStateAction<DragHandle>>,
-  setDragStarted: React.Dispatch<React.SetStateAction<boolean>>,
-  setLastInteractionType: React.Dispatch<React.SetStateAction<'mouse' | 'keyboard' | null>>,
-  isDragging: DragHandle,
-  trackRef: React.RefObject<HTMLDivElement | null>,
-  handleDragComplete: () => void,
-  sliderRef: React.RefObject<HTMLDivElement | null>,
-  handleDragStarted: boolean,
-  isContainerDragging: boolean,
-  totalScaleUnits: number,
-  freeSelectionOnTrackClick: boolean,
-  autoScrollToVisibleAreaEnabled: React.MutableRefObject<boolean>,
-) {
+export function useEventHandlers({
+  dates,
+  timeUnit,
+  viewMode,
+  positions,
+  handlers,
+  dragState,
+  setters,
+  refs,
+  config,
+}: UseEventHandlersParams) {
+  const { startDate, endDate } = dates;
+  const { rangeStartRef, rangeEndRef, pointPositionRef } = positions;
+  const { updateHandlePosition, moveByStep, requestHandleFocus, handleDragComplete } = handlers;
+  const { isDragging, handleDragStarted, isContainerDragging } = dragState;
+  const { setIsDragging, setDragStarted, setLastInteractionType } = setters;
+  const { trackRef, sliderRef, autoScrollToVisibleAreaRef } = refs;
+  const { totalScaleUnits, freeSelectionOnTrackClick } = config;
   const findClosestHandle = useCallback(
     (percentage: number): DragHandle => {
       const distances = [
@@ -112,7 +138,7 @@ export function useEventHandlers(
       if (!isDragging) return;
 
       if ('touches' in e) {
-        e.preventDefault(); // prevent scrolling when touch event
+        e.preventDefault();
       }
 
       requestAnimationFrame(() => {
@@ -138,6 +164,7 @@ export function useEventHandlers(
       if (isDragging || handleDragStarted || isContainerDragging || !sliderRef.current) {
         return;
       }
+
       let percentage: number;
       if ('touches' in e) {
         percentage = getPercentageFromTouchEvent(e, trackRef);
@@ -200,67 +227,36 @@ export function useEventHandlers(
 
   const handleHandleKeyDown = useCallback(
     (handle: DragHandle) => (e: React.KeyboardEvent) => {
-      const step = (1 / totalScaleUnits) * 100;
-      let newPercentage: number | undefined;
-
-      const scaleUnitsPercentags = getAllScalesPercentage(
-        startDate,
-        endDate,
-        timeUnit,
-        totalScaleUnits,
-      );
-
-      const currentPosition =
-        handle === 'start'
-          ? rangeStartRef.current
-          : handle === 'end'
-            ? rangeEndRef.current
-            : pointPositionRef.current;
-
       switch (e.key) {
         case 'ArrowLeft':
         case 'ArrowDown':
           e.preventDefault();
-          newPercentage = freeSelectionOnTrackClick
-            ? currentPosition - step
-            : snapToClosestStep(currentPosition - step, scaleUnitsPercentags);
+          setLastInteractionType('keyboard');
+          moveByStep('backward', handle);
           break;
         case 'ArrowRight':
         case 'ArrowUp':
           e.preventDefault();
-          newPercentage = freeSelectionOnTrackClick
-            ? currentPosition + step
-            : snapToClosestStep(currentPosition + step, scaleUnitsPercentags);
+          setLastInteractionType('keyboard');
+          moveByStep('forward', handle);
           break;
-        case 'Home':
+        case 'Home': {
           e.preventDefault();
-          newPercentage = 0;
+          setLastInteractionType('keyboard');
+          updateHandlePosition(handle, 0);
+          autoScrollToVisibleAreaRef.current = true;
           break;
-        case 'End':
+        }
+        case 'End': {
           e.preventDefault();
-          newPercentage = PERCENTAGE.MAX;
+          setLastInteractionType('keyboard');
+          updateHandlePosition(handle, PERCENTAGE.MAX);
+          autoScrollToVisibleAreaRef.current = true;
           break;
-      }
-
-      if (newPercentage !== undefined) {
-        setLastInteractionType('keyboard');
-        updateHandlePosition(handle, newPercentage);
-        autoScrollToVisibleAreaEnabled.current = true;
+        }
       }
     },
-    [
-      totalScaleUnits,
-      startDate,
-      endDate,
-      timeUnit,
-      rangeStartRef,
-      rangeEndRef,
-      pointPositionRef,
-      freeSelectionOnTrackClick,
-      setLastInteractionType,
-      updateHandlePosition,
-      autoScrollToVisibleAreaEnabled,
-    ],
+    [setLastInteractionType, moveByStep, updateHandlePosition, autoScrollToVisibleAreaRef],
   );
 
   // Set up global event listeners for mouse and touch events

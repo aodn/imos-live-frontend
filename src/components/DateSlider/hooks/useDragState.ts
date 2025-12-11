@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useState, useCallback } from 'react';
 import { TIMING } from '../constants';
 import type { DragHandle } from '../type';
 

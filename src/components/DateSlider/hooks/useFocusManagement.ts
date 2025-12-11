@@ -1,6 +1,6 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
 import { TIMING } from '../constants';
 import type { DragHandle } from '../type';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 /**
  * Custom hook to manage focus state for slider handles.
@@ -29,15 +29,14 @@ export function useFocusManagement() {
 
   // Handle focus management after renders
   useEffect(() => {
+    const handleMap = {
+      start: startHandleRef.current,
+      end: endHandleRef.current,
+      point: pointHandleRef.current,
+    } as const;
+
     if (pendingFocus) {
-      const focusTarget =
-        pendingFocus === 'start'
-          ? startHandleRef.current
-          : pendingFocus === 'end'
-            ? endHandleRef.current
-            : pendingFocus === 'point'
-              ? pointHandleRef.current
-              : null;
+      const focusTarget = pendingFocus ? handleMap[pendingFocus] : null;
 
       if (focusTarget && document.activeElement !== focusTarget) {
         // Use delay for mouse interactions to ensure DOM updates complete
