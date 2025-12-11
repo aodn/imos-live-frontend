@@ -25,9 +25,14 @@ type WaveBuoyChartProps = {
 
 const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => {
   const { dateString, buoy, geometry } = toWaveBuoyChartData(waveBuoysData);
-  const date = dayjs(dateString);
-  const from = date.utc().subtract(6, 'days').format('YYYY-MM-DDTHH:mm:ss.000000000') + 'Z';
-  const to = date.utc().format('YYYY-MM-DDTHH:mm:ss.000000000') + 'Z';
+
+  const { from, to } = useMemo(() => {
+    const date = dayjs(dateString);
+    const from = date.utc().subtract(6, 'days').format('YYYY-MM-DDTHH:mm:ss.000000000') + 'Z';
+    const to = date.utc().format('YYYY-MM-DDTHH:mm:ss.000000000') + 'Z';
+    return { from, to };
+  }, [dateString]);
+
   const {
     isLoading,
     isError,
