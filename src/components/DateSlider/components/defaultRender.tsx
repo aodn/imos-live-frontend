@@ -20,7 +20,7 @@ export const customSelectionPanelRenderer = ({
   dateLabel,
 }: SelectionPanelRenderProps) => {
   return (
-    <div className="flex items-center gap-1 bg-white rounded-lg px-2 py-1.5 shadow-sm border border-gray-300 w-40 shrink-0">
+    <div className="hidden md:flex items-center gap-1 bg-white rounded-lg px-2 py-1.5 shadow-sm border border-gray-300 w-40 shrink-0">
       <button
         onClick={toPrevDate}
         className="p-1 hover:bg-blue-50 rounded transition-colors shrink-0 cursor-pointer"
