@@ -2,9 +2,12 @@ import { TriangleIcon } from '../Icons';
 import { setDate } from '@/store';
 import { memo, useCallback } from 'react';
 import { useDateSliderDates } from '@/hooks';
-import type { PointValue, SelectionResult } from '../DateSlider';
-import { dateLabelRender, DateSlider, timeDisplayRender } from '../DateSlider';
+import { DateSlider, type PointValue, type SelectionResult } from '../DateSlider';
 import { cn, toISODateString } from '@/utils';
+import {
+  customDateLabelRenderer,
+  customSelectionPanelRenderer,
+} from '../DateSlider/components/defaultRender';
 
 type DateSelectionBarProps = { className?: string };
 
@@ -18,7 +21,6 @@ export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
     <div className={cn('shadow-xl', className)}>
       <DateSlider
         mode="point"
-        granularity="day"
         min={startDate}
         max={endDate}
         value={{
@@ -44,12 +46,13 @@ export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
             height: { short: 18, medium: 36, long: 60 },
           },
           trackPaddingX: 24,
+          selectionPanelEnabled: true,
+          dateLabelEnabled: true,
         }}
         behavior={{ scrollable: true, handleLabelDisabled: false }}
         renderProps={{
-          renderDateLabel: dateLabelRender,
-          renderTimeDisplay: timeDisplayRender,
-          // renderTimeUnitSelection: timeUnitSelectionRender,
+          renderDateLabel: customDateLabelRenderer,
+          renderSelectionPanel: customSelectionPanelRenderer,
         }}
       />
     </div>

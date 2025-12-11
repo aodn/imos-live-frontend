@@ -1,6 +1,6 @@
+import type { DragHandle } from '../type';
 import { useEffect } from 'react';
 import type { RefObject } from 'react';
-import type { DragHandle } from '../type';
 
 type UseHandleVisible = {
   pointPosition: number;
@@ -17,12 +17,13 @@ type UseHandleVisible = {
   pointHandleRef: RefObject<HTMLButtonElement | null>;
   sliderContainerRef: RefObject<HTMLDivElement | null>;
   isSliderDragging: boolean;
-  autoScrollToVisibleAreaEnabled: RefObject<boolean>;
+  autoScrollToVisibleAreaRef: RefObject<boolean>;
+  sliderAutoScrollToPointHandleVisibleEnabled: boolean;
 };
 /**
- * auto scroll slider to keep handle in view when position changes via buttons or keyboard
+ * auto scroll slider to keep point handle in view when position changes via buttons or keyboard
  */
-export const useHandleVisible = ({
+export const useHandleAutoScrollToVisible = ({
   pointHandleRef,
   isHandleDragging,
   sliderContainerRef,
@@ -31,15 +32,17 @@ export const useHandleVisible = ({
   resetPosition,
   pointPosition,
   isSliderDragging,
-  autoScrollToVisibleAreaEnabled,
+  autoScrollToVisibleAreaRef,
+  sliderAutoScrollToPointHandleVisibleEnabled,
 }: UseHandleVisible) => {
   useEffect(() => {
     if (
       !isSliderDragging &&
       !isHandleDragging &&
-      autoScrollToVisibleAreaEnabled.current &&
+      autoScrollToVisibleAreaRef.current &&
       sliderContainerRef.current &&
-      pointHandleRef?.current
+      pointHandleRef?.current &&
+      sliderAutoScrollToPointHandleVisibleEnabled
     ) {
       const handleRect = pointHandleRef.current.getBoundingClientRect();
       const containerRect = sliderContainerRef.current.getBoundingClientRect();
@@ -55,7 +58,7 @@ export const useHandleVisible = ({
           sliderPosition.x + distanceFromRightEdge - handleWidth - sliderContainerWidth / 2;
         const clampedX = Math.max(newX, dragBounds.left);
         resetPosition({ x: clampedX, y: 0 });
-        autoScrollToVisibleAreaEnabled.current = false;
+        autoScrollToVisibleAreaRef.current = false;
       }
       // Handle is outside visible area on the left
       else if (distanceFromLeftEdge < 0) {
@@ -63,7 +66,7 @@ export const useHandleVisible = ({
           sliderPosition.x - distanceFromLeftEdge + handleWidth + sliderContainerWidth / 2;
         const clampedX = Math.min(newX, dragBounds.right);
         resetPosition({ x: clampedX, y: 0 });
-        autoScrollToVisibleAreaEnabled.current = false;
+        autoScrollToVisibleAreaRef.current = false;
       }
     }
   }, [
@@ -75,6 +78,7 @@ export const useHandleVisible = ({
     pointHandleRef,
     sliderContainerRef,
     isSliderDragging,
-    autoScrollToVisibleAreaEnabled,
+    autoScrollToVisibleAreaRef,
+    sliderAutoScrollToPointHandleVisibleEnabled,
   ]);
 };

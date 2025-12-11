@@ -597,9 +597,11 @@ export const calculateDateRange = (seriesData: any[]) => {
 };
 
 export function generateSeriesStyles(viriants: string[]): Partial<SeriesData>[] {
-  return viriants.map((v, index) => ({
+  return viriants.map((v, _index) => ({
     name: v,
-    color: colors[index % colors.length],
+    // color: colors[index % colors.length],
+    //TODO: temp set to same color.
+    color: colors[0],
     type: 'line',
     lineWidth: 2,
     marker: {

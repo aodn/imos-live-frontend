@@ -8,6 +8,7 @@ export const DateLabel = memo(
   ({
     position,
     label,
+    visible = true,
     immediateDisappear,
     handleLabelPersistent,
     handleLabelDisabled,
@@ -21,8 +22,15 @@ export const DateLabel = memo(
       handleLabelPersistent || false,
     );
 
-    if (!position || !label || !renderDateLabel || handleLabelDisabled) return null;
-    if (!handleLabelPersistent && !showDateLabel) return;
+    if (
+      !position ||
+      !label ||
+      !renderDateLabel ||
+      handleLabelDisabled ||
+      !visible ||
+      (!showDateLabel && !handleLabelPersistent)
+    )
+      return null;
 
     return createPortal(
       <div
