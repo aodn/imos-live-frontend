@@ -1,7 +1,8 @@
 import { convertLogColorScaleToRamp } from '@/components/ColorScaleBar/utils';
 import speedColors from './speed_colormap.json';
+import { generateValueByPercentage } from '@/utils';
 
-const MAX_SPEED = 3.0;
+const MAX_SPEED = 3.0 as const;
 
 export const GSLA_OCEAN_CURRENT_COLORS_LEGEND_CONFIG = {
   title: 'ocean current speed (m/s)',
@@ -26,46 +27,6 @@ export type ParticleConfig = {
 
 export type CustomizableParticleConfig = Omit<ParticleConfig, 'maxSpeed' | 'colours'>;
 
-/**
- * These are the intial configs for particles, useMapUiStore will set the initial particle configs using this.
- *
- * maxSpeed and colours are not customizable.
- * Others can be configured by user in real time.
- */
-export const PARTICLE_INITIAL_CONFIG = {
-  // this is to set all dataset in the same maxSpeed. the maxSpeed determines how particles speed normilized in [0,1] then visualized corresponding color in graident colors ramp.
-  // This should be the same to the maxSpeed of color legend (ColorScaleBar).
-  maxSpeed: MAX_SPEED, //this has to be a float number and if maxSpeed is not larger than 0, it will use dataset's own max speed to visualize the particles.
-
-  // Number of particles
-  nParticles: 10000,
-
-  // Opacity of background screen, leading to fading of trails.
-  // If 1, trails will never fade. If 0, there will be no trails.
-  // As the fade happens every frame, a high number (>0.9)
-  // is required to see any appreciable trails at all.
-  fadeOpacity: 0.99,
-
-  // A dial to adjust the speed of the particles
-  // If the speed is too high, eventually particle trails will no longer be smooth
-  speedFactor: 4.0,
-
-  // Chance per frame that a particle will be deleted and moved to a new position
-  dropRate: 0.002,
-
-  // Increase in the drop rate for particles that are moving faster
-  // Effectively, this number is multiplied by the fraction of the maximum velocity in the
-  // vector field, and then added to the drop rate.
-  // This prevents faster moving regions from visually dominating
-  dropRateBump: 0.05,
-
-  // Size of the particles in pixels
-  pointSize: 1.5,
-
-  // Colour gradient, the colours object is a pair of normilised speed with values (0-1) and hex colour strings. This has to be the same as the LogColorScaleBar component.
-  colours: colors,
-} as const;
-
 export const FADE_OPACITY_RANGE = {
   min: 0.9,
   max: 0.99,
@@ -86,6 +47,37 @@ export const DROP_RATE_BUMP_RANGE = {
 export const POINT_SIZE_RANGE = {
   min: 0.5,
   max: 5.0,
+} as const;
+
+export const PARTICLE_INITIAL_CONFIG = {
+  // the maxSpeed determines how particles speed normilized in [0,1], visualized corresponding color from graident colors ramp.
+  maxSpeed: MAX_SPEED, //NOTICE!!! color legend (ColorScaleBar) must use this one as max range. Must be a float number, if not larger than 0, dataset's own max speed will be maxSpeed.
+
+  nParticles: 10000,
+
+  // opacity of background screen, leading to fading of trails, related to trail length.
+  fadeOpacity: generateValueByPercentage({
+    percentage: 0.6,
+    range: FADE_OPACITY_RANGE,
+    decimals: 2,
+  }),
+
+  speedFactor: generateValueByPercentage({
+    percentage: 0.5,
+    range: SPEED_FACTOR_RANGE,
+    decimals: 1,
+  }),
+
+  // chance per frame that a particle will be deleted and moved to a new position
+  dropRate: 0.002,
+
+  // prevents faster moving regions from visually dominating
+  dropRateBump: 0.05,
+
+  pointSize: generateValueByPercentage({ percentage: 0.25, range: POINT_SIZE_RANGE, decimals: 1 }),
+
+  // colour gradient, the colours object is a pair of normilised speed with values (0-1) and hex colour strings. Must be the same as the LogColorScaleBar component.
+  colours: colors,
 } as const;
 
 /**
