@@ -77,8 +77,8 @@ export const PopupContent = ({ onClose, lngLat, mapBounds, mapSize, point }: Pop
                   Ocean geostrophic current direction:
                 </span>
                 <span className="text-gray-900 text-left">
-                  {data['gsla-ocean-geostrophic-current']?.degree?.toFixed(2)} (
-                  {data['gsla-ocean-geostrophic-current']?.direction})° @{' '}
+                  {Math.round(data['gsla-ocean-geostrophic-current']?.degree ?? 0)}° (
+                  {data['gsla-ocean-geostrophic-current']?.direction}) @{' '}
                   {data['gsla-ocean-geostrophic-current']?.speed?.toFixed(2)} m/s
                 </span>
               </div>

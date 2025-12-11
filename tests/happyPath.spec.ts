@@ -143,7 +143,7 @@ const mapComponent = {
     if ('speed' in content) {
       await expect(page.getByLabel('Ocean surface current details')).toBeVisible();
       await expect(page.getByLabel('Ocean surface current details')).toContainText(
-        `Ocean geostrophic current direction:${content.bearing} (${content.direction})° @ ${content.speed} m/s`,
+        `Ocean geostrophic current direction:${content.bearing}° (${content.direction}) @ ${content.speed} m/s`,
       );
     }
     if ('gsla' in content) {
@@ -389,7 +389,7 @@ test.describe('Ocean Current', () => {
     await mapComponent.expectPopupToHaveContent(page, {
       speed: '1.00',
       direction: 'E',
-      bearing: `${toCompassStandard(2.0).toFixed(2)}`,
+      bearing: `${toCompassStandard(2.0).toFixed(0)}`,
     });
 
     // Wait for auto-scroll to complete and slider to be stable
@@ -405,7 +405,7 @@ test.describe('Ocean Current', () => {
     await mapComponent.expectPopupToHaveContent(page, {
       speed: '2.00',
       direction: 'E',
-      bearing: `${toCompassStandard(3.0).toFixed(2)}`,
+      bearing: `${toCompassStandard(3.0).toFixed(0)}`,
     });
   });
 });
@@ -465,7 +465,7 @@ test.describe('Anomaly sea levels and Ocean Current', () => {
       gsla: '3.00',
       speed: '1.00',
       direction: 'E',
-      bearing: `${toCompassStandard(2.0).toFixed(2)}`,
+      bearing: `${toCompassStandard(2.0).toFixed(0)}`,
     });
 
     // Wait for auto-scroll to complete and slider to be stable
@@ -482,7 +482,7 @@ test.describe('Anomaly sea levels and Ocean Current', () => {
       gsla: '4.00',
       speed: '2.00',
       direction: 'E',
-      bearing: `${toCompassStandard(3.0).toFixed(2)}`,
+      bearing: `${toCompassStandard(3.0).toFixed(0)}`,
     });
   });
 });
