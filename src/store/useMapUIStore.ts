@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import type { CustomizableParticleConfig, ParticleConfig } from '@/config';
-import { PARTICLE_INITIAL_CONFIG } from '@/config';
+import { INITIAL_ZOOM, PARTICLE_INITIAL_CONFIG } from '@/config';
 import type { ProductType } from '@/constants';
 import { PRODUCT } from '@/constants';
 import type { StyleTitle } from '@/styles';
@@ -95,7 +95,7 @@ export const useMapUIStore = create(
   persist<MapUIState>(
     set => ({
       center: new LngLat(133.7751, -25.2744),
-      zoom: 3,
+      zoom: INITIAL_ZOOM,
       style: 'ESRIWorldImagery',
       particleConfig: PARTICLE_INITIAL_CONFIG,
       distanceMeasurement: false,

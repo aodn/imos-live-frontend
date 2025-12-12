@@ -1,4 +1,4 @@
-import { maxZoom } from '@/config';
+import { MAX_ZOOM } from '@/config';
 import { useMapUIStore, setCenter, setZoom } from '@/store';
 import type { LngLatBoundsLike } from 'mapbox-gl';
 import mapboxgl from 'mapbox-gl';
@@ -25,7 +25,7 @@ export function useMapInitialization() {
     map.current = new mapboxgl.Map({
       container: mapContainer.current!,
       minZoom: 1,
-      maxZoom: maxZoom,
+      maxZoom: MAX_ZOOM,
       antialias: true,
       projection: 'mercator',
       touchPitch: false,

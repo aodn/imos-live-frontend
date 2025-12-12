@@ -1,4 +1,4 @@
-import { clusterMaxZoom } from '@/config';
+import { CLUSTER_MAX_ZOOM } from '@/config';
 import {
   UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
   WAVE_BUOYS_LAYER_ID,
@@ -122,7 +122,7 @@ export function useWaveBuoysLayerClickHandler(
       source.getClusterExpansionZoom(clusterId, (err, zoom) => {
         if (err) return;
 
-        if (typeof zoom === 'number' && zoom <= clusterMaxZoom) {
+        if (typeof zoom === 'number' && zoom <= CLUSTER_MAX_ZOOM) {
           mapInstance.easeTo({
             center: (features[0].geometry as any).coordinates,
             zoom: zoom,
@@ -201,7 +201,7 @@ export function useWaveBuoysLayerClickHandler(
       const currentZoom = mapInstance.getZoom();
 
       if (
-        currentZoom <= clusterMaxZoom &&
+        currentZoom <= CLUSTER_MAX_ZOOM &&
         mapInstance.getSource(ZOOM_LIMIT_TEMP_POINTS_SOURCE_ID)
       ) {
         removeZoomLimitTempPoints(map);

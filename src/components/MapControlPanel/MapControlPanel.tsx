@@ -1,6 +1,7 @@
 import { Button } from '@/components';
 import { cn } from '@/utils';
-import { AddCircleIcon, HandIcon, MinusCircleIcon } from '../Icons';
+import { AddCircleIcon, HandIcon, MinusCircleIcon, ZoomResetIcon } from '../Icons';
+import { INITIAL_ZOOM } from '@/config';
 
 export const MapControlPanel = ({
   ref: mapRef,
@@ -19,29 +20,43 @@ export const MapControlPanel = ({
     mapRef.current?.zoomOut({ duration: 300 });
   };
 
+  const handleResetZoom = () => {
+    mapRef.current?.setZoom(INITIAL_ZOOM);
+  };
   const handlePan = () => {};
 
   return (
-    <div className={cn('flex flex-col items-center gap-3 p-4', className)}>
+    <div className={cn('flex items-center p-4', className)}>
       <Button
         variant="ghost"
         size="icon"
         aria-label="Zoom in"
         onClick={handleZoomIn}
-        className="hover:bg-transparent hover:text-imos-white text-imos-white hover:scale-110 w-9 h-9 drop-shadow-[0_0_3px_rgba(0,0,0,1)]"
         asChild
+        className="hover:bg-transparent hover:text-imos-white text-imos-white hover:scale-110 w-9 h-9 drop-shadow-[0_0_3px_rgba(0,0,0,1)]"
       >
-        <AddCircleIcon size="xl" />
+        <AddCircleIcon />
       </Button>
       <Button
         variant="ghost"
         size="icon"
         aria-label="Zoom out"
         onClick={handleZoomOut}
-        className="hover:bg-transparent hover:text-imos-white text-imos-white hover:scale-110 w-9 h-9 drop-shadow-[0_0_3px_rgba(0,0,0,1)]"
         asChild
+        className="hover:bg-transparent hover:text-imos-white text-imos-white hover:scale-110 w-9 h-9 ml-1 drop-shadow-[0_0_3px_rgba(0,0,0,1)]"
       >
-        <MinusCircleIcon size="xl" />
+        <MinusCircleIcon />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        aria-label="Zoom reset"
+        onClick={handleResetZoom}
+        isActive={isPanActive}
+        asChild
+        className="hover:bg-transparent hover:text-imos-white text-imos-white hover:scale-110 w-9 h-9 ml-1 drop-shadow-[0_0_3px_rgba(0,0,0,1)]"
+      >
+        <ZoomResetIcon />
       </Button>
       <Button
         variant="ghost"
@@ -49,8 +64,8 @@ export const MapControlPanel = ({
         aria-label="Pan"
         onClick={handlePan}
         isActive={isPanActive}
-        className="hover:bg-transparent hover:text-imos-white text-imos-white hover:scale-110 w-9 h-9 drop-shadow-[0_0_3px_rgba(0,0,0,1)]"
         asChild
+        className="hover:bg-transparent hover:text-imos-white text-imos-white hover:scale-110 w-9 h-9 ml-1 drop-shadow-[0_0_3px_rgba(0,0,0,1)]"
       >
         <HandIcon />
       </Button>
