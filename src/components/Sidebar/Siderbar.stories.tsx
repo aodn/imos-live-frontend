@@ -39,7 +39,6 @@ export const Primary: Story = {
         </div>
       </div>
     ),
-    defaultOpen: true,
     openButtonClassName: 'bg-red-500',
     closeButtonClassName: 'bg-red-500',
     openButtonContent: <MenuIcon color="imos-white" />,
