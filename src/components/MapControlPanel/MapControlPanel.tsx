@@ -6,11 +6,9 @@ import { useIsMapDragging } from '@/hooks';
 
 export const MapControlPanel = ({
   ref: mapRef,
-  isPanActive = false,
   className = '',
 }: {
   ref: React.RefObject<mapboxgl.Map | null>;
-  isPanActive?: boolean;
   className?: string;
 }) => {
   const isDragging = useIsMapDragging(mapRef);
@@ -53,7 +51,6 @@ export const MapControlPanel = ({
         size="icon"
         aria-label="Zoom reset"
         onClick={handleResetZoom}
-        isActive={isPanActive}
         className={cn('bg-imos-white rounded-full p-1 hover:[&_svg]:text-imos-white', {
           'opacity-85': isDragging,
         })}
