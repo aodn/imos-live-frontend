@@ -41,7 +41,8 @@ vi.mock('@/store', () => ({
 }));
 
 vi.mock('@/config', () => ({
-  maxZoom: 18,
+  MAX_ZOOM: 18,
+  INITIAL_ZOOM: 3,
 }));
 
 // Import the mocked functions to use in tests
