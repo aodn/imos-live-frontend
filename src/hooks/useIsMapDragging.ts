@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 
 export function useIsMapDragging(mapRef: React.RefObject<mapboxgl.Map | null>) {
+  const [map, setMap] = useState<mapboxgl.Map | null>(mapRef.current);
   const [isDragging, setIsDragging] = useState(false);
 
+  if (mapRef.current !== map) setMap(mapRef.current);
+
   useEffect(() => {
-    const map = mapRef.current;
     if (!map) return;
 
     const handleDragStart = () => setIsDragging(true);
@@ -17,7 +19,7 @@ export function useIsMapDragging(mapRef: React.RefObject<mapboxgl.Map | null>) {
       map.off('dragstart', handleDragStart);
       map.off('dragend', handleDragEnd);
     };
-  }, [mapRef]);
+  }, [map]);
 
   return isDragging;
 }
