@@ -1,13 +1,12 @@
-import React, { useState } from 'react';
 import { Button } from '../Button';
 import { CloseIcon, MenuIcon } from '../Icons';
 import { cn } from '@/utils';
+import { useSidebarStore, setSidebarOpen } from '@/store';
 
 type SidebarProps = {
   width?: number;
   sidebarContent?: React.ReactNode;
   children?: React.ReactNode;
-  defaultOpen?: boolean;
   wrapperClassName?: string;
   className?: string;
   openButtonClassName?: string;
@@ -22,7 +21,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   width = 540,
   sidebarContent,
   children,
-  defaultOpen = true,
   wrapperClassName = '',
   className = '',
   openButtonClassName = '',
@@ -32,15 +30,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpen,
   onClose,
 }) => {
-  const [open, setOpen] = useState(defaultOpen);
+  const isOpen = useSidebarStore(s => s.isOpen);
 
   const handleOpen = () => {
-    setOpen(true);
+    setSidebarOpen(true);
     if (onOpen) onOpen();
   };
 
   const handleClose = () => {
-    setOpen(false);
+    setSidebarOpen(false);
     if (onClose) onClose();
   };
 
@@ -52,16 +50,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
           wrapperClassName,
         )}
         style={{
-          width: open ? width : 0,
+          width: isOpen ? width : 0,
         }}
-        inert={!open}
+        inert={!isOpen}
       >
         <Button
           variant="ghost"
           aria-label="Close sidebar"
           size="icon"
           onClick={handleClose}
-          tabIndex={open ? 0 : -1}
+          tabIndex={isOpen ? 0 : -1}
           className={cn('absolute top-2 right-2', closeButtonClassName)}
         >
           {closeButtonContent || <CloseIcon size="xl" />}
@@ -70,7 +68,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="px-4">{sidebarContent}</div>
       </aside>
 
-      {!open && (
+      {!isOpen && (
         <Button
           variant="ghost"
           aria-label="Open sidebar"

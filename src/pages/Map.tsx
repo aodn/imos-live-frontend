@@ -98,7 +98,7 @@ export const Map = () => {
       {isSmallScreen ? (
         <div className="h-full w-full">{mapContent}</div>
       ) : (
-        <Sidebar width={540} defaultOpen={true} sidebarContent={<MainSidebarContent />}>
+        <Sidebar width={540} sidebarContent={<MainSidebarContent />}>
           {mapContent}
         </Sidebar>
       )}

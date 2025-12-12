@@ -26,7 +26,7 @@ export const MapControlPanel = ({
   const handlePan = () => {};
 
   return (
-    <div className={cn('flex items-center p-4', className)}>
+    <div className={cn('flex items-center', className)}>
       <Button
         variant="ghost"
         size="icon"
