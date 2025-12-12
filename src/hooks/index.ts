@@ -24,3 +24,5 @@ export * from './useMapboxLayerVisibility';
 export * from './useWorldLandLayer';
 export * from './usePopContentData';
 export * from './useDateSliderDates';
+export * from './useIsMapDragging';
+export * from './useIsMapZooming';
