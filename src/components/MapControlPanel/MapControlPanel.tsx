@@ -2,7 +2,7 @@ import { Button } from '@/components';
 import { cn } from '@/utils';
 import { RenewIcon, PlusIcon, MinusIcon } from '../Icons';
 import { INITIAL_ZOOM } from '@/config';
-import { useIsMapDragging } from '@/hooks';
+import { useIsMapDragging, useIsMapZooming } from '@/hooks';
 
 export const MapControlPanel = ({
   ref: mapRef,
@@ -12,6 +12,9 @@ export const MapControlPanel = ({
   className?: string;
 }) => {
   const isDragging = useIsMapDragging(mapRef);
+  const isZooming = useIsMapZooming(mapRef);
+
+  const isMapOnOperation = isDragging || isZooming;
 
   const handleZoomIn = () => {
     mapRef.current?.zoomIn({ duration: 300 });
@@ -32,7 +35,7 @@ export const MapControlPanel = ({
         aria-label="Zoom in"
         onClick={handleZoomIn}
         className="bg-imos-white rounded-full p-1 hover:[&_svg]:text-imos-white"
-        disabled={isDragging}
+        disabled={isMapOnOperation}
       >
         <PlusIcon className="text-imos-grey" size="lg" />
       </Button>
@@ -41,7 +44,7 @@ export const MapControlPanel = ({
         aria-label="Zoom out"
         onClick={handleZoomOut}
         className="bg-imos-white rounded-full p-1 hover:[&_svg]:text-imos-white"
-        disabled={isDragging}
+        disabled={isMapOnOperation}
       >
         <MinusIcon className="text-imos-grey" size="lg" />
       </Button>
@@ -50,7 +53,7 @@ export const MapControlPanel = ({
         aria-label="Zoom reset"
         onClick={handleResetZoom}
         className="bg-imos-white rounded-full p-1 hover:[&_svg]:text-imos-white"
-        disabled={isDragging}
+        disabled={isMapOnOperation}
       >
         <RenewIcon className="text-imos-grey" size="lg" />
       </Button>
