@@ -1,4 +1,4 @@
-import { clusterMaxZoom } from '@/config';
+import { CLUSTER_MAX_ZOOM } from '@/config';
 import { addIdToFeatures } from '@/utils';
 
 export function addOrUpdateGeoJsonSource({
@@ -24,7 +24,7 @@ export function addOrUpdateGeoJsonSource({
     type: 'geojson' as const,
     data: data,
     cluster: enableCluser,
-    clusterMaxZoom: clusterMaxZoom,
+    clusterMaxZoom: CLUSTER_MAX_ZOOM,
     ...(clusterRadius ? { clusterRadius } : {}),
     // CRITICAL: This tells Mapbox to use properties._id as the feature ID for state management
     // This is necessary because clustering can cause feature.id to be lost
