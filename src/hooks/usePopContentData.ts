@@ -10,7 +10,7 @@ import { processOceanCurrentDetails } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
 import type { LngLat, Point } from 'mapbox-gl';
 
-type UsePopupContentData = {
+type UseClickedMapPopupContentData = {
   oceanCurrentEnabled: boolean;
   sstAnomMosaicEnabled: boolean;
   gslaAnomalySeaLevelsEnabled: boolean;
@@ -24,7 +24,7 @@ type UsePopupContentData = {
   mapBounds: [number, number, number, number];
 };
 
-export const usePopupContentData = ({
+export const useClickedMapPopupContentData = ({
   mapBounds,
   mapSize,
   oceanCurrentEnabled,
@@ -33,7 +33,7 @@ export const usePopupContentData = ({
   date,
   lngLat,
   point,
-}: UsePopupContentData) => {
+}: UseClickedMapPopupContentData) => {
   const { data: gslaOceanCurrent, isLoading: isGslaOceanCurrentLoading } = useQuery({
     queryKey: [GSLA_DATA_NAME, date],
     queryFn: () => getOceanCurrentData(date),

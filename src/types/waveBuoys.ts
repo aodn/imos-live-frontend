@@ -21,18 +21,10 @@ export type WaveBuoyDetailsFeatureCollection = {
   features: WaveBuoyDetailsFeature[];
 };
 
-//Wave Buoy Position Types
-export type WaveBuoyPositionMetaData = {
-  date: string;
-  buoy_count: number;
-  generated_at: string;
-};
-
 export type WaveBuoyPositionProperties = {
   date: string;
   buoy: string;
-  year: number;
-  timestap: string;
+  _id: string;
 };
 
 export type WaveBuoyPositionFeature = {
@@ -44,5 +36,4 @@ export type WaveBuoyPositionFeature = {
 export type WaveBuoyPositionFeatureCollection = {
   type: 'FeatureCollection';
   features: WaveBuoyPositionFeature[];
-  metadata: WaveBuoyPositionMetaData;
 };

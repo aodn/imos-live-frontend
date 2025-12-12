@@ -1,8 +1,9 @@
-import { showPopup } from '@/helpers';
+import { type ClosePopupFn, gerMapMetaData, showPopup } from '@/helpers';
 import { debounce } from '@/utils';
 import type { RefObject } from 'react';
 import { useCallback, useEffect } from 'react';
 import { WORLD_LAND_FILL_LAYER_ID } from '@/constants';
+import { ClickedMapPopupContent } from '@/components';
 
 type UseMapClickHandlersOptions = {
   map: RefObject<mapboxgl.Map | null>;
@@ -36,6 +37,9 @@ export function useParticleOverlayLayersClickHandlers({
         return;
       }
 
+      const { mapBounds, mapSize } = gerMapMetaData(map);
+      if (!mapBounds || !mapSize) return;
+
       const { lngLat, point } = e;
       if (!lngLat || !point) return;
 
@@ -51,6 +55,15 @@ export function useParticleOverlayLayersClickHandlers({
         map,
         lngLat,
         point,
+        PopupContent: (closeFn: ClosePopupFn) => (
+          <ClickedMapPopupContent
+            lngLat={lngLat}
+            point={point}
+            onClose={closeFn}
+            mapBounds={mapBounds}
+            mapSize={mapSize}
+          />
+        ),
       });
     }, 400),
     [distanceMeasurement, overlay, oceanCurrentEnabled],

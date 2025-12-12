@@ -1,4 +1,4 @@
-import type { WaveBuoyDetailsFeature, WaveBuoyDetailsFeatureCollection } from '@/types';
+import type { WaveBuoyDetailsFeature, WaveBuoyPositionFeatureCollection } from '@/types';
 import axios from 'axios';
 
 export const getWaveBuoyDetails = async (
@@ -18,10 +18,11 @@ export const getWaveBuoyDetails = async (
 
 export const getWaveBuoyLocations = async (
   date: string,
-): Promise<WaveBuoyDetailsFeatureCollection> => {
-  const wavebuoysLocations = await axios.get<WaveBuoyDetailsFeatureCollection>(
+): Promise<WaveBuoyPositionFeatureCollection> => {
+  const wavebuoysLocations = await axios.get<WaveBuoyPositionFeatureCollection>(
     '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items/first_data_available?datetime=' +
       date,
   );
+  console.log(wavebuoysLocations.data);
   return wavebuoysLocations.data;
 };
