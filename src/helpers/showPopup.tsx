@@ -33,7 +33,7 @@ export function showPopup({ map, PopupContent, ...rest }: ShowPopUpArgs) {
     closeOnClick: true,
     className: 'custom-popup',
     maxWidth: 'none',
-    offset: 25,
+    offset: 10,
   }) as PopupWithRoot;
 
   popup.__reactRoot = root;

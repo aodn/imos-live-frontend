@@ -14,8 +14,12 @@ import {
   showPopup,
 } from '@/helpers';
 import { useDrawerStore, openBottomDrawer } from '@/store';
-import type { WaveBuoyPositionFeature, WaveBuoyPositionProperties } from '@/types';
-import { normalizeWaveBuouysData } from '@/utils';
+import type {
+  WaveBuoyGeometry,
+  WaveBuoyPositionFeature,
+  WaveBuoyPositionProperties,
+} from '@/types';
+import { coordinateToLngLat, normalizeWaveBuouysData } from '@/utils';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 export function useWaveBuoysLayerClickHandler(
@@ -26,6 +30,8 @@ export function useWaveBuoysLayerClickHandler(
   const waveBuoysLayerClicked = useRef(false);
   const tempPointsEventPrevent = useRef(false);
   const selectedFeatureId = useRef<string | number | null>(null);
+  const hoverPopupRef = useRef<mapboxgl.Popup | null>(null);
+  const popupCloseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const bottomDrawer = useDrawerStore(s => s.bottomDrawer);
 
   const [clickedPointData, setClickedPointData] = useState<
@@ -189,21 +195,70 @@ export function useWaveBuoysLayerClickHandler(
 
     const handleMouseEnter = (e: mapboxgl.MapMouseEvent) => {
       if (!e.features?.length) return;
-      const { lngLat } = e;
-      const { buoy, date } = e.features[0].properties as WaveBuoyPositionProperties;
 
-      showPopup({
+      const { geometry, properties } = e.features[0];
+      const { coordinates } = geometry as WaveBuoyGeometry;
+      const { buoy, date } = properties as WaveBuoyPositionProperties;
+
+      const lngLat = coordinateToLngLat(coordinates);
+
+      if (popupCloseTimeoutRef.current) {
+        clearTimeout(popupCloseTimeoutRef.current);
+        popupCloseTimeoutRef.current = null;
+      }
+
+      if (hoverPopupRef.current) {
+        hoverPopupRef.current.remove();
+        hoverPopupRef.current = null;
+      }
+
+      const popup = showPopup({
         map,
         lngLat,
         PopupContent: (closeFn: ClosePopupFn) => (
           <BuoyHoverPopupContent buoy={buoy} date={date} onClose={closeFn} />
         ),
       });
+
+      if (popup) {
+        hoverPopupRef.current = popup;
+
+        const popupElement = popup.getElement();
+        if (popupElement) {
+          const handlePopupMouseEnter = () => {
+            if (popupCloseTimeoutRef.current) {
+              clearTimeout(popupCloseTimeoutRef.current);
+              popupCloseTimeoutRef.current = null;
+            }
+          };
+
+          const handlePopupMouseLeave = () => {
+            if (hoverPopupRef.current) {
+              hoverPopupRef.current.remove();
+              hoverPopupRef.current = null;
+            }
+          };
+
+          popupElement.addEventListener('mouseenter', handlePopupMouseEnter);
+          popupElement.addEventListener('mouseleave', handlePopupMouseLeave);
+
+          popup.on('close', () => {
+            popupElement.removeEventListener('mouseenter', handlePopupMouseEnter);
+            popupElement.removeEventListener('mouseleave', handlePopupMouseLeave);
+          });
+        }
+      }
     };
 
-    const handleMouseLeave = (e: mapboxgl.MapMouseEvent) => {
-      if (!e.features?.length) return;
-      console.log('mouse leave');
+    const handleMouseLeave = () => {
+      // delay closing the popup to allow mouse to move to the popup
+      popupCloseTimeoutRef.current = setTimeout(() => {
+        if (hoverPopupRef.current) {
+          hoverPopupRef.current.remove();
+          hoverPopupRef.current = null;
+        }
+        popupCloseTimeoutRef.current = null;
+      }, 200);
     };
 
     mapInstance.on('mouseenter', UNCLUSTERED_WAVE_BUOYS_LAYER_ID, handleMouseEnter);
@@ -211,6 +266,15 @@ export function useWaveBuoysLayerClickHandler(
     return () => {
       mapInstance?.off('mouseenter', UNCLUSTERED_WAVE_BUOYS_LAYER_ID, handleMouseEnter);
       mapInstance?.off('mouseleave', UNCLUSTERED_WAVE_BUOYS_LAYER_ID, handleMouseLeave);
+      // clean up timeout and popup on unmount
+      if (popupCloseTimeoutRef.current) {
+        clearTimeout(popupCloseTimeoutRef.current);
+        popupCloseTimeoutRef.current = null;
+      }
+      if (hoverPopupRef.current) {
+        hoverPopupRef.current.remove();
+        hoverPopupRef.current = null;
+      }
     };
   }, [waveBuoyEnabled, map]);
 

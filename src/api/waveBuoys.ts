@@ -23,6 +23,5 @@ export const getWaveBuoyLocations = async (
     '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items/first_data_available?datetime=' +
       date,
   );
-  console.log(wavebuoysLocations.data);
   return wavebuoysLocations.data;
 };
