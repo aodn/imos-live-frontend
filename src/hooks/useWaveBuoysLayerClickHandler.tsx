@@ -190,7 +190,7 @@ export function useWaveBuoysLayerClickHandler(
 
   useEffect(() => {
     //hover on unclustered wave buoys layer.
-    if (!map.current || !waveBuoyEnabled) return;
+    if (!map.current || !waveBuoyEnabled || distanceMeasurement) return;
     const mapInstance = map.current;
 
     const handleMouseEnter = (e: mapboxgl.MapMouseEvent) => {
@@ -263,9 +263,13 @@ export function useWaveBuoysLayerClickHandler(
 
     mapInstance.on('mouseenter', UNCLUSTERED_WAVE_BUOYS_LAYER_ID, handleMouseEnter);
     mapInstance.on('mouseleave', UNCLUSTERED_WAVE_BUOYS_LAYER_ID, handleMouseLeave);
+    mapInstance.on('mouseenter', ZOOM_LIMIT_TEMP_POINTS_LAYER_ID, handleMouseEnter);
+    mapInstance.on('mouseleave', ZOOM_LIMIT_TEMP_POINTS_LAYER_ID, handleMouseLeave);
     return () => {
       mapInstance?.off('mouseenter', UNCLUSTERED_WAVE_BUOYS_LAYER_ID, handleMouseEnter);
       mapInstance?.off('mouseleave', UNCLUSTERED_WAVE_BUOYS_LAYER_ID, handleMouseLeave);
+      mapInstance.on('mouseenter', ZOOM_LIMIT_TEMP_POINTS_LAYER_ID, handleMouseEnter);
+      mapInstance.on('mouseleave', ZOOM_LIMIT_TEMP_POINTS_LAYER_ID, handleMouseLeave);
       // clean up timeout and popup on unmount
       if (popupCloseTimeoutRef.current) {
         clearTimeout(popupCloseTimeoutRef.current);
@@ -276,7 +280,7 @@ export function useWaveBuoysLayerClickHandler(
         hoverPopupRef.current = null;
       }
     };
-  }, [waveBuoyEnabled, map]);
+  }, [waveBuoyEnabled, map, distanceMeasurement]);
 
   useEffect(() => {
     //click on ZOOM_LIMIT_TEMP_POINTS_LAYER, because points are too close so that cannot be displayed invidiually. This is the layer temporarily created to display thoese points
