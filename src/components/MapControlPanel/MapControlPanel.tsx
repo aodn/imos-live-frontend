@@ -31,9 +31,8 @@ export const MapControlPanel = ({
         size="icon"
         aria-label="Zoom in"
         onClick={handleZoomIn}
-        className={cn('bg-imos-white rounded-full p-1 hover:[&_svg]:text-imos-white', {
-          'opacity-85': isDragging,
-        })}
+        className="bg-imos-white rounded-full p-1 hover:[&_svg]:text-imos-white"
+        disabled={isDragging}
       >
         <PlusIcon className="text-imos-grey" size="lg" />
       </Button>
@@ -41,9 +40,8 @@ export const MapControlPanel = ({
         size="icon"
         aria-label="Zoom out"
         onClick={handleZoomOut}
-        className={cn('bg-imos-white rounded-full p-1 hover:[&_svg]:text-imos-white', {
-          'opacity-85': isDragging,
-        })}
+        className="bg-imos-white rounded-full p-1 hover:[&_svg]:text-imos-white"
+        disabled={isDragging}
       >
         <MinusIcon className="text-imos-grey" size="lg" />
       </Button>
@@ -51,9 +49,8 @@ export const MapControlPanel = ({
         size="icon"
         aria-label="Zoom reset"
         onClick={handleResetZoom}
-        className={cn('bg-imos-white rounded-full p-1 hover:[&_svg]:text-imos-white', {
-          'opacity-85': isDragging,
-        })}
+        className="bg-imos-white rounded-full p-1 hover:[&_svg]:text-imos-white"
+        disabled={isDragging}
       >
         <RenewIcon className="text-imos-grey" size="lg" />
       </Button>
