@@ -28,6 +28,9 @@ import ZoomReset from './zoom-reset.svg?react';
 import Plus from './plus.svg?react';
 import Minus from './minus.svg?react';
 import Renew from './renew.svg?react';
+import FullScreen from './fullscreen.svg?react';
+import CloseFullScreen from './close_fullscreen.svg?react';
+
 export const CloseIcon = withIcon(Close);
 export const MenuIcon = withIcon(Menu);
 export const ArrowIcon = withIcon(Arrow);
@@ -57,6 +60,8 @@ export const ZoomResetIcon = withIcon(ZoomReset);
 export const PlusIcon = withIcon(Plus);
 export const MinusIcon = withIcon(Minus);
 export const RenewIcon = withIcon(Renew);
+export const FullScreenIcon = withIcon(FullScreen);
+export const CloseFullScreenIcon = withIcon(CloseFullScreen);
 
 export const icons = {
   ThermometerIcon,

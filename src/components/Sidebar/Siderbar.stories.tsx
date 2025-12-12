@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { CloseIcon, MenuIcon } from '../Icons';
-
 import { Sidebar } from './Sidebar';
+
 const meta = {
   title: 'components/Sidebar',
   component: Sidebar,
@@ -39,11 +38,5 @@ export const Primary: Story = {
         </div>
       </div>
     ),
-    openButtonClassName: 'bg-red-500',
-    closeButtonClassName: 'bg-red-500',
-    openButtonContent: <MenuIcon color="imos-white" />,
-    closeButtonContent: <CloseIcon color="imos-white" />,
-    onOpen: () => console.log('Sidebar opened'),
-    onClose: () => console.log('Sidebar closed'),
   },
 };
