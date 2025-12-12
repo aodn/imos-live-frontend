@@ -136,7 +136,7 @@ export const MapComponent = memo(() => {
 
       <MapControlPanel
         ref={map}
-        className={cn('absolute top-14 left-4 z-10 hidden md:block', {
+        className={cn('absolute top-14 left-3 z-10 hidden md:flex', {
           'top-4': isSiderbarOpen,
         })}
       />

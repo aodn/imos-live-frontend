@@ -25,7 +25,9 @@ import Loader2 from './loader_2.svg?react';
 import Check from './check.svg?react';
 import { Thermometer } from 'lucide-react';
 import ZoomReset from './zoom-reset.svg?react';
-
+import Plus from './plus.svg?react';
+import Minus from './minus.svg?react';
+import Renew from './renew.svg?react';
 export const CloseIcon = withIcon(Close);
 export const MenuIcon = withIcon(Menu);
 export const ArrowIcon = withIcon(Arrow);
@@ -52,6 +54,9 @@ export const Loader2Icon = withIcon(Loader2);
 export const CheckIcon = withIcon(Check);
 export const ThermometerIcon = withIcon(Thermometer);
 export const ZoomResetIcon = withIcon(ZoomReset);
+export const PlusIcon = withIcon(Plus);
+export const MinusIcon = withIcon(Minus);
+export const RenewIcon = withIcon(Renew);
 
 export const icons = {
   ThermometerIcon,
