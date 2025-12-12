@@ -133,7 +133,7 @@ export const MapComponent = memo(() => {
         />
       )}
 
-      <MapControlPanel ref={map} className="absolute top-4 left-4 z-10 hidden md:flex" />
+      <MapControlPanel ref={map} className="absolute top-2 left-2 z-10 hidden md:flex" />
     </>
   );
 });
