@@ -11,7 +11,7 @@ import {
   useWaveBuoysLayerClickHandler,
   useWorldLandLayer,
 } from '@/hooks';
-import { useMapUIStore } from '@/store';
+import { useMapUIStore, useSidebarStore } from '@/store';
 import { cn } from '@/utils';
 import mapboxgl from 'mapbox-gl';
 import { lazy, memo, Suspense, useEffect } from 'react';
@@ -35,6 +35,7 @@ mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_KEY;
 const WaveBuoyChart = lazy(() => import('../Highcharts/WaveBuoyChart'));
 
 export const MapComponent = memo(() => {
+  const isSiderbarOpen = useSidebarStore(s => s.isOpen);
   const {
     distanceMeasurement,
     gslaAnomalySeaLevelsEnabled,
@@ -133,7 +134,12 @@ export const MapComponent = memo(() => {
         />
       )}
 
-      <MapControlPanel ref={map} className="absolute top-10 left-0 z-10 hidden md:block" />
+      <MapControlPanel
+        ref={map}
+        className={cn('absolute top-14 left-4 z-10 hidden md:block', {
+          'top-4': isSiderbarOpen,
+        })}
+      />
     </>
   );
 });
