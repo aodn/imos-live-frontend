@@ -22,6 +22,12 @@ import type {
 import { coordinateToLngLat, normalizeWaveBuouysData } from '@/utils';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+const layers = [
+  WAVE_BUOYS_LAYER_ID,
+  UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
+  ZOOM_LIMIT_TEMP_POINTS_LAYER_ID,
+] as const;
+
 export function useWaveBuoysLayerClickHandler(
   map: React.RefObject<mapboxgl.Map | null>,
   waveBuoyEnabled: boolean,
@@ -52,12 +58,6 @@ export function useWaveBuoysLayerClickHandler(
   useEffect(() => {
     if (!map.current || !waveBuoyEnabled) return;
     const mapInstance = map.current;
-
-    const layers = [
-      WAVE_BUOYS_LAYER_ID,
-      UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
-      ZOOM_LIMIT_TEMP_POINTS_LAYER_ID,
-    ];
 
     const handleMouseEnter = () => {
       mapInstance.getCanvas().style.cursor = 'pointer';
@@ -238,7 +238,7 @@ export function useWaveBuoysLayerClickHandler(
               hoverPopupRef.current = null;
             }
           };
-
+          //add mouse enter and leave event to popup element
           popupElement.addEventListener('mouseenter', handlePopupMouseEnter);
           popupElement.addEventListener('mouseleave', handlePopupMouseLeave);
 

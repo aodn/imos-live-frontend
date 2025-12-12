@@ -6,13 +6,13 @@ export type BuoyHoverPopupContentProps = {
   onClose?: ClosePopupFn;
 };
 
-export const BuoyHoverPopupContent = ({ buoy, date, onClose }: BuoyHoverPopupContentProps) => {
+export const BuoyHoverPopupContent = ({ buoy, date }: BuoyHoverPopupContentProps) => {
   return (
     <div
       className="w-40 min-h-10 relative bg-white rounded-lg shadow-lg overflow-hidden p-2"
       aria-label="Current buoy information"
     >
-      {onClose && (
+      {/* {onClose && (
         <button
           onClick={onClose}
           aria-label="Close popup"
@@ -20,7 +20,7 @@ export const BuoyHoverPopupContent = ({ buoy, date, onClose }: BuoyHoverPopupCon
         >
           ×
         </button>
-      )}
+      )} */}
 
       <div>
         <p>Buoy: {buoy}</p>
