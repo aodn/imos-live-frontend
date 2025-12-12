@@ -76,9 +76,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
           aria-label="Open sidebar"
           size="icon"
           onClick={handleOpen}
-          className={cn('absolute z-20 left-4 top-4', openButtonClassName)}
+          className={cn(
+            'absolute z-20 left-4 top-4 hover:bg-transparent hover:scale-110',
+            openButtonClassName,
+          )}
         >
-          {openButtonContent || <MenuIcon size="xl" color="imos-white" />}
+          {openButtonContent || (
+            <MenuIcon
+              size="xl"
+              color="imos-white"
+              className="drop-shadow-[0_0_3px_rgba(0,0,0,1)]"
+            />
+          )}
         </Button>
       )}
 
