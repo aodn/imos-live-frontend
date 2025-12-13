@@ -54,7 +54,6 @@ export function useParticleOverlayLayersClickHandlers({
       showPopup({
         map,
         lngLat,
-        point,
         PopupContent: (closeFn: ClosePopupFn) => (
           <ClickedMapPopupContent
             lngLat={lngLat}

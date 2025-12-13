@@ -162,7 +162,6 @@ export function useWaveBuoysLayerClickHandler(
     const handleClick = (e: mapboxgl.MapMouseEvent) => {
       if (!e.features?.length) return;
       const feature = e.features[0];
-      // const featureId = feature.properties?._id;
       const featureId = feature.properties?._id;
 
       if (selectedFeatureId.current !== null) {

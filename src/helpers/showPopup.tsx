@@ -1,8 +1,6 @@
-import type { LngLat, Point } from 'mapbox-gl';
+import type { LngLat } from 'mapbox-gl';
 import mapboxgl from 'mapbox-gl';
-import type { Root } from 'react-dom/client';
-import { createRoot } from 'react-dom/client';
-
+import { type Root, createRoot } from 'react-dom/client';
 import { queryClient } from '@/config';
 import { QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
@@ -16,12 +14,11 @@ export type ClosePopupFn = () => PopupWithRoot;
 type ShowPopUpArgs = {
   map: React.RefObject<mapboxgl.Map | null>;
   lngLat: LngLat;
-  point?: Point;
   PopupContent: (closeFn: ClosePopupFn) => ReactNode;
 };
 
-export function showPopup({ map, PopupContent, ...rest }: ShowPopUpArgs) {
-  const { lat, lng } = rest.lngLat;
+export function showPopup({ map, PopupContent, lngLat }: ShowPopUpArgs) {
+  const { lat, lng } = lngLat;
   if (!map.current || lat === undefined || lng === undefined) return;
 
   const container = document.createElement('div');
