@@ -28,7 +28,7 @@ const layers = [
   ZOOM_LIMIT_TEMP_POINTS_LAYER_ID,
 ] as const;
 
-export function useWaveBuoysLayerClickHandler(
+export function useWaveBuoysLayerEventHandler(
   map: React.RefObject<mapboxgl.Map | null>,
   waveBuoyEnabled: boolean,
   distanceMeasurement: boolean,

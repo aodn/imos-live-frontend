@@ -5,7 +5,7 @@ import { useCallback, useEffect } from 'react';
 import { WORLD_LAND_FILL_LAYER_ID } from '@/constants';
 import { ClickedMapPopupContent } from '@/components';
 
-type UseMapClickHandlersOptions = {
+type UseMapEventHandlersOptions = {
   map: RefObject<mapboxgl.Map | null>;
   overlay: boolean;
   oceanCurrentEnabled: boolean;
@@ -14,14 +14,14 @@ type UseMapClickHandlersOptions = {
   distanceMeasurement: boolean;
 };
 
-export function useParticleOverlayLayersClickHandlers({
+export function useParticleOverlayLayersEventHandlers({
   map,
   overlay,
   oceanCurrentEnabled,
   waveBuoysLayerClicked,
   tempPointsEventPrevent,
   distanceMeasurement,
-}: UseMapClickHandlersOptions) {
+}: UseMapEventHandlersOptions) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleMapClick = useCallback(
     debounce(async (e: mapboxgl.MapMouseEvent) => {

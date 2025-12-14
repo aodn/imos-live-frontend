@@ -23,8 +23,12 @@ export const BuoyHoverPopupContent = ({ buoy, date }: BuoyHoverPopupContentProps
       )} */}
 
       <div>
-        <p>Buoy: {buoy}</p>
-        <p>Date: {date}</p>
+        <p>
+          <strong>Buoy: </strong> {buoy}
+        </p>
+        <p>
+          <strong>Date: </strong> {date}
+        </p>
       </div>
     </div>
   );

@@ -4,7 +4,7 @@ import * as turf from '@turf/turf';
 import type { PointLike } from 'mapbox-gl';
 import { MEASURE_POINTS_LAYER_ID } from '@/constants';
 
-export function useDistanceMeasurementLayersClickHandler(
+export function useDistanceMeasurementLayersEventHandler(
   map: React.RefObject<mapboxgl.Map | null>,
   distanceMeasurement: boolean,
   measurePointsGeojson: FeatureCollection<Geometry, GeoJsonProperties>,
