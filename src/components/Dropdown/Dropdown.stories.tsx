@@ -285,7 +285,7 @@ export const CustomRendering: Story = {
     renderOption: (option, isSelected) => (
       <div className="flex items-center gap-3 w-full">
         {option.icon}
-        <div className="flex-grow">
+        <div className="grow">
           <div className="font-medium">{option.label}</div>
           <div className="text-xs text-gray-500">{option.description}</div>
         </div>
