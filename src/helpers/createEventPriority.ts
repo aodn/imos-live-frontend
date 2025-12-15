@@ -3,7 +3,7 @@ import type { Map, MapMouseEvent } from 'mapbox-gl';
 
 type EventPriorityConfig = {
   map: RefObject<Map | null>;
-  distanceMeasurement: boolean;
+  distanceMeasurementEnabled: boolean;
   higherPriorityLayers?: string[]; // Layers that should block this handler
 };
 
@@ -16,14 +16,14 @@ type EventPriorityConfig = {
  */
 export function createMapEventPriority({
   map,
-  distanceMeasurement,
+  distanceMeasurementEnabled,
   higherPriorityLayers = [],
 }: EventPriorityConfig) {
   const shouldHandleMapClick = (e?: MapMouseEvent): boolean => {
     if (!map.current) return false;
 
     // Distance measurement mode blocks all map clicks
-    if (distanceMeasurement) return false;
+    if (distanceMeasurementEnabled) return false;
 
     // Check if any higher priority layers were clicked
     if (higherPriorityLayers.length > 0 && e) {

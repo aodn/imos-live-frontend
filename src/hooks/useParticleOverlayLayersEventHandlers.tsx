@@ -13,27 +13,27 @@ type UseMapEventHandlersOptions = {
   map: RefObject<mapboxgl.Map | null>;
   overlay: boolean;
   oceanCurrentEnabled: boolean;
-  distanceMeasurement: boolean;
+  distanceMeasurementEnabled: boolean;
 };
 
 export function useParticleOverlayLayersEventHandlers({
   map,
   overlay,
   oceanCurrentEnabled,
-  distanceMeasurement,
+  distanceMeasurementEnabled,
 }: UseMapEventHandlersOptions) {
   const { shouldHandleMapClick } = useMemo(
     () =>
       createMapEventPriority({
         map,
-        distanceMeasurement,
+        distanceMeasurementEnabled,
         higherPriorityLayers: [
           WAVE_BUOYS_LAYER_ID,
           UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
           ZOOM_LIMIT_TEMP_POINTS_LAYER_ID,
         ],
       }),
-    [map, distanceMeasurement],
+    [map, distanceMeasurementEnabled],
   );
 
   const handleMapClick = useCallback(

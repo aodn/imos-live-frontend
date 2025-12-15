@@ -21,8 +21,8 @@ export interface MapUIState {
   zoom: number;
   style: StyleTitle;
   particleConfig: ParticleConfig;
-  distanceMeasurement: boolean;
-  worldBoundaries: boolean;
+  distanceMeasurementEnabled: boolean;
+  worldBoundariesEnabled: boolean;
   date: string;
   dates: string[];
   productEnabled: ProductEnabled;
@@ -31,8 +31,8 @@ export interface MapUIState {
   setZoom: (zoom: number) => void;
   setStyle: (style: StyleTitle) => void;
   setParticleConfig: (config: Partial<CustomizableParticleConfig>) => void;
-  setDistanceMeasurement: (v: boolean) => void;
-  setWorldBoundaries: (v: boolean) => void;
+  setDistanceMeasurementEnabled: (v: boolean) => void;
+  setWorldBoundariesEnabled: (v: boolean) => void;
   setDate: (d: string) => void;
   refreshDates: () => void;
   setProductErrorByProduct: (product: ProductType, error: boolean) => void;
@@ -98,8 +98,8 @@ export const useMapUIStore = create(
       zoom: INITIAL_ZOOM,
       style: 'ESRIWorldImagery',
       particleConfig: PARTICLE_INITIAL_CONFIG,
-      distanceMeasurement: false,
-      worldBoundaries: false,
+      distanceMeasurementEnabled: false,
+      worldBoundariesEnabled: false,
       dates: getLast31Dates(),
       date: INITIAL_DATE,
       productEnabled: {
@@ -121,8 +121,9 @@ export const useMapUIStore = create(
         set(prev => ({
           particleConfig: { ...prev.particleConfig, ...customizableParticleConfig },
         })),
-      setDistanceMeasurement: distanceMeasurement => set({ distanceMeasurement }),
-      setWorldBoundaries: worldBoundaries => set({ worldBoundaries }),
+      setDistanceMeasurementEnabled: distanceMeasurementEnabled =>
+        set({ distanceMeasurementEnabled }),
+      setWorldBoundariesEnabled: worldBoundariesEnabled => set({ worldBoundariesEnabled }),
       setDate: date => set({ date }),
       refreshDates: () => {
         const newDates = getLast31Dates();
@@ -167,10 +168,10 @@ export const {
   particleConfig,
   setCenter,
   setDate,
-  setDistanceMeasurement,
+  setDistanceMeasurementEnabled,
   setParticleConfig,
   setStyle,
-  setWorldBoundaries,
+  setWorldBoundariesEnabled,
   setZoom,
   refreshDates,
   setProductErrorByProduct,

@@ -14,7 +14,7 @@ import {
 export function useWaveBuoysLayerEventHandler(
   map: React.RefObject<mapboxgl.Map | null>,
   waveBuoyEnabled: boolean,
-  distanceMeasurement: boolean,
+  distanceMeasurementEnabled: boolean,
 ) {
   const bottomDrawer = useDrawerStore(s => s.bottomDrawer);
   const [clickedPointData, setClickedPointData] = useState<
@@ -25,9 +25,9 @@ export function useWaveBuoysLayerEventHandler(
     () =>
       createMapEventPriority({
         map,
-        distanceMeasurement,
+        distanceMeasurementEnabled,
       }),
-    [map, distanceMeasurement],
+    [map, distanceMeasurementEnabled],
   );
 
   const { selectFeature, clearSelection } = useWaveBuoysSelection(map);

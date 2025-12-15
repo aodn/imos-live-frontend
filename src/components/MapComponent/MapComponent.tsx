@@ -36,14 +36,14 @@ const WaveBuoyChart = lazy(() => import('../Highcharts/WaveBuoyChart'));
 
 export const MapComponent = memo(() => {
   const {
-    distanceMeasurement,
+    distanceMeasurementEnabled,
     gslaAnomalySeaLevelsEnabled,
     sstAnomMosaicEnabled,
     waveBuoysEnabled,
     oceanCurrentEnabled,
   } = useMapUIStore(
     useShallow(s => ({
-      distanceMeasurement: s.distanceMeasurement,
+      distanceMeasurementEnabled: s.distanceMeasurementEnabled,
       gslaAnomalySeaLevelsEnabled: s.productEnabled['gsla-anomaly-sea-levels'],
       sstAnomMosaicEnabled: s.productEnabled['sst-anom-mosaic'],
       waveBuoysEnabled: s.productEnabled['wave-buoys'],
@@ -84,31 +84,31 @@ export const MapComponent = memo(() => {
 
   //3. add click event listners to map and layers.
   const { clickedPointData: waveBuoysLayerClickedPointData, openDrawer } =
-    useWaveBuoysLayerEventHandler(map, waveBuoysEnabled, distanceMeasurement);
-
-  useEffect(() => {
-    if (waveBuoysLayerClickedPointData) {
-      openDrawer(
-        <Suspense fallback={<div>Loading...</div>}>
-          <WaveBuoyChart waveBuoysData={waveBuoysLayerClickedPointData} showDirection={true} />
-        </Suspense>,
-      );
-    }
-  }, [waveBuoysLayerClickedPointData, openDrawer]);
+    useWaveBuoysLayerEventHandler(map, waveBuoysEnabled, distanceMeasurementEnabled);
 
   useParticleOverlayLayersEventHandlers({
     map,
     overlay: gslaAnomalySeaLevelsEnabled || sstAnomMosaicEnabled,
     oceanCurrentEnabled,
-    distanceMeasurement,
+    distanceMeasurementEnabled,
   });
 
   const { distance, setDistance } = useDistanceMeasurementLayersEventHandler(
     map,
-    distanceMeasurement,
+    distanceMeasurementEnabled,
     measurePointsGeojson,
     setMeasurePointsGeojson,
   );
+
+  useEffect(() => {
+    if (waveBuoysLayerClickedPointData) {
+      openDrawer(
+        <Suspense fallback={<div>Loading...</div>}>
+          <WaveBuoyChart waveBuoysData={waveBuoysLayerClickedPointData} showDirection />
+        </Suspense>,
+      );
+    }
+  }, [waveBuoysLayerClickedPointData, openDrawer]);
 
   //4. enable to toggle style.
   useMapStyle(map);
@@ -119,7 +119,7 @@ export const MapComponent = memo(() => {
   return (
     <>
       <div ref={mapContainer} className={cn('w-full h-full')} />
-      {distanceMeasurement && (
+      {distanceMeasurementEnabled && (
         <DistanceMeasurement
           distance={distance}
           setDistance={setDistance}
