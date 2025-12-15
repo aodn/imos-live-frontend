@@ -40,7 +40,6 @@ export function useParticleOverlayLayersEventHandlers({
     async (e: mapboxgl.MapMouseEvent) => {
       if (!map?.current || (!oceanCurrentEnabled && !overlay)) return;
 
-      // Check event priority using queryRenderedFeatures
       if (!shouldHandleMapClick(e)) return;
 
       const { mapBounds, mapSize } = gerMapMetaData(map);
