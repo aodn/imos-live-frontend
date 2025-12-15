@@ -83,12 +83,8 @@ export const MapComponent = memo(() => {
   });
 
   //3. add click event listners to map and layers.
-  const {
-    clickedPointData: waveBuoysLayerClickedPointData,
-    openDrawer,
-    waveBuoysLayerClicked,
-    tempPointsEventPrevent,
-  } = useWaveBuoysLayerEventHandler(map, waveBuoysEnabled, distanceMeasurement);
+  const { clickedPointData: waveBuoysLayerClickedPointData, openDrawer } =
+    useWaveBuoysLayerEventHandler(map, waveBuoysEnabled, distanceMeasurement);
 
   useEffect(() => {
     if (waveBuoysLayerClickedPointData) {
@@ -104,8 +100,6 @@ export const MapComponent = memo(() => {
     map,
     overlay: gslaAnomalySeaLevelsEnabled || sstAnomMosaicEnabled,
     oceanCurrentEnabled,
-    waveBuoysLayerClicked,
-    tempPointsEventPrevent,
     distanceMeasurement,
   });
 

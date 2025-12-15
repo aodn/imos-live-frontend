@@ -1,16 +1,18 @@
-import { type ClosePopupFn, gerMapMetaData, showPopup } from '@/helpers';
-import { debounce } from '@/utils';
+import { type ClosePopupFn, createMapEventPriority, gerMapMetaData, showPopup } from '@/helpers';
 import type { RefObject } from 'react';
-import { useCallback, useEffect } from 'react';
-import { WORLD_LAND_FILL_LAYER_ID } from '@/constants';
+import { useCallback, useEffect, useMemo } from 'react';
+import {
+  WORLD_LAND_FILL_LAYER_ID,
+  UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
+  ZOOM_LIMIT_TEMP_POINTS_LAYER_ID,
+  WAVE_BUOYS_LAYER_ID,
+} from '@/constants';
 import { ClickedMapPopupContent } from '@/components';
 
 type UseMapEventHandlersOptions = {
   map: RefObject<mapboxgl.Map | null>;
   overlay: boolean;
   oceanCurrentEnabled: boolean;
-  waveBuoysLayerClicked: React.RefObject<boolean>;
-  tempPointsEventPrevent: React.RefObject<boolean>;
   distanceMeasurement: boolean;
 };
 
@@ -18,24 +20,28 @@ export function useParticleOverlayLayersEventHandlers({
   map,
   overlay,
   oceanCurrentEnabled,
-  waveBuoysLayerClicked,
-  tempPointsEventPrevent,
   distanceMeasurement,
 }: UseMapEventHandlersOptions) {
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const { shouldHandleMapClick } = useMemo(
+    () =>
+      createMapEventPriority({
+        map,
+        distanceMeasurement,
+        higherPriorityLayers: [
+          WAVE_BUOYS_LAYER_ID,
+          UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
+          ZOOM_LIMIT_TEMP_POINTS_LAYER_ID,
+        ],
+      }),
+    [map, distanceMeasurement],
+  );
+
   const handleMapClick = useCallback(
-    debounce(async (e: mapboxgl.MapMouseEvent) => {
-      if (!map?.current || distanceMeasurement || (!oceanCurrentEnabled && !overlay)) return;
+    async (e: mapboxgl.MapMouseEvent) => {
+      if (!map?.current || (!oceanCurrentEnabled && !overlay)) return;
 
-      if (waveBuoysLayerClicked.current) {
-        waveBuoysLayerClicked.current = false;
-        return;
-      }
-
-      if (tempPointsEventPrevent.current) {
-        tempPointsEventPrevent.current = false;
-        return;
-      }
+      // Check event priority using queryRenderedFeatures
+      if (!shouldHandleMapClick(e)) return;
 
       const { mapBounds, mapSize } = gerMapMetaData(map);
       if (!mapBounds || !mapSize) return;
@@ -64,8 +70,8 @@ export function useParticleOverlayLayersEventHandlers({
           />
         ),
       });
-    }, 400),
-    [distanceMeasurement, overlay, oceanCurrentEnabled],
+    },
+    [map, overlay, oceanCurrentEnabled, shouldHandleMapClick],
   );
 
   useEffect(() => {
