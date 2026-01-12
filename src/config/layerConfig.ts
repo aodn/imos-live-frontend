@@ -42,8 +42,6 @@ export const WAVE_BUOYS_LAYER_CONFIG: Partial<CircleLayerSpecification> = {
   },
 } as const;
 
-export const CLUSTER_MAX_ZOOM = 14;
-
 export const UNCLUSTERED_WAVE_BUOYS_LAYER_CONFIG: Partial<CircleLayerSpecification> = {
   filter: ['!', ['has', 'point_count']],
   paint: {

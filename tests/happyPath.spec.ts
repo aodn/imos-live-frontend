@@ -556,7 +556,7 @@ test.describe('Measurement', () => {
   });
   test('User can measure distance', async ({ page }) => {
     await page.getByRole('menuitem', { name: 'Options' }).click();
-    await page.getByTestId('switch-distancemeasurement').click();
+    await page.getByTestId('switch-distancemeasurementEnabled').click();
 
     await mapComponent.waitUntilLayerLoaded(page, MEASURE_POINTS_LAYER_ID);
 

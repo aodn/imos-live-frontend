@@ -4,9 +4,9 @@ import * as turf from '@turf/turf';
 import type { PointLike } from 'mapbox-gl';
 import { MEASURE_POINTS_LAYER_ID } from '@/constants';
 
-export function useDistanceMeasurementLayersClickHandler(
+export function useDistanceMeasurementLayersEventHandler(
   map: React.RefObject<mapboxgl.Map | null>,
-  distanceMeasurement: boolean,
+  distanceMeasurementEnabled: boolean,
   measurePointsGeojson: FeatureCollection<Geometry, GeoJsonProperties>,
   setMeasurePointsGeojson: (v: FeatureCollection<Geometry, GeoJsonProperties>) => void,
 ) {
@@ -65,7 +65,7 @@ export function useDistanceMeasurementLayersClickHandler(
   );
 
   useEffect(() => {
-    if (!map.current || !distanceMeasurement) return;
+    if (!map.current || !distanceMeasurementEnabled) return;
     const mapInstance = map.current;
 
     function handleClick(e: {
@@ -122,17 +122,17 @@ export function useDistanceMeasurementLayersClickHandler(
       mapInstance.off('click', handleClick);
       mapInstance.off('mousemove', handleMouseMove);
     };
-  }, [distanceMeasurement, map, measurePointsGeojson, updateGeojson]);
+  }, [distanceMeasurementEnabled, map, measurePointsGeojson, updateGeojson]);
 
   useEffect(() => {
-    if (!distanceMeasurement) {
+    if (!distanceMeasurementEnabled) {
       if (map.current) {
         map.current.getCanvas().style.cursor = 'grab';
       }
       setMeasurePointsGeojson({ type: 'FeatureCollection', features: [] });
       setDistance('');
     }
-  }, [distanceMeasurement, map, setMeasurePointsGeojson]);
+  }, [distanceMeasurementEnabled, map, setMeasurePointsGeojson]);
 
   return { distance, setDistance };
 }

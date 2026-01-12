@@ -3,9 +3,9 @@ import { Switch } from '../Switch';
 import { LabeledSlider } from '../Slider';
 import {
   useMapUIStore,
-  setDistanceMeasurement,
-  setWorldBoundaries,
+  setWorldBoundariesEnabled,
   setParticleConfig,
+  setDistanceMeasurementEnabled,
 } from '@/store';
 import { useShallow } from 'zustand/shallow';
 import type { CustomizableParticleConfig } from '@/config';
@@ -33,10 +33,10 @@ const SPEED_FACTOR_OPTIONS = {
 };
 
 export function OptionsSection() {
-  const { distanceMeasurement, worldBoundaries, particleConfig } = useMapUIStore(
+  const { distanceMeasurementEnabled, worldBoundariesEnabled, particleConfig } = useMapUIStore(
     useShallow(s => ({
-      distanceMeasurement: s.distanceMeasurement,
-      worldBoundaries: s.worldBoundaries,
+      distanceMeasurementEnabled: s.distanceMeasurementEnabled,
+      worldBoundariesEnabled: s.worldBoundariesEnabled,
       particleConfig: s.particleConfig,
     })),
   );
@@ -102,16 +102,16 @@ export function OptionsSection() {
           <Switch
             label="Measure distance"
             labelPosition="left"
-            initialValue={distanceMeasurement}
-            onChange={setDistanceMeasurement}
-            dataTestId="switch-distancemeasurement"
+            initialValue={distanceMeasurementEnabled}
+            onChange={setDistanceMeasurementEnabled}
+            dataTestId="switch-distancemeasurementEnabled"
           />
 
           <Switch
             label="World boundaries"
             labelPosition="left"
-            initialValue={worldBoundaries}
-            onChange={setWorldBoundaries}
+            initialValue={worldBoundariesEnabled}
+            onChange={setWorldBoundariesEnabled}
           />
         </div>
       </div>

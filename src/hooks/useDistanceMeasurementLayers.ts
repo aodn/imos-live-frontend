@@ -16,9 +16,9 @@ import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
 import { useDidMountEffect } from './useDidMountEffect';
 
 export function useDistanceMeasurementLayers(map: React.RefObject<mapboxgl.Map | null>) {
-  const { distanceMeasurement } = useMapUIStore(
+  const { distanceMeasurementEnabled } = useMapUIStore(
     useShallow(s => ({
-      distanceMeasurement: s.distanceMeasurement,
+      distanceMeasurementEnabled: s.distanceMeasurementEnabled,
     })),
   );
 
@@ -37,9 +37,9 @@ export function useDistanceMeasurementLayers(map: React.RefObject<mapboxgl.Map |
           source: MEASURE_POINTS_SOURCE_ID,
           ...MEASURE_POINT_CONFIG,
         },
-        distanceMeasurement,
+        distanceMeasurementEnabled,
       ),
-    [distanceMeasurement],
+    [distanceMeasurementEnabled],
   );
 
   const measureLineLayer = useMemo(
@@ -50,9 +50,9 @@ export function useDistanceMeasurementLayers(map: React.RefObject<mapboxgl.Map |
           source: MEASURE_LINES_SOURCE_ID,
           ...MEASURE_LINES_CONFIG,
         },
-        distanceMeasurement,
+        distanceMeasurementEnabled,
       ),
-    [distanceMeasurement],
+    [distanceMeasurementEnabled],
   );
 
   const layers = useMemo(
@@ -77,7 +77,7 @@ export function useDistanceMeasurementLayers(map: React.RefObject<mapboxgl.Map |
     map,
     loadComplete,
     [measurePointsLayer, measureLineLayer],
-    distanceMeasurement,
+    distanceMeasurementEnabled,
   );
 
   useDidMountEffect(() => {

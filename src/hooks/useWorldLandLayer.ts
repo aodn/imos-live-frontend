@@ -18,9 +18,9 @@ import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
  * 2. add transparent land fill layer that used to disbale click on land.
  */
 export function useWorldLandLayer(map: React.RefObject<mapboxgl.Map | null>) {
-  const { worldBoundaries: enabled } = useMapUIStore(
+  const { worldBoundariesEnabled } = useMapUIStore(
     useShallow(s => ({
-      worldBoundaries: s.worldBoundaries,
+      worldBoundariesEnabled: s.worldBoundariesEnabled,
     })),
   );
 
@@ -46,9 +46,9 @@ export function useWorldLandLayer(map: React.RefObject<mapboxgl.Map | null>) {
           source: WORLD_LAND_SOURCE_ID,
           ...WORLD_LAND_BORDER_CONFIG,
         },
-        enabled,
+        worldBoundariesEnabled,
       ),
-    [enabled],
+    [worldBoundariesEnabled],
   );
 
   const layers = useMemo(
@@ -69,5 +69,5 @@ export function useWorldLandLayer(map: React.RefObject<mapboxgl.Map | null>) {
   const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [setupLayer]);
 
   // the transparent worldLandFillLayer is always enabled.
-  useMapboxLayerVisibility(map, loadComplete, [worldLandBorderLayer], enabled);
+  useMapboxLayerVisibility(map, loadComplete, [worldLandBorderLayer], worldBoundariesEnabled);
 }

@@ -224,7 +224,7 @@ const Toast: React.FC<{ toast: ToastData }> = ({ toast }) => {
         </div>
       )}
 
-      <div className={clsx('flex-shrink-0 mt-0.5', getIconColorClass(), toast.iconClassName)}>
+      <div className={clsx('shrink-0 mt-0.5', getIconColorClass(), toast.iconClassName)}>
         {toast.renderIcon ? toast.renderIcon() : getDefaultIcon()}
       </div>
 
@@ -244,7 +244,7 @@ const Toast: React.FC<{ toast: ToastData }> = ({ toast }) => {
             handleClose();
           }}
           className={clsx(
-            'flex-shrink-0 p-1 rounded-md transition-colors',
+            'shrink-0 p-1 rounded-md transition-colors',
             'hover:bg-black hover:bg-opacity-10 focus:outline-none focus:ring-2 focus:ring-offset-2',
             getIconColorClass(),
             toast.closeButtonClassName,

@@ -1,11 +1,12 @@
-import { usePopupContentData } from '@/hooks';
+import { useClickedMapPopupContentData } from '@/hooks';
 import { useMapUIStore } from '@/store';
-import type { LngLat, Point } from 'mapbox-gl';
 import { useShallow } from 'zustand/shallow';
 import { LoaderIcon } from '../Icons';
+import type { LngLat, Point } from 'mapbox-gl';
+import type { ClosePopupFn } from '@/helpers';
 
-type PopupContentProps = {
-  onClose?: () => void;
+export type ClickedMapPopupContentProps = {
+  onClose?: ClosePopupFn;
   lngLat: LngLat;
   point: Point;
   mapSize: {
@@ -15,7 +16,13 @@ type PopupContentProps = {
   mapBounds: [number, number, number, number];
 };
 
-export const PopupContent = ({ onClose, lngLat, mapBounds, mapSize, point }: PopupContentProps) => {
+export const ClickedMapPopupContent = ({
+  onClose,
+  lngLat,
+  mapBounds,
+  mapSize,
+  point,
+}: ClickedMapPopupContentProps) => {
   const { gslaAnomalySeaLevelsEnabled, sstAnomMosaicEnabled, oceanCurrentEnabled, date } =
     useMapUIStore(
       useShallow(s => ({
@@ -26,7 +33,7 @@ export const PopupContent = ({ onClose, lngLat, mapBounds, mapSize, point }: Pop
       })),
     );
 
-  const { data, isLoading } = usePopupContentData({
+  const { data, isLoading } = useClickedMapPopupContentData({
     mapBounds,
     mapSize,
     oceanCurrentEnabled,
