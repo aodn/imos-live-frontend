@@ -7,11 +7,11 @@ import type { Mock } from 'vitest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useOverlayLayer } from './useOverlayLayer';
 import { useMapUIStore } from '@/store';
-import { addLayerInOrder, addOrUpdateWMSSource, rasterUrl } from '@/helpers';
+import { addLayerInOrder, addOrUpdateWMSSource } from '@/helpers';
 import { imageLayer } from '@/layers';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
-import { useDidMountEffect } from './useDidMountEffect';
+import { useQuery } from '@tanstack/react-query';
 import type { OverlayLayer, OverlaySource, ProductType } from '@/constants';
 
 const mockMap = {
@@ -32,7 +32,6 @@ vi.mock('@/store', () => ({
 vi.mock('@/helpers', () => ({
   addLayerInOrder: vi.fn(),
   addOrUpdateWMSSource: vi.fn(),
-  rasterUrl: vi.fn(),
 }));
 
 vi.mock('@/layers', () => ({
@@ -51,8 +50,8 @@ vi.mock('./useMapboxLayerVisibility', () => ({
   useMapboxLayerVisibility: vi.fn(),
 }));
 
-vi.mock('./useDidMountEffect', () => ({
-  useDidMountEffect: vi.fn(),
+vi.mock('@tanstack/react-query', () => ({
+  useQuery: vi.fn(),
 }));
 
 vi.mock('zustand/shallow', () => ({
@@ -105,7 +104,11 @@ describe('useOverlayLayer', () => {
       loadComplete: true,
     });
 
-    (rasterUrl as Mock).mockResolvedValue('http://example.com/tile/{z}/{x}/{y}.png');
+    (useQuery as Mock).mockReturnValue({
+      data: 'http://example.com/tile/{z}/{x}/{y}.png',
+      isLoading: false,
+      promise: Promise.resolve('http://example.com/tile/{z}/{x}/{y}.png'),
+    });
     (addOrUpdateWMSSource as Mock).mockResolvedValue(undefined);
   });
 
@@ -161,7 +164,12 @@ describe('useOverlayLayer', () => {
       await setupLayerFn();
     });
 
-    expect(rasterUrl).toHaveBeenCalledWith('gsla-overlay-source', new Date('2024-01-01'));
+    expect(useQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: ['rasterUrl', 'gsla-overlay-source', '2024-01-01'],
+        enabled: true,
+      }),
+    );
 
     expect(addOrUpdateWMSSource).toHaveBeenCalledWith({
       map: mockMap.current,
@@ -175,9 +183,13 @@ describe('useOverlayLayer', () => {
     });
   });
 
-  it('should reset error and add source even when rasterUrl returns invalid URL', async () => {
-    // In the new approach, rasterUrl returns an invalid URL instead of throwing
-    (rasterUrl as Mock).mockResolvedValue('invalid-url');
+  it('should reset error and add source even when useQuery returns invalid URL', async () => {
+    // In the new approach, useQuery returns an invalid URL instead of throwing
+    (useQuery as Mock).mockReturnValue({
+      data: 'invalid-url',
+      isLoading: false,
+      promise: Promise.resolve('invalid-url'),
+    });
 
     renderHook(() => useOverlayLayer(defaultProps));
 
@@ -201,15 +213,21 @@ describe('useOverlayLayer', () => {
     const { rerender } = renderHook(() => useOverlayLayer(defaultProps));
 
     mockStoreState.date = '2024-01-02';
+    (useQuery as Mock).mockReturnValue({
+      data: 'http://example.com/tile/new-date.png',
+      isLoading: false,
+      promise: Promise.resolve('http://example.com/tile/new-date.png'),
+    });
 
     rerender();
 
-    const didMountEffectCall = (useDidMountEffect as Mock).mock.calls.find(
-      call => call[1] && call[1].includes(mockStoreState.date),
+    // useQuery should be called with the new date
+    expect(useQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: ['rasterUrl', 'gsla-overlay-source', '2024-01-02'],
+        enabled: true,
+      }),
     );
-
-    expect(didMountEffectCall).toBeDefined();
-    expect(didMountEffectCall![1]).toContain('2024-01-02');
   });
 
   it('should toggle overlay layer visibility correctly', () => {
