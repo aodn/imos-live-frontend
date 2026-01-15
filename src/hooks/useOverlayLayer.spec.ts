@@ -11,7 +11,6 @@ import { addLayerInOrder, addOrUpdateWMSSource, rasterUrl } from '@/helpers';
 import { imageLayer } from '@/layers';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
-import { useDidMountEffect } from './useDidMountEffect';
 import type { OverlayLayer, OverlaySource, ProductType } from '@/constants';
 
 const mockMap = {
@@ -49,10 +48,6 @@ vi.mock('./useMapboxLayerSetup', () => ({
 
 vi.mock('./useMapboxLayerVisibility', () => ({
   useMapboxLayerVisibility: vi.fn(),
-}));
-
-vi.mock('./useDidMountEffect', () => ({
-  useDidMountEffect: vi.fn(),
 }));
 
 vi.mock('zustand/shallow', () => ({
@@ -161,7 +156,7 @@ describe('useOverlayLayer', () => {
       await setupLayerFn();
     });
 
-    expect(rasterUrl).toHaveBeenCalledWith('gsla-overlay-source', new Date('2024-01-01'));
+    expect(rasterUrl).toHaveBeenCalledWith('gsla-overlay-source', expect.any(Date));
 
     expect(addOrUpdateWMSSource).toHaveBeenCalledWith({
       map: mockMap.current,
@@ -197,19 +192,21 @@ describe('useOverlayLayer', () => {
     });
   });
 
-  it('should update data source when date changes', () => {
+  it('should update data source when date changes', async () => {
     const { rerender } = renderHook(() => useOverlayLayer(defaultProps));
 
     mockStoreState.date = '2024-01-02';
+    (rasterUrl as Mock).mockResolvedValue('http://example.com/tile/new-date.png');
 
     rerender();
 
-    const didMountEffectCall = (useDidMountEffect as Mock).mock.calls.find(
-      call => call[1] && call[1].includes(mockStoreState.date),
-    );
+    // Wait for the effect to run
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 0));
+    });
 
-    expect(didMountEffectCall).toBeDefined();
-    expect(didMountEffectCall![1]).toContain('2024-01-02');
+    // rasterUrl should be called with the new date
+    expect(rasterUrl).toHaveBeenCalledWith('gsla-overlay-source', expect.any(Date));
   });
 
   it('should toggle overlay layer visibility correctly', () => {

@@ -5,9 +5,9 @@ import { imageLayer } from '@/layers';
 import { useMapUIStore } from '@/store';
 import { useCallback, useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
-import { useDidMountEffect } from './useDidMountEffect';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
+import { useDidMountEffect } from './useDidMountEffect';
 
 type UseOverlayLayer = {
   map: React.RefObject<mapboxgl.Map | null>;
@@ -24,6 +24,7 @@ export function useOverlayLayer({ map, layerId, sourceId, product }: UseOverlayL
       isError: s.productError[product],
     })),
   );
+
   const overlayLayer = useMemo(
     () => imageLayer({ id: layerId, source: sourceId, ...OVERLAY_LAYER_CONFIG }, enabled),
     [layerId, sourceId, enabled],

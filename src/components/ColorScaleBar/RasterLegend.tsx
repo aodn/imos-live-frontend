@@ -21,8 +21,9 @@ type RasterLegendProps = {
 export const RasterLegend = ({ overlaySource, scales, label }: RasterLegendProps) => {
   const date = useMapUIStore(s => s.date);
   const { data: legendUrl } = useQuery({
-    queryKey: ['legend', overlaySource, date],
+    queryKey: ['rasterLegendUrl', overlaySource, date],
     queryFn: () => rasterLegendUrl(overlaySource, new Date(date)),
+    enabled: !!date,
   });
 
   const validateProduct = (overlaySource: OverlaySource, v: boolean) => () => {
