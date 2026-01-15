@@ -463,7 +463,7 @@ export const AnimationShowcase: Story = {
         <div className="flex gap-4">
           <button
             onClick={showAnimatedSequence}
-            className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all"
+            className="px-4 py-2 bg-linear-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all"
           >
             Show Animation Sequence
           </button>

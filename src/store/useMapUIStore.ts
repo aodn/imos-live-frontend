@@ -1,11 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import type { CustomizableParticleConfig, ParticleConfig } from '@/config';
-import { INITIAL_ZOOM, PARTICLE_INITIAL_CONFIG } from '@/config';
+import {
+  INITIAL_CENTER,
+  INITIAL_DATE,
+  INITIAL_STYLEL,
+  INITIAL_ZOOM,
+  PARTICLE_INITIAL_CONFIG,
+} from '@/config';
 import type { ProductType } from '@/constants';
 import { PRODUCT } from '@/constants';
 import type { StyleTitle } from '@/styles';
 import { getLast31Dates } from '@/utils';
-import { LngLat } from 'mapbox-gl';
+import { type LngLat } from 'mapbox-gl';
 import { create } from 'zustand';
 import type { StateStorage } from 'zustand/middleware';
 import { createJSONStorage, persist } from 'zustand/middleware';
@@ -14,15 +20,13 @@ import { deserialize, serialize } from './serialization';
 type ProductError = Record<ProductType, boolean>;
 export type ProductEnabled = Record<ProductType, boolean>;
 
-export const INITIAL_DATE = getLast31Dates().at(0)!;
-
 export interface MapUIState {
   center: LngLat;
   zoom: number;
   style: StyleTitle;
   particleConfig: ParticleConfig;
-  distanceMeasurement: boolean;
-  worldBoundaries: boolean;
+  distanceMeasurementEnabled: boolean;
+  worldBoundariesEnabled: boolean;
   date: string;
   dates: string[];
   productEnabled: ProductEnabled;
@@ -31,8 +35,8 @@ export interface MapUIState {
   setZoom: (zoom: number) => void;
   setStyle: (style: StyleTitle) => void;
   setParticleConfig: (config: Partial<CustomizableParticleConfig>) => void;
-  setDistanceMeasurement: (v: boolean) => void;
-  setWorldBoundaries: (v: boolean) => void;
+  setDistanceMeasurementEnabled: (v: boolean) => void;
+  setWorldBoundariesEnabled: (v: boolean) => void;
   setDate: (d: string) => void;
   refreshDates: () => void;
   setProductErrorByProduct: (product: ProductType, error: boolean) => void;
@@ -94,12 +98,12 @@ const storageOptions = {
 export const useMapUIStore = create(
   persist<MapUIState>(
     set => ({
-      center: new LngLat(133.7751, -25.2744),
+      center: INITIAL_CENTER,
       zoom: INITIAL_ZOOM,
-      style: 'ESRIWorldImagery',
+      style: INITIAL_STYLEL,
       particleConfig: PARTICLE_INITIAL_CONFIG,
-      distanceMeasurement: false,
-      worldBoundaries: false,
+      distanceMeasurementEnabled: false,
+      worldBoundariesEnabled: false,
       dates: getLast31Dates(),
       date: INITIAL_DATE,
       productEnabled: {
@@ -121,8 +125,9 @@ export const useMapUIStore = create(
         set(prev => ({
           particleConfig: { ...prev.particleConfig, ...customizableParticleConfig },
         })),
-      setDistanceMeasurement: distanceMeasurement => set({ distanceMeasurement }),
-      setWorldBoundaries: worldBoundaries => set({ worldBoundaries }),
+      setDistanceMeasurementEnabled: distanceMeasurementEnabled =>
+        set({ distanceMeasurementEnabled }),
+      setWorldBoundariesEnabled: worldBoundariesEnabled => set({ worldBoundariesEnabled }),
       setDate: date => set({ date }),
       refreshDates: () => {
         const newDates = getLast31Dates();
@@ -167,10 +172,10 @@ export const {
   particleConfig,
   setCenter,
   setDate,
-  setDistanceMeasurement,
+  setDistanceMeasurementEnabled,
   setParticleConfig,
   setStyle,
-  setWorldBoundaries,
+  setWorldBoundariesEnabled,
   setZoom,
   refreshDates,
   setProductErrorByProduct,

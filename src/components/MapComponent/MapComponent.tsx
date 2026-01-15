@@ -1,14 +1,14 @@
 import {
   useDistanceMeasurementLayers,
-  useDistanceMeasurementLayersClickHandler,
+  useDistanceMeasurementLayersEventHandler,
   useMapInitialization,
   useMapResize,
   useMapStyle,
   useOverlayLayer,
   useParticleLayer,
-  useParticleOverlayLayersClickHandlers,
+  useParticleOverlayLayersEventHandlers,
   useWaveBuoysLayer,
-  useWaveBuoysLayerClickHandler,
+  useWaveBuoysLayerEventHandler,
   useWorldLandLayer,
 } from '@/hooks';
 import { useMapUIStore } from '@/store';
@@ -36,14 +36,14 @@ const WaveBuoyChart = lazy(() => import('../Highcharts/WaveBuoyChart'));
 
 export const MapComponent = memo(() => {
   const {
-    distanceMeasurement,
+    distanceMeasurementEnabled,
     gslaAnomalySeaLevelsEnabled,
     sstAnomMosaicEnabled,
     waveBuoysEnabled,
     oceanCurrentEnabled,
   } = useMapUIStore(
     useShallow(s => ({
-      distanceMeasurement: s.distanceMeasurement,
+      distanceMeasurementEnabled: s.distanceMeasurementEnabled,
       gslaAnomalySeaLevelsEnabled: s.productEnabled['gsla-anomaly-sea-levels'],
       sstAnomMosaicEnabled: s.productEnabled['sst-anom-mosaic'],
       waveBuoysEnabled: s.productEnabled['wave-buoys'],
@@ -83,38 +83,32 @@ export const MapComponent = memo(() => {
   });
 
   //3. add click event listners to map and layers.
-  const {
-    clickedPointData: waveBuoysLayerClickedPointData,
-    openDrawer,
-    waveBuoysLayerClicked,
-    tempPointsEventPrevent,
-  } = useWaveBuoysLayerClickHandler(map, waveBuoysEnabled, distanceMeasurement);
+  const { clickedPointData: waveBuoysLayerClickedPointData, openDrawer } =
+    useWaveBuoysLayerEventHandler(map, waveBuoysEnabled, distanceMeasurementEnabled);
+
+  useParticleOverlayLayersEventHandlers({
+    map,
+    overlay: gslaAnomalySeaLevelsEnabled || sstAnomMosaicEnabled,
+    oceanCurrentEnabled,
+    distanceMeasurementEnabled,
+  });
+
+  const { distance, setDistance } = useDistanceMeasurementLayersEventHandler(
+    map,
+    distanceMeasurementEnabled,
+    measurePointsGeojson,
+    setMeasurePointsGeojson,
+  );
 
   useEffect(() => {
     if (waveBuoysLayerClickedPointData) {
       openDrawer(
         <Suspense fallback={<div>Loading...</div>}>
-          <WaveBuoyChart waveBuoysData={waveBuoysLayerClickedPointData} showDirection={true} />
+          <WaveBuoyChart waveBuoysData={waveBuoysLayerClickedPointData} showDirection />
         </Suspense>,
       );
     }
   }, [waveBuoysLayerClickedPointData, openDrawer]);
-
-  useParticleOverlayLayersClickHandlers({
-    map,
-    overlay: gslaAnomalySeaLevelsEnabled || sstAnomMosaicEnabled,
-    oceanCurrentEnabled,
-    waveBuoysLayerClicked,
-    tempPointsEventPrevent,
-    distanceMeasurement,
-  });
-
-  const { distance, setDistance } = useDistanceMeasurementLayersClickHandler(
-    map,
-    distanceMeasurement,
-    measurePointsGeojson,
-    setMeasurePointsGeojson,
-  );
 
   //4. enable to toggle style.
   useMapStyle(map);
@@ -125,7 +119,7 @@ export const MapComponent = memo(() => {
   return (
     <>
       <div ref={mapContainer} className={cn('w-full h-full')} />
-      {distanceMeasurement && (
+      {distanceMeasurementEnabled && (
         <DistanceMeasurement
           distance={distance}
           setDistance={setDistance}
