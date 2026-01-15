@@ -7,7 +7,6 @@ import { useCallback, useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
-import { useQuery } from '@tanstack/react-query';
 import { useDidMountEffect } from './useDidMountEffect';
 
 type UseOverlayLayer = {
@@ -26,15 +25,6 @@ export function useOverlayLayer({ map, layerId, sourceId, product }: UseOverlayL
     })),
   );
 
-  const urlQuery = useQuery({
-    queryKey: ['rasterUrl', sourceId, date],
-    queryFn: async () => {
-      const urlResult = await rasterUrl(sourceId, new Date(date));
-      return urlResult;
-    },
-    enabled: enabled && !!date,
-  });
-
   const overlayLayer = useMemo(
     () => imageLayer({ id: layerId, source: sourceId, ...OVERLAY_LAYER_CONFIG }, enabled),
     [layerId, sourceId, enabled],
@@ -45,10 +35,9 @@ export function useOverlayLayer({ map, layerId, sourceId, product }: UseOverlayL
     // when invalid url, useOverlayProductErrorDetect will handle it, So that addOrUpdateWMSSource
     // will always add source to map. This can fix the bug that overlay layer fail to appear when
     // jump from date no data to date owning data.
-    const url = await urlQuery.promise;
-    if (!url) return;
+    const url = await rasterUrl(sourceId, new Date(date));
     addOrUpdateWMSSource({ map: map.current!, url, sourceId });
-  }, [urlQuery.promise, map, sourceId]);
+  }, [date, map, sourceId]);
 
   const setupLayer = useCallback(async () => {
     if (!overlayLayer) return;
