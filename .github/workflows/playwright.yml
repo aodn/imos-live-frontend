@@ -3,7 +3,7 @@ on:
   pull_request:
     branches: [main]
 jobs:
-  test:
+  e2e-tests:
     timeout-minutes: 20
     runs-on: ubuntu-latest
     container:
