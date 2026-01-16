@@ -2,6 +2,7 @@ import { useCallback, type MutableRefObject } from 'react';
 import { getPercentFromDate, getDateFromPercent, addTime, clampPercent } from '../utils';
 import { PERCENTAGE } from '../constants';
 import type { DragHandle, ViewMode, Step, StepFn, TimeUnit } from '../type';
+import { minusOneUTCDay } from '@/utils';
 
 interface UseHandlePositionParams {
   minGapPercent: number;
@@ -63,7 +64,13 @@ export function useHandlePosition({
           break;
         }
         case 'point': {
-          setPointPosition(clampedPercentage);
+          let validDate = getDateFromPercent(clampedPercentage, startDate, endDate);
+
+          if (validDate < startDate || validDate >= endDate) {
+            validDate = minusOneUTCDay(endDate); //because endDate added one day previously to be exclusive in useDateSliderDates.
+          }
+
+          setPointPosition(getPercentFromDate(validDate, startDate, endDate));
           break;
         }
       }
@@ -75,6 +82,8 @@ export function useHandlePosition({
       rangeStartRef,
       setRangeEndPosition,
       setPointPosition,
+      startDate,
+      endDate,
     ],
   );
 
@@ -89,9 +98,11 @@ export function useHandlePosition({
    */
   const setDateTime = useCallback(
     (date: Date, target?: DragHandle) => {
+      if (date < startDate || date >= endDate) {
+        date = minusOneUTCDay(endDate); //because endDate added one day previously to be exclusive in useDateSliderDates.
+      }
       // Date is expected to be UTC, no conversion needed
       const percentage = getPercentFromDate(date, startDate, endDate);
-
       // Resolve target handle if not provided
       let actualTarget = target;
       if (!actualTarget) {
@@ -118,11 +129,11 @@ export function useHandlePosition({
     [
       startDate,
       endDate,
+      updateHandlePosition,
+      autoScrollToVisibleAreaRef,
       viewMode,
       rangeStartRef,
       rangeEndRef,
-      updateHandlePosition,
-      autoScrollToVisibleAreaRef,
     ],
   );
 

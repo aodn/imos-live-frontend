@@ -1,23 +1,26 @@
 import { toUTCDate, addTime } from '@/components/DateSlider/utils';
 import { useMapUIStore } from '@/store';
-import { getLast31Dates } from '@/utils';
+import { getLast60Dates, minusOneUTCDay } from '@/utils';
 import { useMemo } from 'react';
 
 export const useDateSliderDates = () => {
-  const date = useMapUIStore(s => s.date);
-  const dateRange = useMemo(() => getLast31Dates('yyyy-mm-dd'), []);
+  let date = toUTCDate(useMapUIStore(s => s.date));
 
-  // Convert start date string to UTC Date
+  const dateRange = useMemo(() => getLast60Dates('yyyy-mm-dd'), []);
+
   const startDate = useMemo(() => toUTCDate(dateRange[0]), [dateRange]);
 
-  // Convert end date string to UTC Date and add 1 day
   const endDate = useMemo(() => {
     const lastDateString = toUTCDate(dateRange.at(-1)!);
-    return addTime(lastDateString, 1, 'day');
+    return addTime(lastDateString, 1, 'day'); //add one day to make endDate exclusive, as we still want to select the last date from dateRange.
   }, [dateRange]);
 
+  if (date < startDate || date >= endDate) {
+    date = minusOneUTCDay(endDate);
+  }
+
   return {
-    date: toUTCDate(date),
+    date: date,
     startDate,
     endDate,
   };

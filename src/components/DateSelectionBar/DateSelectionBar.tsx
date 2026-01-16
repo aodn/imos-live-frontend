@@ -13,6 +13,7 @@ type DateSelectionBarProps = { className?: string };
 
 export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
   const { date, startDate, endDate } = useDateSliderDates();
+
   const handleSelect = useCallback(async (v: SelectionResult) => {
     setDate(toISODateString((v as PointValue).point));
   }, []);
@@ -45,6 +46,7 @@ export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
             width: { short: 1, medium: 2, long: 2 },
             height: { short: 18, medium: 36, long: 60 },
           },
+          showEndLabel: false,
           trackPaddingX: 24,
           selectionPanelEnabled: true,
           dateLabelEnabled: true,
