@@ -364,7 +364,7 @@ test.beforeEach(async ({ page }) => {
 
 test.describe('Ocean Current', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
+    await page.goto(`/?date=${defaultDaySelected}`);
     await sidebarComponent.deselectProduct(page, 'GSLA Anomaly sea levels');
     await sidebarComponent.deselectProduct(page, 'Wave buoys product');
     await mapComponent.waitUntilLayerLoaded(page, PARTICLE_LAYER_ID);
@@ -412,7 +412,7 @@ test.describe('Ocean Current', () => {
 
 test.describe('Anomaly sea levels', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
+    await page.goto(`/?date=${defaultDaySelected}`);
     await sidebarComponent.deselectProduct(page, 'GSLA Ocean geostrophic current product');
     await sidebarComponent.deselectProduct(page, 'Wave buoys product');
   });
@@ -455,7 +455,7 @@ test.describe('Anomaly sea levels', () => {
 
 test.describe('Anomaly sea levels and Ocean Current', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
+    await page.goto(`/?date=${defaultDaySelected}`);
     await sidebarComponent.deselectProduct(page, 'Wave buoys product');
   });
 
@@ -489,7 +489,7 @@ test.describe('Anomaly sea levels and Ocean Current', () => {
 
 test.describe('Wave Buoys', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
+    await page.goto(`/?date=${defaultDaySelected}`);
     await sidebarComponent.deselectProduct(page, 'GSLA Ocean geostrophic current product');
     await sidebarComponent.deselectProduct(page, 'GSLA Anomaly sea levels');
   });
@@ -583,7 +583,7 @@ test.describe('Measurement', () => {
 
 test.describe('Ocean Current, Anomaly sea levels and Wave Buoys', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
+    await page.goto(`/?date=${defaultDaySelected}`);
   });
 
   test('All the products are selected by default', async ({ page }) => {
