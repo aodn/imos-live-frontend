@@ -42,7 +42,7 @@ export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
           width: 'fill',
           height: 64,
           scaleUnitConfig: {
-            gap: 64,
+            gap: 62,
             width: { short: 1, medium: 2, long: 2 },
             height: { short: 18, medium: 36, long: 60 },
           },
