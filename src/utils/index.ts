@@ -25,3 +25,4 @@ export * from './prioritizeKey';
 export * from './generateValueByPercentage';
 export * from './addYears';
 export * from './coordinateToLngLat';
+export * from './minusOneUTCDay';

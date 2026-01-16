@@ -1,7 +1,8 @@
 import { TriangleIcon } from '../Icons';
 import { setDate } from '@/store';
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useRef } from 'react';
 import { useDateSliderDates } from '@/hooks';
+import type { SliderExposedMethod } from '../DateSlider';
 import { DateSlider, type PointValue, type SelectionResult } from '../DateSlider';
 import { cn, toISODateString } from '@/utils';
 import {
@@ -12,7 +13,9 @@ import {
 type DateSelectionBarProps = { className?: string };
 
 export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
+  const imperativeRef = useRef<SliderExposedMethod>(null);
   const { date, startDate, endDate } = useDateSliderDates();
+
   const handleSelect = useCallback(async (v: SelectionResult) => {
     setDate(toISODateString((v as PointValue).point));
   }, []);
@@ -20,6 +23,7 @@ export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
   return (
     <div className={cn('shadow-xl', className)}>
       <DateSlider
+        imperativeRef={imperativeRef}
         mode="point"
         min={startDate}
         max={endDate}
@@ -45,6 +49,7 @@ export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
             width: { short: 1, medium: 2, long: 2 },
             height: { short: 18, medium: 36, long: 60 },
           },
+          showEndLabel: false,
           trackPaddingX: 24,
           selectionPanelEnabled: true,
           dateLabelEnabled: true,
