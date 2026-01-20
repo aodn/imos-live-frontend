@@ -73,27 +73,25 @@ const getGslaUrlFromCatalog = async (date: Date): Promise<string> => {
 
 // SST file name pattern example: 20240615_IMOS_AusTemp-sst-anomaly_AUS_fv02.nc, but the file may be in next year folder.
 const getSstUrlFromCatalog = async (date: Date): Promise<string> => {
-  let link = FALLBACK_URL;
   const dateString = generateFileDateString(date);
   const pattern = FILE_PATTERNS.SST(dateString);
 
-  try {
-    // Search in current year and next year catalogs
-    const dates = [date, addYears(date, 1)];
-    for (const searchDate of dates) {
+  const dates = [date, addYears(date, 1)];
+  for (const searchDate of dates) {
+    try {
       const doc = await generateDoc(THREDDS_PATHS.SST, searchDate);
       const foundLink = findLinkInCatalog(doc, pattern);
       if (foundLink) {
-        link = foundLink;
-        break;
+        const url = new URL(foundLink);
+        return `/thredds/wms/${url.searchParams.get('dataset')}`;
       }
+    } catch (error) {
+      console.error('Error fetching SST catalog:', error);
     }
-  } catch (error) {
-    console.error('Error fetching SST catalog:', error);
   }
 
-  const url = new URL(link);
-  return `/thredds/wms/${url.searchParams.get('dataset')}`;
+  const url = new URL(FALLBACK_URL);
+  return `/thredds/wms/${url.searchParams.get('dataset')}`; //do not throw error here to avoid image loading failure test for legend url
 };
 
 const baseUrl = async (id: OverlaySource, date: Date): Promise<string> => {
