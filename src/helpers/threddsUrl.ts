@@ -108,8 +108,9 @@ const baseUrl = async (id: OverlaySource, date: Date): Promise<string> => {
 export const rasterUrl = async (id: OverlaySource, date: Date): Promise<string> => {
   const base = await baseUrl(id, date);
   const config = WMS_CONFIG[id];
-
-  return `${base}?bbox={bbox-epsg-3857}&COLORSCALERANGE=${config.colorScaleRange}&version=1.3.0&REQUEST=GetMap&LAYERS=${config.layers}&styles=${config.styles}&crs=EPSG:3857&format=image/png&transparent=true&width=256&height=256`;
+  // Use /tiles/{z}/{x}/{y} path for CloudFront cache-friendly URLs
+  // The proxy will convert z/x/y to bbox before forwarding to THREDDS
+  return `/tiles/{z}/{x}/{y}${base}?COLORSCALERANGE=${config.colorScaleRange}&version=1.3.0&REQUEST=GetMap&LAYERS=${config.layers}&styles=${config.styles}&crs=EPSG:3857&format=image/png&transparent=true&width=256&height=256`;
 };
 
 export const rasterLegendUrl = async (id: OverlaySource, date: Date): Promise<string> => {
