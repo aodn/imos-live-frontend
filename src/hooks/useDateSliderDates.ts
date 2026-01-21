@@ -1,12 +1,13 @@
 import { toUTCDate, addTime } from '@/components/DateSlider/utils';
+import { DATE_RANGE } from '@/config';
 import { useMapUIStore } from '@/store';
-import { getLast60Dates, minusOneUTCDay } from '@/utils';
+import { minusOneUTCDay } from '@/utils';
 import { useMemo } from 'react';
 
 export const useDateSliderDates = () => {
   let date = toUTCDate(useMapUIStore(s => s.date));
 
-  const dateRange = useMemo(() => getLast60Dates('yyyy-mm-dd'), []);
+  const dateRange = DATE_RANGE;
 
   const startDate = useMemo(() => toUTCDate(dateRange[0]), [dateRange]);
 
