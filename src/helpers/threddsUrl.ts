@@ -142,3 +142,12 @@ export const getFeatureInfoUrl = async (
 
   return `${base}?REQUEST=GetFeatureInfo&SERVICE=WMS&VERSION=1.3.0&LAYERS=${layerName}&QUERY_LAYERS=${layerName}&CRS=EPSG:4326&BBOX=${bbox}&WIDTH=${mapSize.width}&HEIGHT=${mapSize.height}&I=${Math.floor(clickPoint.x)}&J=${Math.floor(clickPoint.y)}&INFO_FORMAT=text/xml`;
 };
+
+//TODO: cloudfront caching for thredds wms tiles and legend urls. /tiles/* bheaviour for tiles cache. /thredds/* behaviour for legend cache.
+// For tiles cache, lambda@edge to convert /tiles/{z}/{x}/{y} to bbox and forward to thredds endpoint.
+// For legend cache, lambda@edge to disable cache for non legend urls.
+// The bug just fixed was that tiles cache will also go to thredds point, but the lambda@edge rewrite the response header to make it un-cacheable,
+// as tiles is not legend url. The cache policy for /tiles/* set minimun TTL=0, in this case, the response with uncaheable header will overwrite the
+// cache policy by ignore default TTL and maximun TTL. so that tiles are not cached at cloudfront edge locations. By set minimun TTL=86400 for /tiles/* cache policy, the bug fixed.
+//But this could be an issue, as it bring in cycle, maybe we could point tiles url directly to thredds server on ALB, instead of going through cloudfront distribution.
+// But this may have CORS issue on client side. Need more testing.
