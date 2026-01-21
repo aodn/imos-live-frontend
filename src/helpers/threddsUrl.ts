@@ -3,8 +3,6 @@ import { GSLA_OVERLAY_SOURCE_ID, SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID } from '@/
 import { getThreddsCatalog } from '@/api';
 import { addYears } from '@/utils';
 
-const FALLBACK_URL = 'http://www.example.com';
-
 const THREDDS_PATHS = {
   GSLA: 'IMOS/OceanCurrent/GSLA/NRT',
   SST: 'IMOS/SRS/AusTemp/ssta',
@@ -59,39 +57,47 @@ const findLinkInCatalog = (doc: Document, pattern: string): string | null => {
 // so we just need date part to find the link in catalog. and certain year file is expected to be in certain year folder in thredds server.
 // Therefore, we can always find certain year's GSLA file in that year's folder catalog.
 const getGslaUrlFromCatalog = async (date: Date): Promise<string> => {
-  let link = FALLBACK_URL;
   try {
     const doc = await generateDoc(THREDDS_PATHS.GSLA, date);
     const dateString = generateFileDateString(date);
-    link = findLinkInCatalog(doc, FILE_PATTERNS.GSLA(dateString)) || link;
+    const link = findLinkInCatalog(doc, FILE_PATTERNS.GSLA(dateString));
+
+    if (link) {
+      const url = new URL(link);
+      const dataset = url.searchParams.get('dataset');
+      if (dataset) {
+        return `/thredds/wms/${dataset}`;
+      }
+    }
   } catch (error) {
     console.error('Error fetching GSLA catalog:', error);
   }
-  const url = new URL(link);
-  return `/thredds/wms/${url.searchParams.get('dataset')}`;
+  return `/thredds/wms/invalid_dataset`; //do not throw error here to avoid image loading failure test for legend url
 };
 
 // SST file name pattern example: 20240615_IMOS_AusTemp-sst-anomaly_AUS_fv02.nc, but the file may be in next year folder.
 const getSstUrlFromCatalog = async (date: Date): Promise<string> => {
   const dateString = generateFileDateString(date);
   const pattern = FILE_PATTERNS.SST(dateString);
-
   const dates = [date, addYears(date, 1)];
-  for (const searchDate of dates) {
-    try {
-      const doc = await generateDoc(THREDDS_PATHS.SST, searchDate);
-      const foundLink = findLinkInCatalog(doc, pattern);
-      if (foundLink) {
-        const url = new URL(foundLink);
-        return `/thredds/wms/${url.searchParams.get('dataset')}`;
-      }
-    } catch (error) {
-      console.error('Error fetching SST catalog:', error);
+
+  const results = await Promise.allSettled(
+    dates.map(async date => {
+      const doc = await generateDoc(THREDDS_PATHS.SST, date);
+      return findLinkInCatalog(doc, pattern);
+    }),
+  );
+
+  for (const result of results) {
+    if (result.status === 'fulfilled' && result.value) {
+      const url = new URL(result.value);
+      const dataset = url.searchParams.get('dataset');
+      if (!dataset) continue;
+      return `/thredds/wms/${dataset}`;
     }
   }
 
-  const url = new URL(FALLBACK_URL);
-  return `/thredds/wms/${url.searchParams.get('dataset')}`; //do not throw error here to avoid image loading failure test for legend url
+  return `/thredds/wms/invalid_dataset`; //do not throw error here to avoid image loading failure test for legend url
 };
 
 const baseUrl = async (id: OverlaySource, date: Date): Promise<string> => {
@@ -108,8 +114,9 @@ const baseUrl = async (id: OverlaySource, date: Date): Promise<string> => {
 export const rasterUrl = async (id: OverlaySource, date: Date): Promise<string> => {
   const base = await baseUrl(id, date);
   const config = WMS_CONFIG[id];
-
-  return `${base}?bbox={bbox-epsg-3857}&COLORSCALERANGE=${config.colorScaleRange}&version=1.3.0&REQUEST=GetMap&LAYERS=${config.layers}&styles=${config.styles}&crs=EPSG:3857&format=image/png&transparent=true&width=256&height=256`;
+  // Use /tiles/{z}/{x}/{y} path for CloudFront cache-friendly URLs
+  // The proxy will convert z/x/y to bbox before forwarding to THREDDS
+  return `/tiles/{z}/{x}/{y}${base}?COLORSCALERANGE=${config.colorScaleRange}&version=1.3.0&REQUEST=GetMap&LAYERS=${config.layers}&styles=${config.styles}&crs=EPSG:3857&format=image/png&transparent=true&width=256&height=256`;
 };
 
 export const rasterLegendUrl = async (id: OverlaySource, date: Date): Promise<string> => {

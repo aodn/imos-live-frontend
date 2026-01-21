@@ -47,6 +47,10 @@ export default defineConfig(({ mode }) => {
           target: 'https://imoslive.edge.aodn.org.au',
           changeOrigin: true,
         },
+        '/tiles': {
+          target: 'https://imoslive.edge.aodn.org.au',
+          changeOrigin: true,
+        },
       },
     };
   }
