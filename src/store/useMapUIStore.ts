@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import type { CustomizableParticleConfig, ParticleConfig } from '@/config';
 import {
+  DATE_RANGE,
   INITIAL_CENTER,
   INITIAL_DATE,
   INITIAL_STYLEL,
@@ -10,7 +11,6 @@ import {
 import type { ProductType } from '@/constants';
 import { PRODUCT } from '@/constants';
 import type { StyleTitle } from '@/styles';
-import { getLast31Dates } from '@/utils';
 import { type LngLat } from 'mapbox-gl';
 import { create } from 'zustand';
 import type { StateStorage } from 'zustand/middleware';
@@ -104,7 +104,7 @@ export const useMapUIStore = create(
       particleConfig: PARTICLE_INITIAL_CONFIG,
       distanceMeasurementEnabled: false,
       worldBoundariesEnabled: false,
-      dates: getLast31Dates(),
+      dates: DATE_RANGE,
       date: INITIAL_DATE,
       productEnabled: {
         [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: true,
@@ -130,7 +130,7 @@ export const useMapUIStore = create(
       setWorldBoundariesEnabled: worldBoundariesEnabled => set({ worldBoundariesEnabled }),
       setDate: date => set({ date }),
       refreshDates: () => {
-        const newDates = getLast31Dates();
+        const newDates = DATE_RANGE;
         set(prev => ({ ...prev, dates: newDates }));
       },
       setProductEnabledByProduct: (product, enabled) => {

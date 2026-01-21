@@ -48,8 +48,6 @@ export const getLast7Dates = getLastDates(7);
 
 export const getLast31Dates = getLastDates(31);
 
-export const getLast60Dates = getLastDates(60);
-
 /**
  * Converts a UTC date string to local time string
  * @param input
