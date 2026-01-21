@@ -8,8 +8,14 @@ export const getThreddsCatalog = async (path: string, date: Date): Promise<strin
   return queryClient.fetchQuery({
     queryKey: ['thredds-catalog', path, year],
     queryFn: async () => {
-      const catalog = await axios.get<string>(catalogUrl);
-      return catalog.data;
+      try {
+        const catalog = await axios.get<string>(catalogUrl);
+        return catalog.data;
+      } catch {
+        // Return empty string for 404s so they get cached too
+        // (React Query doesn't cache thrown errors)
+        return '';
+      }
     },
     staleTime: 10 * 60 * 1000, // 10 minutes
   });
