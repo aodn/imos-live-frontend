@@ -123,7 +123,7 @@ export const rasterLegendUrl = async (id: OverlaySource, date: Date): Promise<st
   const base = await baseUrl(id, date);
   const config = WMS_CONFIG[id];
 
-  return `${base}?version=1.3.0&COLORSCALERANGE=${config.colorScaleRange}&REQUEST=GetLegendGraphic&palette=${config.legendPalette}&COLORBARONLY=true&VERTICAL=false&WIDTH=443&HEIGHT=12`;
+  return `/legends${base}?version=1.3.0&COLORSCALERANGE=${config.colorScaleRange}&REQUEST=GetLegendGraphic&palette=${config.legendPalette}&COLORBARONLY=true&VERTICAL=false&WIDTH=443&HEIGHT=12`;
 };
 
 export const getFeatureInfoUrl = async (
@@ -142,3 +142,7 @@ export const getFeatureInfoUrl = async (
 
   return `${base}?REQUEST=GetFeatureInfo&SERVICE=WMS&VERSION=1.3.0&LAYERS=${layerName}&QUERY_LAYERS=${layerName}&CRS=EPSG:4326&BBOX=${bbox}&WIDTH=${mapSize.width}&HEIGHT=${mapSize.height}&I=${Math.floor(clickPoint.x)}&J=${Math.floor(clickPoint.y)}&INFO_FORMAT=text/xml`;
 };
+
+// cloudfront caching for thredds wms tiles and legend urls. /tiles/* bheaviour for tiles cache. /legends/* behaviour for legend cache.
+// For tiles cache, lambda@edge to convert /tiles/{z}/{x}/{y} to bbox and forward to thredds endpoint.
+// For legend cache, cloud function to remove /legends prefix and forward to thredds endpoint.
