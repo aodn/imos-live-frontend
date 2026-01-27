@@ -2,7 +2,7 @@ import { getWaveBuoyDetails } from '@/api';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import type { WaveBuoyPositionFeature } from '@/types';
-import { toLocalDateTime, toWaveBuoyChartData } from '@/utils';
+import { formatLatLngToDirectional, toLocalDateTime, toWaveBuoyChartData } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useMemo } from 'react';
 import { buoyDataDirectionVariant, noneDirectionVariants, VariantReadableName } from './config';
@@ -27,10 +27,13 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
   const { dateString, buoy, geometry } = toWaveBuoyChartData(waveBuoysData);
 
   const { from, to } = useMemo(() => {
-    const date = dayjs(dateString);
-    const from = date.utc().subtract(6, 'days').format('YYYY-MM-DDTHH:mm:ss.000000000') + 'Z';
-    const to = date.utc().format('YYYY-MM-DDTHH:mm:ss.000000000') + 'Z';
-    return { from, to };
+    const end = dayjs(dateString).utc().startOf('day');
+    const start = end.subtract(6, 'day');
+
+    return {
+      from: start.format('YYYY-MM-DDTHH:mm:ss.000000000[Z]'),
+      to: end.format('YYYY-MM-DDTHH:mm:ss.000000000[Z]'),
+    };
   }, [dateString]);
 
   const {
@@ -91,7 +94,9 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
 
   const title = useMemo(() => {
     return (
-      buoy + ' ' + `( ${geometry.coordinates[1].toFixed(2)}, ${geometry.coordinates[0].toFixed(2)})`
+      buoy +
+      ' ' +
+      `(${formatLatLngToDirectional(geometry.coordinates[1], geometry.coordinates[0])})`
     );
   }, [buoy, geometry.coordinates]);
 
