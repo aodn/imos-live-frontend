@@ -123,7 +123,7 @@ export const rasterLegendUrl = async (id: OverlaySource, date: Date): Promise<st
   const base = await baseUrl(id, date);
   const config = WMS_CONFIG[id];
 
-  return `${base}?version=1.3.0&COLORSCALERANGE=${config.colorScaleRange}&REQUEST=GetLegendGraphic&palette=${config.legendPalette}&COLORBARONLY=true&VERTICAL=false&WIDTH=443&HEIGHT=12`;
+  return `/legends${base}?version=1.3.0&COLORSCALERANGE=${config.colorScaleRange}&REQUEST=GetLegendGraphic&palette=${config.legendPalette}&COLORBARONLY=true&VERTICAL=false&WIDTH=443&HEIGHT=12`;
 };
 
 export const getFeatureInfoUrl = async (
