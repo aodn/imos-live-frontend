@@ -53,7 +53,7 @@ export const PARTICLE_INITIAL_CONFIG = {
   // the maxSpeed determines how particles speed normilized in [0,1], visualized corresponding color from graident colors ramp.
   maxSpeed: MAX_SPEED, //NOTICE!!! color legend (ColorScaleBar) must use this one as max range. Must be a float number, if not larger than 0, dataset's own max speed will be maxSpeed.
 
-  nParticles: 10000,
+  nParticles: 30000,
 
   // opacity of background screen, leading to fading of trails, related to trail length.
   fadeOpacity: generateValueByPercentage({

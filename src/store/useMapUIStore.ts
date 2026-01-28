@@ -4,7 +4,9 @@ import {
   DATE_RANGE,
   INITIAL_CENTER,
   INITIAL_DATE,
+  INITIAL_DISTANCE_MEASUREMENT_ENABLED,
   INITIAL_STYLEL,
+  INITIAL_WOULD_BOUNDARIES_ENABLED,
   INITIAL_ZOOM,
   PARTICLE_INITIAL_CONFIG,
 } from '@/config';
@@ -102,8 +104,8 @@ export const useMapUIStore = create(
       zoom: INITIAL_ZOOM,
       style: INITIAL_STYLEL,
       particleConfig: PARTICLE_INITIAL_CONFIG,
-      distanceMeasurementEnabled: false,
-      worldBoundariesEnabled: false,
+      distanceMeasurementEnabled: INITIAL_DISTANCE_MEASUREMENT_ENABLED,
+      worldBoundariesEnabled: INITIAL_WOULD_BOUNDARIES_ENABLED,
       dates: DATE_RANGE,
       date: INITIAL_DATE,
       productEnabled: {
