@@ -4,9 +4,11 @@ import {
   DATE_RANGE,
   INITIAL_CENTER,
   INITIAL_DATE,
+  INITIAL_DISTANCE_MEASUREMENT_ENABLED,
   INITIAL_STYLEL,
+  INITIAL_WOULD_BOUNDARIES_ENABLED,
   INITIAL_ZOOM,
-  PARTICLE_INITIAL_CONFIG,
+  INITIAL_PARTICLE_CONFIG,
 } from '@/config';
 import type { ProductType } from '@/constants';
 import { PRODUCT } from '@/constants';
@@ -55,8 +57,8 @@ const hashStorage: StateStorage = {
     if (restoredState.particleConfig) {
       restoredState.particleConfig = {
         ...restoredState.particleConfig,
-        maxSpeed: PARTICLE_INITIAL_CONFIG.maxSpeed,
-        colours: PARTICLE_INITIAL_CONFIG.colours,
+        maxSpeed: INITIAL_PARTICLE_CONFIG.maxSpeed,
+        colours: INITIAL_PARTICLE_CONFIG.colours,
       };
     }
 
@@ -101,9 +103,9 @@ export const useMapUIStore = create(
       center: INITIAL_CENTER,
       zoom: INITIAL_ZOOM,
       style: INITIAL_STYLEL,
-      particleConfig: PARTICLE_INITIAL_CONFIG,
-      distanceMeasurementEnabled: false,
-      worldBoundariesEnabled: false,
+      particleConfig: INITIAL_PARTICLE_CONFIG,
+      distanceMeasurementEnabled: INITIAL_DISTANCE_MEASUREMENT_ENABLED,
+      worldBoundariesEnabled: INITIAL_WOULD_BOUNDARIES_ENABLED,
       dates: DATE_RANGE,
       date: INITIAL_DATE,
       productEnabled: {
