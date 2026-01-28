@@ -8,7 +8,8 @@
       "Bash(npm test:*)",
       "Bash(npm run type-check:*)",
       "Bash(npm run:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "WebFetch(domain:api.mapbox.com)"
     ],
     "deny": [],
     "ask": []
