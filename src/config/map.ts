@@ -12,5 +12,4 @@ export const INITIAL_CENTER = new LngLat(133.7751, -25.2744);
 export const DATE_RANGE = getLast31Dates();
 export const INITIAL_DATE = DATE_RANGE.at(-1)!;
 export const INITIAL_WOULD_BOUNDARIES_ENABLED = true;
-
 export const INITIAL_DISTANCE_MEASUREMENT_ENABLED = false;
