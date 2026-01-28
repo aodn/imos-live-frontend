@@ -1,9 +1,9 @@
 import ESRIWorldImagery from './ESRIWorldImagery.json';
-import SteetWithBathymetry from './StreetWithBathymetry.json';
+import StreetWithBathymetry from './StreetWithBathymetry.json';
 
-type MapboxStyle = { title: 'Dark' | 'Streets' | 'Satellite'; source: string };
+type MapboxStyle = { title: 'Dark' | 'Satellite'; source: string };
 type ESRIWorldImageryStyle = { title: 'ESRIWorldImagery'; source: typeof ESRIWorldImagery };
-type StreetWithBathymetryStyle = { title: 'Streets'; source: typeof SteetWithBathymetry };
+type StreetWithBathymetryStyle = { title: 'Streets'; source: typeof StreetWithBathymetry };
 
 export type Style = MapboxStyle | ESRIWorldImageryStyle | StreetWithBathymetryStyle;
 
@@ -11,7 +11,7 @@ const mapboxStyles: MapboxStyle[] = [{ title: 'Dark', source: 'mapbox://styles/m
 
 export const customStyles: (ESRIWorldImageryStyle | StreetWithBathymetryStyle)[] = [
   { title: 'ESRIWorldImagery', source: ESRIWorldImagery },
-  { title: 'Streets', source: SteetWithBathymetry },
+  { title: 'Streets', source: StreetWithBathymetry },
 ];
 
 export const styles: Style[] = [...mapboxStyles, ...customStyles];
@@ -20,7 +20,7 @@ export type StyleTitle = 'Dark' | 'Streets' | 'ESRIWorldImagery';
 export type StyleSource =
   | 'mapbox://styles/mapbox/dark-v11'
   | typeof ESRIWorldImagery
-  | typeof SteetWithBathymetry;
+  | typeof StreetWithBathymetry;
 
 export const worldLandStyle = {
   title: 'countryBoundaries',
