@@ -49,15 +49,15 @@ export const POINT_SIZE_RANGE = {
   max: 5.0,
 } as const;
 
-export const PARTICLE_INITIAL_CONFIG = {
+export const INITIAL_PARTICLE_CONFIG = {
   // the maxSpeed determines how particles speed normilized in [0,1], visualized corresponding color from graident colors ramp.
   maxSpeed: MAX_SPEED, //NOTICE!!! color legend (ColorScaleBar) must use this one as max range. Must be a float number, if not larger than 0, dataset's own max speed will be maxSpeed.
 
-  nParticles: 10000,
+  nParticles: 30000,
 
   // opacity of background screen, leading to fading of trails, related to trail length.
   fadeOpacity: generateValueByPercentage({
-    percentage: 0.6,
+    percentage: 0.9,
     range: FADE_OPACITY_RANGE,
     decimals: 2,
   }),
@@ -74,7 +74,7 @@ export const PARTICLE_INITIAL_CONFIG = {
   // prevents faster moving regions from visually dominating
   dropRateBump: 0.05,
 
-  pointSize: generateValueByPercentage({ percentage: 0.25, range: POINT_SIZE_RANGE, decimals: 1 }),
+  pointSize: generateValueByPercentage({ percentage: 0.1, range: POINT_SIZE_RANGE, decimals: 1 }),
 
   // colour gradient, the colours object is a pair of normilised speed with values (0-1) and hex colour strings. Must be the same as the LogColorScaleBar component.
   colours: colors,
