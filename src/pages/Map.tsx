@@ -54,6 +54,7 @@ export const Map = () => {
             className="absolute!"
             contentWrapperClassName="px-2"
             handleHidden
+            closeIconHidden
           />
           <LayersIndicator
             className="md:hidden absolute top-10 left-4 z-10"

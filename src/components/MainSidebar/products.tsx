@@ -12,7 +12,14 @@ import {
   PRODUCT,
   SST_ANOMALY_MOSAIC_OVERLAY_LAYER_ID,
 } from '@/constants';
-import { RadarIcon, SatelliteIcon, ThermometerIcon, WaterSurfaceIcon, WaveIcon } from '../Icons';
+import {
+  RadarIcon,
+  SatelliteIcon,
+  ThermometerIcon,
+  WaterSurfaceIcon,
+  WaveBuoyIcon,
+  WaveIcon,
+} from '../Icons';
 import type { LayersDataset } from './MainSidebarContent';
 import { LogColorScaleBar, RasterLegend } from '../ColorScaleBar';
 import { setProductEnabledByProduct } from '@/store';
@@ -47,6 +54,8 @@ export const featuredDataset: LayersDataset[] = [
     product: PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT,
     legend: <LogColorScaleBar className="w-full" {...GSLA_OCEAN_CURRENT_COLORS_LEGEND_CONFIG} />,
     addToMap: setProductEnabledByProduct,
+    isRealTime: true,
+    portalLink: 'https://portal-beta.aodn.org.au/details/0c9eb39c-9cbe-4c6a-8a10-5867087e703a',
   },
   {
     image: {
@@ -73,6 +82,8 @@ export const featuredDataset: LayersDataset[] = [
       />
     ),
     addToMap: setProductEnabledByProduct,
+    isRealTime: false,
+    portalLink: 'https://portal-beta.aodn.org.au/details/0c9eb39c-9cbe-4c6a-8a10-5867087e703a',
   },
   {
     image: {
@@ -95,6 +106,9 @@ export const featuredDataset: LayersDataset[] = [
       />
     ),
     addToMap: setProductEnabledByProduct,
+    isRealTime: false,
+    portalLink:
+      'https://catalogue-imos.aodn.org.au/geonetwork/srv/eng/catalog.search#/search?any=IMOS%20-%20AusTemp%20-%20Sea%20Surface%20Temperature',
   },
   {
     image: {
@@ -102,7 +116,7 @@ export const featuredDataset: LayersDataset[] = [
       alt: 'Wave buoys',
     },
     title: 'Wave buoys',
-    icon: <SatelliteIcon size="lg" />,
+    icon: <WaveBuoyIcon size="lg" />,
     description:
       'Buoys provide integral wave parameters. Buoy data from the following organisations contribute to the National Wave Archive: Manly Hydraulics Laboratory, Bureau of Meteorology, DOT, DES, IMOS, Gippsland Ports, DPE, UWA, Deakin University, Pilbara Ports Authority and Flinders University and SARDI.',
     layerId: WAVE_BUOYS_LAYER_ID,
@@ -110,6 +124,8 @@ export const featuredDataset: LayersDataset[] = [
     isError: false,
     product: PRODUCT.WAVE_BUOYS,
     addToMap: setProductEnabledByProduct,
+    isRealTime: true,
+    portalLink: ' https://portal-beta.aodn.org.au/details/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc',
   },
 ];
 
