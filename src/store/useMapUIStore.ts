@@ -22,6 +22,11 @@ import { deserialize, serialize } from './serialization';
 type ProductError = Record<ProductType, boolean>;
 export type ProductEnabled = Record<ProductType, boolean>;
 
+export interface JumpToDate {
+  date: string;
+  trigger: number;
+}
+
 export interface MapUIState {
   center: LngLat;
   zoom: number;
@@ -33,6 +38,7 @@ export interface MapUIState {
   dates: string[];
   productEnabled: ProductEnabled;
   productError: ProductError;
+  jumpToDate: JumpToDate | null;
   setCenter: (center: LngLat) => void;
   setZoom: (zoom: number) => void;
   setStyle: (style: StyleTitle) => void;
@@ -43,6 +49,8 @@ export interface MapUIState {
   refreshDates: () => void;
   setProductErrorByProduct: (product: ProductType, error: boolean) => void;
   setProductEnabledByProduct: (product: ProductType, enabled: boolean) => void;
+  setJumpToDate: (date: string) => void;
+  clearJumpToDate: () => void;
 }
 
 const hashStorage: StateStorage = {
@@ -84,8 +92,8 @@ const storageOptions = {
   storage: createJSONStorage<MapUIState>(() => hashStorage),
   //select fields intended to sync in url
   partialize: (state: MapUIState) => {
-    //filter out dates and productError to sync in url
-    const { dates, productError, ...rest } = state;
+    //filter out dates, productError, and jumpToDate to sync in url
+    const { dates, productError, jumpToDate, ...rest } = state;
 
     // Filter out maxSpeed and colours from particleConfig
     const { maxSpeed, colours, ...customizableConfig } = rest.particleConfig;
@@ -120,6 +128,7 @@ export const useMapUIStore = create(
         [PRODUCT.SST_ANOMALY_MOSAIC]: false,
         [PRODUCT.WAVE_BUOYS]: false,
       },
+      jumpToDate: null,
       setCenter: center => set({ center }),
       setZoom: zoom => set({ zoom }),
       setStyle: style => set({ style }),
@@ -164,6 +173,8 @@ export const useMapUIStore = create(
           },
         }));
       },
+      setJumpToDate: date => set({ jumpToDate: { date, trigger: Date.now() } }),
+      clearJumpToDate: () => set({ jumpToDate: null }),
     }),
     storageOptions,
   ),
@@ -182,4 +193,6 @@ export const {
   refreshDates,
   setProductErrorByProduct,
   setProductEnabledByProduct,
+  setJumpToDate,
+  clearJumpToDate,
 } = useMapUIStore.getState();

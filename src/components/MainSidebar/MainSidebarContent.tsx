@@ -26,7 +26,7 @@ export type LayersDataset = {
   isError: boolean;
   legend?: ReactNode;
   product: ProductType;
-  isRealTime?: boolean;
+  dateCheckUrl?: (date: string) => string;
   portalLink?: string;
 };
 

@@ -1,5 +1,5 @@
 import { WAVE_BUOYS_LAYER_ID } from '@/constants';
-import { cn } from '@/utils';
+import { cn, getLatestFulfilledDate, toISOFromCompact } from '@/utils';
 import type { ReactNode } from 'react';
 import { Button } from '../Button';
 import type { TriggerArgs } from '../Collapsible';
@@ -7,11 +7,15 @@ import { CollapsibleComponent } from '../Collapsible';
 import { AddCircleIcon, ArrowIcon, MinusCircleIcon, VectorIcon } from '../Icons';
 import { Image } from '../Image';
 import type { LayersDataset } from './MainSidebarContent';
+import { useQuery } from '@tanstack/react-query';
+import { fileExist } from '@/api';
+import { setJumpToDate } from '@/store';
+import { QUERY_DATE_RANGE } from '@/config';
 
 export type LayerCardProps = LayersDataset & {
   firstButtonLabel: string;
   secondButtonLabel: string;
-  isRealTime?: boolean;
+  dateCheckUrl?: (date: string) => string;
   portalLink?: string;
 };
 
@@ -28,12 +32,29 @@ export const LayerCard = ({
   icon,
   product,
   legend,
-  isRealTime,
+  dateCheckUrl,
   portalLink,
 }: LayerCardProps) => {
+  const { data: availableDates, isLoading: isDateLoading } = useQuery({
+    queryKey: [product, QUERY_DATE_RANGE],
+    queryFn: () => {
+      const candidates = QUERY_DATE_RANGE.map(d => fileExist(dateCheckUrl!(d), d));
+      return Promise.allSettled(candidates);
+    },
+    enabled: !!dateCheckUrl,
+  });
+
+  const latestDate = availableDates ? getLatestFulfilledDate(availableDates) : undefined;
+
   const handleClick = () => {
     if (addToMap) addToMap(product, !visible);
     if (layerId === WAVE_BUOYS_LAYER_ID) import('../Highcharts/WaveBuoyChart'); //preload wavebuoy chart when wavebuoylayer added.
+  };
+
+  const handleJumpToLatest = () => {
+    if (latestDate) {
+      setJumpToDate(toISOFromCompact(latestDate));
+    }
   };
 
   return (
@@ -91,13 +112,16 @@ export const LayerCard = ({
               </Button>
             )}
 
-            {isRealTime ? (
-              <Button className="pointer-events-none bg-imos-mint text-btn-mobile md:text-btn text-imos-grey w-fit">
-                Real-time
-              </Button>
-            ) : (
-              <Button className="pointer-events-none bg-imos-light-blue text-btn-mobile md:text-btn text-imos-grey w-fit">
-                Near Real-time
+            {dateCheckUrl && (
+              <Button
+                variant="outline"
+                onClick={handleJumpToLatest}
+                disabled={isDateLoading || !latestDate}
+                className="text-btn-mobile md:text-btn text-imos-grey w-fit"
+              >
+                {isDateLoading
+                  ? 'Loading...'
+                  : `To ${latestDate ? toISOFromCompact(latestDate) : ''}`}
               </Button>
             )}
           </div>
