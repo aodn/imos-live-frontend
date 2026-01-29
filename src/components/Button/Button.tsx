@@ -3,20 +3,19 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/utils';
 
 const buttonVariants = cva(
-  "cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-70 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:w-4 [&_svg:not([class*='size-'])]:h-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-blue-500 focus-visible:ring-blue-500/50 focus-visible:ring-4 [&[aria-invalid='true']]:ring-red-500/20 [&[aria-invalid='true']]:border-red-500",
+  "cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-btn transition-all disabled:pointer-events-none disabled:opacity-70 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:w-4 [&_svg:not([class*='size-'])]:h-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-blue-500 focus-visible:ring-blue-500/50 focus-visible:ring-4 [&[aria-invalid='true']]:ring-red-500/20 [&[aria-invalid='true']]:border-red-500 hover:opacity-90",
   {
     variants: {
       variant: {
-        default: 'bg-blue-600 text-white shadow-sm hover:bg-blue-700',
-        destructive:
-          'bg-red-600 text-white shadow-sm hover:bg-red-700 focus-visible:ring-red-500/20',
-        outline: 'border border-gray-200 bg-white shadow-sm hover:bg-gray-50 hover:text-gray-900',
-        secondary: 'bg-gray-100 text-gray-900 shadow-sm hover:bg-gray-200',
-        ghost: 'hover:bg-gray-100 hover:text-gray-900',
+        default: 'bg-blue-600 text-white shadow-sm',
+        destructive: 'bg-red-600 text-white shadow-sm focus-visible:ring-red-500/20',
+        outline: 'border border-gray-200 bg-white shadow-sm ',
+        secondary: 'bg-gray-100 text-gray-900 shadow-sm ',
+        ghost: '',
         link: 'text-blue-600 underline-offset-4 hover:underline',
       },
       size: {
-        default: 'h-9 px-4 py-2 [&:has(>svg)]:px-3',
+        default: 'h-9 px-3 py-[2px] [&:has(>svg)]:px-3',
         sm: 'h-8 rounded-md gap-1.5 px-3 [&:has(>svg)]:px-2.5',
         lg: 'h-10 rounded-md px-6 [&:has(>svg)]:px-4',
         icon: 'w-fit h-fit',

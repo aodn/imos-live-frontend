@@ -30,7 +30,12 @@ import Minus from './minus.svg?react';
 import Renew from './renew.svg?react';
 import FullScreen from './fullscreen.svg?react';
 import CloseFullScreen from './close_fullscreen.svg?react';
+import WaveBuoy from './wave_buoy.svg?react';
+import Vector from './vector.svg?react';
 
+export const VectorIcon = withIcon(Vector);
+
+export const WaveBuoyIcon = withIcon(WaveBuoy);
 export const CloseIcon = withIcon(Close);
 export const MenuIcon = withIcon(Menu);
 export const ArrowIcon = withIcon(Arrow);

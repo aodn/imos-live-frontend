@@ -1,10 +1,18 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
-/* since tailwindcss v4 has deprecated tailwind.config.js, so to use it have add this line
-   https://tailwindcss.com/blog/tailwindcss-v4
-*/
-@config "../tailwind.config.js";
+/* Tailwind v4 native theme configuration */
+@theme {
+  /* Custom colors */
+  --color-imos-white: #fff;
+  --color-imos-black: #090c02;
+  --color-imos-red: #e53935;
+  --color-imos-grey: #595959;
+  --color-imos-light: #c5d8e7;
+  --color-imos-blue: #3b6e8f;
+  --color-imos-light-blue: #a7e9f3;
+  --color-imos-mint: #a7f3d8;
+}
 
 html,
 body {
@@ -17,14 +25,50 @@ body {
   box-sizing: border-box;
 }
 
-/* 
-   instead of using tailwindcss.config.js, using @theme to add css variable is the new way
-   to add cusomt style. And these variable can follow naming parttern similar to before to 
-   be used in code. The naming pattern is in this url: https://tailwindcss.com/docs/theme.
-
-*/
-
 @layer utilities {
+  /* Custom font size utilities, add these inside ailwind-merge in cn.ts to avoid removed by tailwind-merge */
+  .text-body {
+    font-size: 14px;
+    line-height: 22px;
+    font-weight: 400;
+  }
+
+  .text-btn {
+    font-size: 14px;
+    line-height: 22px;
+    font-weight: 400;
+  }
+
+  .text-btn-mobile {
+    font-size: 13px;
+    line-height: 20px;
+    font-weight: 400;
+  }
+
+  .text-caption {
+    font-size: 14px;
+    line-height: 22px;
+    font-weight: 500;
+  }
+
+  .text-title-lg {
+    font-size: 20px;
+    line-height: 24px;
+    font-weight: 700;
+  }
+
+  .text-title-md {
+    font-size: 20px;
+    line-height: 30px;
+    font-weight: 500;
+  }
+
+  .text-title-sm {
+    font-size: 17px;
+    line-height: 22px;
+    font-weight: 500;
+  }
+
   .h-screen-exact {
     height: 100vh;
     height: -webkit-fill-available;

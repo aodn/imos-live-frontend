@@ -18,6 +18,7 @@ export interface DrawerProps {
   isOpen: boolean;
   closeDrawer: () => void;
   handleHidden?: boolean;
+  closeIconHidden?: boolean;
 }
 
 function getClosestSnapPoint(value: number, snapPoints: number[]) {
@@ -83,6 +84,7 @@ export const Drawer: React.FC<DrawerProps> = ({
   isOpen,
   closeDrawer,
   handleHidden = false,
+  closeIconHidden = false,
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0, initialSize: 0 });
@@ -338,7 +340,6 @@ export const Drawer: React.FC<DrawerProps> = ({
         return '';
     }
   };
-
   const drawerStyles = getDrawerStyles();
 
   return (
@@ -383,14 +384,16 @@ export const Drawer: React.FC<DrawerProps> = ({
           </button>
         </div>
 
-        <Button
-          className="absolute top-0 right-0 cursor-pointer z-10 block"
-          variant="ghost"
-          onClick={handleClose}
-          aria-label="close drawer"
-        >
-          <CloseIcon onClick={handleClose} />
-        </Button>
+        {closeIconHidden ? null : (
+          <Button
+            className="absolute top-0 right-0 cursor-pointer z-10 block"
+            variant="ghost"
+            onClick={handleClose}
+            aria-label="close drawer"
+          >
+            <CloseIcon onClick={handleClose} />
+          </Button>
+        )}
 
         <div
           className={cn('h-full w-full overflow-auto px-1 py-4 md:px-4', contentWrapperClassName)}

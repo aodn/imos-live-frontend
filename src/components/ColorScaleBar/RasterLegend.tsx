@@ -54,7 +54,7 @@ export const RasterLegend = ({ overlaySource, scales, label }: RasterLegendProps
         </div>
       </div>
 
-      <div className="mt-2 text-black text-sm text-center">
+      <div className="mt-2 text-caption text-imos-grey text-center">
         <span>{label}</span>
       </div>
     </div>

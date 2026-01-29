@@ -106,7 +106,7 @@ export const LogColorScaleBar = ({
       </div>
 
       {title && (
-        <div className="mt-2 text-black text-sm text-center">
+        <div className="mt-2 text-caption text-imos-grey text-center">
           <span>{title}</span>
         </div>
       )}
