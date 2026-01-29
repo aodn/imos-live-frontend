@@ -7,7 +7,7 @@ export function getLastDates<const T extends number>(length: T) {
     const endDate = new Date(today);
     endDate.setDate(today.getDate());
 
-    for (let i = length; i >= 0; i--) {
+    for (let i = length; i > 0; i--) {
       const date = new Date(endDate);
       date.setDate(endDate.getDate() - i);
 
@@ -104,4 +104,20 @@ export function toISODateString(date: Date): string {
   const day = String(date.getUTCDate()).padStart(2, '0');
 
   return `${year}-${month}-${day}`;
+}
+
+/** Convert compact date string (yyyymmdd) to ISO format (yyyy-mm-dd) */
+export function toISOFromCompact(date: string): string {
+  return `${date.slice(0, 4)}-${date.slice(4, 6)}-${date.slice(6, 8)}`;
+}
+
+/** Extract the latest fulfilled date from Promise.allSettled results */
+export function getLatestFulfilledDate(
+  results: PromiseSettledResult<string | undefined>[],
+): string | undefined {
+  return results
+    .filter((r): r is PromiseFulfilledResult<string> => r.status === 'fulfilled' && !!r.value)
+    .map(r => r.value)
+    .sort()
+    .at(-1);
 }

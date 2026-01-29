@@ -1,18 +1,54 @@
 import { TriangleIcon } from '../Icons';
 import { setDate } from '@/store';
-import { memo, useCallback } from 'react';
-import { useDateSliderDates } from '@/hooks';
-import { DateSlider, type PointValue, type SelectionResult } from '../DateSlider';
-import { cn, toISODateString } from '@/utils';
+import { memo, useCallback, useEffect, useRef } from 'react';
+import { useDateQueryParams, useDateSliderDates } from '@/hooks';
+import {
+  DateSlider,
+  type SliderExposedMethod,
+  type PointValue,
+  type SelectionResult,
+} from '../DateSlider';
+import {
+  cn,
+  getLatestFulfilledDate,
+  getLast7Dates,
+  toISODateString,
+  toISOFromCompact,
+} from '@/utils';
 import {
   customDateLabelRenderer,
   customSelectionPanelRenderer,
 } from '../DateSlider/components/defaultRender';
+import { useQuery } from '@tanstack/react-query';
+import { fileExist, gslaUrl } from '@/api';
 
 type DateSelectionBarProps = { className?: string };
 
 export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
   const { date, startDate, endDate } = useDateSliderDates();
+  const { isDateInQueryParams } = useDateQueryParams();
+  const imperativeHandlerRef = useRef<SliderExposedMethod>(null);
+
+  const last7Dates = getLast7Dates('yyyymmdd');
+
+  const { data: gslaDates } = useQuery({
+    queryKey: ['gsla', last7Dates],
+    queryFn: () => {
+      const candidates = last7Dates.map(d => fileExist(gslaUrl(d), d));
+      return Promise.allSettled(candidates);
+    },
+    enabled: !isDateInQueryParams, //if date already selected, stop.
+  });
+
+  useEffect(() => {
+    //set date to latest available date when use has not selected date
+    if (!gslaDates || isDateInQueryParams) return;
+
+    const latestDate = getLatestFulfilledDate(gslaDates);
+    if (latestDate) {
+      imperativeHandlerRef.current?.setDateTime(new Date(toISOFromCompact(latestDate)));
+    }
+  }, [gslaDates, isDateInQueryParams]);
 
   const handleSelect = useCallback(async (v: SelectionResult) => {
     setDate(toISODateString((v as PointValue).point));
@@ -21,6 +57,7 @@ export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
   return (
     <div className={cn('shadow-xl', className)}>
       <DateSlider
+        imperativeRef={imperativeHandlerRef}
         mode="point"
         min={startDate}
         max={endDate}
