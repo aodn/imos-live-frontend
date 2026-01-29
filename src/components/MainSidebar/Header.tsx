@@ -22,7 +22,7 @@ export const Header = ({ image, title, className }: HeaderProps) => {
         className,
       )}
     >
-      <div className="border-r-2 flex-1 flex items-center md:justify-center justify-between">
+      <div className="border-r border-imos-blue flex-1 flex items-center md:justify-center justify-between">
         <Button
           variant="ghost"
           size="icon"
@@ -48,8 +48,9 @@ export const Header = ({ image, title, className }: HeaderProps) => {
           }
         />
       </div>
+
       <div className="flex-1">
-        <h1 className="text-imos-grey font-bold text-left md:text-center">{title}</h1>
+        <h1 className="text-title-lg text-imos-blue text-left md:text-center">{title}</h1>
       </div>
     </div>
   );
