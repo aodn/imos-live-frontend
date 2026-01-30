@@ -5,12 +5,19 @@ export const sstaUrl = (date: string) =>
 export const gslaUrl = (date: string) =>
   `https://imos-data.s3.ap-southeast-2.amazonaws.com/IMOS/OceanCurrent/GSLA/NRT/${date.slice(0, 4)}/IMOS_OceanCurrent_HV_${date}T180000Z_GSLA_FV02_NRT.nc`;
 
-export async function fileExist(url: string, date: string): Promise<string | undefined> {
-  const response = await axios.head(url, {
-    timeout: 3000,
-    //by default, validateStatus = status => status >= 200 && status < 300, so any other status will throw exception.
-  });
-  if (response.status >= 200 && response.status < 300) {
+export async function fileExist(url: string, date: string): Promise<string | null> {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), 1200);
+
+  try {
+    await axios.head(url, {
+      signal: controller.signal,
+      //by default, validateStatus = status => status >= 200 && status < 300, so any other status will throw exception.
+    });
     return date;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(id);
   }
 }
