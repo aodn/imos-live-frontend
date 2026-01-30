@@ -112,9 +112,7 @@ export function toISOFromCompact(date: string): string {
 }
 
 /** Extract the latest fulfilled date from Promise.allSettled results */
-export function getLatestFulfilledDate(
-  results: PromiseSettledResult<string | undefined>[],
-): string | undefined {
+export function getLatestFulfilledDate(results: PromiseSettledResult<string | null>[]) {
   return results
     .filter((r): r is PromiseFulfilledResult<string> => r.status === 'fulfilled' && !!r.value)
     .map(r => r.value)

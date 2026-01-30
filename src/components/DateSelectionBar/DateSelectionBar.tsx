@@ -7,12 +7,10 @@ import {
   type SliderExposedMethod,
   type PointValue,
   type SelectionResult,
-} from '../DateSlider';
-import { cn, getLatestFulfilledDate, toISODateString, toISOFromCompact } from '@/utils';
-import {
   customDateLabelRenderer,
   customSelectionPanelRenderer,
-} from '../DateSlider/components/defaultRender';
+} from '../DateSlider';
+import { cn, getLatestFulfilledDate, toISODateString, toISOFromCompact } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
 import { fileExist, gslaUrl } from '@/api';
 import { useShallow } from 'zustand/shallow';
@@ -40,6 +38,7 @@ export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
     },
     select: data => getLatestFulfilledDate(data),
     enabled: !isDateInQueryParams, //if date already selected, stop.
+    retry: false,
   });
 
   useEffect(() => {

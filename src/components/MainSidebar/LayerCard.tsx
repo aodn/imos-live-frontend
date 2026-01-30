@@ -43,6 +43,7 @@ export const LayerCard = ({
     },
     select: data => getLatestFulfilledDate(data),
     enabled: !!dateCheckUrl,
+    retry: false,
   });
 
   const handleClick = () => {
