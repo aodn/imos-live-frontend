@@ -35,16 +35,15 @@ export const LayerCard = ({
   dateCheckUrl,
   portalLink,
 }: LayerCardProps) => {
-  const { data: availableDates, isLoading: isDateLoading } = useQuery({
+  const { data: latestDate, isLoading: isDateLoading } = useQuery({
     queryKey: [product, QUERY_DATE_RANGE],
     queryFn: () => {
       const candidates = QUERY_DATE_RANGE.map(d => fileExist(dateCheckUrl!(d), d));
       return Promise.allSettled(candidates);
     },
+    select: data => getLatestFulfilledDate(data),
     enabled: !!dateCheckUrl,
   });
-
-  const latestDate = availableDates ? getLatestFulfilledDate(availableDates) : undefined;
 
   const handleClick = () => {
     if (addToMap) addToMap(product, !visible);
@@ -119,9 +118,7 @@ export const LayerCard = ({
                 disabled={isDateLoading || !latestDate}
                 className="text-btn-mobile md:text-btn text-imos-grey w-fit"
               >
-                {isDateLoading
-                  ? 'Loading...'
-                  : `To ${latestDate ? toISOFromCompact(latestDate) : ''}`}
+                {isDateLoading ? 'Loading...' : 'Latest Date'}
               </Button>
             )}
           </div>

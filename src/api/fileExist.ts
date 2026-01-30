@@ -7,9 +7,10 @@ export const gslaUrl = (date: string) =>
 
 export async function fileExist(url: string, date: string): Promise<string | undefined> {
   const response = await axios.head(url, {
-    timeout: 5000,
+    timeout: 3000,
+    //by default, validateStatus = status => status >= 200 && status < 300, so any other status will throw exception.
   });
-  if (response.status == 200) {
+  if (response.status >= 200 && response.status < 300) {
     return date;
   }
 }

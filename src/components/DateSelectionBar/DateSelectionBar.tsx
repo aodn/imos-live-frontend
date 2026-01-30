@@ -17,6 +17,7 @@ import { useQuery } from '@tanstack/react-query';
 import { fileExist, gslaUrl } from '@/api';
 import { useShallow } from 'zustand/shallow';
 import { QUERY_DATE_RANGE } from '@/config';
+import { PRODUCT } from '@/constants';
 
 type DateSelectionBarProps = { className?: string };
 
@@ -31,24 +32,21 @@ export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
   );
   const imperativeHandlerRef = useRef<SliderExposedMethod>(null);
 
-  const { data: gslaDates } = useQuery({
-    queryKey: ['gsla', QUERY_DATE_RANGE],
+  const { data: latestDate } = useQuery({
+    queryKey: [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT, QUERY_DATE_RANGE],
     queryFn: () => {
       const candidates = QUERY_DATE_RANGE.map(d => fileExist(gslaUrl(d), d));
       return Promise.allSettled(candidates);
     },
+    select: data => getLatestFulfilledDate(data),
     enabled: !isDateInQueryParams, //if date already selected, stop.
   });
 
   useEffect(() => {
     //set date to latest available date when user has not selected date. Initial visit website.
-    if (!gslaDates || isDateInQueryParams) return;
-
-    const latestDate = getLatestFulfilledDate(gslaDates);
-    if (latestDate) {
-      imperativeHandlerRef.current?.setDateTime(new Date(toISOFromCompact(latestDate)));
-    }
-  }, [gslaDates, isDateInQueryParams]);
+    if (!latestDate || isDateInQueryParams) return;
+    imperativeHandlerRef.current?.setDateTime(new Date(toISOFromCompact(latestDate)));
+  }, [latestDate, isDateInQueryParams]);
 
   useEffect(() => {
     //user click on to latest available date button in LayerCard to latest available date.
