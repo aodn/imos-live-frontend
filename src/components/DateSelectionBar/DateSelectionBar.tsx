@@ -1,7 +1,7 @@
 import { TriangleIcon } from '../Icons';
 import { clearJumpToDate, setDate, useMapUIStore } from '@/store';
 import { memo, useCallback, useEffect, useRef } from 'react';
-import { useDateQueryParams, useDateSliderDates } from '@/hooks';
+import { useQueryParamsByKey, useDateSliderDates } from '@/hooks';
 import {
   DateSlider,
   type SliderExposedMethod,
@@ -23,7 +23,7 @@ type DateSelectionBarProps = { className?: string };
 
 export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
   const { date, startDate, endDate } = useDateSliderDates();
-  const { isDateInQueryParams } = useDateQueryParams();
+  const { isExisted: isDateInQueryParams } = useQueryParamsByKey('date');
   const { jumpTrigger, jumpDate } = useMapUIStore(
     useShallow(s => ({
       jumpTrigger: s.jumpToDate?.trigger,

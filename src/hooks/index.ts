@@ -26,4 +26,4 @@ export * from './usePopContentData';
 export * from './useDateSliderDates';
 export * from './useIsMapDragging';
 export * from './useIsMapZooming';
-export * from './useDateQueryParams';
+export * from './useQueryParamsByKey';
