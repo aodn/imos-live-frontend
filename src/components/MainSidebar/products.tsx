@@ -24,6 +24,7 @@ import type { LayersDataset } from './MainSidebarContent';
 import { LogColorScaleBar, RasterLegend } from '../ColorScaleBar';
 import { setProductEnabledByProduct } from '@/store';
 import { GSLA_OCEAN_CURRENT_COLORS_LEGEND_CONFIG } from '@/config';
+import { gslaUrl, sstaUrl } from '@/api/fileExist';
 
 export const headerData = {
   title: 'IMOS Live',
@@ -54,7 +55,7 @@ export const featuredDataset: LayersDataset[] = [
     product: PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT,
     legend: <LogColorScaleBar className="w-full" {...GSLA_OCEAN_CURRENT_COLORS_LEGEND_CONFIG} />,
     addToMap: setProductEnabledByProduct,
-    isRealTime: true,
+    dateCheckUrl: gslaUrl,
     portalLink: 'https://portal-beta.aodn.org.au/details/0c9eb39c-9cbe-4c6a-8a10-5867087e703a',
   },
   {
@@ -82,7 +83,7 @@ export const featuredDataset: LayersDataset[] = [
       />
     ),
     addToMap: setProductEnabledByProduct,
-    isRealTime: false,
+    dateCheckUrl: gslaUrl,
     portalLink: 'https://portal-beta.aodn.org.au/details/0c9eb39c-9cbe-4c6a-8a10-5867087e703a',
   },
   {
@@ -106,7 +107,7 @@ export const featuredDataset: LayersDataset[] = [
       />
     ),
     addToMap: setProductEnabledByProduct,
-    isRealTime: false,
+    dateCheckUrl: sstaUrl,
     portalLink:
       'https://catalogue-imos.aodn.org.au/geonetwork/srv/eng/catalog.search#/search?any=IMOS%20-%20AusTemp%20-%20Sea%20Surface%20Temperature',
   },
@@ -124,7 +125,6 @@ export const featuredDataset: LayersDataset[] = [
     isError: false,
     product: PRODUCT.WAVE_BUOYS,
     addToMap: setProductEnabledByProduct,
-    isRealTime: true,
     portalLink: ' https://portal-beta.aodn.org.au/details/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc',
   },
 ];

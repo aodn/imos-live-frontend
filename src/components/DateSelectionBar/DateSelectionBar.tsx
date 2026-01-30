@@ -1,18 +1,59 @@
 import { TriangleIcon } from '../Icons';
-import { setDate } from '@/store';
-import { memo, useCallback } from 'react';
-import { useDateSliderDates } from '@/hooks';
-import { DateSlider, type PointValue, type SelectionResult } from '../DateSlider';
-import { cn, toISODateString } from '@/utils';
+import { clearJumpToDate, setDate, useMapUIStore } from '@/store';
+import { memo, useCallback, useEffect, useRef } from 'react';
+import { useQueryParamsByKey, useDateSliderDates } from '@/hooks';
+import {
+  DateSlider,
+  type SliderExposedMethod,
+  type PointValue,
+  type SelectionResult,
+} from '../DateSlider';
+import { cn, getLatestFulfilledDate, toISODateString, toISOFromCompact } from '@/utils';
 import {
   customDateLabelRenderer,
   customSelectionPanelRenderer,
 } from '../DateSlider/components/defaultRender';
+import { useQuery } from '@tanstack/react-query';
+import { fileExist, gslaUrl } from '@/api';
+import { useShallow } from 'zustand/shallow';
+import { QUERY_DATE_RANGE } from '@/config';
+import { PRODUCT } from '@/constants';
 
 type DateSelectionBarProps = { className?: string };
 
 export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
   const { date, startDate, endDate } = useDateSliderDates();
+  const { isExisted: isDateInQueryParams } = useQueryParamsByKey('date');
+  const { jumpTrigger, jumpDate } = useMapUIStore(
+    useShallow(s => ({
+      jumpTrigger: s.jumpToDate?.trigger,
+      jumpDate: s.jumpToDate?.date,
+    })),
+  );
+  const imperativeHandlerRef = useRef<SliderExposedMethod>(null);
+
+  const { data: latestDate } = useQuery({
+    queryKey: [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT, QUERY_DATE_RANGE],
+    queryFn: () => {
+      const candidates = QUERY_DATE_RANGE.map(d => fileExist(gslaUrl(d), d));
+      return Promise.allSettled(candidates);
+    },
+    select: data => getLatestFulfilledDate(data),
+    enabled: !isDateInQueryParams, //if date already selected, stop.
+  });
+
+  useEffect(() => {
+    //set date to latest available date when user has not selected date. Initial visit website.
+    if (!latestDate || isDateInQueryParams) return;
+    imperativeHandlerRef.current?.setDateTime(new Date(toISOFromCompact(latestDate)));
+  }, [latestDate, isDateInQueryParams]);
+
+  useEffect(() => {
+    //user click on to latest available date button in LayerCard to latest available date.
+    if (!jumpDate || !jumpTrigger) return;
+    imperativeHandlerRef.current?.setDateTime(new Date(jumpDate));
+    clearJumpToDate();
+  }, [jumpTrigger, jumpDate]);
 
   const handleSelect = useCallback(async (v: SelectionResult) => {
     setDate(toISODateString((v as PointValue).point));
@@ -21,6 +62,7 @@ export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
   return (
     <div className={cn('shadow-xl', className)}>
       <DateSlider
+        imperativeRef={imperativeHandlerRef}
         mode="point"
         min={startDate}
         max={endDate}
