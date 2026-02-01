@@ -27,9 +27,9 @@ const WMS_CONFIG = {
   },
   [SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID]: {
     layers: 'sst_anom_mosaic',
-    colorScaleRange: '-10,5',
-    styles: 'raster/div-RdYlBu-inv',
-    legendPalette: 'div-RdYlBu-inv',
+    colorScaleRange: '-4,4',
+    styles: 'raster/div-RdBu-inv',
+    legendPalette: 'div-RdBu-inv',
   },
 } as const;
 
