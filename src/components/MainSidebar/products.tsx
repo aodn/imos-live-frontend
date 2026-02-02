@@ -61,9 +61,9 @@ export const featuredDataset: LayersDataset[] = [
   {
     image: {
       src: anomalySeaLevelImage,
-      alt: 'GSLA Anomaly sea levels',
+      alt: 'GSLA sea level anomaly',
     },
-    title: 'GSLA Anomaly sea levels',
+    title: 'GSLA sea level anomaly',
     icon: <WaterSurfaceIcon size="lg" />,
     description:
       'Gridded (adjusted) sea level anomaly (GSLA)' +
@@ -102,7 +102,7 @@ export const featuredDataset: LayersDataset[] = [
     legend: (
       <RasterLegend
         overlaySource={SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID}
-        scales={[-10, -5, 0, 5, 10]}
+        scales={[-4, -2, 0, 2, 4]}
         label="degrees Celsius (°C)"
       />
     ),

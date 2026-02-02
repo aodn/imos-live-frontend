@@ -15,7 +15,7 @@ type LngLat = [number, number];
 
 type Product =
   | 'GSLA Ocean geostrophic current product'
-  | 'GSLA Anomaly sea levels'
+  | 'GSLA sea level anomaly product'
   | 'Wave buoys product';
 
 type OceanCurrentPopupContent = {
@@ -365,7 +365,7 @@ test.beforeEach(async ({ page }) => {
 test.describe('Ocean Current', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto(`/?date=${defaultDaySelected}`);
-    await sidebarComponent.deselectProduct(page, 'GSLA Anomaly sea levels');
+    await sidebarComponent.deselectProduct(page, 'GSLA sea level anomaly product');
     await sidebarComponent.deselectProduct(page, 'Wave buoys product');
     await mapComponent.waitUntilLayerLoaded(page, PARTICLE_LAYER_ID);
   });
@@ -410,49 +410,6 @@ test.describe('Ocean Current', () => {
   });
 });
 
-test.describe('Anomaly sea levels', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto(`/?date=${defaultDaySelected}`);
-    await sidebarComponent.deselectProduct(page, 'GSLA Ocean geostrophic current product');
-    await sidebarComponent.deselectProduct(page, 'Wave buoys product');
-  });
-
-  test('User can see see levels anomaly of different days', async ({ page }) => {
-    await mapComponent.waitUntilLayerLoaded(page, GSLA_OVERLAY_LAYER_ID);
-
-    await expect
-      .poll(() => mapComponent.getTilesURL(page, GSLA_OVERLAY_LAYER_ID))
-      .toContain(`20250701T000000`);
-    // Wait for auto-scroll to complete and slider to be stable
-    const sliderHandle = page.getByRole('slider', { name: 'point handle' });
-    await sliderHandle.waitFor({ state: 'visible' });
-    await page.waitForTimeout(1000);
-    await sliderHandle.focus();
-    await page.keyboard.press('ArrowRight');
-    await expect
-      .poll(() => mapComponent.getTilesURL(page, GSLA_OVERLAY_LAYER_ID))
-      .toContain(`20250702T000000`);
-  });
-
-  test('User can see the current value from a map particle of different days', async ({ page }) => {
-    await mapComponent.waitUntilLayerLoaded(page, GSLA_OVERLAY_LAYER_ID);
-
-    // Wait for auto-scroll to complete and slider to be stable
-    const sliderHandle = page.getByRole('slider', { name: 'point handle' });
-    await sliderHandle.waitFor({ state: 'visible' });
-    await page.waitForTimeout(1000);
-    await sliderHandle.focus();
-    await page.keyboard.press('ArrowRight');
-
-    await mapComponent.waitUntilIdle(page);
-    await mapComponent.openPopup(page);
-
-    await mapComponent.expectPopupToHaveContent(page, {
-      gsla: '4.00',
-    });
-  });
-});
-
 test.describe('Anomaly sea levels and Ocean Current', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto(`/?date=${defaultDaySelected}`);
@@ -491,7 +448,7 @@ test.describe('Wave Buoys', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto(`/?date=${defaultDaySelected}`);
     await sidebarComponent.deselectProduct(page, 'GSLA Ocean geostrophic current product');
-    await sidebarComponent.deselectProduct(page, 'GSLA Anomaly sea levels');
+    await sidebarComponent.deselectProduct(page, 'GSLA sea level anomaly product');
   });
 
   test.skip('User can read the latest observation of a specific buoy', async ({ page }) => {
@@ -598,7 +555,7 @@ test.describe('Ocean Current, Anomaly sea levels and Wave Buoys', () => {
     await mapComponent.waitUntilLayerLoaded(page, WAVE_BUOYS_LAYER_ID);
 
     await sidebarComponent.deselectProduct(page, 'GSLA Ocean geostrophic current product');
-    await sidebarComponent.deselectProduct(page, 'GSLA Anomaly sea levels');
+    await sidebarComponent.deselectProduct(page, 'GSLA sea level anomaly product');
     await sidebarComponent.deselectProduct(page, 'Wave buoys product');
 
     await mapComponent.waitUntilLayerNotLoaded(page, PARTICLE_LAYER_ID);
