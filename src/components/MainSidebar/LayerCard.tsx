@@ -58,6 +58,7 @@ export const LayerCard = ({
       wrapperClassName="md:rounded-lg md:shadow-lg bg-white md:border border-b border-gray-300 md:p-4 pb-4"
       defaultOpen
       isWidthFiexed
+      overlayEnabled={isError}
       trigger={({ toggle, open, direction, toggleIconHidden }: TriggerArgs) => (
         <CardTrigger
           icon={icon}
@@ -88,12 +89,12 @@ export const LayerCard = ({
           {/* Buttons group */}
           <div className="flex flex-col md:flex-row gap-2">
             <Button
-              disabled={isError && !visible}
               onClick={handleClick}
               variant={(visible && 'default') || 'outline'}
               className={cn('text-btn-mobile md:text-btn', {
                 'text-imos-grey': !visible,
                 'text-white bg-imos-blue': visible,
+                'relative z-10': isError && visible,
               })}
             >
               {visible ? 'Remove from map' : 'Add to map'}
@@ -105,7 +106,7 @@ export const LayerCard = ({
                 variant="outline"
                 onClick={handleJumpToLatest}
                 disabled={isDateLoading || !latestDate}
-                className="text-btn-mobile md:text-btn text-imos-grey w-fit"
+                className="text-btn-mobile md:text-btn text-imos-grey w-fit relative z-10"
               >
                 {isDateLoading ? 'Loading...' : 'Latest Date'}
               </Button>
@@ -115,7 +116,7 @@ export const LayerCard = ({
           <Button
             variant={'outline'}
             asChild
-            className="text-btn-mobile md:text-btn text-imos-grey"
+            className="text-btn-mobile md:text-btn text-imos-grey relative z-10"
           >
             <a href={portalLink} target="_blank" rel="noopener noreferrer">
               More details

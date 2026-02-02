@@ -52,7 +52,7 @@ export const CollapsibleComponent = ({
       {overlayEnabled && (
         <div
           className={cn(
-            'absolute inset-0  bg-white/60 backdrop-blur-[1px] cursor-not-allowed z-10',
+            'absolute inset-0 bg-white/30 backdrop-blur-[1px] z-10 cursor-not-allowed',
             overlayClassName,
           )}
         />
