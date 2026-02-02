@@ -79,7 +79,7 @@ export const featuredDataset: LayersDataset[] = [
       <RasterLegend
         overlaySource={GSLA_OVERLAY_SOURCE_ID}
         scales={[-1.2, -0.5, -0.2, -0.1, 0, 0.1, 0.2, 0.5, 1.2]}
-        label="anomaly sea level (m)"
+        label="sea level anomaly (m)"
       />
     ),
     addToMap: setProductEnabledByProduct,

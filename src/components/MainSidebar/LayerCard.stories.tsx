@@ -24,8 +24,6 @@ export const Primary: Story = {
     description:
       'm ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.m ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
     addToMap: undefined,
-    firstButtonLabel: 'Add to map',
-    secondButtonLabel: 'Remove from map',
     visible: false,
     layerId: 'test layerid',
     legend: undefined,

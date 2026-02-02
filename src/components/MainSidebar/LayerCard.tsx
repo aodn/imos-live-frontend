@@ -13,8 +13,6 @@ import { setJumpToDate } from '@/store';
 import { QUERY_DATE_RANGE } from '@/config';
 
 export type LayerCardProps = LayersDataset & {
-  firstButtonLabel: string;
-  secondButtonLabel: string;
   dateCheckUrl?: (date: string) => string;
   portalLink?: string;
 };
@@ -23,8 +21,6 @@ export const LayerCard = ({
   image,
   title,
   description,
-  firstButtonLabel,
-  secondButtonLabel,
   addToMap,
   visible,
   isError,
@@ -59,7 +55,6 @@ export const LayerCard = ({
 
   return (
     <CollapsibleComponent
-      overlayEnabled={isError}
       wrapperClassName="md:rounded-lg md:shadow-lg bg-white md:border border-b border-gray-300 md:p-4 pb-4"
       defaultOpen
       isWidthFiexed
@@ -92,25 +87,18 @@ export const LayerCard = ({
         <div className="col-span-7 md:col-span-12 flex flex-col md:flex-row gap-y-2 items-start md:items-center justify-between">
           {/* Buttons group */}
           <div className="flex flex-col md:flex-row gap-2">
-            {!visible && (
-              <Button
-                variant={'outline'}
-                onClick={handleClick}
-                className="text-btn-mobile md:text-btn text-imos-grey"
-              >
-                {firstButtonLabel}
-                <AddCircleIcon />
-              </Button>
-            )}
-            {visible && (
-              <Button
-                onClick={handleClick}
-                className="text-btn-mobile md:text-btn text-white bg-imos-blue "
-              >
-                {secondButtonLabel}
-                <MinusCircleIcon color="imos-white" />
-              </Button>
-            )}
+            <Button
+              disabled={isError && !visible}
+              onClick={handleClick}
+              variant={(visible && 'default') || 'outline'}
+              className={cn('text-btn-mobile md:text-btn', {
+                'text-imos-grey': !visible,
+                'text-white bg-imos-blue': visible,
+              })}
+            >
+              {visible ? 'Remove from map' : 'Add to map'}
+              {visible ? <MinusCircleIcon color="imos-white" /> : <AddCircleIcon />}
+            </Button>
 
             {dateCheckUrl && (
               <Button

@@ -38,7 +38,7 @@ export function useParticleLayer({ map, layerId, sourceId, product }: UseOPartic
   const currentParticleQuery = useQuery({
     queryKey: [GSLA_META_NAME, date],
     queryFn: () => getMetaData(buildGSLADatasetPath(date, GSLA_META_NAME)),
-    enabled: !!date && enabled,
+    enabled: !!date,
   });
 
   const particleLayer = useMemo(() => vectorLayer(layerId, sourceId), [layerId, sourceId]);
