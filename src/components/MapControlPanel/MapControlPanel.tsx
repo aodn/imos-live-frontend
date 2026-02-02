@@ -43,20 +43,20 @@ export const MapControlPanel = ({
         size="icon"
         aria-label="Zoom in"
         onClick={isSidebarOpen ? handleCloseFullScreen : handleOpenFullScreen}
-        className="bg-imos-white  p-2 hover:[&_svg]:text-imos-white"
+        className="bg-imos-white  p-2 hover:[&_svg]:text-imos-grey"
         disabled={isMapOnOperation}
       >
         {isSidebarOpen ? (
-          <FullScreenIcon className="text-imos-grey" size="base" />
+          <FullScreenIcon className="text-imos-grey" size="sm" />
         ) : (
-          <CloseFullScreenIcon className="text-imos-grey" size="base" />
+          <CloseFullScreenIcon className="text-imos-grey" size="sm" />
         )}
       </Button>
       <Button
         size="icon"
         aria-label="Zoom in"
         onClick={handleZoomIn}
-        className="bg-imos-white rounded-full p-1 hover:[&_svg]:text-imos-white"
+        className="bg-imos-white rounded-full p-1 hover:[&_svg]:text-imos-grey"
         disabled={isMapOnOperation}
       >
         <PlusIcon className="text-imos-grey" size="lg" />
@@ -65,7 +65,7 @@ export const MapControlPanel = ({
         size="icon"
         aria-label="Zoom out"
         onClick={handleZoomOut}
-        className="bg-imos-white rounded-full p-1 hover:[&_svg]:text-imos-white"
+        className="bg-imos-white rounded-full p-1 hover:[&_svg]:text-imos-grey"
         disabled={isMapOnOperation}
       >
         <MinusIcon className="text-imos-grey" size="lg" />
@@ -74,7 +74,7 @@ export const MapControlPanel = ({
         size="icon"
         aria-label="Zoom reset"
         onClick={handleResetZoom}
-        className="bg-imos-white rounded-full p-1 hover:[&_svg]:text-imos-white"
+        className="bg-imos-white rounded-full p-1 hover:[&_svg]:text-imos-grey"
         disabled={isMapOnOperation}
       >
         <RenewIcon className="text-imos-grey" size="lg" />
