@@ -14,11 +14,7 @@ export const LayerSets = ({ layersDatasets, title, className }: LayerSetsProps) 
       <div className="flex flex-col gap-y-4  mt-4">
         {layersDatasets.map(product => (
           <div key={product.layerId} aria-label={`${product.title} product`}>
-            <LayerCard
-              {...product}
-              firstButtonLabel="Add to map"
-              secondButtonLabel="Remove from map"
-            />
+            <LayerCard {...product} />
           </div>
         ))}
       </div>
