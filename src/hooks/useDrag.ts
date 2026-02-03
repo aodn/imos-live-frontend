@@ -43,6 +43,7 @@ export const useDrag = ({
   const [position, setPosition] = useState(initialPosition);
   const [isDragging, setIsDragging] = useState(false);
   const dragStartPositionRef = useRef(initialPosition);
+  const currentPositionRef = useRef(initialPosition);
   const hasStartedDraggingRef = useRef(false);
 
   const [dragState, setDragState] = useState<DragState>({
@@ -95,14 +96,9 @@ export const useDrag = ({
       };
 
       const boundedPosition = applyBounds(rawPosition);
-      setPosition(boundedPosition);
-      setDragState(prev => ({
-        ...prev,
-        deltaX,
-        deltaY,
-        position: boundedPosition,
-      }));
+      currentPositionRef.current = boundedPosition;
 
+      // Only update the DOM during drag — no React state updates
       applyTransform(boundedPosition);
       onDrag?.(boundedPosition, { x: deltaX, y: deltaY });
     },
@@ -119,6 +115,7 @@ export const useDrag = ({
 
       setIsDragging(true);
       dragStartPositionRef.current = { ...position };
+      currentPositionRef.current = { ...position };
       hasStartedDraggingRef.current = false;
 
       setDragState({
@@ -140,14 +137,17 @@ export const useDrag = ({
 
       const handleMouseUp = () => {
         if (!targetRef?.current) return;
+        const finalPosition = currentPositionRef.current;
+        setPosition(finalPosition);
         setIsDragging(false);
         hasStartedDraggingRef.current = false;
         setDragState(prev => ({
           ...prev,
           isDragging: false,
+          position: finalPosition,
         }));
 
-        onDragEnd?.(position);
+        onDragEnd?.(finalPosition);
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);
       };
@@ -168,6 +168,7 @@ export const useDrag = ({
 
       setIsDragging(true);
       dragStartPositionRef.current = { ...position };
+      currentPositionRef.current = { ...position };
       hasStartedDraggingRef.current = false;
 
       setDragState({
@@ -190,14 +191,17 @@ export const useDrag = ({
       };
 
       const handleTouchEnd = () => {
+        const finalPosition = currentPositionRef.current;
+        setPosition(finalPosition);
         setIsDragging(false);
         hasStartedDraggingRef.current = false;
         setDragState(prev => ({
           ...prev,
           isDragging: false,
+          position: finalPosition,
         }));
 
-        onDragEnd?.(position);
+        onDragEnd?.(finalPosition);
         document.removeEventListener('touchmove', handleTouchMove);
         document.removeEventListener('touchend', handleTouchEnd);
       };
@@ -211,6 +215,7 @@ export const useDrag = ({
   const resetPosition = useCallback(
     (newPosition = initialPosition) => {
       const boundedPosition = applyBounds(newPosition);
+      currentPositionRef.current = boundedPosition;
       setPosition(boundedPosition);
       setDragState(prev => ({
         ...prev,
