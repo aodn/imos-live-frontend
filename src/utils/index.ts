@@ -26,4 +26,5 @@ export * from './generateValueByPercentage';
 export * from './addYears';
 export * from './coordinateToLngLat';
 export * from './minusOneUTCDay';
+export * from './throttle';
 export * from './formatLatLngToDirectional';

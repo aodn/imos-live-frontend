@@ -15,6 +15,7 @@ import {
   useHandlePosition,
   useEventHandlers,
   useOnChangeNotifier,
+  useSliderRePosition,
 } from '../hooks';
 import type { SliderProps, TimeUnit, DragHandle } from '../type';
 import { generateTrackWidth } from '../utils';
@@ -111,19 +112,38 @@ export const DateSlider = memo(
       trackContainerRef,
     );
 
-    const trackWidth = useMemo(() => {
-      const safeGap =
+    const previousSliderContainerWidth = useRef(sliderContainerWidth);
+
+    const safeGap = useMemo(
+      () =>
         (sliderContainerWidth -
           (numberOfScales.long * layout.scaleUnitConfig.width.long +
             numberOfScales.medium * layout.scaleUnitConfig.width.medium +
             numberOfScales.short * layout.scaleUnitConfig.width.short)) /
-        totalScaleUnits;
-      const safeScaleUnitConfig = {
+        totalScaleUnits,
+      [
+        layout.scaleUnitConfig.width.long,
+        layout.scaleUnitConfig.width.medium,
+        layout.scaleUnitConfig.width.short,
+        numberOfScales.long,
+        numberOfScales.medium,
+        numberOfScales.short,
+        sliderContainerWidth,
+        totalScaleUnits,
+      ],
+    );
+
+    const safeScaleUnitConfig = useMemo(
+      () => ({
         ...layout.scaleUnitConfig,
         gap: Math.max(safeGap, layout.scaleUnitConfig.gap ?? 0),
-      };
+      }),
+      [layout.scaleUnitConfig, safeGap],
+    );
+
+    const trackWidth = useMemo(() => {
       return generateTrackWidth(totalScaleUnits, numberOfScales, safeScaleUnitConfig);
-    }, [numberOfScales, layout.scaleUnitConfig, sliderContainerWidth, totalScaleUnits]);
+    }, [totalScaleUnits, numberOfScales, safeScaleUnitConfig]);
 
     const dragBounds = useMemo(
       () => ({
@@ -151,6 +171,14 @@ export const DateSlider = memo(
         setHandleDragStarted(true);
         autoScrollToVisibleAreaRef.current = false;
       },
+    });
+
+    useSliderRePosition({
+      sliderContainerWidth,
+      sliderPosition,
+      resetPosition,
+      autoScrollToVisibleAreaRef,
+      previousSliderContainerWidth,
     });
 
     const { scales } = useSliderVirtualization({
@@ -263,6 +291,7 @@ export const DateSlider = memo(
       endDate,
       viewMode,
     });
+
     return (
       <DateSliderWrapper classNames={classNames} layout={layout}>
         {/* Time display and date selection operation */}
