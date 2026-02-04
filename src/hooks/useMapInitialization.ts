@@ -34,6 +34,7 @@ export function useMapInitialization() {
       dragRotate: false,
       maxBounds,
       bounds: maxBounds,
+      preserveDrawingBuffer: true,
       testMode: import.meta.env.VITE_AUTOMATED_TEST_RUNNING,
     });
 

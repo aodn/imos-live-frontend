@@ -1,9 +1,17 @@
 import { Button } from '@/components';
 import { cn } from '@/utils';
-import { RenewIcon, PlusIcon, MinusIcon, FullScreenIcon, CloseFullScreenIcon } from '../Icons';
+import {
+  RenewIcon,
+  PlusIcon,
+  MinusIcon,
+  FullScreenIcon,
+  CloseFullScreenIcon,
+  DownloadIcon,
+} from '../Icons';
 import { INITIAL_ZOOM } from '@/config';
 import { useIsMapDragging, useIsMapZooming } from '@/hooks';
 import { setSidebarOpen, useSidebarStore } from '@/store';
+import { exportMapImage } from '@/helpers';
 
 export const MapControlPanel = ({
   ref: mapRef,
@@ -28,6 +36,16 @@ export const MapControlPanel = ({
 
   const handleResetZoom = () => {
     mapRef.current?.setZoom(INITIAL_ZOOM);
+  };
+
+  const downloadMapImage = () => {
+    if (!mapRef.current) return;
+
+    mapRef.current.once('render', () => {
+      exportMapImage(mapRef.current!.getCanvas());
+    });
+
+    mapRef.current.triggerRepaint();
   };
 
   const handleOpenFullScreen = () => {
@@ -78,6 +96,14 @@ export const MapControlPanel = ({
         disabled={isMapOnOperation}
       >
         <RenewIcon className="text-imos-grey" size="lg" />
+      </Button>
+      <Button
+        size="icon"
+        aria-label="download map"
+        onClick={downloadMapImage}
+        className="bg-imos-white rounded-full p-1 hover:[&_svg]:text-imos-grey"
+      >
+        <DownloadIcon className="text-imos-grey" size="lg" />
       </Button>
     </div>
   );

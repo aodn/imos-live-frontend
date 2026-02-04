@@ -32,9 +32,10 @@ import FullScreen from './fullscreen.svg?react';
 import CloseFullScreen from './close_fullscreen.svg?react';
 import WaveBuoy from './wave_buoy.svg?react';
 import Vector from './vector.svg?react';
+import Download from './download.svg?react';
 
 export const VectorIcon = withIcon(Vector);
-
+export const DownloadIcon = withIcon(Download);
 export const WaveBuoyIcon = withIcon(WaveBuoy);
 export const CloseIcon = withIcon(Close);
 export const MenuIcon = withIcon(Menu);
@@ -94,6 +95,7 @@ export const icons = {
   LoaderIcon,
   Loader2Icon,
   CheckIcon,
+  DownloadIcon,
 };
 
 export * from './withIcon';
