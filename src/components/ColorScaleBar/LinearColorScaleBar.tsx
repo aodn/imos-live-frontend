@@ -8,7 +8,7 @@ type ColorScaleBarProps = {
   className?: string;
   min: number;
   max: number;
-  title?: string;
+  label?: string;
   colors: string[];
 };
 
@@ -18,7 +18,7 @@ export const LinearColorScaleBar = ({
   className,
   min,
   max,
-  title,
+  label,
   colors,
 }: ColorScaleBarProps) => {
   const gradient = useMemo(() => {
@@ -76,9 +76,9 @@ export const LinearColorScaleBar = ({
         <div className="relative mx-2 h-2">{scaleLabels}</div>
       </div>
 
-      {title && (
+      {label && (
         <div className="mt-2 text-caption text-imos-grey  text-center">
-          <span>{title}</span>
+          <span>{label}</span>
         </div>
       )}
     </div>

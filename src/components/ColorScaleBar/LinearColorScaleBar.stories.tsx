@@ -24,7 +24,7 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {
   args: {
     colors: gslaOverlayImageColors.map(c => rgbToHex(c[0], c[1], c[2])),
-    title: 'anomaly sea level (m)',
+    label: 'anomaly sea level (m)',
     min: gslaAnomalySeaLevelsRange[0],
     max: gslaAnomalySeaLevelsRange[1],
     className: 'w-60',
