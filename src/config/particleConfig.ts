@@ -1,18 +1,8 @@
 import { convertLogColorScaleToRamp } from '@/components/ColorScaleBar/utils';
-import speedColors from './speed_colormap.json';
 import { generateValueByPercentage } from '@/utils';
+import { MAX_VECTOR_SPEED, PRODUCTLEGENDS } from '@/constants';
 
-const MAX_SPEED = 3.0 as const;
-
-export const GSLA_OCEAN_CURRENT_COLORS_LEGEND_CONFIG = {
-  title: 'ocean current speed (m/s)',
-  numStops: 256,
-  colors: speedColors as [number, number, number][],
-  min: 0.01,
-  max: MAX_SPEED,
-} as const;
-
-const colors = convertLogColorScaleToRamp(GSLA_OCEAN_CURRENT_COLORS_LEGEND_CONFIG);
+const colors = convertLogColorScaleToRamp(PRODUCTLEGENDS['gsla-ocean-geostrophic-current']);
 
 export type ParticleConfig = {
   maxSpeed: number;
@@ -51,7 +41,7 @@ export const POINT_SIZE_RANGE = {
 
 export const INITIAL_PARTICLE_CONFIG = {
   // the maxSpeed determines how particles speed normilized in [0,1], visualized corresponding color from graident colors ramp.
-  maxSpeed: MAX_SPEED, //NOTICE!!! color legend (ColorScaleBar) must use this one as max range. Must be a float number, if not larger than 0, dataset's own max speed will be maxSpeed.
+  maxSpeed: MAX_VECTOR_SPEED, //NOTICE!!! color legend (ColorScaleBar) must use this one as max range. Must be a float number, if not larger than 0, dataset's own max speed will be maxSpeed.
 
   nParticles: 30000,
 

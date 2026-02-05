@@ -18,7 +18,7 @@ type SymLogColorScaleBarProps = {
   max?: number;
   threshold?: number;
   compressedRange?: number;
-  title?: string;
+  label?: string;
   colors?: [number, number, number][];
   intermediateTicks?: number[];
 };
@@ -31,7 +31,7 @@ export const SymLogColorScaleBar = ({
   max = 1.2,
   threshold = 0.1,
   compressedRange = 0.2,
-  title,
+  label,
   colors = anomalySeaLevelColorMap as [number, number, number][],
   intermediateTicks = [2, 5],
 }: SymLogColorScaleBarProps) => {
@@ -109,9 +109,9 @@ export const SymLogColorScaleBar = ({
         <div className="relative h-2 mx-2">{scaleLabels}</div>
       </div>
 
-      {title && (
+      {label && (
         <div className="mt-2 text-caption text-imos-grey  text-center">
-          <span>{title}</span>
+          <span>{label}</span>
         </div>
       )}
     </div>
