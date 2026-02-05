@@ -10,7 +10,7 @@ import {
 } from '../Icons';
 import { INITIAL_ZOOM } from '@/config';
 import { useIsMapDragging, useIsMapZooming } from '@/hooks';
-import { setSidebarOpen, useSidebarStore } from '@/store';
+import { setSidebarOpen, useMapUIStore, useSidebarStore } from '@/store';
 import { exportMapImage } from '@/helpers';
 
 export const MapControlPanel = ({
@@ -22,6 +22,8 @@ export const MapControlPanel = ({
 }) => {
   const isDragging = useIsMapDragging(mapRef);
   const isZooming = useIsMapZooming(mapRef);
+
+  const date = useMapUIStore(s => s.date);
 
   const isMapOnOperation = isDragging || isZooming;
   const isSidebarOpen = useSidebarStore(s => s.isOpen);
@@ -42,7 +44,7 @@ export const MapControlPanel = ({
     if (!mapRef.current) return;
 
     mapRef.current.once('render', () => {
-      exportMapImage(mapRef.current!.getCanvas());
+      exportMapImage(mapRef.current!.getCanvas(), date);
     });
 
     mapRef.current.triggerRepaint();
