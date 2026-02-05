@@ -2,6 +2,8 @@
  * this is the single truth of all the products in this project, and
  * the single truth of product's layerId, sourceId.
  */
+import speedColors from '../config/speed_colormap.json' with { type: 'json' };
+
 export const PRODUCT = {
   GSLA_OCEAN_GEOSTROPHIC_CURRENT: 'gsla-ocean-geostrophic-current',
   GSLA_ANOMALY_SEA_LEVELS: 'gsla-anomaly-sea-levels',
@@ -40,8 +42,43 @@ export const PRODUCTS = {
   },
 } as const satisfies Record<ProductType, ProductValue>;
 
+export const MAX_VECTOR_SPEED = 3.0 as const;
+export type VectorLegendArgs = {
+  label: string;
+  numStops?: number;
+  colors?: [number, number, number][];
+  min?: number;
+  max?: number;
+};
+export type RasterLegendArgs = {
+  scales?: number[];
+  label: string;
+};
+
+export const PRODUCTLEGENDS = {
+  [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: {
+    label: 'ocean current speed (m/s)',
+    numStops: 256,
+    colors: speedColors as [number, number, number][],
+    min: 0.01,
+    max: MAX_VECTOR_SPEED,
+  },
+  [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: {
+    scales: [-1.2, -0.5, -0.2, -0.1, 0, 0.1, 0.2, 0.5, 1.2],
+    label: 'sea level anomaly (m)',
+  },
+  [PRODUCT.SST_ANOMALY_MOSAIC]: {
+    scales: [-4, -2, 0, 2, 4],
+    label: 'degrees Celsius (°C)',
+  },
+} as const satisfies Record<
+  Exclude<ProductType, 'wave-buoys'>,
+  VectorLegendArgs | RasterLegendArgs
+>;
+
 export type ProductLayerId = (typeof PRODUCTS)[ProductType]['layerId'];
 export type ProductSourceId = (typeof PRODUCTS)[ProductType]['sourceId'];
+export type ProductName = (typeof PRODUCTS)[ProductType]['name'];
 
 export const sourceIdToProduct = (sourceId: ProductSourceId) => {
   return Object.entries(PRODUCTS).find(([, v]) => v.sourceId === sourceId)?.[0] as ProductType;

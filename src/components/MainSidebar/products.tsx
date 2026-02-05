@@ -11,6 +11,7 @@ import {
   WAVE_BUOYS_LAYER_ID,
   PRODUCT,
   SST_ANOMALY_MOSAIC_OVERLAY_LAYER_ID,
+  PRODUCTLEGENDS,
 } from '@/constants';
 import {
   RadarIcon,
@@ -23,7 +24,6 @@ import {
 import type { LayersDataset } from './MainSidebarContent';
 import { LogColorScaleBar, RasterLegend } from '../ColorScaleBar';
 import { setProductEnabledByProduct } from '@/store';
-import { GSLA_OCEAN_CURRENT_COLORS_LEGEND_CONFIG } from '@/config';
 import { gslaUrl, sstaUrl } from '@/api/fileExist';
 
 export const headerData = {
@@ -53,7 +53,9 @@ export const featuredDataset: LayersDataset[] = [
     visible: false,
     isError: false,
     product: PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT,
-    legend: <LogColorScaleBar className="w-full" {...GSLA_OCEAN_CURRENT_COLORS_LEGEND_CONFIG} />,
+    legend: (
+      <LogColorScaleBar className="w-full" {...PRODUCTLEGENDS['gsla-ocean-geostrophic-current']} />
+    ),
     addToMap: setProductEnabledByProduct,
     dateCheckUrl: gslaUrl,
     portalLink: 'https://portal-beta.aodn.org.au/details/0c9eb39c-9cbe-4c6a-8a10-5867087e703a',
@@ -78,8 +80,7 @@ export const featuredDataset: LayersDataset[] = [
     legend: (
       <RasterLegend
         overlaySource={GSLA_OVERLAY_SOURCE_ID}
-        scales={[-1.2, -0.5, -0.2, -0.1, 0, 0.1, 0.2, 0.5, 1.2]}
-        label="sea level anomaly (m)"
+        {...PRODUCTLEGENDS['gsla-anomaly-sea-levels']}
       />
     ),
     addToMap: setProductEnabledByProduct,
@@ -102,8 +103,7 @@ export const featuredDataset: LayersDataset[] = [
     legend: (
       <RasterLegend
         overlaySource={SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID}
-        scales={[-4, -2, 0, 2, 4]}
-        label="degrees Celsius (°C)"
+        {...PRODUCTLEGENDS['sst-anom-mosaic']}
       />
     ),
     addToMap: setProductEnabledByProduct,

@@ -9,3 +9,4 @@ export * from './addOrUpdateVectorSource.ts';
 export * from './getOverlayData.ts';
 export * from './threddsUrl.ts';
 export * from './createEventPriority.ts';
+export * from './mapImageExport.ts';

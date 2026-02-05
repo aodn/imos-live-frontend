@@ -1,9 +1,29 @@
 import { Button } from '@/components';
 import { cn } from '@/utils';
-import { RenewIcon, PlusIcon, MinusIcon, FullScreenIcon, CloseFullScreenIcon } from '../Icons';
+import {
+  RenewIcon,
+  PlusIcon,
+  MinusIcon,
+  FullScreenIcon,
+  CloseFullScreenIcon,
+  DownloadIcon,
+} from '../Icons';
 import { INITIAL_ZOOM } from '@/config';
 import { useIsMapDragging, useIsMapZooming } from '@/hooks';
-import { setSidebarOpen, useSidebarStore } from '@/store';
+import { setSidebarOpen, useMapUIStore, useSidebarStore } from '@/store';
+import { exportMapImage, rasterLegendUrl } from '@/helpers';
+import { useShallow } from 'zustand/shallow';
+import type { OverlaySource } from '@/constants';
+import { PRODUCTLEGENDS, PRODUCTS, type ProductType } from '@/constants';
+import { useQuery } from '@tanstack/react-query';
+
+const getRasterProduct = (
+  gslaAnomalySeaLevelsEnabled: boolean,
+  sstAnomMosaicEnabled: boolean,
+): Exclude<ProductType, 'wave-buoys' | 'gsla-ocean-geostrophic-current'> | undefined => {
+  if (gslaAnomalySeaLevelsEnabled) return 'gsla-anomaly-sea-levels';
+  if (sstAnomMosaicEnabled) return 'sst-anom-mosaic';
+};
 
 export const MapControlPanel = ({
   ref: mapRef,
@@ -15,6 +35,23 @@ export const MapControlPanel = ({
   const isDragging = useIsMapDragging(mapRef);
   const isZooming = useIsMapZooming(mapRef);
 
+  const { date, gslaAnomalySeaLevelsEnabled, sstAnomMosaicEnabled } = useMapUIStore(
+    useShallow(s => ({
+      date: s.date,
+      gslaAnomalySeaLevelsEnabled: s.productEnabled['gsla-anomaly-sea-levels'],
+      sstAnomMosaicEnabled: s.productEnabled['sst-anom-mosaic'],
+    })),
+  );
+
+  const product = getRasterProduct(gslaAnomalySeaLevelsEnabled, sstAnomMosaicEnabled);
+
+  const { data: legendUrl } = useQuery({
+    queryKey: ['rasterLegendUrl', PRODUCTS[product!]?.sourceId, date],
+    queryFn: () => rasterLegendUrl(PRODUCTS[product!]?.sourceId as OverlaySource, new Date(date)),
+    enabled: !!date && !!product,
+  });
+
+  // const productEnabled =
   const isMapOnOperation = isDragging || isZooming;
   const isSidebarOpen = useSidebarStore(s => s.isOpen);
 
@@ -28,6 +65,25 @@ export const MapControlPanel = ({
 
   const handleResetZoom = () => {
     mapRef.current?.setZoom(INITIAL_ZOOM);
+  };
+
+  const downloadMapImage = () => {
+    if (!mapRef.current) return;
+
+    const productArg = product
+      ? {
+          name: PRODUCTS[product].name,
+          legendUrl,
+          scales: PRODUCTLEGENDS[product].scales,
+          label: PRODUCTLEGENDS[product].label,
+        }
+      : undefined;
+
+    mapRef.current.once('render', () => {
+      exportMapImage(mapRef.current!.getCanvas(), date, productArg);
+    });
+
+    mapRef.current.triggerRepaint();
   };
 
   const handleOpenFullScreen = () => {
@@ -78,6 +134,15 @@ export const MapControlPanel = ({
         disabled={isMapOnOperation}
       >
         <RenewIcon className="text-imos-grey" size="lg" />
+      </Button>
+      <Button
+        size="icon"
+        aria-label="download map"
+        onClick={downloadMapImage}
+        className="bg-imos-white rounded-full p-1 hover:[&_svg]:text-imos-grey"
+        disabled={isMapOnOperation}
+      >
+        <DownloadIcon className="text-imos-grey" size="lg" />
       </Button>
     </div>
   );

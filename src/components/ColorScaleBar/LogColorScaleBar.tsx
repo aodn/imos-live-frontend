@@ -14,7 +14,7 @@ type LogColorScaleBarProps = {
   className?: string;
   min?: number;
   max?: number;
-  title?: string;
+  label?: string;
   colors: [number, number, number][];
   threshold?: number;
   compressedRange?: number;
@@ -27,7 +27,7 @@ export const LogColorScaleBar = ({
   className,
   min = 0.01, //this cannot be 0 and has to be 10^n, n is integer, because we are using 10 base log scale.
   max = 7,
-  title,
+  label,
   colors,
   threshold = 0.1, //the threshold value to separate the compressed linear space and logarithmic space.
   compressedRange = 0.1, //how much space the values smaller than threshold take.
@@ -105,9 +105,9 @@ export const LogColorScaleBar = ({
         <div className="relative h-2 mx-1 mt-1">{scaleLabels}</div>
       </div>
 
-      {title && (
+      {label && (
         <div className="mt-2 text-caption text-imos-grey text-center">
-          <span>{title}</span>
+          <span>{label}</span>
         </div>
       )}
     </div>
