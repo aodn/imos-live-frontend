@@ -2,7 +2,7 @@
  * this is the single truth of all the products in this project, and
  * the single truth of product's layerId, sourceId.
  */
-import speedColors from '../config/speed_colormap.json';
+import speedColors from '../config/speed_colormap.json' with { type: 'json' };
 
 export const PRODUCT = {
   GSLA_OCEAN_GEOSTROPHIC_CURRENT: 'gsla-ocean-geostrophic-current',

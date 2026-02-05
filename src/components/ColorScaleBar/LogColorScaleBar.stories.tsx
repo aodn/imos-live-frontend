@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { LogColorScaleBar } from './LogColorScaleBar';
-import speedColors from '@/config/speed_colormap.json';
+import speedColors from '@/config/speed_colormap.json' with { type: 'json' };
 
 const meta = {
   title: 'Components/ColorScaleBar/logarthmic',
