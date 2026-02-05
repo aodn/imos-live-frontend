@@ -104,6 +104,7 @@ export const MapControlPanel = ({
         aria-label="download map"
         onClick={downloadMapImage}
         className="bg-imos-white rounded-full p-1 hover:[&_svg]:text-imos-grey"
+        disabled={isMapOnOperation}
       >
         <DownloadIcon className="text-imos-grey" size="lg" />
       </Button>
