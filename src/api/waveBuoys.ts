@@ -28,8 +28,6 @@ export const getWaveBuoyLocations = async (
 };
 
 export const getWaveBuoyLatestDate = async (): Promise<string> => {
-  const latestDate = await axios.get(
-    `${WAVE_BUOY_COLLECTION_URL}/wave_buoy_first_data_available?datetime=`,
-  );
+  const latestDate = await axios.get(`${WAVE_BUOY_COLLECTION_URL}/wave_buoy_latest_date`);
   return latestDate.data;
 };

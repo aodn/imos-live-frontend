@@ -119,3 +119,11 @@ export function getLatestFulfilledDate(results: PromiseSettledResult<string | nu
     .sort()
     .at(-1);
 }
+
+/** Convert ISO format (yyyy-mm-dd) to compact date string (yyyymmdd)*/
+export function toCompactDate(date: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return;
+  }
+  return date.replace(/-/g, '');
+}
