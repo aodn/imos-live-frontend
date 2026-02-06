@@ -10,10 +10,10 @@ import {
   MapComponent,
   Header as MapHeader,
   MapsIcon,
-  SatelliteIcon,
   Sidebar,
   ThermometerIcon,
   WaterSurfaceIcon,
+  WaveBuoyIcon,
   WaveIcon,
 } from '@/components';
 import { PRODUCT } from '@/constants';
@@ -61,7 +61,7 @@ export const Map = () => {
             layers={[
               { Icon: WaveIcon, product: PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT },
               { Icon: WaterSurfaceIcon, product: PRODUCT.GSLA_ANOMALY_SEA_LEVELS },
-              { Icon: SatelliteIcon, product: PRODUCT.WAVE_BUOYS },
+              { Icon: WaveBuoyIcon, product: PRODUCT.WAVE_BUOYS },
               { Icon: ThermometerIcon, product: PRODUCT.SST_ANOMALY_MOSAIC },
             ]}
           />
