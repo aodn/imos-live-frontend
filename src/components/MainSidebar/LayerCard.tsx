@@ -1,5 +1,5 @@
 import { WAVE_BUOYS_LAYER_ID } from '@/constants';
-import { cn, getLatestFulfilledDate, toISOFromCompact } from '@/utils';
+import { cn, getLatestFulfilledDate, toCompactDate, toISOFromCompact } from '@/utils';
 import type { ReactNode } from 'react';
 import { Button } from '../Button';
 import type { TriggerArgs } from '../Collapsible';
@@ -8,7 +8,7 @@ import { AddCircleIcon, ArrowIcon, MinusCircleIcon, VectorIcon } from '../Icons'
 import { Image } from '../Image';
 import type { LayersDataset } from './MainSidebarContent';
 import { useQuery } from '@tanstack/react-query';
-import { fileExist } from '@/api';
+import { fileExist, getWaveBuoyLatestDate } from '@/api';
 import { setJumpToDate } from '@/store';
 import { QUERY_DATE_RANGE } from '@/config';
 
@@ -31,15 +31,25 @@ export const LayerCard = ({
   dateCheckUrl,
   portalLink,
 }: LayerCardProps) => {
-  const { data: latestDate, isLoading: isDateLoading } = useQuery({
+  const isRasterProduct = product === 'gsla-anomaly-sea-levels' || product === 'sst-anom-mosaic';
+  const isWaveBuoyProduct = product === 'wave-buoys';
+
+  const { data: latestRasterDate, isLoading: isRasterDateLoading } = useQuery({
     queryKey: [product, QUERY_DATE_RANGE],
     queryFn: () => {
       const candidates = QUERY_DATE_RANGE.map(d => fileExist(dateCheckUrl!(d), d));
       return Promise.allSettled(candidates);
     },
     select: data => getLatestFulfilledDate(data),
-    enabled: !!dateCheckUrl,
+    enabled: isRasterProduct,
     retry: false,
+  });
+
+  const { data: latestWaveBuoyDate, isLoading: isWaveBuoyLoading } = useQuery({
+    queryKey: ['wave_buoy_latest_date'],
+    queryFn: getWaveBuoyLatestDate,
+    select: data => toCompactDate(data),
+    enabled: isWaveBuoyProduct,
   });
 
   const handleClick = () => {
@@ -47,9 +57,15 @@ export const LayerCard = ({
     if (layerId === WAVE_BUOYS_LAYER_ID) import('../Highcharts/WaveBuoyChart'); //preload wavebuoy chart when wavebuoylayer added.
   };
 
-  const handleJumpToLatest = () => {
-    if (latestDate) {
-      setJumpToDate(toISOFromCompact(latestDate));
+  const handleJumpToLatestRaster = () => {
+    if (latestRasterDate) {
+      setJumpToDate(toISOFromCompact(latestRasterDate));
+    }
+  };
+
+  const handleJumpToLatestWaveBuoy = () => {
+    if (latestWaveBuoyDate) {
+      setJumpToDate(toISOFromCompact(latestWaveBuoyDate));
     }
   };
 
@@ -101,14 +117,24 @@ export const LayerCard = ({
               {visible ? <MinusCircleIcon color="imos-white" /> : <AddCircleIcon />}
             </Button>
 
-            {dateCheckUrl && (
+            {isRasterProduct && (
               <Button
                 variant="outline"
-                onClick={handleJumpToLatest}
-                disabled={isDateLoading || !latestDate}
+                onClick={handleJumpToLatestRaster}
+                disabled={isRasterDateLoading || !latestRasterDate}
                 className="text-btn-mobile md:text-btn text-imos-grey w-fit relative z-10"
               >
-                {isDateLoading ? 'Loading...' : 'Latest Date'}
+                Latest Date
+              </Button>
+            )}
+            {isWaveBuoyProduct && (
+              <Button
+                variant="outline"
+                onClick={handleJumpToLatestWaveBuoy}
+                disabled={isWaveBuoyLoading || !latestWaveBuoyDate}
+                className="text-btn-mobile md:text-btn text-imos-grey w-fit relative z-10"
+              >
+                Latest Date
               </Button>
             )}
           </div>

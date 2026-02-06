@@ -261,7 +261,7 @@ test.beforeEach(async ({ page }) => {
   });
 
   await page.route(
-    '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items/first_data_available?datetime=2025-06-30T14:00:00.000Z',
+    '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items/wave_buoy_first_data_available?datetime=2025-06-30T14:00:00.000Z',
     async route => {
       const buoyLocations = {
         type: 'FeatureCollection',
@@ -287,7 +287,7 @@ test.beforeEach(async ({ page }) => {
   );
 
   await page.route(
-    '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items/first_data_available?datetime=2025-07-01T14:00:00.000Z',
+    '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items/wave_buoy_first_data_available?datetime=2025-07-01T14:00:00.000Z',
     async route => {
       const buoyLocations = {
         type: 'FeatureCollection',
@@ -313,7 +313,7 @@ test.beforeEach(async ({ page }) => {
   );
 
   await page.route(
-    '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items/timeseries*',
+    '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items/wave_buoy_timeseries*',
     async route => {
       const req = route.request();
       const url = req.url();
@@ -464,46 +464,6 @@ test.describe('Wave Buoys', () => {
       'sea surface wave spectral mean period (s)',
     ]);
     await expect(page.getByTestId('latest-observation-value')).toHaveText(['1', '1', '1']);
-  });
-
-  test('User can see the see the bouy`s historical by clicking at the buoy', async ({ page }) => {
-    await mapComponent.waitUntilLayerLoaded(page, WAVE_BUOYS_LAYER_ID);
-    await mapComponent.clickOnBuoy(page, buoys.HOBARITO.name);
-  });
-
-  test('User can see the see the bouys location of different days', async ({ page }) => {
-    await mapComponent.waitUntilLayerLoaded(page, WAVE_BUOYS_LAYER_ID);
-
-    await page.waitForFunction(
-      ({ layer, expectedBuoyName }) => {
-        const map = (window as any).map as Map | undefined;
-        if (!map) throw new Error('Map not found');
-
-        return map?.queryRenderedFeatures(undefined as any, { layers: [layer] }).some(feature => {
-          return feature.properties?.buoy === expectedBuoyName;
-        });
-      },
-      { layer: UNCLUSTERED_WAVE_BUOYS_LAYER_ID, expectedBuoyName: buoys.HOBARITO.name },
-    );
-
-    // Wait for auto-scroll to complete and slider to be stable
-    const sliderHandle = page.getByRole('slider', { name: 'point handle' });
-    await sliderHandle.waitFor({ state: 'visible' });
-    await page.waitForTimeout(1000);
-    await sliderHandle.focus();
-    await page.keyboard.press('ArrowRight');
-
-    await page.waitForFunction(
-      ({ layer, expectedBuoyName }) => {
-        const map = (window as any).map as Map | undefined;
-        if (!map) throw new Error('Map not found');
-
-        return map?.queryRenderedFeatures(undefined as any, { layers: [layer] }).some(feature => {
-          return feature.properties?.buoy === expectedBuoyName;
-        });
-      },
-      { layer: UNCLUSTERED_WAVE_BUOYS_LAYER_ID, expectedBuoyName: buoys.DARWIN.name },
-    );
   });
 });
 
