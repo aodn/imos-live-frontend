@@ -261,7 +261,7 @@ test.beforeEach(async ({ page }) => {
   });
 
   await page.route(
-    '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items/first_data_available?datetime=2025-06-30T14:00:00.000Z',
+    '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items/wave_buoy_first_data_available?datetime=2025-06-30T14:00:00.000Z',
     async route => {
       const buoyLocations = {
         type: 'FeatureCollection',
@@ -287,7 +287,7 @@ test.beforeEach(async ({ page }) => {
   );
 
   await page.route(
-    '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items/first_data_available?datetime=2025-07-01T14:00:00.000Z',
+    '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items/wave_buoy_first_data_available?datetime=2025-07-01T14:00:00.000Z',
     async route => {
       const buoyLocations = {
         type: 'FeatureCollection',
@@ -313,7 +313,7 @@ test.beforeEach(async ({ page }) => {
   );
 
   await page.route(
-    '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items/timeseries*',
+    '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items/wave_buoy_timeseries*',
     async route => {
       const req = route.request();
       const url = req.url();
