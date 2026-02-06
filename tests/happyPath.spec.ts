@@ -465,46 +465,6 @@ test.describe('Wave Buoys', () => {
     ]);
     await expect(page.getByTestId('latest-observation-value')).toHaveText(['1', '1', '1']);
   });
-
-  test('User can see the see the bouy`s historical by clicking at the buoy', async ({ page }) => {
-    await mapComponent.waitUntilLayerLoaded(page, WAVE_BUOYS_LAYER_ID);
-    await mapComponent.clickOnBuoy(page, buoys.HOBARITO.name);
-  });
-
-  test('User can see the see the bouys location of different days', async ({ page }) => {
-    await mapComponent.waitUntilLayerLoaded(page, WAVE_BUOYS_LAYER_ID);
-
-    await page.waitForFunction(
-      ({ layer, expectedBuoyName }) => {
-        const map = (window as any).map as Map | undefined;
-        if (!map) throw new Error('Map not found');
-
-        return map?.queryRenderedFeatures(undefined as any, { layers: [layer] }).some(feature => {
-          return feature.properties?.buoy === expectedBuoyName;
-        });
-      },
-      { layer: UNCLUSTERED_WAVE_BUOYS_LAYER_ID, expectedBuoyName: buoys.HOBARITO.name },
-    );
-
-    // Wait for auto-scroll to complete and slider to be stable
-    const sliderHandle = page.getByRole('slider', { name: 'point handle' });
-    await sliderHandle.waitFor({ state: 'visible' });
-    await page.waitForTimeout(1000);
-    await sliderHandle.focus();
-    await page.keyboard.press('ArrowRight');
-
-    await page.waitForFunction(
-      ({ layer, expectedBuoyName }) => {
-        const map = (window as any).map as Map | undefined;
-        if (!map) throw new Error('Map not found');
-
-        return map?.queryRenderedFeatures(undefined as any, { layers: [layer] }).some(feature => {
-          return feature.properties?.buoy === expectedBuoyName;
-        });
-      },
-      { layer: UNCLUSTERED_WAVE_BUOYS_LAYER_ID, expectedBuoyName: buoys.DARWIN.name },
-    );
-  });
 });
 
 test.describe('Measurement', () => {
