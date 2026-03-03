@@ -90,18 +90,18 @@ const UserFeedback: React.FC = () => {
     <div className="md:px-2 mt-4">
       <div className="md:rounded-lg md:shadow-lg bg-white md:border border-b border-gray-300 p-4 flex items-start gap-2">
         <span className="text-xs text-gray-700 mb-2">
-          Have you identified a bug, or have suggestions for new features? Please submit an issue
-          using the provided templates.
+          Have you identified a bug, or have suggestions for new features? Please submit your
+          feedback and help us improve.
         </span>
-        <Button
-          size="sm"
-          variant="default"
-          asChild={true}
-          onClick={() =>
-            window.open('https://github.com/aodn/imos-live-frontend/issues/new/choose')
-          }
-        >
-          <span className="text-xs font-medium">Contribute</span>
+        <Button variant="link" asChild>
+          <a
+            className="text-xs font-medium"
+            href="https://forms.office.com/Pages/ResponsePage.aspx?id=VV3rFZEZvEaNp6slI03uCMGDphyKDCVOs7D1DWwRDU5URFdTTVpKWkpGWk9RVTI5WTZLQTFMN09WMC4u"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Contribute
+          </a>
         </Button>
       </div>
     </div>
