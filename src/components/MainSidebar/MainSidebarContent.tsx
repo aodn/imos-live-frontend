@@ -26,7 +26,7 @@ export type LayersDataset = {
   isError: boolean;
   legend?: ReactNode;
   product: ProductType;
-  dateCheckUrl?: (date: string) => string;
+  dateCheckUrl?: (date: string) => string | string[];
   portalLink?: string;
 };
 

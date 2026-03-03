@@ -13,7 +13,7 @@ import { setJumpToDate } from '@/store';
 import { QUERY_DATE_RANGE } from '@/config';
 
 export type LayerCardProps = LayersDataset & {
-  dateCheckUrl?: (date: string) => string;
+  dateCheckUrl?: (date: string) => string | string[];
   portalLink?: string;
 };
 
