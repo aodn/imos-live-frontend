@@ -80,8 +80,7 @@ export const MainSidebarContent: React.FC<MainSidebarProps> = ({ className = '' 
         className="mt-4 md:px-8 hidden"
       />
 
-      {/* {import.meta.env.VITE_FEEDBACK_ENABLED && <UserFeedback />} */}
-      <UserFeedback />
+      {import.meta.env.VITE_FEEDBACK_ENABLED && <UserFeedback />}
     </div>
   );
 };
