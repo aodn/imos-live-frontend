@@ -15,10 +15,12 @@ export type MapBounds = {
   north: number;
 };
 
-const PADDING = 20;
-const INNER_PADDING = 16;
-const GAP = 16;
-const RADIUS = 10;
+const PANEL_PADDING = 20;
+const PANEL_INNER = 16;
+const PANEL_GAP = 16;
+const PANEL_RADIUS = 10;
+const PANEL_BLUR_PX = 16;
+const PANEL_FILL_ALPHA = 0.7;
 const TITLE_LINE_HEIGHT = 24;
 const SUB_LINE_HEIGHT = 18;
 const SCALES_HEIGHT = 14;
@@ -34,13 +36,13 @@ const FRAME_FONT_SIZE = 12;
 const EARTH_RADIUS_KM = 6371;
 
 const SCALE_BAR_SEGMENTS = 4;
-const SCALE_BAR_H = 8;
-const NORTH_ARROW_HALF_W = 14;
+const SCALE_BAR_HEIGHT = 8;
+const NORTH_ARROW_HALF_WIDTH = 14;
 const NORTH_ARROW_UPPER_H = 26;
 const NORTH_ARROW_LOWER_H = 12;
-const SCALE_NORTH_GAP = 42; // gap between scale bar right label and north arrow
-const SCALE_NORTH_MARGIN_R = 15;
-const SCALE_NORTH_MARGIN_B = 15;
+const SCALE_BAR_TO_ARROW_GAP = 42;
+const SCALE_NORTH_MARGIN_RIGHT = 15;
+const SCALE_NORTH_MARGIN_BOTTOM = PANEL_PADDING;
 
 const loadImage = (src: string): Promise<HTMLImageElement> =>
   new Promise((resolve, reject) => {
@@ -81,6 +83,16 @@ const formatCoord = (val: number): string => {
   return Number.isInteger(r) ? String(r) : r.toFixed(1);
 };
 
+const niceScaleKm = (maxKm: number): number => {
+  const candidates = [1, 2, 5, 10, 20, 50, 100, 200, 250, 500, 1000, 2000, 5000];
+  let result = candidates[0];
+  for (const k of candidates) {
+    if (k <= maxKm) result = k;
+    else break;
+  }
+  return result;
+};
+
 const drawFrostedBackground = (
   ctx: CanvasRenderingContext2D,
   mapCanvas: HTMLCanvasElement,
@@ -93,18 +105,18 @@ const drawFrostedBackground = (
 ) => {
   ctx.save();
   ctx.beginPath();
-  ctx.roundRect(x, y, w, h, RADIUS);
+  ctx.roundRect(x, y, w, h, PANEL_RADIUS);
   ctx.clip();
-  ctx.filter = 'blur(16px)';
+  ctx.filter = `blur(${PANEL_BLUR_PX}px)`;
   ctx.drawImage(mapCanvas, mapOffsetX, mapOffsetY);
   ctx.filter = 'none';
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+  ctx.fillStyle = `rgba(255, 255, 255, ${PANEL_FILL_ALPHA})`;
   ctx.fill();
   ctx.restore();
 
   ctx.save();
   ctx.beginPath();
-  ctx.roundRect(x, y, w, h, RADIUS);
+  ctx.roundRect(x, y, w, h, PANEL_RADIUS);
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
   ctx.lineWidth = 1;
   ctx.stroke();
@@ -146,7 +158,6 @@ const drawProductColumn = (
 
   const legendY = y + SUB_LINE_HEIGHT + 4;
   ctx.drawImage(legend, x, legendY, legendWidth, legendHeight);
-
   let cursorY = legendY + legendHeight;
 
   if (product.scales && product.scales.length > 0) {
@@ -154,13 +165,11 @@ const drawProductColumn = (
     ctx.font = '10px sans-serif';
     ctx.fillStyle = '#3b5068';
     ctx.textAlign = 'center';
-
     const count = product.scales.length;
     product.scales.forEach((scale, i) => {
       const scaleX = count === 1 ? x + legendWidth / 2 : x + (i / (count - 1)) * legendWidth;
       ctx.fillText(String(scale), scaleX, cursorY + SCALES_HEIGHT - 2);
     });
-
     ctx.textAlign = 'start';
     cursorY += SCALES_HEIGHT;
   }
@@ -175,59 +184,79 @@ const drawProductColumn = (
   }
 };
 
-const calculateLayout = (
+const drawNorthArrow = (
   ctx: CanvasRenderingContext2D,
-  mapHeight: number,
-  logoAspect: number,
-  product: ExportProduct | undefined,
-  legend: HTMLImageElement | null,
+  cx: number,
+  tipY: number, // top point of the arrow
+  bottomY: number, // bottom corners of the arrow
+  halfWidth: number,
 ) => {
-  const leftColHeight = TITLE_LINE_HEIGHT + SUB_LINE_HEIGHT * 2;
-  const logoWidth = logoAspect * leftColHeight;
+  const notchY = bottomY - halfWidth * 1.1; // concave notch above bottom corners
 
-  ctx.font = 'bold 18px sans-serif';
-  const titleWidth = ctx.measureText('IMOS Live').width;
-  ctx.font = '13px sans-serif';
-  const dateWidth = ctx.measureText('9999-99-99').width;
-  ctx.font = '12px sans-serif';
-  const urlWidth = ctx.measureText('https://imoslive.edge.aodn.org.au').width;
-  const leftColWidth = Math.max(titleWidth, dateWidth, urlWidth);
+  ctx.save();
+  ctx.strokeStyle = '#333333';
+  ctx.lineWidth = 2.0;
+  ctx.beginPath();
+  ctx.moveTo(cx, tipY);
+  ctx.lineTo(cx + halfWidth, bottomY);
+  ctx.lineTo(cx, notchY);
+  ctx.lineTo(cx - halfWidth, bottomY);
+  ctx.closePath();
+  ctx.stroke();
+  ctx.restore();
+};
 
-  ctx.font = 'bold 14px sans-serif';
-  const productNameWidth = product ? ctx.measureText(product.name).width : 0;
-  const legendWidth = legend ? Math.min(LEGEND_MAX_WIDTH, legend.width) : 0;
-  const legendHeight = legend ? legend.height * (legendWidth / legend.width) : 0;
-  const productColContentWidth = Math.max(productNameWidth, legendWidth);
-  const productColWidth = product ? GAP + productColContentWidth : 0;
+const drawScaleBar = (
+  ctx: CanvasRenderingContext2D,
+  bounds: MapBounds,
+  mapX: number,
+  mapY: number,
+  mapW: number,
+  mapH: number,
+  marginBottom = SCALE_NORTH_MARGIN_BOTTOM,
+) => {
+  const { west, east, south, north } = bounds;
+  const centerLatRad = (((south + north) / 2) * Math.PI) / 180;
+  const kmPerDegLon = (EARTH_RADIUS_KM * Math.PI * Math.cos(centerLatRad)) / 180;
+  const pixelsPerKm = mapW / (kmPerDegLon * (east - west));
+  const scaleKm = niceScaleKm((mapW * 0.25) / pixelsPerKm);
+  const barWidth = scaleKm * pixelsPerKm;
 
-  const legendExtra = legend
-    ? 8 +
-      legendHeight +
-      (product?.scales ? 4 + SCALES_HEIGHT : 0) +
-      (product?.label ? 4 + LABEL_HEIGHT : 0)
-    : 0;
-  const productColHeight = product ? SUB_LINE_HEIGHT + legendExtra : 0;
+  const arrowCX = mapX + mapW - SCALE_NORTH_MARGIN_RIGHT - NORTH_ARROW_HALF_WIDTH;
+  const arrowBottomY = mapY + mapH - marginBottom;
+  const arrowTipY = arrowBottomY - NORTH_ARROW_LOWER_H - NORTH_ARROW_UPPER_H;
 
-  const tallestCol = Math.max(leftColHeight, productColHeight);
+  const barRightX = arrowCX - NORTH_ARROW_HALF_WIDTH - SCALE_BAR_TO_ARROW_GAP;
+  const barX = barRightX - barWidth;
+  const barBottom = arrowBottomY;
+  const barTop = barBottom - SCALE_BAR_HEIGHT;
 
-  const bgWidth = INNER_PADDING + logoWidth + GAP + leftColWidth + productColWidth + INNER_PADDING;
-  const bgHeight = INNER_PADDING + tallestCol + INNER_PADDING;
-  const bgX = PADDING;
-  const bgY = mapHeight - bgHeight - PADDING;
+  ctx.save();
+  ctx.strokeStyle = '#1a2a3a';
+  ctx.fillStyle = '#1a2a3a';
+  ctx.lineWidth = 2.0;
 
-  return {
-    logoWidth,
-    logoHeight: tallestCol,
-    leftColWidth,
-    legendWidth,
-    legendHeight,
-    bgX,
-    bgY,
-    bgWidth,
-    bgHeight,
-    contentX: bgX + INNER_PADDING,
-    contentY: bgY + INNER_PADDING,
-  };
+  ctx.beginPath();
+  ctx.moveTo(barX, barBottom);
+  ctx.lineTo(barRightX, barBottom);
+  ctx.stroke();
+
+  ctx.font = '14px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom';
+  for (let i = 0; i <= SCALE_BAR_SEGMENTS; i++) {
+    const tx = barX + (i / SCALE_BAR_SEGMENTS) * barWidth;
+    ctx.beginPath();
+    ctx.moveTo(tx, barTop);
+    ctx.lineTo(tx, barBottom);
+    ctx.stroke();
+    const km = Math.round((i / SCALE_BAR_SEGMENTS) * scaleKm);
+    ctx.fillText(i === SCALE_BAR_SEGMENTS ? `${km} km` : String(km), tx, barTop - 2);
+  }
+
+  drawNorthArrow(ctx, arrowCX, arrowTipY, arrowBottomY, NORTH_ARROW_HALF_WIDTH);
+
+  ctx.restore();
 };
 
 const drawCoordinateFrame = (
@@ -261,8 +290,9 @@ const drawCoordinateFrame = (
   const firstLon = Math.ceil(west / lonInterval) * lonInterval;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  for (let i = 0; ; i++) {
-    const lon = Math.round((firstLon + i * lonInterval) * 1e6) / 1e6;
+  let lonI = 0;
+  while (true) {
+    const lon = Math.round((firstLon + lonI++ * lonInterval) * 1e6) / 1e6;
     if (lon > east + 1e-9) break;
     const px = mapX + lonToPixel(lon, west, east, mapW);
     const label = formatCoord(lon);
@@ -283,8 +313,9 @@ const drawCoordinateFrame = (
   // Latitude ticks — left and right edges
   const firstLat = Math.ceil(south / latInterval) * latInterval;
   ctx.textBaseline = 'middle';
-  for (let i = 0; ; i++) {
-    const lat = Math.round((firstLat + i * latInterval) * 1e6) / 1e6;
+  let latI = 0;
+  while (true) {
+    const lat = Math.round((firstLat + latI++ * latInterval) * 1e6) / 1e6;
     if (lat > north + 1e-9) break;
     const py = mapY + latToPixel(lat, southMerc, northMerc, mapH);
     const label = formatCoord(lat);
@@ -307,104 +338,59 @@ const drawCoordinateFrame = (
   ctx.restore();
 };
 
-const drawNorthArrow = (
+const calculateLayout = (
   ctx: CanvasRenderingContext2D,
-  cx: number,
-  cy: number,
-  upperH: number,
-  lowerH: number,
-  halfW: number,
+  mapHeight: number,
+  logoAspect: number,
+  product: ExportProduct | undefined,
+  legend: HTMLImageElement | null,
 ) => {
-  const tipY = cy - upperH;
-  const bottomY = cy + lowerH;
-  const notchY = bottomY - halfW * 1.1; // concave notch slightly above bottom corners
+  const leftColHeight = TITLE_LINE_HEIGHT + SUB_LINE_HEIGHT * 2;
+  const logoWidth = logoAspect * leftColHeight;
 
-  ctx.save();
-  ctx.strokeStyle = '#333333';
-  ctx.lineWidth = 2.0;
+  ctx.font = 'bold 18px sans-serif';
+  const titleWidth = ctx.measureText('IMOS Live').width;
+  ctx.font = '13px sans-serif';
+  const dateWidth = ctx.measureText('9999-99-99').width;
+  ctx.font = '12px sans-serif';
+  const urlWidth = ctx.measureText('https://imoslive.edge.aodn.org.au').width;
+  const leftColWidth = Math.max(titleWidth, dateWidth, urlWidth);
 
-  // Full outline
-  ctx.beginPath();
-  ctx.moveTo(cx, tipY);
-  ctx.lineTo(cx + halfW, bottomY);
-  ctx.lineTo(cx, notchY);
-  ctx.lineTo(cx - halfW, bottomY);
-  ctx.closePath();
-  ctx.stroke();
+  ctx.font = 'bold 14px sans-serif';
+  const productNameWidth = product ? ctx.measureText(product.name).width : 0;
+  const legendWidth = legend ? Math.min(LEGEND_MAX_WIDTH, legend.width) : 0;
+  const legendHeight = legend ? legend.height * (legendWidth / legend.width) : 0;
+  const productColContentWidth = Math.max(productNameWidth, legendWidth);
+  const productColWidth = product ? PANEL_GAP + productColContentWidth : 0;
 
-  ctx.restore();
-};
+  const legendExtra = legend
+    ? 8 +
+      legendHeight +
+      (product?.scales ? 4 + SCALES_HEIGHT : 0) +
+      (product?.label ? 4 + LABEL_HEIGHT : 0)
+    : 0;
+  const productColHeight = product ? SUB_LINE_HEIGHT + legendExtra : 0;
+  const contentHeight = Math.max(leftColHeight, productColHeight);
 
-const drawScaleBar = (
-  ctx: CanvasRenderingContext2D,
-  bounds: MapBounds,
-  mapX: number,
-  mapY: number,
-  mapW: number,
-  mapH: number,
-) => {
-  const { west, east, south, north } = bounds;
-  const centerLat = (south + north) / 2;
-  const latRad = (centerLat * Math.PI) / 180;
-  const kmPerDegLon = (EARTH_RADIUS_KM * Math.PI * Math.cos(latRad)) / 180;
-  const pixelsPerKm = mapW / (kmPerDegLon * (east - west));
+  const bgWidth =
+    PANEL_INNER + logoWidth + PANEL_GAP + leftColWidth + productColWidth + PANEL_INNER;
+  const bgHeight = PANEL_INNER + contentHeight + PANEL_INNER;
+  const bgX = PANEL_PADDING;
+  const bgY = mapHeight - bgHeight - PANEL_PADDING;
 
-  const maxKm = (mapW * 0.25) / pixelsPerKm;
-  const niceKms = [1, 2, 5, 10, 20, 50, 100, 200, 250, 500, 1000, 2000, 5000];
-  let scaleKm = niceKms[0];
-  for (const k of niceKms) {
-    if (k <= maxKm) scaleKm = k;
-    else break;
-  }
-  const barW = scaleKm * pixelsPerKm;
-
-  // North arrow anchor (bottom-right of map)
-  const northArrowCX = mapX + mapW - SCALE_NORTH_MARGIN_R - NORTH_ARROW_HALF_W;
-  const northArrowBottom = mapY + mapH - SCALE_NORTH_MARGIN_B;
-  const northArrowCY = northArrowBottom - NORTH_ARROW_LOWER_H; // widest point
-
-  // Scale bar sits to the left, bottom-aligned with the north arrow
-  const barRightX = northArrowCX - NORTH_ARROW_HALF_W - SCALE_NORTH_GAP;
-  const barX = barRightX - barW;
-  const barBottom = northArrowBottom;
-  const barTop = barBottom - SCALE_BAR_H;
-
-  ctx.save();
-
-  ctx.strokeStyle = '#1a2a3a';
-  ctx.fillStyle = '#1a2a3a';
-  ctx.lineWidth = 2.0;
-
-  // Bottom horizontal line
-  ctx.beginPath();
-  ctx.moveTo(barX, barBottom);
-  ctx.lineTo(barRightX, barBottom);
-  ctx.stroke();
-
-  ctx.font = '14px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'bottom';
-  for (let i = 0; i <= SCALE_BAR_SEGMENTS; i++) {
-    const tx = barX + (i / SCALE_BAR_SEGMENTS) * barW;
-    ctx.beginPath();
-    ctx.moveTo(tx, barTop);
-    ctx.lineTo(tx, barBottom);
-    ctx.stroke();
-    const km = Math.round((i / SCALE_BAR_SEGMENTS) * scaleKm);
-    const label = i === SCALE_BAR_SEGMENTS ? `${km} km` : String(km);
-    ctx.fillText(label, tx, barTop - 2);
-  }
-
-  drawNorthArrow(
-    ctx,
-    northArrowCX,
-    northArrowCY,
-    NORTH_ARROW_UPPER_H,
-    NORTH_ARROW_LOWER_H,
-    NORTH_ARROW_HALF_W,
-  );
-
-  ctx.restore();
+  return {
+    logoWidth,
+    logoHeight: contentHeight,
+    leftColWidth,
+    legendWidth,
+    legendHeight,
+    bgX,
+    bgY,
+    bgWidth,
+    bgHeight,
+    contentX: bgX + PANEL_INNER,
+    contentY: bgY + PANEL_INNER,
+  };
 };
 
 export const exportMapImage = async (
@@ -421,29 +407,17 @@ export const exportMapImage = async (
   const padT = bounds ? FRAME_PAD_T : 0;
   const padB = bounds ? FRAME_PAD_B : 0;
 
-  const totalW = mapW + padL + padR;
-  const totalH = mapH + padT + padB;
-
   const offscreen = document.createElement('canvas');
-  offscreen.width = totalW;
-  offscreen.height = totalH;
+  offscreen.width = mapW + padL + padR;
+  offscreen.height = mapH + padT + padB;
   const ctx = offscreen.getContext('2d')!;
 
-  // White background for frame area
   if (bounds) {
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, totalW, totalH);
+    ctx.fillRect(0, 0, offscreen.width, offscreen.height);
   }
 
-  // Draw map at offset
-  ctx.drawImage(mapCanvas, padL, padT);
-
-  // Draw coordinate frame and scale bar
-  if (bounds) {
-    drawCoordinateFrame(ctx, bounds, padL, padT, mapW, mapH);
-    drawScaleBar(ctx, bounds, padL, padT, mapW, mapH);
-  }
-
+  // Load resources before drawing so layout is known for scale bar positioning
   let legend: HTMLImageElement | null = null;
   if (product?.legendUrl) {
     try {
@@ -453,11 +427,22 @@ export const exportMapImage = async (
     }
   }
   const logo = await loadImage(imosLogo);
-  const logoAspect = logo.width / logo.height;
+  const layout = calculateLayout(ctx, mapH, logo.width / logo.height, product, legend);
 
-  const layout = calculateLayout(ctx, mapH, logoAspect, product, legend);
+  // If the frosted panel's right edge reaches the scale bar zone, lift the bar above the panel
+  const frostedRightEdge = PANEL_PADDING + layout.bgWidth;
+  const scaleBarLeftZone =
+    mapW - SCALE_NORTH_MARGIN_RIGHT - NORTH_ARROW_HALF_WIDTH - SCALE_BAR_TO_ARROW_GAP;
+  const scaleBarMarginB =
+    frostedRightEdge > scaleBarLeftZone ? mapH - layout.bgY + PANEL_GAP : SCALE_NORTH_MARGIN_BOTTOM;
 
-  // Offset layout positions by frame padding
+  ctx.drawImage(mapCanvas, padL, padT);
+
+  if (bounds) {
+    drawCoordinateFrame(ctx, bounds, padL, padT, mapW, mapH);
+    drawScaleBar(ctx, bounds, padL, padT, mapW, mapH, scaleBarMarginB);
+  }
+
   const bgX = layout.bgX + padL;
   const bgY = layout.bgY + padT;
   const contentX = layout.contentX + padL;
@@ -465,17 +450,16 @@ export const exportMapImage = async (
 
   drawFrostedBackground(ctx, mapCanvas, padL, padT, bgX, bgY, layout.bgWidth, layout.bgHeight);
 
+  ctx.shadowBlur = 0;
   ctx.drawImage(logo, contentX, contentY, layout.logoWidth, layout.logoHeight);
 
-  const textX = contentX + layout.logoWidth + GAP;
-  ctx.shadowBlur = 0;
+  const textX = contentX + layout.logoWidth + PANEL_GAP;
   drawInfoColumn(ctx, textX, contentY, date);
 
   if (product) {
-    const productX = textX + layout.leftColWidth + GAP;
     drawProductColumn(
       ctx,
-      productX,
+      textX + layout.leftColWidth + PANEL_GAP,
       contentY,
       product,
       legend,
