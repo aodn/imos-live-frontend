@@ -33,13 +33,12 @@ const TICK_LEN = 6;
 const FRAME_FONT_SIZE = 12;
 const EARTH_RADIUS_KM = 6371;
 
-// Scale bar + north arrow
 const SCALE_BAR_SEGMENTS = 4;
 const SCALE_BAR_H = 8;
-const NORTH_ARROW_HALF_W = 9;
+const NORTH_ARROW_HALF_W = 14;
 const NORTH_ARROW_UPPER_H = 26;
 const NORTH_ARROW_LOWER_H = 12;
-const SCALE_NORTH_GAP = 28; // gap between scale bar right label and north arrow
+const SCALE_NORTH_GAP = 42; // gap between scale bar right label and north arrow
 const SCALE_NORTH_MARGIN_R = 15;
 const SCALE_NORTH_MARGIN_B = 15;
 
@@ -58,7 +57,6 @@ const downloadCanvasAsImage = (canvas: HTMLCanvasElement) => {
   link.click();
 };
 
-// --- Coordinate frame helpers ---
 const mercatorY = (lat: number): number => {
   const latRad = (lat * Math.PI) / 180;
   return Math.log(Math.tan(Math.PI / 4 + latRad / 2));
@@ -312,41 +310,29 @@ const drawCoordinateFrame = (
 const drawNorthArrow = (
   ctx: CanvasRenderingContext2D,
   cx: number,
-  cy: number, // centre (widest point)
+  cy: number,
   upperH: number,
   lowerH: number,
   halfW: number,
 ) => {
-  // Upper triangle — dark
+  const tipY = cy - upperH;
+  const bottomY = cy + lowerH;
+  const notchY = bottomY - halfW * 1.1; // concave notch slightly above bottom corners
+
+  ctx.save();
+  ctx.strokeStyle = '#333333';
+  ctx.lineWidth = 2.0;
+
+  // Full outline
   ctx.beginPath();
-  ctx.moveTo(cx, cy - upperH);
-  ctx.lineTo(cx - halfW, cy);
-  ctx.lineTo(cx + halfW, cy);
+  ctx.moveTo(cx, tipY);
+  ctx.lineTo(cx + halfW, bottomY);
+  ctx.lineTo(cx, notchY);
+  ctx.lineTo(cx - halfW, bottomY);
   ctx.closePath();
-  ctx.fillStyle = '#1a2a3a';
-  ctx.fill();
-  ctx.strokeStyle = '#1a2a3a';
-  ctx.lineWidth = 0.8;
   ctx.stroke();
 
-  // Lower triangle — white with outline
-  ctx.beginPath();
-  ctx.moveTo(cx, cy + lowerH);
-  ctx.lineTo(cx - halfW, cy);
-  ctx.lineTo(cx + halfW, cy);
-  ctx.closePath();
-  ctx.fillStyle = '#ffffff';
-  ctx.fill();
-  ctx.strokeStyle = '#1a2a3a';
-  ctx.lineWidth = 0.8;
-  ctx.stroke();
-
-  // "N" above the tip
-  ctx.font = 'bold 11px sans-serif';
-  ctx.fillStyle = '#1a2a3a';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'bottom';
-  ctx.fillText('N', cx, cy - upperH - 2);
+  ctx.restore();
 };
 
 const drawScaleBar = (
@@ -385,10 +371,9 @@ const drawScaleBar = (
 
   ctx.save();
 
-  // ── Ruler-style scale bar ──
   ctx.strokeStyle = '#1a2a3a';
   ctx.fillStyle = '#1a2a3a';
-  ctx.lineWidth = 1.2;
+  ctx.lineWidth = 2.0;
 
   // Bottom horizontal line
   ctx.beginPath();
@@ -396,8 +381,7 @@ const drawScaleBar = (
   ctx.lineTo(barRightX, barBottom);
   ctx.stroke();
 
-  // Major ticks + labels
-  ctx.font = '11px sans-serif';
+  ctx.font = '14px sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'bottom';
   for (let i = 0; i <= SCALE_BAR_SEGMENTS; i++) {
@@ -411,7 +395,6 @@ const drawScaleBar = (
     ctx.fillText(label, tx, barTop - 2);
   }
 
-  // ── North arrow ──
   drawNorthArrow(
     ctx,
     northArrowCX,
