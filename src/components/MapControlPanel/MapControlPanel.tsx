@@ -79,8 +79,18 @@ export const MapControlPanel = ({
         }
       : undefined;
 
+    const rawBounds = mapRef.current.getBounds();
+    const bounds = rawBounds
+      ? {
+          west: rawBounds.getWest(),
+          east: rawBounds.getEast(),
+          south: rawBounds.getSouth(),
+          north: rawBounds.getNorth(),
+        }
+      : undefined;
+
     mapRef.current.once('render', () => {
-      exportMapImage(mapRef.current!.getCanvas(), date, productArg);
+      exportMapImage(mapRef.current!.getCanvas(), date, productArg, bounds);
     });
 
     mapRef.current.triggerRepaint();
