@@ -9,7 +9,7 @@
     "test": "vitest run --reporter=verbose",
     "test:e2e": "playwright test",
     "build": "tsc -b && vite build",
-    "build:stats": "VITE_STATS_ENABLED=true npm run build",
+    "build:stats": "VITE_STATS_ENABLED=true pnpm build",
     "lint": "eslint .",
     "format": "prettier --write .",
     "preview": "vite preview",

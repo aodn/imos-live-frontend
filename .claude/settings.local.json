@@ -9,7 +9,8 @@
       "Bash(npm run type-check:*)",
       "Bash(npm run:*)",
       "Bash(npx tsc:*)",
-      "WebFetch(domain:api.mapbox.com)"
+      "WebFetch(domain:api.mapbox.com)",
+      "Bash(pnpm import:*)"
     ],
     "deny": [],
     "ask": []

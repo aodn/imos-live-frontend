@@ -24,17 +24,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
       - name: Setup node
         uses: actions/setup-node@v4
         with:
           node-version-file: package.json
-          cache: 'npm'
+          cache: 'pnpm'
 
-      - name: npm install
-        run: npm ci
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Build Website
-        run: npm run build
+        run: pnpm build
         env:
           NODE_ENV: production
           VITE_S3_BASE_URL: ${{ vars.S3_BASE_URL }}
