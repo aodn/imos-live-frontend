@@ -1,48 +1,31 @@
-# imos-live
-
-IMOS live project
-
-# Ocean Current Visualization System
+# IMOS Live
 
 ## Overview
 
-This application visualizes ocean current data using WebGL-accelerated particle animation on an interactive MapBox map. The system loads the [processed Gridded Sea Level Anomaly (GSLA) data](./doc/DataProcessing.md) for different dates, renders the vector field using thousands of animated particles that follow the current patterns and a scalar heatmap image as overlay representing ocean surface anomalies. The visualization offers various customization options including map style, overlay visibility, particle count, and date selection.
+IMOS Live is an interactive marine data visualisation platform built for Australia's Integrated Marine Observing System. It combines multiple ocean datasets on an interactive Mapbox map, allowing users to explore and analyse current conditions across the Australasian region.
+
+The platform visualises [processed GSLA data](./doc/DataProcessing.md) as a WebGL-accelerated particle field showing geostrophic ocean current patterns, alongside raster overlays for sea level anomalies and sea surface temperature (SST) anomalies. Wave buoy observations are displayed as interactive clustered map points with time-series charts. A temporal date slider lets users navigate through the available data history, and a distance measurement tool is provided for spatial analysis.
 
 ## Key Features
 
 - Interactive global map with multiple style options
-- Real-time particle animation showing direction and speed of ocean currents
-- Customizable particle density (1,000 to 100,000 particles)
-- Optional data overlay visualization
-- Time series navigation through 7 days of data (ending 3 days ago)
-- WebGL-accelerated rendering for smooth animation
-
-## Core Components
-
-1. **App** (`App.jsx`) - Main application component managing state and coordinating child components
-2. **MapComponent** (`MapComponent.jsx`) - Handles the MapBox map and vector field rendering
-3. **MenuComponent** (`MenuComponent.jsx`) - User interface for controlling visualization parameters
-4. **VectorField** (`VectorField.js`) - WebGL-based particle system for visualizing vector fields
-5. **Utility modules** - Helper functions for data loading, URL building, and date handling
+- WebGL-accelerated particle animation showing ocean geostrophic current direction and speed
+- GSLA sea level anomaly raster overlay
+- Sea surface temperature (SST) anomaly overlay for coral bleaching monitoring
+- Wave buoy data with clustered map points and interactive time-series charts
+- Distance measurement tool
+- Customizable particle settings (count, size, speed, fade)
+- Temporal date slider for navigating available data
+- Optional world land boundary overlay
 
 ## [Technical Implementation](./doc/TechnicalDoc.md)
-
-## User Interface
-
-The interface consists of:
-
-1. **Map View** - The main visualization area showing the animated particle system
-2. **Control Menu** - A panel with options to configure the visualization:
-   - **Styles** - Different map styles (Dark, Light, etc.)
-   - **Overlay** - Toggle additional data visualization layer for sea level anomalies
-   - **Particles** - Enable/disable particle animation
-   - **Number** - Control particle count (1,000 to 100,000)
-   - **Date** - Select from available dates in the time series
 
 ## Setup and Usage
 
 ### Prerequisites
 
+- Node.js >= 22.0.0
+- pnpm >= 10
 - Mapbox API key (set as `VITE_MAPBOX_KEY` environment variable)
 - Dataset base URL (set as `VITE_S3_BASE_URL` environment variable)
 
@@ -51,7 +34,7 @@ The interface consists of:
 1. Install dependencies:
 
    ```
-   npm install
+   pnpm install
    ```
 
 1. Set required environment variables:
@@ -64,13 +47,13 @@ The interface consists of:
 1. Run the app:
 
    ```
-   npm run dev
+   pnpm dev
    ```
 
    You can run the frontend using mock data, which does not require the `VITE_S3_BASE_URL` environment variable. To start the application with randomly generated local data, use:
 
    ```
-   npm run dev:mock
+   pnpm dev:mock
    ```
 
 ## Performance Considerations
