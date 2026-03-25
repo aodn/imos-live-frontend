@@ -72,6 +72,9 @@ importers:
       '@playwright/test':
         specifier: ^1.54.1
         version: 1.57.0
+      '@storybook/addon-actions':
+        specifier: ^8.6.14
+        version: 8.6.14(storybook@8.6.14(prettier@3.5.3))
       '@storybook/addon-essentials':
         specifier: ^8.6.12
         version: 8.6.14(@types/react@19.2.7)(storybook@8.6.14(prettier@3.5.3))
@@ -108,6 +111,9 @@ importers:
       '@testing-library/user-event':
         specifier: ^14.6.1
         version: 14.6.1(@testing-library/dom@10.4.1)
+      '@types/geojson':
+        specifier: ^7946.0.16
+        version: 7946.0.16
       '@types/node':
         specifier: ^22.14.1
         version: 22.19.1

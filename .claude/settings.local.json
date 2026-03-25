@@ -10,7 +10,8 @@
       "Bash(npm run:*)",
       "Bash(npx tsc:*)",
       "WebFetch(domain:api.mapbox.com)",
-      "Bash(pnpm import:*)"
+      "Bash(pnpm import:*)",
+      "Bash(pnpm add:*)"
     ],
     "deny": [],
     "ask": []
