@@ -8,8 +8,8 @@ import {
   CloseFullScreenIcon,
   DownloadIcon,
 } from '../Icons';
-import { INITIAL_ZOOM } from '@/config';
-import { useIsMapDragging, useIsMapZooming } from '@/hooks';
+import { INITIAL_ZOOM, MIN_EXPORT_MAP_WIDTH } from '@/config';
+import { useIsMapDragging, useIsMapZooming, useMapCanvasWidth } from '@/hooks';
 import { setSidebarOpen, useMapUIStore, useSidebarStore } from '@/store';
 import { exportMapImage, rasterLegendUrl } from '@/helpers';
 import { useShallow } from 'zustand/shallow';
@@ -34,6 +34,7 @@ export const MapControlPanel = ({
 }) => {
   const isDragging = useIsMapDragging(mapRef);
   const isZooming = useIsMapZooming(mapRef);
+  const mapCanvasWidth = useMapCanvasWidth(mapRef);
 
   const { date, gslaAnomalySeaLevelsEnabled, sstAnomMosaicEnabled } = useMapUIStore(
     useShallow(s => ({
@@ -51,8 +52,8 @@ export const MapControlPanel = ({
     enabled: !!date && !!product,
   });
 
-  // const productEnabled =
   const isMapOnOperation = isDragging || isZooming;
+  const isMapTooNarrow = mapCanvasWidth > 0 && mapCanvasWidth < MIN_EXPORT_MAP_WIDTH;
   const isSidebarOpen = useSidebarStore(s => s.isOpen);
 
   const handleZoomIn = () => {
@@ -79,8 +80,18 @@ export const MapControlPanel = ({
         }
       : undefined;
 
+    const rawBounds = mapRef.current.getBounds();
+    const bounds = rawBounds
+      ? {
+          west: rawBounds.getWest(),
+          east: rawBounds.getEast(),
+          south: rawBounds.getSouth(),
+          north: rawBounds.getNorth(),
+        }
+      : undefined;
+
     mapRef.current.once('render', () => {
-      exportMapImage(mapRef.current!.getCanvas(), date, productArg);
+      exportMapImage(mapRef.current!.getCanvas(), date, productArg, bounds);
     });
 
     mapRef.current.triggerRepaint();
@@ -140,7 +151,8 @@ export const MapControlPanel = ({
         aria-label="download map"
         onClick={downloadMapImage}
         className="bg-imos-white rounded-full p-1 hover:[&_svg]:text-imos-grey"
-        disabled={isMapOnOperation}
+        disabled={isMapOnOperation || isMapTooNarrow}
+        title={isMapTooNarrow ? 'Widen the map to enable image export' : undefined}
       >
         <DownloadIcon className="text-imos-grey" size="lg" />
       </Button>

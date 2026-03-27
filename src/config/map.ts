@@ -15,3 +15,6 @@ export const INITIAL_WOULD_BOUNDARIES_ENABLED = true;
 export const INITIAL_DISTANCE_MEASUREMENT_ENABLED = false;
 
 export const QUERY_DATE_RANGE = getLast10Dates('yyyymmdd');
+
+// Minimum map width in CSS (logical) pixels below which the export button is disabled.
+export const MIN_EXPORT_MAP_WIDTH = 600;
