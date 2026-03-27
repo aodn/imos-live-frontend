@@ -68,6 +68,13 @@ export const MapControlPanel = ({
     mapRef.current?.setZoom(INITIAL_ZOOM);
   };
 
+  const handleOpenFullScreen = () => {
+    setSidebarOpen(true);
+  };
+  const handleCloseFullScreen = () => {
+    setSidebarOpen(false);
+  };
+
   const downloadMapImage = () => {
     if (!mapRef.current) return;
 
@@ -96,14 +103,6 @@ export const MapControlPanel = ({
 
     mapRef.current.triggerRepaint();
   };
-
-  const handleOpenFullScreen = () => {
-    setSidebarOpen(true);
-  };
-  const handleCloseFullScreen = () => {
-    setSidebarOpen(false);
-  };
-
   return (
     <div className={cn('flex flex-col gap-y-2 items-center', className)}>
       <Button
