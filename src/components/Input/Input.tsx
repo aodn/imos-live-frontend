@@ -58,7 +58,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             value={value || ''}
             onChange={handleChange}
             className={cn([
-              'order-last peer h-full min-w-[80px] w-full text-gray-900 outline-none appearance-none disabled:cursor-not-allowed disabled:bg-transparent read-only:bg-transparent',
+              'order-last peer h-full min-w-20 w-full text-gray-900 outline-none appearance-none disabled:cursor-not-allowed disabled:bg-transparent read-only:bg-transparent',
               innerClassName,
               style.input,
             ])}
@@ -69,8 +69,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           />
           <span
             className={cn(
-              'pointer-events-none order-first absolute top-1/2 -translate-y-1/2 text-base peer-focus:!relative peer-focus:text-xs peer-focus:top-0 peer-focus:translate-y-0 transition-all duration-150',
-              { '!text-xs !relative !top-0 !translate-y-0': value },
+              'pointer-events-none order-first absolute top-1/2 -translate-y-1/2 text-base peer-focus:relative! peer-focus:text-xs peer-focus:top-0 peer-focus:translate-y-0 transition-all duration-150',
+              { 'text-xs! relative! top-0! translate-y-0!': value },
             )}
           >
             {label}
