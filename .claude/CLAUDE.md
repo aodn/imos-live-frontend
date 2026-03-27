@@ -2,6 +2,10 @@
 
 IMOS Live is a geospatial oceanography visualization platform rendering real-time ocean data (SST, currents, wave buoys) on an interactive Mapbox map with WebGL-accelerated particle animations.
 
+## Before You Write Code
+
+Before creating a new hook, utility function, or UI component, check `src/hooks/`, `src/utils/`, and `src/components/` for an existing one that covers the need. Only create new ones if nothing suitable exists.
+
 ## Code Conventions
 
 ### TypeScript
@@ -11,7 +15,10 @@ IMOS Live is a geospatial oceanography visualization platform rendering real-tim
 
 ### Components
 
-When creating a UI component, also create a Storybook story alongside it — keep it minimal, just enough to demo basic usage.
+When creating a UI component, also create a Storybook story alongside it (`MyComponent.tsx` → `MyComponent.stories.tsx`). Each story should include:
+
+- A default state
+- One variant example (if applicable)
 
 ### Styling
 
@@ -25,12 +32,14 @@ import { cn } from '@/utils';
 ### State Management
 
 - UI state lives in `src/store/useMapUIStore.ts` and is synced to URL query params
-- Use `useShallow` from Zustand for subscriptions to multiple state slices
 - Don't store server data in Zustand — that belongs in React Query cache
 
 ### Data Fetching
 
-- Use React Query for all remote data fetching — don't call Axios directly in components
+- Use React Query for all remote data fetching — never `useEffect` + fetch combos
+- Don't call Axios directly in components
+- Use `enabled` for conditional fetching, not manual guards inside `queryFn`
+- Global `staleTime`/`gcTime` defaults are in `src/config/reactQueryConfig.ts` — only override per-query when the query has different caching needs
 - Axios instances live in `src/api/` — reuse existing ones where possible; if a new instance is needed, add it there
 
 ## Products & Map Layers
