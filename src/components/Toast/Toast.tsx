@@ -32,7 +32,7 @@ export interface ToastData {
   renderCloseButton?: () => React.ReactNode;
 }
 
-const Toast: React.FC<{ toast: ToastData }> = ({ toast }) => {
+function Toast({ toast }: { toast: ToastData }) {
   const { hideToast } = useToast();
   const [isPaused, setIsPaused] = useState(false);
 
@@ -256,7 +256,7 @@ const Toast: React.FC<{ toast: ToastData }> = ({ toast }) => {
       )}
     </div>
   );
-};
+}
 
 // --- ToastContainer remains the same ---
 export function ToastContainer({ toasts }: { toasts: ToastData[] }) {

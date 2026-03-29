@@ -25,12 +25,14 @@ const meta: Meta<typeof Drawer> = {
 export default meta;
 type Story = StoryObj<typeof Drawer>;
 
-const DrawerContent = () => (
-  <div>
-    <h2 className="text-lg font-bold mb-2">Drawer Content</h2>
-    <p>Everything goes here.</p>
-  </div>
-);
+function DrawerContent() {
+  return (
+    <div>
+      <h2 className="text-lg font-bold mb-2">Drawer Content</h2>
+      <p>Everything goes here.</p>
+    </div>
+  );
+}
 
 export const Demo: Story = {
   args: {

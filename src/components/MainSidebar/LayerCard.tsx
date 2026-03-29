@@ -157,14 +157,14 @@ export function LayerCard({
   );
 }
 
-const CardTrigger = ({
+function CardTrigger({
   open,
   toggle,
   direction = 'down',
   toggleIconHidden = false,
   title,
   icon,
-}: TriggerArgs & { title: string; icon: ReactNode }) => {
+}: TriggerArgs & { title: string; icon: ReactNode }) {
   const shouldRotate = direction === 'down' ? open : !open;
   return (
     <div className="flex items-center justify-between">
@@ -192,4 +192,4 @@ const CardTrigger = ({
       )}
     </div>
   );
-};
+}

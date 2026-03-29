@@ -50,6 +50,13 @@ export default defineConfig(
           prefer: 'type-imports',
         },
       ],
+      'react/function-component-definition': [
+        'error',
+        {
+          namedComponents: 'function-declaration',
+          unnamedComponents: 'arrow-function',
+        },
+      ],
     },
     settings: {
       react: {

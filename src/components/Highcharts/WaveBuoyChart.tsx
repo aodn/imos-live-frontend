@@ -23,7 +23,7 @@ type WaveBuoyChartProps = {
   showDirection?: boolean;
 };
 
-const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => {
+function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
   const { dateString, buoy, geometry } = toWaveBuoyChartData(waveBuoysData);
 
   const { from, to } = useMemo(() => {
@@ -257,6 +257,6 @@ const WaveBuoyChart = ({ waveBuoysData, showDirection }: WaveBuoyChartProps) => 
       {feature && feature.properties && <LatestObservation feature={feature} />}
     </div>
   );
-};
+}
 
 export default WaveBuoyChart;

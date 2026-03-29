@@ -8,12 +8,12 @@ import { ToastProvider } from './ToastProvider';
 import { useToast } from './useToast';
 
 // Wrapper component for stories that need the provider
-const ToastWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <ToastProvider>{children}</ToastProvider>
-);
+function ToastWrapper({ children }: { children: React.ReactNode }) {
+  return <ToastProvider>{children}</ToastProvider>;
+}
 
 // Story component for interactive demos
-const ToastStory: React.FC<{ toastConfig: Omit<ToastData, 'id'> }> = ({ toastConfig }) => {
+function ToastStory({ toastConfig }: { toastConfig: Omit<ToastData, 'id'> }) {
   const { showToast, hideAllToasts } = useToast();
 
   const handleShowToast = () => {
@@ -46,10 +46,10 @@ const ToastStory: React.FC<{ toastConfig: Omit<ToastData, 'id'> }> = ({ toastCon
       </div>
     </div>
   );
-};
+}
 
 // Multiple toasts demo
-const MultipleToastsStory: React.FC = () => {
+function MultipleToastsStory() {
   const { showToast, hideAllToasts } = useToast();
 
   const showMultipleToasts = () => {
@@ -98,7 +98,7 @@ const MultipleToastsStory: React.FC = () => {
       </div>
     </div>
   );
-};
+}
 
 // Meta configuration
 const meta: Meta = {

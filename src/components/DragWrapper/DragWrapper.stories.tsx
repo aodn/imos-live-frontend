@@ -42,7 +42,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-const CollapsibleTrigger = ({
+function CollapsibleTrigger({
   open,
   onToggle,
   direction = 'down',
@@ -54,7 +54,7 @@ const CollapsibleTrigger = ({
   direction?: 'up' | 'down';
   title?: string;
   subtitle?: string;
-}) => {
+}) {
   const shouldRotate = direction === 'down' ? open : !open;
   return (
     <div className=" border-b border-imos-red/20 drag-me cursor-move">
@@ -82,25 +82,27 @@ const CollapsibleTrigger = ({
       </div>
     </div>
   );
-};
+}
 
-const DragHandle = ({ children }: { children: React.ReactNode }) => (
-  <div className="drag-me cursor-move bg-imos-grey/50 p-2 rounded-t border-b border-imos-red/10">
-    <div className="flex items-center gap-2">
-      <div className="flex gap-1">
-        <div className="w-1 h-1 bg-imos-white/40 rounded-full"></div>
-        <div className="w-1 h-1 bg-imos-white/40 rounded-full"></div>
-        <div className="w-1 h-1 bg-imos-white/40 rounded-full"></div>
-        <div className="w-1 h-1 bg-imos-white/40 rounded-full"></div>
-        <div className="w-1 h-1 bg-imos-white/40 rounded-full"></div>
-        <div className="w-1 h-1 bg-imos-white/40 rounded-full"></div>
+function DragHandle({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="drag-me cursor-move bg-imos-grey/50 p-2 rounded-t border-b border-imos-red/10">
+      <div className="flex items-center gap-2">
+        <div className="flex gap-1">
+          <div className="w-1 h-1 bg-imos-white/40 rounded-full"></div>
+          <div className="w-1 h-1 bg-imos-white/40 rounded-full"></div>
+          <div className="w-1 h-1 bg-imos-white/40 rounded-full"></div>
+          <div className="w-1 h-1 bg-imos-white/40 rounded-full"></div>
+          <div className="w-1 h-1 bg-imos-white/40 rounded-full"></div>
+          <div className="w-1 h-1 bg-imos-white/40 rounded-full"></div>
+        </div>
+        <span className="text-imos-white/60 text-xs font-medium">{children}</span>
       </div>
-      <span className="text-imos-white/60 text-xs font-medium">{children}</span>
     </div>
-  </div>
-);
+  );
+}
 
-const SimpleCard = ({
+function SimpleCard({
   title,
   content,
   variant = 'default',
@@ -110,7 +112,7 @@ const SimpleCard = ({
   content: string;
   variant?: 'default' | 'success' | 'warning' | 'error';
   width?: string;
-}) => {
+}) {
   const variants = {
     default: 'bg-imos-grey border-imos-red/20',
     success: 'bg-green-900/20 border-green-500/30',
@@ -127,7 +129,7 @@ const SimpleCard = ({
       </div>
     </div>
   );
-};
+}
 
 export const Basic: Story = {
   args: {
