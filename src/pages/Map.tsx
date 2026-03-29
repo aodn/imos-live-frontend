@@ -22,7 +22,7 @@ import { useDrawerStore, refreshDates, closeLeftDrawer } from '@/store';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useEffect, useMemo } from 'react';
 
-export const Map = () => {
+export function Map() {
   const { isSmallScreen } = useViewportSize();
   const leftDrawer = useDrawerStore(s => s.leftDrawer);
 
@@ -105,4 +105,4 @@ export const Map = () => {
       )}
     </div>
   );
-};
+}

@@ -5,7 +5,7 @@ import type { SliderHandleProps, RenderSliderHandleProps } from '../type';
 import { handleOutsideVisibleArea, formatDate, getDateFromPercent } from '../utils';
 import { DateLabel } from './DateLabel';
 
-export const SliderHandle = ({
+export function SliderHandle({
   onDragging,
   position,
   label,
@@ -28,7 +28,7 @@ export const SliderHandle = ({
   dateLabelDistanceOverHandle,
   sliderPositionX,
   trackWidth,
-}: SliderHandleProps) => {
+}: SliderHandleProps) {
   const { leftOut, rightOut } = handleOutsideVisibleArea({
     handleRef: ref,
     sliderContainerRef,
@@ -122,162 +122,160 @@ export const SliderHandle = ({
       />
     </button>
   );
-};
+}
 
-export const RenderSliderHandle = memo<RenderSliderHandleProps>(
-  ({
-    viewMode,
-    rangeStartPosition,
-    rangeEndPosition,
-    pointPosition,
-    startDate,
-    endDate,
-    isDragging,
-    rangeHandleIcon,
-    pointHandleIcon,
-    startHandleRef,
-    endHandleRef,
-    pointHandleRef,
-    onHandleFocus,
-    onMouseDown,
-    onTouchStart,
-    onKeyDown,
-    isSliderDragging,
-    pointHandleLabelPersistent,
-    pointHandleLabelDisabled,
-    rangeHandleLabelPersistent,
-    rangeHandleLabelDisabled,
+export const RenderSliderHandle = memo<RenderSliderHandleProps>(function RenderSliderHandle({
+  viewMode,
+  rangeStartPosition,
+  rangeEndPosition,
+  pointPosition,
+  startDate,
+  endDate,
+  isDragging,
+  rangeHandleIcon,
+  pointHandleIcon,
+  startHandleRef,
+  endHandleRef,
+  pointHandleRef,
+  onHandleFocus,
+  onMouseDown,
+  onTouchStart,
+  onKeyDown,
+  isSliderDragging,
+  pointHandleLabelPersistent,
+  pointHandleLabelDisabled,
+  rangeHandleLabelPersistent,
+  rangeHandleLabelDisabled,
+  classNames,
+  renderDateLabel,
+  sliderContainerRef,
+  dateLabelDistanceOverHandle,
+  dateFormat,
+  locale,
+  sliderPositionX,
+  trackWidth,
+  timeUnit,
+}) {
+  const commonProps = {
+    onFocus: onHandleFocus,
+    min: 0,
+    max: 100,
     classNames,
-    renderDateLabel,
-    sliderContainerRef,
-    dateLabelDistanceOverHandle,
-    dateFormat,
-    locale,
-    sliderPositionX,
-    trackWidth,
-    timeUnit,
-  }) => {
-    const commonProps = {
-      onFocus: onHandleFocus,
-      min: 0,
-      max: 100,
-      classNames,
-    };
+  };
 
-    const startLabel = useMemo(
-      () =>
-        formatDate({
-          date: getDateFromPercent(rangeStartPosition, startDate, endDate),
-          format: dateFormat,
-          locale,
-          variant: 'label',
-          timeUnit,
-        }),
-      [rangeStartPosition, startDate, endDate, dateFormat, locale, timeUnit],
-    );
+  const startLabel = useMemo(
+    () =>
+      formatDate({
+        date: getDateFromPercent(rangeStartPosition, startDate, endDate),
+        format: dateFormat,
+        locale,
+        variant: 'label',
+        timeUnit,
+      }),
+    [rangeStartPosition, startDate, endDate, dateFormat, locale, timeUnit],
+  );
 
-    const endLabel = useMemo(
-      () =>
-        formatDate({
-          date: getDateFromPercent(rangeEndPosition, startDate, endDate),
-          format: dateFormat,
-          locale,
-          variant: 'label',
-          timeUnit,
-        }),
-      [rangeEndPosition, startDate, endDate, dateFormat, locale, timeUnit],
-    );
+  const endLabel = useMemo(
+    () =>
+      formatDate({
+        date: getDateFromPercent(rangeEndPosition, startDate, endDate),
+        format: dateFormat,
+        locale,
+        variant: 'label',
+        timeUnit,
+      }),
+    [rangeEndPosition, startDate, endDate, dateFormat, locale, timeUnit],
+  );
 
-    const pointLabel = useMemo(
-      () =>
-        formatDate({
-          date: getDateFromPercent(pointPosition, startDate, endDate),
-          format: dateFormat,
-          locale,
-          variant: 'label',
-          timeUnit,
-        }),
-      [pointPosition, startDate, endDate, dateFormat, locale, timeUnit],
-    );
+  const pointLabel = useMemo(
+    () =>
+      formatDate({
+        date: getDateFromPercent(pointPosition, startDate, endDate),
+        format: dateFormat,
+        locale,
+        variant: 'label',
+        timeUnit,
+      }),
+    [pointPosition, startDate, endDate, dateFormat, locale, timeUnit],
+  );
 
-    return (
-      <>
-        {(viewMode === 'range' || viewMode === 'combined') && (
-          <>
-            <SliderHandle
-              viewMode={viewMode}
-              ref={startHandleRef}
-              {...commonProps}
-              icon={rangeHandleIcon}
-              onDragging={isDragging === 'start'}
-              position={rangeStartPosition}
-              label={startLabel}
-              onMouseDown={onMouseDown('start')}
-              onTouchStart={onTouchStart('start')}
-              value={rangeStartPosition}
-              handleType="start"
-              onKeyDown={onKeyDown('start')}
-              isSliderDragging={isSliderDragging}
-              handleLabelPersistent={rangeHandleLabelPersistent}
-              handleLabelDisabled={rangeHandleLabelDisabled}
-              renderDateLabel={renderDateLabel}
-              sliderContainerRef={sliderContainerRef}
-              dateLabelDistanceOverHandle={dateLabelDistanceOverHandle}
-              sliderPositionX={sliderPositionX}
-              trackWidth={trackWidth}
-            />
-            <SliderHandle
-              viewMode={viewMode}
-              ref={endHandleRef}
-              {...commonProps}
-              icon={rangeHandleIcon}
-              onDragging={isDragging === 'end'}
-              position={rangeEndPosition}
-              label={endLabel}
-              onMouseDown={onMouseDown('end')}
-              onTouchStart={onTouchStart('end')}
-              value={rangeEndPosition}
-              handleType="end"
-              onKeyDown={onKeyDown('end')}
-              isSliderDragging={isSliderDragging}
-              handleLabelPersistent={rangeHandleLabelPersistent}
-              handleLabelDisabled={rangeHandleLabelDisabled}
-              renderDateLabel={renderDateLabel}
-              sliderContainerRef={sliderContainerRef}
-              dateLabelDistanceOverHandle={dateLabelDistanceOverHandle}
-              sliderPositionX={sliderPositionX}
-              trackWidth={trackWidth}
-            />
-          </>
-        )}
-
-        {(viewMode === 'point' || viewMode === 'combined') && (
+  return (
+    <>
+      {(viewMode === 'range' || viewMode === 'combined') && (
+        <>
           <SliderHandle
             viewMode={viewMode}
-            ref={pointHandleRef}
+            ref={startHandleRef}
             {...commonProps}
-            icon={pointHandleIcon}
-            onDragging={isDragging === 'point'}
-            position={pointPosition}
-            label={pointLabel}
-            onMouseDown={onMouseDown('point')}
-            onTouchStart={onTouchStart('point')}
-            value={pointPosition}
-            handleType="point"
-            onKeyDown={onKeyDown('point')}
+            icon={rangeHandleIcon}
+            onDragging={isDragging === 'start'}
+            position={rangeStartPosition}
+            label={startLabel}
+            onMouseDown={onMouseDown('start')}
+            onTouchStart={onTouchStart('start')}
+            value={rangeStartPosition}
+            handleType="start"
+            onKeyDown={onKeyDown('start')}
             isSliderDragging={isSliderDragging}
-            handleLabelPersistent={pointHandleLabelPersistent}
-            handleLabelDisabled={pointHandleLabelDisabled}
+            handleLabelPersistent={rangeHandleLabelPersistent}
+            handleLabelDisabled={rangeHandleLabelDisabled}
             renderDateLabel={renderDateLabel}
             sliderContainerRef={sliderContainerRef}
             dateLabelDistanceOverHandle={dateLabelDistanceOverHandle}
             sliderPositionX={sliderPositionX}
             trackWidth={trackWidth}
           />
-        )}
-      </>
-    );
-  },
-);
+          <SliderHandle
+            viewMode={viewMode}
+            ref={endHandleRef}
+            {...commonProps}
+            icon={rangeHandleIcon}
+            onDragging={isDragging === 'end'}
+            position={rangeEndPosition}
+            label={endLabel}
+            onMouseDown={onMouseDown('end')}
+            onTouchStart={onTouchStart('end')}
+            value={rangeEndPosition}
+            handleType="end"
+            onKeyDown={onKeyDown('end')}
+            isSliderDragging={isSliderDragging}
+            handleLabelPersistent={rangeHandleLabelPersistent}
+            handleLabelDisabled={rangeHandleLabelDisabled}
+            renderDateLabel={renderDateLabel}
+            sliderContainerRef={sliderContainerRef}
+            dateLabelDistanceOverHandle={dateLabelDistanceOverHandle}
+            sliderPositionX={sliderPositionX}
+            trackWidth={trackWidth}
+          />
+        </>
+      )}
+
+      {(viewMode === 'point' || viewMode === 'combined') && (
+        <SliderHandle
+          viewMode={viewMode}
+          ref={pointHandleRef}
+          {...commonProps}
+          icon={pointHandleIcon}
+          onDragging={isDragging === 'point'}
+          position={pointPosition}
+          label={pointLabel}
+          onMouseDown={onMouseDown('point')}
+          onTouchStart={onTouchStart('point')}
+          value={pointPosition}
+          handleType="point"
+          onKeyDown={onKeyDown('point')}
+          isSliderDragging={isSliderDragging}
+          handleLabelPersistent={pointHandleLabelPersistent}
+          handleLabelDisabled={pointHandleLabelDisabled}
+          renderDateLabel={renderDateLabel}
+          sliderContainerRef={sliderContainerRef}
+          dateLabelDistanceOverHandle={dateLabelDistanceOverHandle}
+          sliderPositionX={sliderPositionX}
+          trackWidth={trackWidth}
+        />
+      )}
+    </>
+  );
+});
 
 RenderSliderHandle.displayName = 'RenderSliderHandle';

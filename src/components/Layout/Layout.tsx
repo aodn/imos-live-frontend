@@ -4,7 +4,7 @@ import { Drawer } from '../Drawer';
 import { useCurrentPage } from '@/hooks';
 import { cn } from '@/utils';
 
-export const Layout = () => {
+export function Layout() {
   const bottomDrawer = useDrawerStore(s => s.bottomDrawer);
 
   const page = useCurrentPage();
@@ -31,4 +31,4 @@ export const Layout = () => {
       </aside>
     </div>
   );
-};
+}

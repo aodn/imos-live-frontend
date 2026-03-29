@@ -15,9 +15,11 @@ Before creating a new hook, utility function, or UI component, check `src/hooks/
 
 ### Function Style
 
-- **Components** — arrow functions: `export const Foo = () => { ... }`
-- **Hooks** — regular functions: `export function useFoo() { ... }`
-- **Utils** — regular functions: `export function foo() { ... }`
+Use regular functions for all named, exported declarations. Reserve arrow functions for inline/anonymous usage (callbacks, `useCallback`, `useMemo`, event handlers).
+
+- **Components** — `export function Foo() { ... }`
+- **Hooks** — `export function useFoo() { ... }`
+- **Utils** — `export function foo() { ... }`
 
 ### Components
 

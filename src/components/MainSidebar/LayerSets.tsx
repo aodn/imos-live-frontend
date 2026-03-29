@@ -7,7 +7,7 @@ type LayerSetsProps = {
   layersDatasets: LayersDataset[];
 };
 
-export const LayerSets = ({ layersDatasets, title, className }: LayerSetsProps) => {
+export function LayerSets({ layersDatasets, title, className }: LayerSetsProps) {
   return (
     <div className={className}>
       <h2 className="text-title-md hidden md:block">{title}</h2>
@@ -20,4 +20,4 @@ export const LayerSets = ({ layersDatasets, title, className }: LayerSetsProps) 
       </div>
     </div>
   );
-};
+}

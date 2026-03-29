@@ -19,7 +19,9 @@ import { PRODUCT } from '@/constants';
 
 type DateSelectionBarProps = { className?: string };
 
-export const DateSelectionBar = memo(({ className }: DateSelectionBarProps) => {
+export const DateSelectionBar = memo(function DateSelectionBar({
+  className,
+}: DateSelectionBarProps) {
   const { date, startDate, endDate } = useDateSliderDates();
   const { isExisted: isDateInQueryParams } = useQueryParamsByKey('date');
   const { jumpTrigger, jumpDate } = useMapUIStore(

@@ -17,7 +17,7 @@ export type LayerCardProps = LayersDataset & {
   portalLink?: string;
 };
 
-export const LayerCard = ({
+export function LayerCard({
   image,
   title,
   description,
@@ -30,7 +30,7 @@ export const LayerCard = ({
   legend,
   dateCheckUrl,
   portalLink,
-}: LayerCardProps) => {
+}: LayerCardProps) {
   const isRasterProduct = product === 'gsla-anomaly-sea-levels' || product === 'sst-anom-mosaic';
   const isWaveBuoyProduct = product === 'wave-buoys';
 
@@ -155,7 +155,7 @@ export const LayerCard = ({
       </div>
     </CollapsibleComponent>
   );
-};
+}
 
 const CardTrigger = ({
   open,

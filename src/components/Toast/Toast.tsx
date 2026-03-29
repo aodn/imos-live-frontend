@@ -259,7 +259,7 @@ const Toast: React.FC<{ toast: ToastData }> = ({ toast }) => {
 };
 
 // --- ToastContainer remains the same ---
-export const ToastContainer: React.FC<{ toasts: ToastData[] }> = ({ toasts }) => {
+export function ToastContainer({ toasts }: { toasts: ToastData[] }) {
   const groupedToasts = toasts.reduce(
     (acc, toast) => {
       const position = toast.position || 'top-right';
@@ -310,4 +310,4 @@ export const ToastContainer: React.FC<{ toasts: ToastData[] }> = ({ toasts }) =>
       ))}
     </>
   );
-};
+}

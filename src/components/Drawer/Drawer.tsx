@@ -73,7 +73,7 @@ function getMaxSize(direction: Direction): number {
   return direction === 'left' || direction === 'right' ? window.innerWidth : window.innerHeight;
 }
 
-export const Drawer: React.FC<DrawerProps> = ({
+export function Drawer({
   direction,
   snapPoints,
   children,
@@ -85,7 +85,7 @@ export const Drawer: React.FC<DrawerProps> = ({
   closeDrawer,
   handleHidden = false,
   closeIconHidden = false,
-}) => {
+}: DrawerProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0, initialSize: 0 });
   const [currentSize, setCurrentSize] = useState(0);
@@ -403,4 +403,4 @@ export const Drawer: React.FC<DrawerProps> = ({
       </div>
     </>
   );
-};
+}

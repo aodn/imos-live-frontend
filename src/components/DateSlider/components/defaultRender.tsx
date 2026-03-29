@@ -6,19 +6,19 @@ import type {
 } from '../type';
 
 // Custom render prop examples
-export const customDateLabelRenderer = ({ label }: DateLabelRenderProps) => {
+export function customDateLabelRenderer({ label }: DateLabelRenderProps) {
   return (
     <span className="bg-blue-700 text-white text-xs px-3 py-1.5 rounded shadow-md font-semibold whitespace-nowrap">
       {label}
     </span>
   );
-};
+}
 
-export const customSelectionPanelRenderer = ({
+export function customSelectionPanelRenderer({
   toNextDate,
   toPrevDate,
   dateLabel,
-}: SelectionPanelRenderProps) => {
+}: SelectionPanelRenderProps) {
   return (
     <div className="hidden md:flex items-center gap-1 bg-white rounded-lg px-2 py-1.5 shadow-sm border border-gray-300 w-40 shrink-0">
       <button
@@ -38,15 +38,15 @@ export const customSelectionPanelRenderer = ({
       </button>
     </div>
   );
-};
+}
 
-export const customTimeUnitSelectionRenderer = ({
+export function customTimeUnitSelectionRenderer({
   timeUnit,
   handleTimeUnitNextSelect,
   handleTimeUnitPreviousSelect,
   isNextBtnDisabled,
   isPrevBtnDisabled,
-}: TimeUnitSelectionRenderProps) => {
+}: TimeUnitSelectionRenderProps) {
   return (
     <div className="flex flex-col items-center gap-1 bg-white rounded-lg px-3 py-2 shadow-sm border border-gray-300 w-20 shrink-0">
       <button
@@ -68,4 +68,4 @@ export const customTimeUnitSelectionRenderer = ({
       </button>
     </div>
   );
-};
+}

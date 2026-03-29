@@ -13,7 +13,7 @@ export type LabeledSliderProps = {
 } & SliderProps;
 
 export const LabeledSlider = forwardRef<HTMLInputElement, LabeledSliderProps>(
-  (
+  function LabeledSlider(
     {
       label,
       value,
@@ -25,7 +25,7 @@ export const LabeledSlider = forwardRef<HTMLInputElement, LabeledSliderProps>(
       ...sliderProps
     },
     ref,
-  ) => {
+  ) {
     return (
       <div className={cn('flex items-center gap-3 w-full', className)} data-testid="labeled-slider">
         <label

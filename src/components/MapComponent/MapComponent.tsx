@@ -34,7 +34,7 @@ mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_KEY;
 
 const WaveBuoyChart = lazy(() => import('../Highcharts/WaveBuoyChart'));
 
-export const MapComponent = memo(() => {
+export const MapComponent = memo(function MapComponent() {
   const {
     distanceMeasurementEnabled,
     gslaAnomalySeaLevelsEnabled,

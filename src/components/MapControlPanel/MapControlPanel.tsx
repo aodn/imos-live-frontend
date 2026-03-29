@@ -25,13 +25,13 @@ const getRasterProduct = (
   if (sstAnomMosaicEnabled) return 'sst-anom-mosaic';
 };
 
-export const MapControlPanel = ({
+export function MapControlPanel({
   ref: mapRef,
   className = '',
 }: {
   ref: React.RefObject<mapboxgl.Map | null>;
   className?: string;
-}) => {
+}) {
   const isDragging = useIsMapDragging(mapRef);
   const isZooming = useIsMapZooming(mapRef);
   const mapCanvasWidth = useMapCanvasWidth(mapRef);
@@ -157,4 +157,4 @@ export const MapControlPanel = ({
       </Button>
     </div>
   );
-};
+}

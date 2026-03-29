@@ -12,7 +12,7 @@ export type CollapsibleTriggerProps = {
   toggleIconHidden?: boolean;
 };
 
-export const CollapsibleTrigger = ({
+export function CollapsibleTrigger({
   open,
   toggle,
   dragHandleClass,
@@ -20,7 +20,7 @@ export const CollapsibleTrigger = ({
   FirstIcon,
   SecondIcon,
   toggleIconHidden = false,
-}: CollapsibleTriggerProps) => {
+}: CollapsibleTriggerProps) {
   return (
     <div
       className={cn(
@@ -85,4 +85,4 @@ export const CollapsibleTrigger = ({
       </>
     </div>
   );
-};
+}

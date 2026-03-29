@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import type { SelectionPanelProps } from '../type';
 import { getDateFromPercent, formatDate } from '../utils';
 
-export const SelectionPanel = ({
+export function SelectionPanel({
   position,
   startDate,
   endDate,
@@ -11,7 +11,7 @@ export const SelectionPanel = ({
   dateFormat,
   locale,
   timeUnit,
-}: SelectionPanelProps) => {
+}: SelectionPanelProps) {
   const dateLabel = useMemo(() => {
     const date = getDateFromPercent(position, startDate, endDate);
     return formatDate({ date, format: dateFormat, locale, variant: 'label', timeUnit });
@@ -22,4 +22,4 @@ export const SelectionPanel = ({
     toNextDate: () => moveByStep('forward', 'point'),
     toPrevDate: () => moveByStep('backward', 'point'),
   });
-};
+}

@@ -23,7 +23,7 @@ export type CollapsibleComponentProps = {
   overlayClassName?: boolean;
 };
 
-export const CollapsibleComponent = ({
+export function CollapsibleComponent({
   maxHeight = 800,
   trigger,
   children,
@@ -35,7 +35,7 @@ export const CollapsibleComponent = ({
   isWidthFiexed = false,
   overlayEnabled,
   overlayClassName,
-}: CollapsibleComponentProps) => {
+}: CollapsibleComponentProps) {
   const isUpward = direction === 'up';
   const { open, toggle } = useToggle(defaultOpen);
 
@@ -87,4 +87,4 @@ export const CollapsibleComponent = ({
       )}
     </div>
   );
-};
+}

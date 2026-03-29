@@ -1,7 +1,7 @@
 import type { FeatureCollection, Geometry, GeoJsonProperties } from 'geojson';
 import { Button } from '../Button';
 
-export const DistanceMeasurement = ({
+export function DistanceMeasurement({
   distance,
   setDistance,
   setMeasurePointsGeojson,
@@ -9,7 +9,7 @@ export const DistanceMeasurement = ({
   distance: string;
   setDistance: (d: string) => void;
   setMeasurePointsGeojson: (v: FeatureCollection<Geometry, GeoJsonProperties>) => void;
-}) => {
+}) {
   const clearMeasurements = () => {
     setDistance('');
     setMeasurePointsGeojson({ type: 'FeatureCollection', features: [] });
@@ -38,4 +38,4 @@ export const DistanceMeasurement = ({
       </div>
     </div>
   );
-};
+}

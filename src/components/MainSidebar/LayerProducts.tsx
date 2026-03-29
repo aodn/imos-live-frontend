@@ -9,7 +9,7 @@ type LayerProductsProps = {
   title: string;
 };
 
-export const LayerProducts = ({ products, className, title }: LayerProductsProps) => {
+export function LayerProducts({ products, className, title }: LayerProductsProps) {
   return (
     <div className={className}>
       <CollapsibleComponent
@@ -29,4 +29,4 @@ export const LayerProducts = ({ products, className, title }: LayerProductsProps
       </CollapsibleComponent>
     </div>
   );
-};
+}

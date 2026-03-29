@@ -23,7 +23,7 @@ type SymLogColorScaleBarProps = {
   intermediateTicks?: number[];
 };
 
-export const SymLogColorScaleBar = ({
+export function SymLogColorScaleBar({
   height = 12,
   numStops = 256,
   className = '',
@@ -34,7 +34,7 @@ export const SymLogColorScaleBar = ({
   label,
   colors = anomalySeaLevelColorMap as [number, number, number][],
   intermediateTicks = [2, 5],
-}: SymLogColorScaleBarProps) => {
+}: SymLogColorScaleBarProps) {
   const gradient = useMemo(() => {
     const values = Array.from({ length: numStops }, (_, i) => {
       return min + (max - min) * (i / (numStops - 1));
@@ -116,4 +116,4 @@ export const SymLogColorScaleBar = ({
       )}
     </div>
   );
-};
+}

@@ -9,13 +9,13 @@ type SidebarProps = {
   className?: string;
 };
 
-export const Sidebar: React.FC<SidebarProps> = ({
+export function Sidebar({
   width = 540,
   sidebarContent,
   children,
   wrapperClassName = '',
   className = '',
-}) => {
+}: SidebarProps) {
   const isOpen = useSidebarStore(s => s.isOpen);
 
   return (
@@ -36,4 +36,4 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="flex-1 h-full relative">{children}</div>
     </div>
   );
-};
+}

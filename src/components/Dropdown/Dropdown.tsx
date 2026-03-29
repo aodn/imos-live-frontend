@@ -21,7 +21,7 @@ const VARIANT_CLASSES = {
     'bg-transparent border border-transparent hover:bg-gray-50 focus:bg-white focus:border-gray-300 focus:ring-2 focus:ring-blue-200',
 } as const;
 
-export const Dropdown = ({
+export function Dropdown({
   options,
   initialValue,
   onChange,
@@ -48,7 +48,7 @@ export const Dropdown = ({
   label,
   required = false,
   usePortal = false,
-}: DropdownProps) => {
+}: DropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [value, setValue] = useState<string | number | (string | number)[]>(
@@ -241,4 +241,4 @@ export const Dropdown = ({
         ))}
     </div>
   );
-};
+}

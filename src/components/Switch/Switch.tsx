@@ -27,7 +27,7 @@ interface SwitchProps {
   dataTestId?: string;
 }
 
-export const Switch = ({
+export function Switch({
   initialValue = false,
   onChange,
   disabled = false,
@@ -45,7 +45,7 @@ export const Switch = ({
   labelClassName,
   descriptionClassName,
   dataTestId,
-}: SwitchProps) => {
+}: SwitchProps) {
   const [isOn, setIsOn] = useState(initialValue);
 
   const handleToggle = () => {
@@ -172,4 +172,4 @@ export const Switch = ({
       {labelElement}
     </div>
   );
-};
+}

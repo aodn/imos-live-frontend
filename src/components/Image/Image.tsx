@@ -24,7 +24,7 @@ interface ImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
 
 const isDataURI = (str: string) => str.startsWith('data:');
 
-export const Image = ({
+export function Image({
   src,
   alt,
   fill = false,
@@ -44,7 +44,7 @@ export const Image = ({
   loading = 'lazy',
   showErrorIcon = true,
   ...imgProps
-}: ImageProps) => {
+}: ImageProps) {
   const [isLoading, setIsLoading] = useState(!isDataURI(src));
   const [hasError, setHasError] = useState(false);
   const [currentSrc, setCurrentSrc] = useState(src);
@@ -153,4 +153,4 @@ export const Image = ({
       )}
     </div>
   );
-};
+}

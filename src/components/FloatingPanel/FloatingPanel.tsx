@@ -9,7 +9,7 @@ type FloatingPanelProps = Omit<CollapsibleComponentProps, 'open' | 'toggle' | 't
     initialOpen?: boolean;
   };
 
-export const FloatingPanel = ({
+export function FloatingPanel({
   maxHeight,
   children,
   wrapperClassName = '',
@@ -17,7 +17,7 @@ export const FloatingPanel = ({
   initialPosition,
   collapsible = false,
   initialOpen = false,
-}: FloatingPanelProps) => {
+}: FloatingPanelProps) {
   const dragHandleId = useId();
   const dragHandleClass = `panel-drag-handle-${dragHandleId}`;
 
@@ -46,4 +46,4 @@ export const FloatingPanel = ({
       />
     </DragWrapper>
   );
-};
+}

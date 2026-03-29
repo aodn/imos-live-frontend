@@ -11,7 +11,7 @@ export type HeaderProps = {
   className?: string;
 } & HeaderData;
 
-export const Header = ({ image, title, className }: HeaderProps) => {
+export function Header({ image, title, className }: HeaderProps) {
   const handleClick = useCallback(() => {
     openLeftDrawer(<MainSidebarContent />);
   }, []);
@@ -54,4 +54,4 @@ export const Header = ({ image, title, className }: HeaderProps) => {
       </div>
     </div>
   );
-};
+}

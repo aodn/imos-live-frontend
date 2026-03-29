@@ -25,7 +25,7 @@ export type DragWrapperProps = {
   relative?: RelativeType;
 };
 
-export const DragWrapper = ({
+export function DragWrapper({
   boundary,
   dragHandleClassName,
   children,
@@ -34,7 +34,7 @@ export const DragWrapper = ({
   isPositionReset,
   className,
   relative = 'topLeft',
-}: DragWrapperProps) => {
+}: DragWrapperProps) {
   const dragTargetElementRef = useRef<HTMLDivElement>(null);
   const [parentDimesion, setParentDimesion] = useState({ width: 0, height: 0 });
   const [targetDimesion, setTargetDimesion] = useState({ width: 0, height: 0 });
@@ -222,4 +222,4 @@ export const DragWrapper = ({
       {children}
     </div>
   );
-};
+}

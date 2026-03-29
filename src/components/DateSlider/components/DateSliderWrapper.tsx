@@ -24,7 +24,7 @@ import type { DateSliderClassNames } from '../type';
  * 
  *  
  */
-export const DateSliderWrapper = ({
+export function DateSliderWrapper({
   classNames,
   layout,
   children,
@@ -32,7 +32,7 @@ export const DateSliderWrapper = ({
   classNames?: DateSliderClassNames;
   layout: ReturnType<typeof useSliderConfig>['layout'];
   children: ReactNode;
-}) => {
+}) {
   return (
     <div
       className={cn('flex', classNames?.wrapper)}
@@ -55,4 +55,4 @@ export const DateSliderWrapper = ({
       {children}
     </div>
   );
-};
+}
