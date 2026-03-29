@@ -546,6 +546,7 @@ const calculateInfoPanelLayout = ({
 }) => {
   const leftColHeight = t.titleLineH + t.subLineH * 2;
   const logoWidth = logoAspect * leftColHeight;
+  const logoHeight = leftColHeight; // keep logo aspect ratio — do not stretch to contentHeight
 
   ctx.font = `bold ${t.titleFontSize}px sans-serif`;
   const titleWidth = ctx.measureText('IMOS Live').width;
@@ -576,7 +577,7 @@ const calculateInfoPanelLayout = ({
 
   return {
     logoWidth,
-    logoHeight: contentHeight,
+    logoHeight,
     leftColWidth,
     legendWidth,
     legendHeight,
@@ -646,7 +647,6 @@ export const exportMapImage = async (
   const contentY = layout.contentY + padT;
 
   drawFrostedBackground(ctx, mapCanvas, padL, padT, bgX, bgY, layout.bgWidth, layout.bgHeight, t);
-
   ctx.drawImage(logo, contentX, contentY, layout.logoWidth, layout.logoHeight);
 
   const textX = contentX + layout.logoWidth + t.panelGap;
