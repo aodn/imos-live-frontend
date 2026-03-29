@@ -20,22 +20,38 @@ const COMPACT_BREAKPOINT_PX = 800;
 
 // Themes — all layout-sensitive constants live here so narrow maps can scale.
 type ExportTheme = {
-  // Info panel background
+  // Canvas
+  canvasBg: string;
+  // Info panel
   panelPadding: number;
   panelInner: number;
   panelGap: number;
   panelRadius: number;
-  // Panel text / content
+  panelBlurPx: number;
+  panelFillColor: string; // supports rgba
+  panelBorderColor: string; // supports rgba
+  // Title
   titleLineH: number;
   titleFontSize: number;
+  titleColor: string;
+  // Date
   subLineH: number;
   subFontSize: number;
+  dateColor: string;
+  // URL
   urlFontSize: number;
+  urlColor: string;
+  // Product name
   productNameFontSize: number;
+  productNameColor: string;
+  // Legend / scales
+  legendMaxW: number;
   scalesLabelFontSize: number;
   scalesH: number;
+  scalesColor: string;
+  // Legend label
   labelH: number;
-  legendMaxW: number;
+  legendLabelColor: string;
   // Coordinate frame
   // framePadL/R must fit: tickLen + frameFontSize + ~20 px of margin
   framePadL: number;
@@ -45,34 +61,57 @@ type ExportTheme = {
   tickLen: number;
   frameFontSize: number;
   minTickLabelGapPx: number;
-  // Scale bar & north arrow
+  frameColor: string; // border + tick labels
+  // Scale bar
   scaleBarFontSize: number;
   scaleBarH: number;
   scaleBarTargetPx: number; // target bar pixel width (independent of map size)
   scaleBarSegments: number; // number of intervals (1 = just 0 and X km; 2 = also midpoint)
+  scaleMarginRight: number;
+  scaleMarginBottom: number;
+  scaleBarColor: string;
+  // North arrow
   arrowHalfW: number;
   arrowUpperH: number;
   arrowLowerH: number;
   barToArrowGap: number;
-  scaleMarginRight: number;
-  scaleMarginBottom: number;
+  arrowColor: string;
 };
 
 const NORMAL_THEME: ExportTheme = {
+  // Canvas
+  canvasBg: '#ffffff',
+  // Info panel
   panelPadding: 20,
   panelInner: 16,
   panelGap: 16,
   panelRadius: 10,
+  panelBlurPx: 16,
+  panelFillColor: 'rgba(255, 255, 255, 0.7)',
+  panelBorderColor: 'rgba(255, 255, 255, 0.5)',
+  // Title
   titleLineH: 24,
   titleFontSize: 18,
+  titleColor: '#1a2a3a',
+  // Date
   subLineH: 18,
   subFontSize: 13,
+  dateColor: '#3b5068',
+  // URL
   urlFontSize: 12,
+  urlColor: '#6b8a9e',
+  // Product name
   productNameFontSize: 14,
+  productNameColor: '#1a2a3a',
+  // Legend / scales
+  legendMaxW: 200,
   scalesLabelFontSize: 10,
   scalesH: 14,
+  scalesColor: '#3b5068',
+  // Legend label
   labelH: 14,
-  legendMaxW: 200,
+  legendLabelColor: '#6b8a9e',
+  // Coordinate frame
   framePadL: 50,
   framePadR: 50,
   framePadT: 30,
@@ -80,33 +119,57 @@ const NORMAL_THEME: ExportTheme = {
   tickLen: 6,
   frameFontSize: 12,
   minTickLabelGapPx: 60,
+  frameColor: '#1a2a3a',
+  // Scale bar
   scaleBarFontSize: 14,
   scaleBarH: 8,
   scaleBarTargetPx: 150,
   scaleBarSegments: 2,
+  scaleMarginRight: 15,
+  scaleMarginBottom: 20,
+  scaleBarColor: '#1a2a3a',
+  // North arrow
   arrowHalfW: 14,
   arrowUpperH: 26,
   arrowLowerH: 12,
   barToArrowGap: 42,
-  scaleMarginRight: 15,
-  scaleMarginBottom: 20,
+  arrowColor: '#333333',
 };
 
 const COMPACT_THEME: ExportTheme = {
+  // Canvas
+  canvasBg: '#ffffff',
+  // Info panel
   panelPadding: 12,
   panelInner: 10,
   panelGap: 10,
   panelRadius: 8,
+  panelBlurPx: 16,
+  panelFillColor: 'rgba(255, 255, 255, 0.7)',
+  panelBorderColor: 'rgba(255, 255, 255, 0.5)',
+  // Title
   titleLineH: 18,
   titleFontSize: 13,
+  titleColor: '#1a2a3a',
+  // Date
   subLineH: 14,
   subFontSize: 10,
+  dateColor: '#3b5068',
+  // URL
   urlFontSize: 10,
+  urlColor: '#6b8a9e',
+  // Product name
   productNameFontSize: 11,
+  productNameColor: '#1a2a3a',
+  // Legend / scales
+  legendMaxW: 130,
   scalesLabelFontSize: 8,
   scalesH: 10,
+  scalesColor: '#3b5068',
+  // Legend label
   labelH: 10,
-  legendMaxW: 130,
+  legendLabelColor: '#6b8a9e',
+  // Coordinate frame
   framePadL: 36,
   framePadR: 36,
   framePadT: 22,
@@ -114,21 +177,24 @@ const COMPACT_THEME: ExportTheme = {
   tickLen: 4,
   frameFontSize: 10,
   minTickLabelGapPx: 45,
+  frameColor: '#1a2a3a',
+  // Scale bar
   scaleBarFontSize: 11,
   scaleBarH: 6,
   scaleBarTargetPx: 100,
   scaleBarSegments: 1,
+  scaleMarginRight: 10,
+  scaleMarginBottom: 12,
+  scaleBarColor: '#1a2a3a',
+  // North arrow
   arrowHalfW: 10,
   arrowUpperH: 18,
   arrowLowerH: 8,
   barToArrowGap: 28,
-  scaleMarginRight: 10,
-  scaleMarginBottom: 12,
+  arrowColor: '#333333',
 };
 
 // Fixed constants (not theme-dependent)
-const PANEL_BLUR_PX = 16;
-const PANEL_FILL_ALPHA = 0.7;
 const EARTH_RADIUS_KM = 6371;
 const MAX_TICKS_PER_AXIS = 5;
 const MAX_GRATICULE_TICKS = 1000;
@@ -214,17 +280,17 @@ const drawFrostedBackground = (
   ctx.beginPath();
   ctx.roundRect(x, y, w, h, t.panelRadius);
   ctx.clip();
-  ctx.filter = `blur(${PANEL_BLUR_PX}px)`;
+  ctx.filter = `blur(${t.panelBlurPx}px)`;
   ctx.drawImage(mapCanvas, mapOffsetX, mapOffsetY);
   ctx.filter = 'none';
-  ctx.fillStyle = `rgba(255, 255, 255, ${PANEL_FILL_ALPHA})`;
+  ctx.fillStyle = t.panelFillColor;
   ctx.fill();
   ctx.restore();
 
   ctx.save();
   ctx.beginPath();
   ctx.roundRect(x, y, w, h, t.panelRadius);
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+  ctx.strokeStyle = t.panelBorderColor;
   ctx.lineWidth = 1;
   ctx.stroke();
   ctx.restore();
@@ -239,15 +305,15 @@ const drawInfoColumn = (
   t: ExportTheme,
 ) => {
   ctx.font = `bold ${t.titleFontSize}px sans-serif`;
-  ctx.fillStyle = '#1a2a3a';
+  ctx.fillStyle = t.titleColor;
   ctx.fillText('IMOS Live', x, y + t.titleLineH - 4);
 
   ctx.font = `${t.subFontSize}px sans-serif`;
-  ctx.fillStyle = '#3b5068';
+  ctx.fillStyle = t.dateColor;
   ctx.fillText(date, x, y + t.titleLineH + t.subLineH - 4);
 
   ctx.font = `${t.urlFontSize}px sans-serif`;
-  ctx.fillStyle = '#6b8a9e';
+  ctx.fillStyle = t.urlColor;
   ctx.fillText('https://imoslive.edge.aodn.org.au', x, y + t.titleLineH + t.subLineH * 2 - 4);
 };
 
@@ -263,7 +329,7 @@ const drawProductColumn = (
   t: ExportTheme,
 ) => {
   ctx.font = `bold ${t.productNameFontSize}px sans-serif`;
-  ctx.fillStyle = '#1a2a3a';
+  ctx.fillStyle = t.productNameColor;
   ctx.fillText(product.name, x, y + t.subLineH - 4);
 
   if (!legend) return;
@@ -275,7 +341,7 @@ const drawProductColumn = (
   if (product.scales && product.scales.length > 0) {
     cursorY += 4;
     ctx.font = `${t.scalesLabelFontSize}px sans-serif`;
-    ctx.fillStyle = '#3b5068';
+    ctx.fillStyle = t.scalesColor;
     ctx.textAlign = 'center';
     const count = product.scales.length;
     product.scales.forEach((scale, i) => {
@@ -289,7 +355,7 @@ const drawProductColumn = (
   if (product.label) {
     cursorY += 4;
     ctx.font = `${t.scalesLabelFontSize}px sans-serif`;
-    ctx.fillStyle = '#6b8a9e';
+    ctx.fillStyle = t.legendLabelColor;
     ctx.textAlign = 'center';
     ctx.fillText(product.label, x + legendWidth / 2, cursorY + t.labelH - 2);
     ctx.textAlign = 'start';
@@ -303,11 +369,12 @@ const drawNorthArrow = (
   tipY: number,
   bottomY: number,
   halfWidth: number,
+  t: ExportTheme,
 ) => {
   const notchY = bottomY - halfWidth * 1.1;
 
   ctx.save();
-  ctx.strokeStyle = '#333333';
+  ctx.strokeStyle = t.arrowColor;
   ctx.lineWidth = 2.0;
   ctx.beginPath();
   ctx.moveTo(cx, tipY);
@@ -352,8 +419,8 @@ const drawScaleBar = (
   const barTop = barBottom - t.scaleBarH;
 
   ctx.save();
-  ctx.strokeStyle = '#1a2a3a';
-  ctx.fillStyle = '#1a2a3a';
+  ctx.strokeStyle = t.scaleBarColor;
+  ctx.fillStyle = t.scaleBarColor;
   ctx.lineWidth = 2.0;
 
   ctx.beginPath();
@@ -375,7 +442,7 @@ const drawScaleBar = (
     ctx.fillText(label, tx, barTop - 2);
   }
 
-  drawNorthArrow(ctx, arrowCX, arrowTipY, arrowBottomY, t.arrowHalfW);
+  drawNorthArrow(ctx, arrowCX, arrowTipY, arrowBottomY, t.arrowHalfW, t);
 
   ctx.restore();
 };
@@ -398,15 +465,15 @@ const drawCoordinateFrame = (
 
   // Border around the map
   ctx.save();
-  ctx.strokeStyle = '#333333';
+  ctx.strokeStyle = t.frameColor;
   ctx.lineWidth = 1.5;
   ctx.strokeRect(mapX, mapY, mapW, mapH);
   ctx.restore();
 
   ctx.save();
   ctx.font = `${t.frameFontSize}px sans-serif`;
-  ctx.fillStyle = '#1a2a3a';
-  ctx.strokeStyle = '#1a2a3a';
+  ctx.fillStyle = t.frameColor;
+  ctx.strokeStyle = t.frameColor;
   ctx.lineWidth = 1;
 
   // Longitude ticks — top and bottom edges
@@ -544,7 +611,7 @@ export const exportMapImage = async (
   const ctx = offscreen.getContext('2d')!;
 
   if (bounds) {
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = t.canvasBg;
     ctx.fillRect(0, 0, offscreen.width, offscreen.height);
   }
 
