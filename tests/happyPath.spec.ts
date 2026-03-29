@@ -78,12 +78,17 @@ const mapComponent = {
         const layer = map.getLayer(layerID);
         if (!layer) throw new Error('Layer not found');
 
+        // In Mapbox GL v3, custom layers are wrapped in CustomStyleLayer;
+        // the original CustomLayerInterface is at .implementation
+        const sourceId =
+          (layer as any).implementation?.sourceId ??
+          (layer as any).sourceId ??
+          (layer as any).source;
+
         let url: string | undefined;
-        if ('source' in layer && layer.source) {
-          url = (map.getSource(layer.source) as any).url as string | undefined;
-        }
-        if ('sourceId' in layer && layer.sourceId) {
-          url = (map.getSource(layer.sourceId as string) as any).url as string | undefined;
+        if (sourceId) {
+          const source = map.getSource(sourceId as string);
+          if (source) url = (source as any).url as string | undefined;
         }
         return url;
       },
@@ -98,12 +103,14 @@ const mapComponent = {
         const layer = map.getLayer(layerID);
         if (!layer) throw new Error('Layer not found');
 
+        const sourceId =
+          (layer as any).implementation?.sourceId ??
+          (layer as any).sourceId ??
+          (layer as any).source;
+
         let url: string | undefined;
-        if ('source' in layer && layer.source) {
-          url = (map.getSource(layer.source) as any).tiles[0] as string | undefined;
-        }
-        if ('sourceId' in layer && layer.sourceId) {
-          url = (map.getSource(layer.sourceId as string) as any).tiles[0] as string | undefined;
+        if (sourceId) {
+          url = (map.getSource(sourceId as string) as any).tiles?.[0] as string | undefined;
         }
         return url;
       },

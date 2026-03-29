@@ -3,7 +3,6 @@ import react from '@vitejs/plugin-react-swc';
 import path from 'path';
 import type { Plugin, UserConfig } from 'vite';
 import { defineConfig, loadEnv } from 'vite';
-import { createHtmlPlugin } from 'vite-plugin-html';
 import svgr from 'vite-plugin-svgr';
 import { meta, genRandomData as gslaData, inputBitmap, overlayBitmap } from './test-data/gsla';
 import { locations, genBuoyRandomData } from './test-data/buoy';
@@ -18,15 +17,6 @@ export default defineConfig(({ mode }) => {
     react(),
     tailwindcss(),
     svgr(),
-    createHtmlPlugin({
-      inject: {
-        data: {
-          url: env.VITE_APP_URL,
-          ogImage: env.VITE_APP_OG_IMAGE,
-          twitterHandle: env.VITE_TWITTER_HANDLE,
-        },
-      },
-    }),
     mockServerPlugin(),
     googleAnalyticsPlugin(mode),
   ];
@@ -44,10 +34,14 @@ export default defineConfig(({ mode }) => {
               },
             }
           : {}),
-        '/data': {
-          target: 'https://imoslive.edge.aodn.org.au',
-          changeOrigin: true,
-        },
+        ...(!process.env['MOCKDATA']
+          ? {
+              '/data': {
+                target: 'https://imoslive.edge.aodn.org.au',
+                changeOrigin: true,
+              },
+            }
+          : {}),
         '/thredds': {
           target: 'https://imoslive.edge.aodn.org.au',
           changeOrigin: true,
@@ -115,8 +109,7 @@ const mockServerPlugin = (): Plugin => {
         server.middlewares.use(async (req, res, next) => {
           const url = req.originalUrl || req.url;
 
-          if (!url || (!url.startsWith('/data-from-mock-server') && !url.startsWith('/api')))
-            return next();
+          if (!url || (!url.startsWith('/data') && !url.startsWith('/api'))) return next();
 
           if (url.endsWith('png')) res.writeHead(200, { 'Content-Type': 'image/png' });
           else res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -143,12 +136,6 @@ const mockServerPlugin = (): Plugin => {
         });
       };
     },
-    config: () => ({
-      define: {
-        'import.meta.env.VITE_S3_BASE_URL': '"/data-from-mock-server"',
-      },
-    }),
-
     apply: 'serve',
   };
 };
