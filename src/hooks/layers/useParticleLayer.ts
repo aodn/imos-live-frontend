@@ -8,7 +8,7 @@ import { buildGSLADatasetFullPath, buildGSLADatasetPath, processMetaData } from 
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
-import { useDidMountEffect } from './useDidMountEffect';
+import { useDidMountEffect } from '../useDidMountEffect';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useParticleLayerVisibility } from './useParticleLayerVisibility';
 

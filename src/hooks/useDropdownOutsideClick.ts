@@ -1,13 +1,13 @@
 import { useEffect } from 'react';
 
-export const useDropdownOutsideClick = (
+export function useDropdownOutsideClick(
   isOpen: boolean,
   triggerRef: React.RefObject<HTMLButtonElement | null>,
   portalDropdownRef: React.RefObject<HTMLDivElement | null>,
   dropdownRef: React.RefObject<HTMLDivElement | null>,
   usePortal: boolean,
   onClose: () => void,
-) => {
+) {
   useEffect(() => {
     if (!isOpen) return;
 
@@ -33,4 +33,4 @@ export const useDropdownOutsideClick = (
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen, usePortal, triggerRef, portalDropdownRef, dropdownRef, onClose]);
-};
+}

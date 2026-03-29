@@ -7,7 +7,7 @@ import { useCallback, useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
-import { useDidMountEffect } from './useDidMountEffect';
+import { useDidMountEffect } from '../useDidMountEffect';
 
 type UseOverlayLayer = {
   map: React.RefObject<mapboxgl.Map | null>;

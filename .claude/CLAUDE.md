@@ -13,6 +13,12 @@ Before creating a new hook, utility function, or UI component, check `src/hooks/
 - Prefer `type` over `interface`
 - Prefer named exports (`export const`) over `export default`
 
+### Function Style
+
+- **Components** — arrow functions: `export const Foo = () => { ... }`
+- **Hooks** — regular functions: `export function useFoo() { ... }`
+- **Utils** — regular functions: `export function foo() { ... }`
+
 ### Components
 
 When creating a UI component, also create a Storybook story alongside it (`MyComponent.tsx` → `MyComponent.stories.tsx`). Each story should include:
