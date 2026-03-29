@@ -1,6 +1,6 @@
 import { GSLA_DATA_NAME } from '@/constants';
 import { buildGSLADatasetPath } from '@/utils';
-import { s3Api } from './instance';
+import axios from 'axios';
 
 type DataPoint = [number, number, number];
 
@@ -13,7 +13,7 @@ export type OceanCurrentDataResponse = {
 };
 
 export const getOceanCurrentData = async (date: string): Promise<OceanCurrentDataResponse> => {
-  const response = await s3Api.get<OceanCurrentDataResponse>(
+  const response = await axios.get<OceanCurrentDataResponse>(
     buildGSLADatasetPath(date, GSLA_DATA_NAME),
   );
   return response.data;

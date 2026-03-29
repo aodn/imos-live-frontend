@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react-swc';
 import path from 'path';
 import type { Plugin, UserConfig } from 'vite';
 import { defineConfig, loadEnv } from 'vite';
+import { createHtmlPlugin } from 'vite-plugin-html';
 import svgr from 'vite-plugin-svgr';
 import { meta, genRandomData as gslaData, inputBitmap, overlayBitmap } from './test-data/gsla';
 import { locations, genBuoyRandomData } from './test-data/buoy';
@@ -10,38 +11,42 @@ import { visualizer } from 'rollup-plugin-visualizer';
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
-  const { VITE_S3_BASE_URL, VITE_STATS_ENABLED } = loadEnv(mode, process.cwd(), '');
+  const env = loadEnv(mode, process.cwd(), '');
+  const { VITE_STATS_ENABLED } = env;
 
   const plugins: UserConfig['plugins'] = [
     react(),
     tailwindcss(),
     svgr(),
+    createHtmlPlugin({
+      inject: {
+        data: {
+          url: env.VITE_APP_URL,
+          ogImage: env.VITE_APP_OG_IMAGE,
+          twitterHandle: env.VITE_TWITTER_HANDLE,
+        },
+      },
+    }),
     mockServerPlugin(),
     googleAnalyticsPlugin(mode),
   ];
 
-  let define: UserConfig['define'] = {};
   let server: UserConfig['server'] = {};
 
   if (mode === 'development') {
-    define = { 'import.meta.env.VITE_S3_BASE_URL': '"/s3-edge-proxy"' };
     server = {
       proxy: {
         ...(!process.env['MOCKDATA']
           ? {
               '/api': {
                 target: 'https://portal.edge.aodn.org.au',
-                // target: 'http://localhost:8080',
                 changeOrigin: true,
               },
             }
           : {}),
-        '/s3-edge-proxy': {
-          target: VITE_S3_BASE_URL,
+        '/data': {
+          target: 'https://imoslive.edge.aodn.org.au',
           changeOrigin: true,
-          rewrite: path => {
-            return path.replace(/^\/s3-edge-proxy/, '');
-          },
         },
         '/thredds': {
           target: 'https://imoslive.edge.aodn.org.au',
@@ -94,7 +99,7 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
-    define,
+    // define,
     test: {
       include: ['src/**/*.spec.ts', 'src/**/*.spec.tsx'],
     },
