@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { cn } from '@/utils';
 import { CheckIcon, CloseIcon } from '../Icons';
 
-interface SwitchProps {
+type SwitchProps = {
   initialValue?: boolean;
   onChange?: (value: boolean) => void;
   disabled?: boolean;
@@ -25,7 +25,7 @@ interface SwitchProps {
   labelClassName?: string;
   descriptionClassName?: string;
   dataTestId?: string;
-}
+};
 
 export function Switch({
   initialValue = false,

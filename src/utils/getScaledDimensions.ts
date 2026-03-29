@@ -5,17 +5,17 @@
  */
 type DimensionType = 'width' | 'height';
 
-interface GetScaledDimensionsParams {
+type GetScaledDimensionsParams = {
   by: DimensionType;
   value: number;
   intrinsicWidth: number;
   intrinsicHeight: number;
-}
+};
 
-interface Dimensions {
+type Dimensions = {
   width: number;
   height: number;
-}
+};
 
 export function getScaledDimensions({
   by,

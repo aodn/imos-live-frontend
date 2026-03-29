@@ -1,6 +1,6 @@
 import type { RefObject } from 'react';
 
-export interface DataPoint {
+export type DataPoint = {
   x?: number | string | Date;
   y: number;
   name?: string;
@@ -8,9 +8,9 @@ export interface DataPoint {
   marker?: Highcharts.PointMarkerOptionsObject;
   dataLabels?: Highcharts.DataLabelsOptions;
   [key: string]: any;
-}
+};
 
-export interface SeriesData {
+export type SeriesData = {
   name: string;
   data: (number | string)[][] | DataPoint[];
   color?: string;
@@ -24,42 +24,42 @@ export interface SeriesData {
   zIndex?: number;
   tooltip?: Highcharts.TooltipOptions;
   [key: string]: any;
-}
+};
 
-export interface ThemeConfig {
+export type ThemeConfig = {
   backgroundColor?: string;
   textColor?: string;
   gridColor?: string;
   lineColor?: string;
   colors?: string[];
-}
+};
 
-export interface AnimationConfig {
+export type AnimationConfig = {
   enabled?: boolean;
   duration?: number;
   easing?: string;
-}
+};
 
-export interface TooltipConfig extends Highcharts.TooltipOptions {
+export type TooltipConfig = Highcharts.TooltipOptions & {
   customFormatter?: (point: Highcharts.Point) => string;
-}
+};
 
-interface ExportConfig {
+type ExportConfig = {
   enabled?: boolean;
   filename?: string;
   formats?: ('png' | 'jpeg' | 'pdf' | 'svg')[];
   buttons?: Highcharts.ExportingButtonsOptions;
-}
+};
 
 // NEW: Range Selector Type Interfaces
-interface RangeSelectorButton {
+type RangeSelectorButton = {
   type: 'millisecond' | 'second' | 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year' | 'all';
   count?: number;
   text: string;
   title?: string;
-}
+};
 
-export interface RangeSelectorConfig {
+export type RangeSelectorConfig = {
   enabled?: boolean;
   selected?: number; // Which button is selected by default (0-based index)
   buttons?: RangeSelectorButton[];
@@ -97,9 +97,9 @@ export interface RangeSelectorConfig {
   y?: number; // Positioning from top
   height?: number; // Height of range selector
   floating?: boolean; // Whether it floats over chart
-}
+};
 
-export interface NavigatorConfig {
+export type NavigatorConfig = {
   enabled?: boolean;
   height?: number; // Height of the navigator chart
   margin?: number; // Margin below the main chart
@@ -117,18 +117,18 @@ export interface NavigatorConfig {
     fillOpacity?: number;
     lineWidth?: number;
   };
-}
+};
 
-export interface ScrollbarConfig {
+export type ScrollbarConfig = {
   enabled?: boolean;
   height?: number;
   margin?: number;
   liveRedraw?: boolean; // Whether to redraw chart while dragging
   minWidth?: number; // Minimum width of the scrollbar handle
-}
+};
 
 // UPDATED: LineChartExposedMethods (add range selector methods)
-interface LineChartExposedMethods {
+type LineChartExposedMethods = {
   // State-based updates (Highcharts recommended approach)
   updateData: (seriesIndex: number, newData: number[] | DataPoint[]) => void;
   updateTitle: (newTitle: string) => void;
@@ -156,10 +156,10 @@ interface LineChartExposedMethods {
   getChartOptions: () => Highcharts.Options;
   redraw: () => void;
   destroy: () => void;
-}
+};
 
 // UPDATED: LineChartProps (add range selector props)
-export interface LineChartProps {
+export type LineChartProps = {
   // Basic configuration
   title?: string;
   subtitle?: string;
@@ -218,4 +218,4 @@ export interface LineChartProps {
 
   // Ref for exposed methods
   ref?: RefObject<LineChartExposedMethods>;
-}
+};

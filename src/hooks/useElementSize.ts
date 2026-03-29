@@ -3,11 +3,11 @@ import { useCallback, useRef, useState, useEffect } from 'react';
 
 type Size = { width: number; height: number };
 
-interface Options {
+type Options = {
   debounceMs?: number;
   widthBreakpoints?: Record<string, number>;
   heightBreakpoints?: Record<string, number>;
-}
+};
 
 function getBreakpoint(value: number, breakpoints: Record<string, number>): string {
   const sorted = Object.entries(breakpoints).sort(([, a], [, b]) => a - b);

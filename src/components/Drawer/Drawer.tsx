@@ -7,7 +7,7 @@ import { clamp, cn } from '@/utils';
 type Direction = 'left' | 'right' | 'top' | 'bottom';
 type SnapPoint = number | `${number}%`;
 
-export interface DrawerProps {
+export type DrawerProps = {
   direction: Direction;
   snapPoints: SnapPoint[];
   children: React.ReactNode;
@@ -19,7 +19,7 @@ export interface DrawerProps {
   closeDrawer: () => void;
   handleHidden?: boolean;
   closeIconHidden?: boolean;
-}
+};
 
 function getClosestSnapPoint(value: number, snapPoints: number[]) {
   return snapPoints.reduce((prev, curr) =>

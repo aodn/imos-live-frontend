@@ -1,7 +1,7 @@
 import type mapboxgl from 'mapbox-gl';
 import type { CustomizableParticleConfig } from '@/config';
 
-export interface VectorFieldAPI {
+export type VectorFieldAPI = {
   /**
    * Set the input data (vector image + bounds + range).
    */
@@ -36,7 +36,7 @@ export interface VectorFieldAPI {
    * Handle resize logic (reallocates textures).
    */
   resize(): void;
-}
+};
 
 /**
  * Creates a GPU-accelerated particle system for visualizing vector fields.

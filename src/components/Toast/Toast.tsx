@@ -3,7 +3,7 @@ import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from 'lucide-react';
 import clsx from 'clsx';
 import { useToast } from './useToast';
 
-export interface ToastData {
+export type ToastData = {
   id: string;
   title?: string;
   message: string;
@@ -30,7 +30,7 @@ export interface ToastData {
   onClick?: () => void;
   renderIcon?: () => React.ReactNode;
   renderCloseButton?: () => React.ReactNode;
-}
+};
 
 function Toast({ toast }: { toast: ToastData }) {
   const { hideToast } = useToast();

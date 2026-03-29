@@ -1,12 +1,12 @@
-export interface DropdownOption {
+export type DropdownOption = {
   value: string | number;
   label: string | number;
   disabled?: boolean;
   icon?: React.ReactNode;
   description?: string;
-}
+};
 
-export interface DropdownProps {
+export type DropdownProps = {
   options: DropdownOption[];
   initialValue?: string | number | (string | number)[];
   onChange?: (value: string | number | (string | number)[]) => void;
@@ -33,15 +33,15 @@ export interface DropdownProps {
   label?: string;
   required?: boolean;
   usePortal?: boolean;
-}
-export interface OptionItemProps {
+};
+export type OptionItemProps = {
   option: DropdownOption;
   isSelected: boolean;
   onSelect: (option: DropdownOption) => void;
   renderOption?: (option: DropdownOption, isSelected: boolean) => React.ReactNode;
   className?: string;
-}
-export interface OptionsListProps {
+};
+export type OptionsListProps = {
   options: DropdownOption[];
   value: string | number | (string | number)[];
   multiple: boolean;
@@ -51,8 +51,8 @@ export interface OptionsListProps {
   emptyMessage: string;
   maxHeight: string;
   hasSearch: boolean;
-}
-export interface DropdownContentProps {
+};
+export type DropdownContentProps = {
   searchable: boolean;
   searchQuery: string;
   onSearchChange: (query: string) => void;
@@ -69,9 +69,9 @@ export interface DropdownContentProps {
   dropdownPosition: 'top' | 'bottom';
   dropdownRect: { top: number; left: number; width: number };
   portalDropdownRef: React.RefObject<HTMLDivElement | null>;
-}
-export interface SearchInputProps {
+};
+export type SearchInputProps = {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
-}
+};

@@ -51,9 +51,9 @@ export function OptionItem({
       {renderOption ? (
         renderOption(option, isSelected)
       ) : (
-        <div className="flex items-center gap-2 flex-grow">
-          {option.icon && <span className="flex-shrink-0">{option.icon}</span>}
-          <div className="flex-grow text-left">
+        <div className="flex items-center gap-2 grow">
+          {option.icon && <span className="shrink-0">{option.icon}</span>}
+          <div className="grow text-left">
             <div className="text-sm font-medium">{option.label}</div>
             {option.description && (
               <div className="text-xs text-gray-500">{option.description}</div>
@@ -61,7 +61,7 @@ export function OptionItem({
           </div>
         </div>
       )}
-      {isSelected && <CheckIcon className="text-blue-600 flex-shrink-0 ml-2" />}
+      {isSelected && <CheckIcon className="text-blue-600 shrink-0 ml-2" />}
     </button>
   );
 }
