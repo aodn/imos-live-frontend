@@ -16,13 +16,13 @@ export type ClickedMapPopupContentProps = {
   mapBounds: [number, number, number, number];
 };
 
-export const ClickedMapPopupContent = ({
+export function ClickedMapPopupContent({
   onClose,
   lngLat,
   mapBounds,
   mapSize,
   point,
-}: ClickedMapPopupContentProps) => {
+}: ClickedMapPopupContentProps) {
   const { gslaAnomalySeaLevelsEnabled, sstAnomMosaicEnabled, oceanCurrentEnabled, date } =
     useMapUIStore(
       useShallow(s => ({
@@ -119,4 +119,4 @@ export const ClickedMapPopupContent = ({
       </div>
     </div>
   );
-};
+}

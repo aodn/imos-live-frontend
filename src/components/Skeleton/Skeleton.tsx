@@ -8,7 +8,7 @@ type SkeletonProps = {
   style?: React.CSSProperties;
 };
 
-export const Skeleton = ({ className, width, height, fill = false, style }: SkeletonProps) => {
+export function Skeleton({ className, width, height, fill = false, style }: SkeletonProps) {
   return (
     <div
       className={cn('bg-gray-300 animate-pulse rounded', className)}
@@ -20,4 +20,4 @@ export const Skeleton = ({ className, width, height, fill = false, style }: Skel
       }}
     />
   );
-};
+}

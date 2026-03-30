@@ -22,12 +22,12 @@ import { deserialize, serialize } from './serialization';
 type ProductError = Record<ProductType, boolean>;
 export type ProductEnabled = Record<ProductType, boolean>;
 
-export interface JumpToDate {
+export type JumpToDate = {
   date: string;
   trigger: number;
-}
+};
 
-export interface MapUIState {
+export type MapUIState = {
   center: LngLat;
   zoom: number;
   style: StyleTitle;
@@ -51,7 +51,7 @@ export interface MapUIState {
   setProductEnabledByProduct: (product: ProductType, enabled: boolean) => void;
   setJumpToDate: (date: string) => void;
   clearJumpToDate: () => void;
-}
+};
 
 const hashStorage: StateStorage = {
   getItem: () => {

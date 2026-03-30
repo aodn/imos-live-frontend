@@ -12,7 +12,7 @@ type ColorScaleBarProps = {
   colors: string[];
 };
 
-export const LinearColorScaleBar = ({
+export function LinearColorScaleBar({
   height = 12,
   tickCount = 5,
   className,
@@ -20,7 +20,7 @@ export const LinearColorScaleBar = ({
   max,
   label,
   colors,
-}: ColorScaleBarProps) => {
+}: ColorScaleBarProps) {
   const gradient = useMemo(() => {
     return `linear-gradient(to right, ${colors.join(', ')})`;
   }, [colors]);
@@ -83,4 +83,4 @@ export const LinearColorScaleBar = ({
       )}
     </div>
   );
-};
+}

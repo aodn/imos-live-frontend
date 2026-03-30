@@ -3,7 +3,7 @@ import { cn } from '@/utils';
 import { Skeleton } from '../Skeleton';
 import { ImageErrorIcon } from '../Icons';
 
-interface ImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
+type ImageProps = React.ImgHTMLAttributes<HTMLImageElement> & {
   src: string;
   alt: string;
   fill?: boolean;
@@ -20,11 +20,11 @@ interface ImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   onError?: () => void;
   loading?: 'lazy' | 'eager';
   showErrorIcon?: boolean;
-}
+};
 
 const isDataURI = (str: string) => str.startsWith('data:');
 
-export const Image = ({
+export function Image({
   src,
   alt,
   fill = false,
@@ -44,7 +44,7 @@ export const Image = ({
   loading = 'lazy',
   showErrorIcon = true,
   ...imgProps
-}: ImageProps) => {
+}: ImageProps) {
   const [isLoading, setIsLoading] = useState(!isDataURI(src));
   const [hasError, setHasError] = useState(false);
   const [currentSrc, setCurrentSrc] = useState(src);
@@ -153,4 +153,4 @@ export const Image = ({
       )}
     </div>
   );
-};
+}

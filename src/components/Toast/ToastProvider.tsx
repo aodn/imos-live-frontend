@@ -4,7 +4,7 @@ import { ToastContainer } from './Toast';
 import type { ToastContextType } from './useToast';
 import { ToastContext } from './useToast';
 
-export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<ToastData[]>([]);
 
   const showToast = useCallback((toastData: Omit<ToastData, 'id'>) => {
@@ -44,4 +44,4 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       <ToastContainer toasts={toasts} />
     </ToastContext.Provider>
   );
-};
+}

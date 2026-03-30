@@ -4,7 +4,7 @@ import { TIMING } from '../constants';
 import type { SelectionResult, ViewMode } from '../type';
 import { createSelectionResult } from '../utils';
 
-interface UseOnChangeNotifierParams {
+type UseOnChangeNotifierParams = {
   onChange: (selection: SelectionResult) => void;
   rangeStartPosition: number;
   rangeEndPosition: number;
@@ -12,7 +12,7 @@ interface UseOnChangeNotifierParams {
   startDate: Date;
   endDate: Date;
   viewMode: ViewMode;
-}
+};
 
 /**
  * Hook to handle debounced onChange notifications.

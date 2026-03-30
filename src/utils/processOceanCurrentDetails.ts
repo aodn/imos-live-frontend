@@ -13,10 +13,10 @@ type OceanCurrentDetails = {
   gslaUnit: string;
 };
 
-export const processOceanCurrentDetails = (
+export function processOceanCurrentDetails(
   { lat, lng }: Coordinates,
   gslaData: OceanCurrentDataResponse,
-): OceanCurrentDetails | null => {
+): OceanCurrentDetails | null {
   const [minLon, maxLng] = gslaData.lonRange;
   const [minLat, maxLat] = gslaData.latRange;
 
@@ -37,7 +37,7 @@ export const processOceanCurrentDetails = (
     direction: compassDirectionFrom(degree),
     gslaUnit: 'm/s',
   };
-};
+}
 
 const compassDirections = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'] as const;
 type CompassDirection = (typeof compassDirections)[number];

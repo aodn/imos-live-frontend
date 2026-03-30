@@ -10,7 +10,7 @@ type SearchProps = {
   fn?: (searchValue: string) => void;
 };
 
-export const Search = ({ label, fn, className }: SearchProps = {}) => {
+export function Search({ label, fn, className }: SearchProps = {}) {
   const [searchQuery, setSearchQuery] = useState('');
   const onChange = (value: string) => {
     setSearchQuery(value);
@@ -49,4 +49,4 @@ export const Search = ({ label, fn, className }: SearchProps = {}) => {
       />
     </div>
   );
-};
+}

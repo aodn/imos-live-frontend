@@ -4,12 +4,12 @@ import { cn } from '@/utils';
 type IconSize = 'xs' | 'sm' | 'base' | 'lg' | 'xl' | 'xxl';
 type Color = 'imos-white' | 'imos-black' | 'imos-red' | 'imos-grey';
 
-export interface IconProps extends React.SVGProps<SVGSVGElement> {
+export type IconProps = React.SVGProps<SVGSVGElement> & {
   size?: IconSize;
   color?: Color;
   className?: string;
   [key: string]: any;
-}
+};
 
 const SIZE_MAP: Record<IconSize, string> = {
   xs: 'w-3 h-3',

@@ -1,13 +1,13 @@
 import type { ToastData } from '@/components/Toast/Toast';
 import { useContext, createContext } from 'react';
 
-export interface ToastContextType {
+export type ToastContextType = {
   toasts: ToastData[];
   showToast: (toast: Omit<ToastData, 'id'>) => string;
   hideToast: (id: string) => void;
   hideAllToasts: () => void;
   updateToast: (id: string, updates: Partial<ToastData>) => void;
-}
+};
 
 export const ToastContext = createContext<ToastContextType | undefined>(undefined);
 

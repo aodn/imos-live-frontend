@@ -10,7 +10,8 @@ import { visualizer } from 'rollup-plugin-visualizer';
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
-  const { VITE_S3_BASE_URL, VITE_STATS_ENABLED } = loadEnv(mode, process.cwd(), '');
+  const env = loadEnv(mode, process.cwd(), '');
+  const { VITE_STATS_ENABLED } = env;
 
   const plugins: UserConfig['plugins'] = [
     react(),
@@ -20,29 +21,27 @@ export default defineConfig(({ mode }) => {
     googleAnalyticsPlugin(mode),
   ];
 
-  let define: UserConfig['define'] = {};
   let server: UserConfig['server'] = {};
 
   if (mode === 'development') {
-    define = { 'import.meta.env.VITE_S3_BASE_URL': '"/s3-edge-proxy"' };
     server = {
       proxy: {
         ...(!process.env['MOCKDATA']
           ? {
               '/api': {
                 target: 'https://portal.edge.aodn.org.au',
-                // target: 'http://localhost:8080',
                 changeOrigin: true,
               },
             }
           : {}),
-        '/s3-edge-proxy': {
-          target: VITE_S3_BASE_URL,
-          changeOrigin: true,
-          rewrite: path => {
-            return path.replace(/^\/s3-edge-proxy/, '');
-          },
-        },
+        ...(!process.env['MOCKDATA']
+          ? {
+              '/data': {
+                target: 'https://imoslive.edge.aodn.org.au',
+                changeOrigin: true,
+              },
+            }
+          : {}),
         '/thredds': {
           target: 'https://imoslive.edge.aodn.org.au',
           changeOrigin: true,
@@ -94,7 +93,7 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
-    define,
+    // define,
     test: {
       include: ['src/**/*.spec.ts', 'src/**/*.spec.tsx'],
     },
@@ -110,8 +109,7 @@ const mockServerPlugin = (): Plugin => {
         server.middlewares.use(async (req, res, next) => {
           const url = req.originalUrl || req.url;
 
-          if (!url || (!url.startsWith('/data-from-mock-server') && !url.startsWith('/api')))
-            return next();
+          if (!url || (!url.startsWith('/data') && !url.startsWith('/api'))) return next();
 
           if (url.endsWith('png')) res.writeHead(200, { 'Content-Type': 'image/png' });
           else res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -138,12 +136,6 @@ const mockServerPlugin = (): Plugin => {
         });
       };
     },
-    config: () => ({
-      define: {
-        'import.meta.env.VITE_S3_BASE_URL': '"/data-from-mock-server"',
-      },
-    }),
-
     apply: 'serve',
   };
 };

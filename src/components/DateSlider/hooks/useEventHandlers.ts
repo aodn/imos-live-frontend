@@ -8,7 +8,7 @@ import {
   getAllScalesPercentage,
 } from '../utils';
 
-interface UseEventHandlersParams {
+type UseEventHandlersParams = {
   // Date range and time settings
   dates: {
     startDate: Date;
@@ -58,7 +58,7 @@ interface UseEventHandlersParams {
     totalScaleUnits: number;
     freeSelectionOnTrackClick: boolean;
   };
-}
+};
 
 /**
  * Custom hook to manage all user interaction event handlers for the slider.

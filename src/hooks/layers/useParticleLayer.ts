@@ -4,11 +4,11 @@ import { GSLA_META_NAME, GSLA_PARTICLE_NAME, PRODUCT } from '@/constants';
 import { addLayerInOrder, addOrUpdateImageSource } from '@/helpers';
 import { vectorLayer } from '@/layers';
 import { useMapUIStore, setProductErrorByProduct } from '@/store';
-import { buildGSLADatasetFullPath, buildGSLADatasetPath, processMetaData } from '@/utils';
+import { buildGSLADatasetPath, processMetaData } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
-import { useDidMountEffect } from './useDidMountEffect';
+import { useDidMountEffect } from '../useDidMountEffect';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useParticleLayerVisibility } from './useParticleLayerVisibility';
 
@@ -65,7 +65,7 @@ export function useParticleLayer({ map, layerId, sourceId, product }: UseOPartic
     addOrUpdateImageSource(
       map.current!,
       sourceId,
-      buildGSLADatasetFullPath(date, GSLA_PARTICLE_NAME),
+      buildGSLADatasetPath(date, GSLA_PARTICLE_NAME),
       lonRange,
       latRange,
     );

@@ -8,7 +8,7 @@ type MetaData =
     }
   | undefined;
 
-export interface VectoryLayerInterface extends mapboxgl.CustomLayerInterface {
+export type VectoryLayerInterface = mapboxgl.CustomLayerInterface & {
   sourceId: string;
   visible: boolean;
   metadata: MetaData;
@@ -18,7 +18,7 @@ export interface VectoryLayerInterface extends mapboxgl.CustomLayerInterface {
   onMoveStart: () => void;
   onMoveEnd: () => void;
   onResize: () => void;
-}
+};
 
 export const vectorLayer = (id: string, sourceId: string): VectoryLayerInterface => ({
   id,

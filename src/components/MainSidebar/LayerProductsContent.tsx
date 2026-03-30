@@ -7,7 +7,7 @@ export type LayerProductsContentProps = {
   className?: string;
 };
 
-export const LayerProductsContent = ({ products, className }: LayerProductsContentProps) => {
+export function LayerProductsContent({ products, className }: LayerProductsContentProps) {
   return (
     <div className={cn('w-full flex flex-col gap-y-4', className)}>
       {products.map(({ label, Icon, fn }, index) => (
@@ -24,4 +24,4 @@ export const LayerProductsContent = ({ products, className }: LayerProductsConte
       ))}
     </div>
   );
-};
+}

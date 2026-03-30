@@ -13,7 +13,7 @@ type LayersIndicatorProps = {
   className?: string;
 };
 
-export const LayersIndicator = ({ layers, className }: LayersIndicatorProps) => {
+export function LayersIndicator({ layers, className }: LayersIndicatorProps) {
   const { productEnabled } = useMapUIStore(
     useShallow(s => ({
       productEnabled: s.productEnabled,
@@ -47,4 +47,4 @@ export const LayersIndicator = ({ layers, className }: LayersIndicatorProps) => 
       })}
     </div>
   );
-};
+}

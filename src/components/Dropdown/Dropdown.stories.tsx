@@ -313,7 +313,7 @@ export const MultipleWithSearch: Story = {
 };
 
 // Portal Example (for overflow containers)
-const PortalStory = () => {
+function PortalStory() {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
@@ -375,7 +375,7 @@ const PortalStory = () => {
       </div>
     </div>
   );
-};
+}
 
 export const InOverflowContainer: Story = {
   render: PortalStory,

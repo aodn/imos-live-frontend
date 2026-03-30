@@ -24,7 +24,7 @@ type UseClickedMapPopupContentData = {
   mapBounds: [number, number, number, number];
 };
 
-export const useClickedMapPopupContentData = ({
+export function useClickedMapPopupContentData({
   mapBounds,
   mapSize,
   oceanCurrentEnabled,
@@ -33,7 +33,7 @@ export const useClickedMapPopupContentData = ({
   date,
   lngLat,
   point,
-}: UseClickedMapPopupContentData) => {
+}: UseClickedMapPopupContentData) {
   const { data: gslaOceanCurrent, isLoading: isGslaOceanCurrentLoading } = useQuery({
     queryKey: [GSLA_DATA_NAME, date],
     queryFn: () => getOceanCurrentData(date),
@@ -73,4 +73,4 @@ export const useClickedMapPopupContentData = ({
     isLoading:
       isGslaAnomalySeaLevelsLoading || isGslaOceanCurrentLoading || isSstAnomalyMosaticLoading,
   };
-};
+}

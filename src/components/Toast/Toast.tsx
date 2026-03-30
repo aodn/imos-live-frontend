@@ -3,7 +3,7 @@ import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from 'lucide-react';
 import clsx from 'clsx';
 import { useToast } from './useToast';
 
-export interface ToastData {
+export type ToastData = {
   id: string;
   title?: string;
   message: string;
@@ -30,9 +30,9 @@ export interface ToastData {
   onClick?: () => void;
   renderIcon?: () => React.ReactNode;
   renderCloseButton?: () => React.ReactNode;
-}
+};
 
-const Toast: React.FC<{ toast: ToastData }> = ({ toast }) => {
+function Toast({ toast }: { toast: ToastData }) {
   const { hideToast } = useToast();
   const [isPaused, setIsPaused] = useState(false);
 
@@ -256,10 +256,10 @@ const Toast: React.FC<{ toast: ToastData }> = ({ toast }) => {
       )}
     </div>
   );
-};
+}
 
 // --- ToastContainer remains the same ---
-export const ToastContainer: React.FC<{ toasts: ToastData[] }> = ({ toasts }) => {
+export function ToastContainer({ toasts }: { toasts: ToastData[] }) {
   const groupedToasts = toasts.reduce(
     (acc, toast) => {
       const position = toast.position || 'top-right';
@@ -310,4 +310,4 @@ export const ToastContainer: React.FC<{ toasts: ToastData[] }> = ({ toasts }) =>
       ))}
     </>
   );
-};
+}

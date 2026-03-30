@@ -1,13 +1,13 @@
 import { debounce, isScrollableElement } from '@/utils';
 import { useState, useCallback, useEffect } from 'react';
 
-export const useDropdownPosition = (
+export function useDropdownPosition(
   isOpen: boolean,
   triggerRef: React.RefObject<HTMLButtonElement | null>,
   position: 'bottom' | 'top' | 'auto',
   maxHeight: string,
   usePortal: boolean,
-) => {
+) {
   const [dropdownPosition, setDropdownPosition] = useState<'bottom' | 'top'>('bottom');
   const [dropdownRect, setDropdownRect] = useState({ top: 0, left: 0, width: 0 });
 
@@ -76,4 +76,4 @@ export const useDropdownPosition = (
   }, [isOpen, calculatePosition, debouncedCalculatePosition, triggerRef]);
 
   return { dropdownPosition, dropdownRect, calculatePosition };
-};
+}

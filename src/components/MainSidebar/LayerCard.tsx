@@ -17,7 +17,7 @@ export type LayerCardProps = LayersDataset & {
   portalLink?: string;
 };
 
-export const LayerCard = ({
+export function LayerCard({
   image,
   title,
   description,
@@ -30,7 +30,7 @@ export const LayerCard = ({
   legend,
   dateCheckUrl,
   portalLink,
-}: LayerCardProps) => {
+}: LayerCardProps) {
   const isRasterProduct = product === 'gsla-anomaly-sea-levels' || product === 'sst-anom-mosaic';
   const isWaveBuoyProduct = product === 'wave-buoys';
 
@@ -155,16 +155,16 @@ export const LayerCard = ({
       </div>
     </CollapsibleComponent>
   );
-};
+}
 
-const CardTrigger = ({
+function CardTrigger({
   open,
   toggle,
   direction = 'down',
   toggleIconHidden = false,
   title,
   icon,
-}: TriggerArgs & { title: string; icon: ReactNode }) => {
+}: TriggerArgs & { title: string; icon: ReactNode }) {
   const shouldRotate = direction === 'down' ? open : !open;
   return (
     <div className="flex items-center justify-between">
@@ -192,4 +192,4 @@ const CardTrigger = ({
       )}
     </div>
   );
-};
+}

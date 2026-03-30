@@ -19,7 +19,7 @@ Highcharts.setOptions({
   },
 });
 
-export const LineChart = memo(({ ref, ...props }: LineChartProps) => {
+export const LineChart = memo(function LineChart({ ref, ...props }: LineChartProps) {
   const { width = '100%', height = 400, className, style } = props;
 
   const chartRef = useRef<HighchartsReact.RefObject>(null);

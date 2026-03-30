@@ -21,7 +21,7 @@ type LogColorScaleBarProps = {
   intermediateTicks?: number[];
 };
 
-export const LogColorScaleBar = ({
+export function LogColorScaleBar({
   height = 12,
   numStops = 256, //how smooth the legend can be.
   className,
@@ -32,7 +32,7 @@ export const LogColorScaleBar = ({
   threshold = 0.1, //the threshold value to separate the compressed linear space and logarithmic space.
   compressedRange = 0.1, //how much space the values smaller than threshold take.
   intermediateTicks = [2, 5],
-}: LogColorScaleBarProps) => {
+}: LogColorScaleBarProps) {
   const gradient = useMemo(() => {
     const values = Array.from(
       { length: numStops },
@@ -112,4 +112,4 @@ export const LogColorScaleBar = ({
       )}
     </div>
   );
-};
+}

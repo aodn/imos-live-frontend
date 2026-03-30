@@ -4,7 +4,7 @@ import { PERCENTAGE } from '../constants';
 import type { DragHandle, ViewMode, Step, StepFn, TimeUnit } from '../type';
 import { minusOneUTCDay } from '@/utils';
 
-interface UseHandlePositionParams {
+type UseHandlePositionParams = {
   minGapPercent: number;
   startDate: Date;
   endDate: Date;
@@ -18,7 +18,7 @@ interface UseHandlePositionParams {
   autoScrollToVisibleAreaRef: MutableRefObject<boolean>;
   step?: Step | StepFn;
   timeUnit: TimeUnit;
-}
+};
 
 /**
  * Hook to manage handle position updates for both direct position changes and date-based updates.

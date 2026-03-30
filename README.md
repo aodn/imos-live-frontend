@@ -27,7 +27,6 @@ The platform visualises [processed GSLA data](./doc/DataProcessing.md) as a WebG
 - Node.js >= 22.0.0
 - pnpm >= 10
 - Mapbox API key (set as `VITE_MAPBOX_KEY` environment variable)
-- Dataset base URL (set as `VITE_S3_BASE_URL` environment variable)
 
 ### Installation
 
@@ -41,7 +40,6 @@ The platform visualises [processed GSLA data](./doc/DataProcessing.md) as a WebG
 
    ```
    VITE_MAPBOX_KEY=your_mapbox_key_here
-   VITE_S3_BASE_URL=[file server endpoint which contains the output of gsla_processing_script and wave_buoys_processing_script scripts]
    ```
 
 1. Run the app:
@@ -50,7 +48,7 @@ The platform visualises [processed GSLA data](./doc/DataProcessing.md) as a WebG
    pnpm dev
    ```
 
-   You can run the frontend using mock data, which does not require the `VITE_S3_BASE_URL` environment variable. To start the application with randomly generated local data, use:
+   You can run the frontend using mock data instead of a live data source. To start the application with randomly generated local data, use:
 
    ```
    pnpm dev:mock

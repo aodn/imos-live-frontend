@@ -1,4 +1,4 @@
-import { s3Api } from './instance';
+import axios from 'axios';
 
 export type RangeType = [number, number];
 
@@ -17,6 +17,6 @@ export type MetaType = {
 };
 
 export const getMetaData = async (url: string): Promise<MetaType> => {
-  const response = await s3Api.get<MetaType>(url);
+  const response = await axios.get<MetaType>(url);
   return response.data;
 };

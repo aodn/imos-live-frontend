@@ -40,7 +40,7 @@ type MainSidebarProps = {
   className?: string;
 };
 
-export const MainSidebarContent: React.FC<MainSidebarProps> = ({ className = '' }) => {
+export function MainSidebarContent({ className = '' }: MainSidebarProps) {
   const [searchQuery] = useState('');
   const { productEnabled, productError } = useMapUIStore(
     useShallow(s => ({
@@ -83,9 +83,9 @@ export const MainSidebarContent: React.FC<MainSidebarProps> = ({ className = '' 
       {import.meta.env.VITE_FEEDBACK_ENABLED && <UserFeedback />}
     </div>
   );
-};
+}
 
-const UserFeedback: React.FC = () => {
+function UserFeedback() {
   return (
     <div className="md:px-2 mt-4">
       <div className="md:rounded-lg md:shadow-lg bg-white md:border border-b border-gray-300 p-4 flex items-start gap-2">
@@ -106,4 +106,4 @@ const UserFeedback: React.FC = () => {
       </div>
     </div>
   );
-};
+}

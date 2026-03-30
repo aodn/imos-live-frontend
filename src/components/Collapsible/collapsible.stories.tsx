@@ -26,12 +26,12 @@ const meta: Meta<typeof CollapsibleComponent> = {
 export default meta;
 type Story = StoryObj<typeof CollapsibleComponent>;
 
-const CollapsibleTrigger = ({
+function CollapsibleTrigger({
   open,
   toggle,
   direction = 'down',
   toggleIconHidden = false,
-}: TriggerArgs) => {
+}: TriggerArgs) {
   const shouldRotate = direction === 'down' ? open : !open;
   return (
     <div className="p-4 border-b border-imos-white/20">
@@ -61,24 +61,26 @@ const CollapsibleTrigger = ({
       </div>
     </div>
   );
-};
+}
 
-const CollapsibleContent = () => (
-  <div className="p-4 space-y-4">
-    <div className="text-imos-white">
-      <h4 className="font-medium mb-2">Expanded Content</h4>
-      <p className="text-sm leading-relaxed mb-4">
-        This is additional content that becomes visible when the collapsible is expanded. You can
-        include any type of content here.
-      </p>
-      <div className="bg-imos-white/10 rounded p-3">
-        <p className="text-xs text-imos-white/80">
-          Status: <span className="text-green-400">Expanded</span>
+function CollapsibleContent() {
+  return (
+    <div className="p-4 space-y-4">
+      <div className="text-imos-white">
+        <h4 className="font-medium mb-2">Expanded Content</h4>
+        <p className="text-sm leading-relaxed mb-4">
+          This is additional content that becomes visible when the collapsible is expanded. You can
+          include any type of content here.
         </p>
+        <div className="bg-imos-white/10 rounded p-3">
+          <p className="text-xs text-imos-white/80">
+            Status: <span className="text-green-400">Expanded</span>
+          </p>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+}
 
 export const Collapsible: Story = {
   args: {

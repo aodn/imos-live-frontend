@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async';
 import logImage from '@/assets/imos_logo_with_title.png';
 import {
   DateSelectionBar,
@@ -22,7 +23,7 @@ import { useDrawerStore, refreshDates, closeLeftDrawer } from '@/store';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useEffect, useMemo } from 'react';
 
-export const Map = () => {
+export function Map() {
   const { isSmallScreen } = useViewportSize();
   const leftDrawer = useDrawerStore(s => s.leftDrawer);
 
@@ -95,14 +96,23 @@ export const Map = () => {
   );
 
   return (
-    <div className="overflow-hidden h-full w-full">
-      {isSmallScreen ? (
-        <div className="h-full w-full">{mapContent}</div>
-      ) : (
-        <Sidebar width={540} sidebarContent={<MainSidebarContent />}>
-          {mapContent}
-        </Sidebar>
-      )}
-    </div>
+    <>
+      <Helmet>
+        <title>Map — IMOS Live</title>
+        <meta
+          name="description"
+          content="Explore real-time ocean data including sea surface temperature, geostrophic currents, and wave buoys across the Australasian region."
+        />
+      </Helmet>
+      <div className="overflow-hidden h-full w-full">
+        {isSmallScreen ? (
+          <div className="h-full w-full">{mapContent}</div>
+        ) : (
+          <Sidebar width={540} sidebarContent={<MainSidebarContent />}>
+            {mapContent}
+          </Sidebar>
+        )}
+      </div>
+    </>
   );
-};
+}

@@ -2,7 +2,7 @@ import { Button } from '../Button';
 import { ArrowIcon, WidgetsIcon } from '../Icons';
 import { cn } from '@/utils';
 
-export const LayerProductsCollapsibleTrigger = ({
+export function LayerProductsCollapsibleTrigger({
   open,
   onToggle,
   direction = 'down',
@@ -12,7 +12,7 @@ export const LayerProductsCollapsibleTrigger = ({
   onToggle: () => void;
   direction?: 'up' | 'down';
   title: string;
-}) => {
+}) {
   const shouldRotate = direction === 'down' ? open : !open;
 
   return (
@@ -35,4 +35,4 @@ export const LayerProductsCollapsibleTrigger = ({
       />
     </Button>
   );
-};
+}

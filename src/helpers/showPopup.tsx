@@ -5,9 +5,9 @@ import { queryClient } from '@/config';
 import { QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 
-interface PopupWithRoot extends mapboxgl.Popup {
+type PopupWithRoot = mapboxgl.Popup & {
   __reactRoot?: Root | null;
-}
+};
 
 export type ClosePopupFn = () => PopupWithRoot;
 

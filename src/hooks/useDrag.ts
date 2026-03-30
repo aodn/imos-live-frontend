@@ -29,7 +29,7 @@ type DragState = {
   position: { x: number; y: number };
 };
 
-export const useDrag = ({
+export function useDrag({
   targetRef,
   initialPosition = { x: 0, y: 0 },
   constrainToAxis = 'both',
@@ -39,7 +39,7 @@ export const useDrag = ({
   onDragStart,
   onDragStarted,
   onDragEnd,
-}: UseDragProps = {}) => {
+}: UseDragProps = {}) {
   const [position, setPosition] = useState(initialPosition);
   const [isDragging, setIsDragging] = useState(false);
   const dragStartPositionRef = useRef(initialPosition);
@@ -244,4 +244,4 @@ export const useDrag = ({
       onTouchStart: handleTouchStart,
     },
   };
-};
+}

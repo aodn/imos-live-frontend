@@ -13,6 +13,14 @@ Before creating a new hook, utility function, or UI component, check `src/hooks/
 - Prefer `type` over `interface`
 - Prefer named exports (`export const`) over `export default`
 
+### Function Style
+
+Use regular functions for all named, exported declarations. Reserve arrow functions for inline/anonymous usage (callbacks, `useCallback`, `useMemo`, event handlers).
+
+- **Components** — `export function Foo() { ... }`
+- **Hooks** — `export function useFoo() { ... }`
+- **Utils** — `export function foo() { ... }`
+
 ### Components
 
 When creating a UI component, also create a Storybook story alongside it (`MyComponent.tsx` → `MyComponent.stories.tsx`). Each story should include:

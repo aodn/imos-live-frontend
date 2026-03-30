@@ -84,7 +84,7 @@ const SelectionDisplay = memo(({ selection }: { selection?: SelectionResult }) =
 
 SelectionDisplay.displayName = 'SelectionDisplay';
 
-const Template = (args: Partial<SliderProps>) => {
+function Template(args: Partial<SliderProps>) {
   const [selection, setSelection] = useState<SelectionResult>();
   const sliderRef = useRef<SliderExposedMethod>(null);
 
@@ -96,7 +96,7 @@ const Template = (args: Partial<SliderProps>) => {
       </div>
     </div>
   );
-};
+}
 
 /**
  * Default story - Minimal configuration

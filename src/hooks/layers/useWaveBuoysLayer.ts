@@ -16,7 +16,7 @@ import { useMapUIStore, setProductErrorByProduct } from '@/store';
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
-import { useDidMountEffect } from './useDidMountEffect';
+import { useDidMountEffect } from '../useDidMountEffect';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
 import dayjs from 'dayjs';
