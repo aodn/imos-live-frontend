@@ -32,8 +32,10 @@ export function LayerCard({
   portalLink,
 }: LayerCardProps) {
   const isRasterProduct = product === 'gsla-anomaly-sea-levels' || product === 'sst-anom-mosaic';
+  const isGeostrophicCurrentProduct = product === 'gsla-ocean-geostrophic-current';
   const isWaveBuoyProduct = product === 'wave-buoys';
-
+  // this is a temporary solution to get the latest available raster date. We should have a better way to get the latest date
+  // for each product in the future, like have a json file in s3 bucket that get updated when new data available.
   const { data: latestRasterDate, isLoading: isRasterDateLoading } = useQuery({
     queryKey: [product, QUERY_DATE_RANGE],
     queryFn: () => {
@@ -41,7 +43,7 @@ export function LayerCard({
       return Promise.allSettled(candidates);
     },
     select: data => getLatestFulfilledDate(data),
-    enabled: isRasterProduct,
+    enabled: isRasterProduct || isGeostrophicCurrentProduct,
     retry: false,
   });
 
@@ -118,7 +120,7 @@ export function LayerCard({
               {visible ? <MinusCircleIcon color="imos-white" /> : <AddCircleIcon />}
             </Button>
 
-            {isRasterProduct && (
+            {(isRasterProduct || isGeostrophicCurrentProduct) && (
               <Button
                 variant="outline"
                 onClick={handleJumpToLatestRaster}

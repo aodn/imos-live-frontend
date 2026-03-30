@@ -54,6 +54,24 @@ The platform visualises [processed GSLA data](./doc/DataProcessing.md) as a WebG
    pnpm dev:mock
    ```
 
+## API Routing
+
+All API calls use relative paths — no base URL or CORS configuration is required. Routing is handled at the infrastructure level in production, and mirrored locally via the Vite dev proxy.
+
+**Production:** A CloudFront distribution routes requests by path pattern to the appropriate backend origin:
+
+| Path pattern    | Origin           |
+| --------------- | ---------------- |
+| `/api/v1/*`     | OGC API          |
+| `/data/*`       | S3 bucket        |
+| `/tiles/*`      | Thredds Server   |
+| `/legends/*`    | Thredds Server   |
+| `/thredds/*`    | Thredds Server   |
+| `/_cf-errors/*` | AODN error pages |
+| `*` (default)   | Frontend app     |
+
+**Development:** `vite.config.ts` proxies the same paths to their respective backends, so the app behaves identically to production without any local configuration. When using `pnpm dev:mock`, `/api` and `/data` are intercepted by a local Vite middleware serving randomly generated data instead.
+
 ## Performance Considerations
 
 - WebGL acceleration enables smooth animation of up to 100,000 particles
