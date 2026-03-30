@@ -83,6 +83,7 @@ export function LayerCard({
           toggle={toggle}
           direction={direction}
           toggleIconHidden={toggleIconHidden}
+          isError={isError}
         />
       )}
     >
@@ -164,7 +165,8 @@ function CardTrigger({
   toggleIconHidden = false,
   title,
   icon,
-}: TriggerArgs & { title: string; icon: ReactNode }) {
+  isError,
+}: TriggerArgs & { title: string; icon: ReactNode; isError?: boolean }) {
   const shouldRotate = direction === 'down' ? open : !open;
   return (
     <div className="flex items-center justify-between">
@@ -176,7 +178,9 @@ function CardTrigger({
         <Button
           variant="ghost"
           size="icon"
-          className="hover:bg-transparent focus:ring-2 focus:ring-imos-white/20"
+          className={cn('hover:bg-transparent focus:ring-2 focus:ring-imos-white/20', {
+            'relative z-10': isError,
+          })}
           onClick={toggle}
           aria-expanded={open}
           aria-label={`${open ? 'Collapse' : 'Expand'} content`}
