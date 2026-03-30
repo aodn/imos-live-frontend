@@ -32,6 +32,7 @@ export function LayerCard({
   portalLink,
 }: LayerCardProps) {
   const isRasterProduct = product === 'gsla-anomaly-sea-levels' || product === 'sst-anom-mosaic';
+  const isGeostrophicCurrentProduct = product === 'gsla-ocean-geostrophic-current';
   const isWaveBuoyProduct = product === 'wave-buoys';
 
   const { data: latestRasterDate, isLoading: isRasterDateLoading } = useQuery({
@@ -41,7 +42,7 @@ export function LayerCard({
       return Promise.allSettled(candidates);
     },
     select: data => getLatestFulfilledDate(data),
-    enabled: isRasterProduct,
+    enabled: isRasterProduct || isGeostrophicCurrentProduct,
     retry: false,
   });
 
@@ -118,7 +119,7 @@ export function LayerCard({
               {visible ? <MinusCircleIcon color="imos-white" /> : <AddCircleIcon />}
             </Button>
 
-            {isRasterProduct && (
+            {(isRasterProduct || isGeostrophicCurrentProduct) && (
               <Button
                 variant="outline"
                 onClick={handleJumpToLatestRaster}
