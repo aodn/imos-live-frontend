@@ -2,7 +2,7 @@ import type { ProductSourceId } from './product';
 import { PRODUCTS } from './product';
 
 //product layer id and source id, keep single truth from: import { PRODUCTS } from "./product";
-export const GSAL_PARTICLE_LAYER_ID = PRODUCTS['gsla-ocean-geostrophic-current'].layerId;
+export const GSLA_PARTICLE_LAYER_ID = PRODUCTS['gsla-ocean-geostrophic-current'].layerId;
 export const GSLA_PARTICLE_SOURCE_ID = PRODUCTS['gsla-ocean-geostrophic-current'].sourceId;
 export const GSLA_RASTER_LAYER_ID = PRODUCTS['gsla-anomaly-sea-levels'].layerId;
 export const GSLA_RASTER_SOURCE_ID = PRODUCTS['gsla-anomaly-sea-levels'].sourceId;
@@ -32,7 +32,7 @@ export type RasterSource =
 export type BuoySource = typeof WAVE_BUOYS_SOURCE_ID;
 export type BuoyLayer = typeof WAVE_BUOYS_LAYER_ID;
 
-export type ParticleLayer = typeof GSAL_PARTICLE_LAYER_ID;
+export type ParticleLayer = typeof GSLA_PARTICLE_LAYER_ID;
 export type ParticleSource = typeof GSLA_PARTICLE_SOURCE_ID;
 
 export const isProductSourceId = (id: string): id is ProductSourceId =>

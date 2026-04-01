@@ -6,7 +6,7 @@ import sstImage from '@/assets/sst.jpg';
 import {
   GSLA_RASTER_SOURCE_ID,
   GSLA_RASTER_LAYER_ID,
-  GSAL_PARTICLE_LAYER_ID,
+  GSLA_PARTICLE_LAYER_ID,
   SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID,
   WAVE_BUOYS_LAYER_ID,
   PRODUCT,
@@ -49,7 +49,7 @@ export const featuredDataset: LayersDataset[] = [
       ' GSLA is mapped using optimal interpolation of detided, de-meaned, inverse-barometer-adjusted altimeter' +
       ' and tidegauge estimates of sea level. GSL is GSLA plus an estimate of the departure of mean sea level from the geoid.' +
       ' The geostrophic velocities are derived from GSL.',
-    layerId: GSAL_PARTICLE_LAYER_ID,
+    layerId: GSLA_PARTICLE_LAYER_ID,
     visible: false,
     isError: false,
     product: PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT,

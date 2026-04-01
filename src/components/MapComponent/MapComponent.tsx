@@ -21,7 +21,7 @@ import { MapControlPanel } from '../MapControlPanel';
 import {
   GSLA_RASTER_LAYER_ID,
   GSLA_RASTER_SOURCE_ID,
-  GSAL_PARTICLE_LAYER_ID,
+  GSLA_PARTICLE_LAYER_ID,
   GSLA_PARTICLE_SOURCE_ID,
   PRODUCT,
   SST_ANOMALY_MOSAIC_RASTER_LAYER_ID,
@@ -71,7 +71,7 @@ export const MapComponent = memo(function MapComponent() {
   });
   useParticleLayer({
     map,
-    layerId: GSAL_PARTICLE_LAYER_ID,
+    layerId: GSLA_PARTICLE_LAYER_ID,
     sourceId: GSLA_PARTICLE_SOURCE_ID,
     product: PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT,
   });
