@@ -4,13 +4,13 @@ import anomalySeaLevelImage from '@/assets/sea-levels.webp';
 import waveBuoysImage from '@/assets/wave-buoys.webp';
 import sstImage from '@/assets/sst.jpg';
 import {
-  GSLA_OVERLAY_SOURCE_ID,
-  GSLA_OVERLAY_LAYER_ID,
-  PARTICLE_LAYER_ID,
-  SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID,
+  GSLA_RASTER_SOURCE_ID,
+  GSLA_RASTER_LAYER_ID,
+  GSAL_PARTICLE_LAYER_ID,
+  SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID,
   WAVE_BUOYS_LAYER_ID,
   PRODUCT,
-  SST_ANOMALY_MOSAIC_OVERLAY_LAYER_ID,
+  SST_ANOMALY_MOSAIC_RASTER_LAYER_ID,
   PRODUCTLEGENDS,
 } from '@/constants';
 import {
@@ -49,7 +49,7 @@ export const featuredDataset: LayersDataset[] = [
       ' GSLA is mapped using optimal interpolation of detided, de-meaned, inverse-barometer-adjusted altimeter' +
       ' and tidegauge estimates of sea level. GSL is GSLA plus an estimate of the departure of mean sea level from the geoid.' +
       ' The geostrophic velocities are derived from GSL.',
-    layerId: PARTICLE_LAYER_ID,
+    layerId: GSAL_PARTICLE_LAYER_ID,
     visible: false,
     isError: false,
     product: PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT,
@@ -73,13 +73,13 @@ export const featuredDataset: LayersDataset[] = [
       ' GSLA is mapped using optimal interpolation of detided, de-meaned, inverse-barometer-adjusted altimeter' +
       ' and tidegauge estimates of sea level. GSL is GSLA plus an estimate of the departure of mean sea level from the geoid.' +
       ' The geostrophic velocities are derived from GSL.',
-    layerId: GSLA_OVERLAY_LAYER_ID,
+    layerId: GSLA_RASTER_LAYER_ID,
     visible: false,
     isError: false,
     product: PRODUCT.GSLA_ANOMALY_SEA_LEVELS,
     legend: (
       <RasterLegend
-        overlaySource={GSLA_OVERLAY_SOURCE_ID}
+        rasterSource={GSLA_RASTER_SOURCE_ID}
         {...PRODUCTLEGENDS['gsla-anomaly-sea-levels']}
       />
     ),
@@ -96,13 +96,13 @@ export const featuredDataset: LayersDataset[] = [
     icon: <ThermometerIcon size="lg" />,
     description:
       'AusTemp is a specialised remote sensing application for the monitoring of SST conditions that lead to coral bleaching. The BOM legacy system was developed in consultation with Great Barrier Reef Marine Park Authority (GBRMPA) reef management and replaces the original CSIRO ReefTemp system (Maynard et al, 2008).',
-    layerId: SST_ANOMALY_MOSAIC_OVERLAY_LAYER_ID,
+    layerId: SST_ANOMALY_MOSAIC_RASTER_LAYER_ID,
     visible: false,
     isError: false,
     product: PRODUCT.SST_ANOMALY_MOSAIC,
     legend: (
       <RasterLegend
-        overlaySource={SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID}
+        rasterSource={SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID}
         {...PRODUCTLEGENDS['sst-anom-mosaic']}
       />
     ),

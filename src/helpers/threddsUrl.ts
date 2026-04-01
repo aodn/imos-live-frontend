@@ -1,5 +1,5 @@
-import type { OverlaySource } from '@/constants';
-import { GSLA_OVERLAY_SOURCE_ID, SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID } from '@/constants';
+import type { RasterSource } from '@/constants';
+import { GSLA_RASTER_SOURCE_ID, SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID } from '@/constants';
 import { getThreddsCatalog } from '@/api';
 import { addYears } from '@/utils';
 
@@ -14,18 +14,18 @@ const FILE_PATTERNS = {
 } as const;
 
 const LAYER_NAMES = {
-  [GSLA_OVERLAY_SOURCE_ID]: 'GSLA',
-  [SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID]: 'sst_anom_mosaic',
+  [GSLA_RASTER_SOURCE_ID]: 'GSLA',
+  [SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID]: 'sst_anom_mosaic',
 } as const;
 
 const WMS_CONFIG = {
-  [GSLA_OVERLAY_SOURCE_ID]: {
+  [GSLA_RASTER_SOURCE_ID]: {
     layers: 'GSLA',
     colorScaleRange: '-1.2,1.2',
     styles: 'raster/x-Rainbow',
     legendPalette: 'x-Rainbow',
   },
-  [SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID]: {
+  [SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID]: {
     layers: 'sst_anom_mosaic',
     colorScaleRange: '-4,4',
     styles: 'raster/div-RdBu-inv',
@@ -100,18 +100,18 @@ const getSstUrlFromCatalog = async (date: Date): Promise<string> => {
   return `/thredds/wms/invalid_dataset`; //do not throw error here to avoid image loading failure test for legend url
 };
 
-const baseUrl = async (id: OverlaySource, date: Date): Promise<string> => {
+const baseUrl = async (id: RasterSource, date: Date): Promise<string> => {
   switch (id) {
-    case GSLA_OVERLAY_SOURCE_ID:
+    case GSLA_RASTER_SOURCE_ID:
       return await getGslaUrlFromCatalog(date);
-    case SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID:
+    case SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID:
       return await getSstUrlFromCatalog(date);
     default:
-      throw new Error(`Unknown overlay source: ${id}`);
+      throw new Error(`Unknown raster source: ${id}`);
   }
 };
 
-export const rasterUrl = async (id: OverlaySource, date: Date): Promise<string> => {
+export const rasterUrl = async (id: RasterSource, date: Date): Promise<string> => {
   const base = await baseUrl(id, date);
   const config = WMS_CONFIG[id];
   // Use /tiles/{z}/{x}/{y} path for CloudFront cache-friendly URLs
@@ -119,7 +119,7 @@ export const rasterUrl = async (id: OverlaySource, date: Date): Promise<string> 
   return `/tiles/{z}/{x}/{y}${base}?COLORSCALERANGE=${config.colorScaleRange}&version=1.3.0&REQUEST=GetMap&LAYERS=${config.layers}&styles=${config.styles}&crs=EPSG:3857&format=image/png&transparent=true&width=256&height=256`;
 };
 
-export const rasterLegendUrl = async (id: OverlaySource, date: Date): Promise<string> => {
+export const rasterLegendUrl = async (id: RasterSource, date: Date): Promise<string> => {
   const base = await baseUrl(id, date);
   const config = WMS_CONFIG[id];
 
@@ -127,7 +127,7 @@ export const rasterLegendUrl = async (id: OverlaySource, date: Date): Promise<st
 };
 
 export const getFeatureInfoUrl = async (
-  id: OverlaySource,
+  id: RasterSource,
   date: Date,
   mapBounds: [number, number, number, number], // [west, south, east, north]
   mapSize: { width: number; height: number },

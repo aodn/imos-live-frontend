@@ -1,4 +1,4 @@
-import { type ClosePopupFn, createMapEventPriority, gerMapMetaData, showPopup } from '@/helpers';
+import { type ClosePopupFn, createMapEventPriority, getMapMetaData, showPopup } from '@/helpers';
 import type { RefObject } from 'react';
 import { useCallback, useEffect, useMemo } from 'react';
 import {
@@ -11,14 +11,14 @@ import { ClickedMapPopupContent } from '@/components';
 
 type UseMapEventHandlersOptions = {
   map: RefObject<mapboxgl.Map | null>;
-  overlay: boolean;
+  raster: boolean;
   oceanCurrentEnabled: boolean;
   distanceMeasurementEnabled: boolean;
 };
 
-export function useParticleOverlayLayersEventHandlers({
+export function useParticleRasterLayersEventHandlers({
   map,
-  overlay,
+  raster,
   oceanCurrentEnabled,
   distanceMeasurementEnabled,
 }: UseMapEventHandlersOptions) {
@@ -38,11 +38,11 @@ export function useParticleOverlayLayersEventHandlers({
 
   const handleMapClick = useCallback(
     async (e: mapboxgl.MapMouseEvent) => {
-      if (!map?.current || (!oceanCurrentEnabled && !overlay)) return;
+      if (!map?.current || (!oceanCurrentEnabled && !raster)) return;
 
       if (!shouldHandleMapClick(e)) return;
 
-      const { mapBounds, mapSize } = gerMapMetaData(map);
+      const { mapBounds, mapSize } = getMapMetaData(map);
       if (!mapBounds || !mapSize) return;
 
       const { lngLat, point } = e;
@@ -70,7 +70,7 @@ export function useParticleOverlayLayersEventHandlers({
         ),
       });
     },
-    [map, overlay, oceanCurrentEnabled, shouldHandleMapClick],
+    [map, raster, oceanCurrentEnabled, shouldHandleMapClick],
   );
 
   useEffect(() => {

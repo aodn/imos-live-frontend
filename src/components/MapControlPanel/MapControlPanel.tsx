@@ -13,7 +13,7 @@ import { useIsMapDragging, useIsMapZooming, useMapCanvasWidth } from '@/hooks';
 import { setSidebarOpen, useMapUIStore, useSidebarStore } from '@/store';
 import { exportMapImage, rasterLegendUrl } from '@/helpers';
 import { useShallow } from 'zustand/shallow';
-import type { OverlaySource } from '@/constants';
+import type { RasterSource } from '@/constants';
 import { PRODUCTLEGENDS, PRODUCTS, type ProductType } from '@/constants';
 import { useQuery } from '@tanstack/react-query';
 
@@ -48,7 +48,7 @@ export function MapControlPanel({
 
   const { data: legendUrl } = useQuery({
     queryKey: ['rasterLegendUrl', PRODUCTS[product!]?.sourceId, date],
-    queryFn: () => rasterLegendUrl(PRODUCTS[product!]?.sourceId as OverlaySource, new Date(date)),
+    queryFn: () => rasterLegendUrl(PRODUCTS[product!]?.sourceId as RasterSource, new Date(date)),
     enabled: !!date && !!product,
   });
 

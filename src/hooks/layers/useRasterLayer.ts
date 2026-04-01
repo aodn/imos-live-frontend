@@ -1,5 +1,5 @@
-import { OVERLAY_LAYER_CONFIG } from '@/config';
-import type { OverlayLayer, OverlaySource, ProductType } from '@/constants';
+import { RASTER_LAYER_CONFIG } from '@/config';
+import type { RasterLayer, RasterSource, ProductType } from '@/constants';
 import { addLayerInOrder, addOrUpdateWMSSource, rasterUrl } from '@/helpers';
 import { imageLayer } from '@/layers';
 import { useMapUIStore } from '@/store';
@@ -9,14 +9,14 @@ import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
 import { useDidMountEffect } from '../useDidMountEffect';
 
-type UseOverlayLayer = {
+type UseRasterLayer = {
   map: React.RefObject<mapboxgl.Map | null>;
-  layerId: OverlayLayer;
-  sourceId: OverlaySource;
+  layerId: RasterLayer;
+  sourceId: RasterSource;
   product: ProductType;
 };
 
-export function useOverlayLayer({ map, layerId, sourceId, product }: UseOverlayLayer) {
+export function useRasterLayer({ map, layerId, sourceId, product }: UseRasterLayer) {
   const { date, enabled, isError } = useMapUIStore(
     useShallow(s => ({
       date: s.date,
@@ -25,29 +25,29 @@ export function useOverlayLayer({ map, layerId, sourceId, product }: UseOverlayL
     })),
   );
 
-  const overlayLayer = useMemo(
-    () => imageLayer({ id: layerId, source: sourceId, ...OVERLAY_LAYER_CONFIG }, enabled),
+  const rasterLayer = useMemo(
+    () => imageLayer({ id: layerId, source: sourceId, ...RASTER_LAYER_CONFIG }, enabled),
     [layerId, sourceId, enabled],
   );
 
   const setDataByDataset = useCallback(async () => {
     // this will not throw any error and return invalid url when there is error instead.
-    // when invalid url, useOverlayProductErrorDetect will handle it, So that addOrUpdateWMSSource
-    // will always add source to map. This can fix the bug that overlay layer fail to appear when
+    // when invalid url, useRasterProductErrorDetect will handle it, So that addOrUpdateWMSSource
+    // will always add source to map. This can fix the bug that raster layer fail to appear when
     // jump from date no data to date owning data.
     const url = await rasterUrl(sourceId, new Date(date));
     addOrUpdateWMSSource({ map: map.current!, url, sourceId });
   }, [date, map, sourceId]);
 
   const setupLayer = useCallback(async () => {
-    if (!overlayLayer) return;
+    if (!rasterLayer) return;
     await setDataByDataset();
-    addLayerInOrder(map, overlayLayer);
-  }, [map, overlayLayer, setDataByDataset]);
+    addLayerInOrder(map, rasterLayer);
+  }, [map, rasterLayer, setDataByDataset]);
 
   const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [setupLayer]);
 
-  useMapboxLayerVisibility(map, loadComplete, [overlayLayer], enabled && !isError);
+  useMapboxLayerVisibility(map, loadComplete, [rasterLayer], enabled && !isError);
 
   useDidMountEffect(() => {
     if (!map.current || !loadComplete) return;

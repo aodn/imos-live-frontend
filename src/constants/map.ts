@@ -2,46 +2,44 @@ import type { ProductSourceId } from './product';
 import { PRODUCTS } from './product';
 
 //product layer id and source id, keep single truth from: import { PRODUCTS } from "./product";
-export const PARTICLE_LAYER_ID = PRODUCTS['gsla-ocean-geostrophic-current'].layerId;
-export const PARTICLE_SOURCE_ID = PRODUCTS['gsla-ocean-geostrophic-current'].sourceId;
-export const GSLA_OVERLAY_LAYER_ID = PRODUCTS['gsla-anomaly-sea-levels'].layerId;
-export const GSLA_OVERLAY_SOURCE_ID = PRODUCTS['gsla-anomaly-sea-levels'].sourceId;
-export const SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID = PRODUCTS['sst-anom-mosaic'].sourceId;
-export const SST_ANOMALY_MOSAIC_OVERLAY_LAYER_ID = PRODUCTS['sst-anom-mosaic'].layerId;
+export const GSAL_PARTICLE_LAYER_ID = PRODUCTS['gsla-ocean-geostrophic-current'].layerId;
+export const GSLA_PARTICLE_SOURCE_ID = PRODUCTS['gsla-ocean-geostrophic-current'].sourceId;
+export const GSLA_RASTER_LAYER_ID = PRODUCTS['gsla-anomaly-sea-levels'].layerId;
+export const GSLA_RASTER_SOURCE_ID = PRODUCTS['gsla-anomaly-sea-levels'].sourceId;
+export const SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID = PRODUCTS['sst-anom-mosaic'].sourceId;
+export const SST_ANOMALY_MOSAIC_RASTER_LAYER_ID = PRODUCTS['sst-anom-mosaic'].layerId;
 export const WAVE_BUOYS_LAYER_ID = PRODUCTS['wave-buoys'].layerId;
 export const WAVE_BUOYS_SOURCE_ID = PRODUCTS['wave-buoys'].sourceId;
 
 export const ProductSourceIds: ProductSourceId[] = [
-  PARTICLE_SOURCE_ID,
-  GSLA_OVERLAY_SOURCE_ID,
-  SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID,
+  GSLA_PARTICLE_SOURCE_ID,
+  GSLA_RASTER_SOURCE_ID,
+  SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID,
   WAVE_BUOYS_SOURCE_ID,
 ];
 
-export const OverlayProductSourceIds: OverlaySource[] = [
-  GSLA_OVERLAY_SOURCE_ID,
-  SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID,
+export const RasterProductSourceIds: RasterSource[] = [
+  GSLA_RASTER_SOURCE_ID,
+  SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID,
 ];
 
-export type OverlayLayer =
-  | typeof GSLA_OVERLAY_LAYER_ID
-  | typeof SST_ANOMALY_MOSAIC_OVERLAY_LAYER_ID;
+export type RasterLayer = typeof GSLA_RASTER_LAYER_ID | typeof SST_ANOMALY_MOSAIC_RASTER_LAYER_ID;
 
-export type OverlaySource =
-  | typeof GSLA_OVERLAY_SOURCE_ID
-  | typeof SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID;
+export type RasterSource =
+  | typeof GSLA_RASTER_SOURCE_ID
+  | typeof SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID;
 
 export type BuoySource = typeof WAVE_BUOYS_SOURCE_ID;
 export type BuoyLayer = typeof WAVE_BUOYS_LAYER_ID;
 
-export type ParticleLayer = typeof PARTICLE_LAYER_ID;
-export type ParticleSource = typeof PARTICLE_SOURCE_ID;
+export type ParticleLayer = typeof GSAL_PARTICLE_LAYER_ID;
+export type ParticleSource = typeof GSLA_PARTICLE_SOURCE_ID;
 
 export const isProductSourceId = (id: string): id is ProductSourceId =>
   ProductSourceIds.includes(id as ProductSourceId);
 
-export const isOverlaySourceId = (id: string): id is OverlaySource =>
-  OverlayProductSourceIds.includes(id as OverlaySource);
+export const isRasterSourceId = (id: string): id is RasterSource =>
+  RasterProductSourceIds.includes(id as RasterSource);
 
 // these two are intermediate layer on fly
 export const WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID = 'wave-buoys-cluster-label-layer';

@@ -6,7 +6,7 @@ export * from './createZoomLimitPoints.ts';
 export * from './removeZoomLimitTempPoints.ts';
 export * from './addOrUpdateWMSSource.ts';
 export * from './addOrUpdateVectorSource.ts';
-export * from './getOverlayData.ts';
+export * from './getRasterData.ts';
 export * from './threddsUrl.ts';
 export * from './createEventPriority.ts';
 export * from './mapImageExport.ts';

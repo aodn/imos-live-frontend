@@ -71,10 +71,3 @@ All API calls use relative paths — no base URL or CORS configuration is requir
 | `*` (default)   | Frontend app     |
 
 **Development:** `vite.config.ts` proxies the same paths to their respective backends, so the app behaves identically to production without any local configuration. When using `pnpm dev:mock`, `/api` and `/data` are intercepted by a local Vite middleware serving randomly generated data instead.
-
-## Performance Considerations
-
-- WebGL acceleration enables smooth animation of up to 100,000 particles
-- Particle count can be adjusted based on device performance
-- Animation automatically pauses during map interaction
-- Efficient "ping-pong" texture technique minimizes GPU operations
