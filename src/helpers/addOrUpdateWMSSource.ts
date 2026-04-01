@@ -1,8 +1,8 @@
-import type { OverlaySource } from '@/constants';
+import type { RasterSource } from '@/constants';
 
 type AddOrUpdateWMSSource = {
   map: mapboxgl.Map;
-  sourceId: OverlaySource;
+  sourceId: RasterSource;
   url: string;
 };
 

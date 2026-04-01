@@ -57,7 +57,7 @@ import { cn } from '@/utils';
 Each product is visualized via its own dedicated hook in `src/hooks/`:
 
 - `useParticleLayer` — GSLA Ocean Geostrophic Current (WebGL particle animation)
-- `useOverlayLayer` — GSLA Anomaly Sea Levels and SST Anomaly Mosaic (raster image overlay)
+- `useRasterLayer` — GSLA Anomaly Sea Levels and SST Anomaly Mosaic (raster image overlay)
 - `useWaveBuoysLayer` — Wave Buoys (clustered circle layer)
 
 When adding a new product, touch these files in order:

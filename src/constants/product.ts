@@ -27,8 +27,8 @@ export const PRODUCTS = {
   },
   [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: {
     name: 'GSLA Anomaly Sea Levels',
-    layerId: 'gsla-overlay-layer',
-    sourceId: 'gsla-overlay-source',
+    layerId: 'gsla-raster-layer',
+    sourceId: 'gsla-raster-source',
   },
   [PRODUCT.WAVE_BUOYS]: {
     name: 'Wave Buoys',

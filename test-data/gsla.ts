@@ -4,7 +4,7 @@ import path from 'path';
 const inputBitmapFile = promises.readFile(
   path.resolve(import.meta.dirname, 'GSLA', 'gsla_input.png'),
 );
-const overlayBitmapFile = promises.readFile(
+const rasterBitmapFile = promises.readFile(
   path.resolve(import.meta.dirname, 'GSLA', 'gsla_overlay.png'),
 );
 type GSLAMeta = {
@@ -27,7 +27,7 @@ const LAT_RANGE: GSLAMeta['latRange'] = [-50.0996015936255, 0.099601593625498];
 const LON_RANGE: GSLAMeta['lonRange'] = [109.90033222591362, 170.09966777408638];
 
 export const inputBitmap = () => inputBitmapFile;
-export const overlayBitmap = () => overlayBitmapFile;
+export const rasterBitmap = () => rasterBitmapFile;
 export const meta = (): GSLAMeta => {
   return {
     latRange: LAT_RANGE,

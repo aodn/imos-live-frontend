@@ -4,9 +4,9 @@ import {
   useMapInitialization,
   useMapResize,
   useMapStyle,
-  useOverlayLayer,
+  useRasterLayer,
   useParticleLayer,
-  useParticleOverlayLayersEventHandlers,
+  useParticleRasterLayersEventHandlers,
   useWaveBuoysLayer,
   useWaveBuoysLayerEventHandler,
   useWorldLandLayer,
@@ -19,13 +19,13 @@ import { useShallow } from 'zustand/shallow';
 import { DistanceMeasurement } from '../DistanceMeasurement';
 import { MapControlPanel } from '../MapControlPanel';
 import {
-  GSLA_OVERLAY_LAYER_ID,
-  GSLA_OVERLAY_SOURCE_ID,
-  PARTICLE_LAYER_ID,
-  PARTICLE_SOURCE_ID,
+  GSLA_RASTER_LAYER_ID,
+  GSLA_RASTER_SOURCE_ID,
+  GSLA_PARTICLE_LAYER_ID,
+  GSLA_PARTICLE_SOURCE_ID,
   PRODUCT,
-  SST_ANOMALY_MOSAIC_OVERLAY_LAYER_ID,
-  SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID,
+  SST_ANOMALY_MOSAIC_RASTER_LAYER_ID,
+  SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID,
   WAVE_BUOYS_LAYER_ID,
   WAVE_BUOYS_SOURCE_ID,
 } from '@/constants';
@@ -57,22 +57,22 @@ export const MapComponent = memo(function MapComponent() {
   //2. create layer, set data to layer and add layer to map.
   const { measurePointsGeojson, setMeasurePointsGeojson } = useDistanceMeasurementLayers(map);
   useWorldLandLayer(map);
-  useOverlayLayer({
+  useRasterLayer({
     map,
-    layerId: GSLA_OVERLAY_LAYER_ID,
-    sourceId: GSLA_OVERLAY_SOURCE_ID,
+    layerId: GSLA_RASTER_LAYER_ID,
+    sourceId: GSLA_RASTER_SOURCE_ID,
     product: PRODUCT.GSLA_ANOMALY_SEA_LEVELS,
   });
-  useOverlayLayer({
+  useRasterLayer({
     map,
-    layerId: SST_ANOMALY_MOSAIC_OVERLAY_LAYER_ID,
-    sourceId: SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID,
+    layerId: SST_ANOMALY_MOSAIC_RASTER_LAYER_ID,
+    sourceId: SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID,
     product: PRODUCT.SST_ANOMALY_MOSAIC,
   });
   useParticleLayer({
     map,
-    layerId: PARTICLE_LAYER_ID,
-    sourceId: PARTICLE_SOURCE_ID,
+    layerId: GSLA_PARTICLE_LAYER_ID,
+    sourceId: GSLA_PARTICLE_SOURCE_ID,
     product: PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT,
   });
   useWaveBuoysLayer({
@@ -86,9 +86,9 @@ export const MapComponent = memo(function MapComponent() {
   const { clickedPointData: waveBuoysLayerClickedPointData, openDrawer } =
     useWaveBuoysLayerEventHandler(map, waveBuoysEnabled, distanceMeasurementEnabled);
 
-  useParticleOverlayLayersEventHandlers({
+  useParticleRasterLayersEventHandlers({
     map,
-    overlay: gslaAnomalySeaLevelsEnabled || sstAnomMosaicEnabled,
+    raster: gslaAnomalySeaLevelsEnabled || sstAnomMosaicEnabled,
     oceanCurrentEnabled,
     distanceMeasurementEnabled,
   });

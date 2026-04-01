@@ -1,7 +1,7 @@
 import type { MapMouseEvent } from 'mapbox-gl';
 import { getFeatureInfoUrl } from './threddsUrl';
-import type { OverlaySource } from '@/constants';
-import { GSLA_OVERLAY_SOURCE_ID, SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID, PRODUCT } from '@/constants';
+import type { RasterSource } from '@/constants';
+import { GSLA_RASTER_SOURCE_ID, SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID, PRODUCT } from '@/constants';
 
 /**
  * Parses XML response from WMS GetFeatureInfo request
@@ -33,28 +33,28 @@ function parseFeatureInfoXML(xmlString: string): number | null {
   }
 }
 
-type OverlaySourceData = {
-  [GSLA_OVERLAY_SOURCE_ID]: {
+type RasterSourceData = {
+  [GSLA_RASTER_SOURCE_ID]: {
     [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: { gsla: number };
   };
-  [SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID]: {
+  [SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID]: {
     [PRODUCT.SST_ANOMALY_MOSAIC]: { sstAnom: number };
   };
 };
 
 /**
- * Fetches overlay data (GSLA or SST Anomaly) from THREDDS WMS service
+ * Fetches raster data (GSLA or SST Anomaly) from THREDDS WMS service
  */
-const fetchOverlayData =
-  <T extends OverlaySource>(overlaySource: T) =>
+const fetchRasterData =
+  <T extends RasterSource>(rasterSource: T) =>
   async (
     date: string,
     mapBounds: [number, number, number, number],
     mapSize: { width: number; height: number },
     point: MapMouseEvent['point'],
-  ): Promise<Partial<OverlaySourceData[T]>> => {
+  ): Promise<Partial<RasterSourceData[T]>> => {
     try {
-      const url = await getFeatureInfoUrl(overlaySource, new Date(date), mapBounds, mapSize, point);
+      const url = await getFeatureInfoUrl(rasterSource, new Date(date), mapBounds, mapSize, point);
 
       const response = await fetch(url);
 
@@ -65,28 +65,28 @@ const fetchOverlayData =
         return {};
       }
 
-      // Map the value to the appropriate Product field based on overlay source
-      if (overlaySource === GSLA_OVERLAY_SOURCE_ID) {
+      // Map the value to the appropriate Product field based on raster source
+      if (rasterSource === GSLA_RASTER_SOURCE_ID) {
         return {
           [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: { gsla: value },
-        } as OverlaySourceData[T];
-      } else if (overlaySource === SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID) {
+        } as RasterSourceData[T];
+      } else if (rasterSource === SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID) {
         return {
           [PRODUCT.SST_ANOMALY_MOSAIC]: { sstAnom: value },
-        } as OverlaySourceData[T];
+        } as RasterSourceData[T];
       }
 
       return {};
     } catch (error) {
-      console.error('Error fetching overlay data:', error);
+      console.error('Error fetching raster data:', error);
       throw error; // let react query catch and handle error.
     }
   };
 
-export const fetchGslaAnomalySeaLevelsData = fetchOverlayData(GSLA_OVERLAY_SOURCE_ID);
-export const fetchSstAnomalyMosaic = fetchOverlayData(SST_ANOMALY_MOSAIC_OVERLAY_SOURCE_ID);
+export const fetchGslaAnomalySeaLevelsData = fetchRasterData(GSLA_RASTER_SOURCE_ID);
+export const fetchSstAnomalyMosaic = fetchRasterData(SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID);
 
-export function gerMapMetaData(map: React.RefObject<mapboxgl.Map | null>) {
+export function getMapMetaData(map: React.RefObject<mapboxgl.Map | null>) {
   if (!map.current) return {};
 
   const bounds = map.current.getBounds();

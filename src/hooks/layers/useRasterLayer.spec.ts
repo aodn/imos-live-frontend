@@ -5,13 +5,13 @@
 import { renderHook, act } from '@testing-library/react';
 import type { Mock } from 'vitest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { useOverlayLayer } from './useOverlayLayer';
+import { useRasterLayer } from './useRasterLayer';
 import { useMapUIStore } from '@/store';
 import { addLayerInOrder, addOrUpdateWMSSource, rasterUrl } from '@/helpers';
 import { imageLayer } from '@/layers';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
-import type { OverlayLayer, OverlaySource, ProductType } from '@/constants';
+import type { RasterLayer, RasterSource, ProductType } from '@/constants';
 
 const mockMap = {
   current: {
@@ -39,7 +39,7 @@ vi.mock('@/layers', () => ({
 }));
 
 vi.mock('@/config', () => ({
-  OVERLAY_LAYER_CONFIG: { paint: {} },
+  RASTER_LAYER_CONFIG: { paint: {} },
 }));
 
 vi.mock('./useMapboxLayerSetup', () => ({
@@ -55,24 +55,24 @@ vi.mock('zustand/shallow', () => ({
 }));
 
 vi.mock('@/constants', () => ({
-  OverlayLayer: {
-    GSLA: 'gsla-overlay-layer',
+  RasterLayer: {
+    GSLA: 'gsla-raster-layer',
   },
-  OverlaySource: {
-    GSLA: 'gsla-overlay-source',
+  RasterSource: {
+    GSLA: 'gsla-raster-source',
   },
   Product: {
     GSLA: 'gsla',
   },
 }));
 
-describe('useOverlayLayer', () => {
+describe('useRasterLayer', () => {
   let mockStoreState: any;
 
   const defaultProps = {
     map: mockMap as any,
-    layerId: 'gsla-overlay-layer' as OverlayLayer,
-    sourceId: 'gsla-overlay-source' as OverlaySource,
+    layerId: 'gsla-raster-layer' as RasterLayer,
+    sourceId: 'gsla-raster-source' as RasterSource,
     product: 'gsla' as ProductType,
   };
 
@@ -92,8 +92,8 @@ describe('useOverlayLayer', () => {
     (useMapUIStore as unknown as Mock).mockImplementation(selector => selector(mockStoreState));
 
     (imageLayer as Mock).mockReturnValue({
-      id: 'gsla-overlay-layer',
-      source: 'gsla-overlay-source',
+      id: 'gsla-raster-layer',
+      source: 'gsla-raster-source',
     });
 
     (useMapboxLayerSetup as Mock).mockReturnValue({
@@ -104,10 +104,10 @@ describe('useOverlayLayer', () => {
     (addOrUpdateWMSSource as Mock).mockResolvedValue(undefined);
   });
 
-  it('should initialize with overlay enabled and setup layer on load', () => {
-    renderHook(() => useOverlayLayer(defaultProps));
+  it('should initialize with raster enabled and setup layer on load', () => {
+    renderHook(() => useRasterLayer(defaultProps));
 
-    // setupLayer is now passed as dependency instead of overlayLayer
+    // setupLayer is now passed as dependency instead of RasterLayer
     expect(useMapboxLayerSetup).toHaveBeenCalledWith(mockMap, expect.any(Function), [
       expect.any(Function),
     ]);
@@ -115,20 +115,20 @@ describe('useOverlayLayer', () => {
     expect(useMapboxLayerVisibility).toHaveBeenCalledWith(
       mockMap,
       true,
-      [{ id: 'gsla-overlay-layer', source: 'gsla-overlay-source' }],
+      [{ id: 'gsla-raster-layer', source: 'gsla-raster-source' }],
       true,
     );
   });
 
-  it('should disable layer visibility when overlay is disabled', () => {
+  it('should disable layer visibility when raster is disabled', () => {
     mockStoreState.productEnabled.gsla = false;
 
-    renderHook(() => useOverlayLayer(defaultProps));
+    renderHook(() => useRasterLayer(defaultProps));
 
     expect(useMapboxLayerVisibility).toHaveBeenCalledWith(
       mockMap,
       true,
-      [{ id: 'gsla-overlay-layer', source: 'gsla-overlay-source' }],
+      [{ id: 'gsla-raster-layer', source: 'gsla-raster-source' }],
       false,
     );
   });
@@ -136,18 +136,18 @@ describe('useOverlayLayer', () => {
   it('should disable layer visibility when product has error', () => {
     mockStoreState.productError.gsla = true;
 
-    renderHook(() => useOverlayLayer(defaultProps));
+    renderHook(() => useRasterLayer(defaultProps));
 
     expect(useMapboxLayerVisibility).toHaveBeenCalledWith(
       mockMap,
       true,
-      [{ id: 'gsla-overlay-layer', source: 'gsla-overlay-source' }],
+      [{ id: 'gsla-raster-layer', source: 'gsla-raster-source' }],
       false,
     );
   });
 
   it('should call addOrUpdateWMSSource and addLayerInOrder during setup', async () => {
-    renderHook(() => useOverlayLayer(defaultProps));
+    renderHook(() => useRasterLayer(defaultProps));
 
     const setupLayerCall = (useMapboxLayerSetup as Mock).mock.calls[0];
     const setupLayerFn = setupLayerCall[1];
@@ -156,17 +156,17 @@ describe('useOverlayLayer', () => {
       await setupLayerFn();
     });
 
-    expect(rasterUrl).toHaveBeenCalledWith('gsla-overlay-source', expect.any(Date));
+    expect(rasterUrl).toHaveBeenCalledWith('gsla-raster-source', expect.any(Date));
 
     expect(addOrUpdateWMSSource).toHaveBeenCalledWith({
       map: mockMap.current,
       url: 'http://example.com/tile/{z}/{x}/{y}.png',
-      sourceId: 'gsla-overlay-source',
+      sourceId: 'gsla-raster-source',
     });
 
     expect(addLayerInOrder).toHaveBeenCalledWith(mockMap, {
-      id: 'gsla-overlay-layer',
-      source: 'gsla-overlay-source',
+      id: 'gsla-raster-layer',
+      source: 'gsla-raster-source',
     });
   });
 
@@ -174,7 +174,7 @@ describe('useOverlayLayer', () => {
     // In the new approach, rasterUrl returns an invalid URL instead of throwing
     (rasterUrl as Mock).mockResolvedValue('invalid-url');
 
-    renderHook(() => useOverlayLayer(defaultProps));
+    renderHook(() => useRasterLayer(defaultProps));
 
     const setupLayerCall = (useMapboxLayerSetup as Mock).mock.calls[0];
     const setupLayerFn = setupLayerCall[1];
@@ -184,16 +184,15 @@ describe('useOverlayLayer', () => {
     });
 
     // Source is always added (even with invalid URL)
-    // Error detection happens later via useOverlayProductErrorDetect listening to sourcedata events
     expect(addOrUpdateWMSSource).toHaveBeenCalledWith({
       map: mockMap.current,
       url: 'invalid-url',
-      sourceId: 'gsla-overlay-source',
+      sourceId: 'gsla-raster-source',
     });
   });
 
   it('should update data source when date changes', async () => {
-    const { rerender } = renderHook(() => useOverlayLayer(defaultProps));
+    const { rerender } = renderHook(() => useRasterLayer(defaultProps));
 
     mockStoreState.date = '2024-01-02';
     (rasterUrl as Mock).mockResolvedValue('http://example.com/tile/new-date.png');
@@ -206,16 +205,16 @@ describe('useOverlayLayer', () => {
     });
 
     // rasterUrl should be called with the new date
-    expect(rasterUrl).toHaveBeenCalledWith('gsla-overlay-source', expect.any(Date));
+    expect(rasterUrl).toHaveBeenCalledWith('gsla-raster-source', expect.any(Date));
   });
 
-  it('should toggle overlay layer visibility correctly', () => {
-    const { rerender } = renderHook(() => useOverlayLayer(defaultProps));
+  it('should toggle raster layer visibility correctly', () => {
+    const { rerender } = renderHook(() => useRasterLayer(defaultProps));
 
     expect(useMapboxLayerVisibility).toHaveBeenCalledWith(
       mockMap,
       true,
-      [{ id: 'gsla-overlay-layer', source: 'gsla-overlay-source' }],
+      [{ id: 'gsla-raster-layer', source: 'gsla-raster-source' }],
       true,
     );
 
@@ -225,7 +224,7 @@ describe('useOverlayLayer', () => {
     expect(useMapboxLayerVisibility).toHaveBeenCalledWith(
       mockMap,
       true,
-      [{ id: 'gsla-overlay-layer', source: 'gsla-overlay-source' }],
+      [{ id: 'gsla-raster-layer', source: 'gsla-raster-source' }],
       false,
     );
 
@@ -235,7 +234,7 @@ describe('useOverlayLayer', () => {
     expect(useMapboxLayerVisibility).toHaveBeenCalledWith(
       mockMap,
       true,
-      [{ id: 'gsla-overlay-layer', source: 'gsla-overlay-source' }],
+      [{ id: 'gsla-raster-layer', source: 'gsla-raster-source' }],
       true,
     );
   });

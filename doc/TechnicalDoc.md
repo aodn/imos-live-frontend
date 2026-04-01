@@ -95,7 +95,7 @@ This JSON file provides essential metadata to correctly interpret the image text
 
 ```
     gsla_input.png    # Vector field data (R/G channels = U/V components)
-    gsla_overlay.png  # Sea level anomalyn overlay
+    gsla_overlay.png  # Sea level anomalyn raster overlay
     gsla_meta.json    # Metadata including bounds and value ranges
 ```
 
@@ -139,7 +139,7 @@ The MapBox GL JS library provides the base map, with custom WebGL layers added t
     - The screen is then updated with the latest frame from the texture, showing smooth particle motion.
 5.  **Overlay Display:**
     - The `gsla_overlay.png` image can be toggled on/off in the UI.
-    - It provides a colored overlay to visualize sea level anomaly over the vector flow.
+    - It provides a colored raster overlay to visualize sea level anomaly over the vector flow.
 
 ### Data source
 

@@ -1,9 +1,9 @@
 import {
   MEASURE_LINES_LAYER_ID,
   MEASURE_POINTS_LAYER_ID,
-  GSLA_OVERLAY_LAYER_ID,
-  SST_ANOMALY_MOSAIC_OVERLAY_LAYER_ID,
-  PARTICLE_LAYER_ID,
+  GSLA_RASTER_LAYER_ID,
+  SST_ANOMALY_MOSAIC_RASTER_LAYER_ID,
+  GSLA_PARTICLE_LAYER_ID,
   UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
   WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID,
   WAVE_BUOYS_LAYER_ID,
@@ -103,7 +103,7 @@ export const ZOOM_LIMIT_TEMP_CONNECTION_LINES_LAYER_PARTIAL: Partial<LineLayerSp
   },
 } as const;
 
-export const OVERLAY_LAYER_CONFIG = {
+export const RASTER_LAYER_CONFIG = {
   paint: {
     'raster-fade-duration': 0,
     'raster-resampling': 'nearest',
@@ -149,9 +149,9 @@ export const WORLD_LAND_FILL_CONFIG: Partial<FillLayerSpecification> = {
 
 //last one is the top layer.
 export const LAYERS_ORDER = [
-  GSLA_OVERLAY_LAYER_ID,
-  SST_ANOMALY_MOSAIC_OVERLAY_LAYER_ID,
-  PARTICLE_LAYER_ID,
+  GSLA_RASTER_LAYER_ID,
+  SST_ANOMALY_MOSAIC_RASTER_LAYER_ID,
+  GSLA_PARTICLE_LAYER_ID,
   WORLD_LAND_BORDER_LAYER_ID,
   WORLD_LAND_FILL_LAYER_ID,
   WAVE_BUOYS_LAYER_ID,
@@ -161,17 +161,17 @@ export const LAYERS_ORDER = [
   MEASURE_POINTS_LAYER_ID,
 ] as const;
 
-//this is from Gabriela.Semolinipilo@csiro.au and this should be same in python script when generate the overlay image.
-export const gslaOverlayImageColors = anomalySeaLevelColorMap as [number, number, number][];
+//this is from Gabriela.Semolinipilo@csiro.au and this should be same in python script when generate the raster image.
+export const gslaRasterImageColors = anomalySeaLevelColorMap as [number, number, number][];
 
-//this should be same in python script when generate the overlay image
+//this should be same in python script when generate the raster image
 export const gslaAnomalySeaLevelsRange = [-1.2, 1.2];
 
 export const gslaAnomalySeaLevelsColorsLegendConfig = {
   title: 'anomaly sea level (m)',
-  colors: gslaOverlayImageColors,
+  colors: gslaRasterImageColors,
   min: gslaAnomalySeaLevelsRange[0],
   max: gslaAnomalySeaLevelsRange[1],
   numStops: 256,
-  threshode: 0.1, //this must be same as linthresh in python script when generate the overlay image
+  threshode: 0.1, //this must be same as linthresh in python script when generate the raster image
 };

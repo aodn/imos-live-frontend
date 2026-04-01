@@ -4,7 +4,7 @@ import path from 'path';
 import type { Plugin, UserConfig } from 'vite';
 import { defineConfig, loadEnv } from 'vite';
 import svgr from 'vite-plugin-svgr';
-import { meta, genRandomData as gslaData, inputBitmap, overlayBitmap } from './test-data/gsla';
+import { meta, genRandomData as gslaData, inputBitmap, rasterBitmap } from './test-data/gsla';
 import { locations, genBuoyRandomData } from './test-data/buoy';
 import { visualizer } from 'rollup-plugin-visualizer';
 
@@ -131,7 +131,7 @@ const mockServerPlugin = (): Plugin => {
             );
           }
 
-          if (url.endsWith('gsla_overlay.png')) res.end(await overlayBitmap());
+          if (url.endsWith('gsla_overlay.png')) res.end(await rasterBitmap());
           if (url.endsWith('gsla_input.png')) res.end(await inputBitmap());
         });
       };
