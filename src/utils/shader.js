@@ -3,7 +3,7 @@
  * This properly handles precision on devices without float texture support
  */
 
-const vs = `
+const vectorVs = `
 precision highp float;
 
 attribute float a_index;
@@ -38,7 +38,7 @@ void main() {
 }
 `;
 
-const fs = `
+const vectorFs = `
 precision highp float;
 
 // uniforms are constants, these variables are set by the CPU to GPU, from js to shader.
@@ -105,7 +105,7 @@ void main() {
         (lon - u_data_bounds.x) / lon_domain,
         (lat - u_data_bounds.y) / lat_domain
     );
-
+    // if b is < 0.99, it is null data point, which means the land from gsla dataset.
     if (texture2D(u_vector, pos_lookup).b < 0.99) {
         discard;
     }
@@ -127,7 +127,7 @@ void main() {
 }
 `;
 
-const vsQuad = `
+const vectorVsQuad = `
 precision highp float;
 
 attribute vec2 a_pos;
@@ -140,7 +140,7 @@ void main() {
 }
 `;
 
-const fsScreen = `
+const vectorFsScreen = `
 precision highp float;
 
 uniform sampler2D u_screen;
@@ -155,7 +155,7 @@ void main() {
 }
 `;
 
-const fsUpdate = `
+const vectorFsUpdate = `
 precision highp float;
 
 uniform sampler2D u_particles;
@@ -258,7 +258,7 @@ void main() {
     //float distortion = cos(radians(lat));
     vec2 offset = vec2(velocity.x , -velocity.y) * 0.0001 * u_speed_factor;
 
-    // update particle position, wrapping around the date line
+    // update particle position, wrapping around the date line, if a particle moves past the right, left, top, bottom edge (pos > 1.0), it appears on the other edge
     pos = fract(1.0 + pos + offset);
 
     // a random seed to use for the particle drop
@@ -278,7 +278,78 @@ void main() {
 }
 `;
 
-export { vs, fs, vsQuad, fsScreen, fsUpdate };
+const webglOverlayVs = `
+precision highp float;
+attribute vec2 a_position;
+attribute vec2 a_texCoord;
+uniform vec2 u_topLeft;
+uniform vec2 u_topRight;
+uniform vec2 u_bottomLeft;
+uniform vec2 u_bottomRight;
+uniform vec2 u_viewport;
+varying vec2 v_texCoord;
+
+void main() {
+    // Bilinear interpolation between the four corners, as gsla data points are grid data, evenly regularly populated across the bounds.
+    vec2 top = mix(u_topLeft, u_topRight, a_position.x);
+    vec2 bottom = mix(u_bottomLeft, u_bottomRight, a_position.x);
+    vec2 pos = mix(bottom, top, a_position.y);
+    
+    // Convert to clip space, normalized to [-1, 1], which is expected by webgl.
+    vec2 clipSpace = ((pos / u_viewport) * 2.0) - 1.0;
+    
+    gl_Position = vec4(clipSpace.x, -clipSpace.y, 0.0, 1.0);
+    v_texCoord = a_texCoord;
+}
+`;
+
+const webglOverlayFs = `
+precision highp float;
+uniform sampler2D u_dataTexture;
+uniform sampler2D u_paletteTexture;
+uniform vec2 u_range;
+uniform vec2 u_legend_range;
+varying vec2 v_texCoord;
+
+// r,g,b 3 8 bits are used to save one gsla data point, a is to determine if it is null.
+float decodeRGBToNormalized(vec3 rgb) {
+    float u_range_min=u_range.x;
+    float u_range_max=u_range.y;
+    float u_legend_min=u_legend_range.x;
+    float u_legend_max=u_legend_range.y;
+    
+    vec3 rgbBytes = rgb * 255.0;
+    float decoded24bit = rgbBytes.r * 65536.0 + rgbBytes.g * 256.0 + rgbBytes.b;
+
+    float normalized = decoded24bit / 16777215.0;
+    float rawValue = normalized * (u_range_max - u_range_min) + u_range_min;
+
+    return (rawValue - u_legend_min ) / (u_legend_max - u_legend_min);
+}
+
+void main() {
+    vec4 encodedData = texture2D(u_dataTexture, v_texCoord);
+    
+    if (encodedData.a < 0.01) {
+        discard;
+    }
+    
+    float normalizedValue = decodeRGBToNormalized(encodedData.rgb);
+    vec4 color = texture2D(u_paletteTexture, vec2(normalizedValue, 0.5));
+    
+    gl_FragColor = vec4(color.rgb, encodedData.a);
+}
+`;
+
+export {
+  vectorVs,
+  vectorFs,
+  vectorFsUpdate,
+  vectorVsQuad,
+  vectorFsScreen,
+  webglOverlayVs,
+  webglOverlayFs,
+};
 
 /**
  * why fix works?
