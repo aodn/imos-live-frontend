@@ -36,8 +36,10 @@ export type RasterSource =
   | typeof GSLA_RASTER_SOURCE_ID
   | typeof SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID;
 
-export type WebGLLayer = typeof GSLA_WEBGL_LAYER_ID | typeof SST_ANOM_MOSAIC_WEBGL_LAYER_ID;
-export type WebGLSource = typeof GSLA_WEBGL_SOURCE_ID | typeof SST_ANOM_MOSAIC_WEBGL_SOURCE_ID;
+export type WebGLOverlayLayer = typeof GSLA_WEBGL_LAYER_ID | typeof SST_ANOM_MOSAIC_WEBGL_LAYER_ID;
+export type WebGLOverlaySource =
+  | typeof GSLA_WEBGL_SOURCE_ID
+  | typeof SST_ANOM_MOSAIC_WEBGL_SOURCE_ID;
 
 export type BuoySource = typeof WAVE_BUOYS_SOURCE_ID;
 export type BuoyLayer = typeof WAVE_BUOYS_LAYER_ID;
@@ -68,14 +70,7 @@ export const MEASURE_POINTS_SOURCE_ID = 'measure-points-source';
 export const MEASURE_LINES_LAYER_ID = 'measure-lines-layer';
 export const MEASURE_LINES_SOURCE_ID = MEASURE_POINTS_SOURCE_ID;
 
-export const GSLA_SEA_LEVEL_NAME = 'gsla_overlay.png';
-export const GSLA_PARTICLE_NAME = 'gsla_input.png';
-export const GSLA_META_NAME = 'gsla_meta.json';
-export const GSLA_DATA_NAME = 'gsla_data.json';
-
 //land border
 export const WORLD_LAND_SOURCE_ID = 'world-land-source';
 export const WORLD_LAND_BORDER_LAYER_ID = 'world-land-border-layer';
 export const WORLD_LAND_FILL_LAYER_ID = 'world-land-fill-layer';
-
-export const SST_ANOM_MOSAIC_META_NAME = 'sst_anom_mosaic_meta.json';

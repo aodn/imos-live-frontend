@@ -28,8 +28,12 @@ import {
   SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID,
   WAVE_BUOYS_LAYER_ID,
   WAVE_BUOYS_SOURCE_ID,
+  GSLA_WEBGL_SOURCE_ID,
+  GSLA_WEBGL_LAYER_ID,
+  SST_ANOM_MOSAIC_WEBGL_SOURCE_ID,
+  SST_ANOM_MOSAIC_WEBGL_LAYER_ID,
 } from '@/constants';
-import { useSstAnomMosaicWebGLLayer } from '@/hooks/layers/useSstAnomMosaicWebGLLayer';
+import { useOverlayWebGLLayer } from '@/hooks/layers/useOverlayWebGLLayer';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_KEY;
 
@@ -58,7 +62,18 @@ export const MapComponent = memo(function MapComponent() {
   //2. create layer, set data to layer and add layer to map.
   const { measurePointsGeojson, setMeasurePointsGeojson } = useDistanceMeasurementLayers(map);
   useWorldLandLayer(map);
-  useSstAnomMosaicWebGLLayer(map);
+  useOverlayWebGLLayer({
+    map,
+    layerId: GSLA_WEBGL_LAYER_ID,
+    sourceId: GSLA_WEBGL_SOURCE_ID,
+    product: PRODUCT.GSLA_ANOMALY_SEA_LEVELS_WEBGL,
+  });
+  useOverlayWebGLLayer({
+    map,
+    layerId: SST_ANOM_MOSAIC_WEBGL_LAYER_ID,
+    sourceId: SST_ANOM_MOSAIC_WEBGL_SOURCE_ID,
+    product: PRODUCT.SST_ANOM_MOSAIC_WEBGL,
+  });
   useRasterLayer({
     map,
     layerId: GSLA_RASTER_LAYER_ID,
