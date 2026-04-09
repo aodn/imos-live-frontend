@@ -9,6 +9,8 @@ import {
   WAVE_BUOYS_LAYER_ID,
   WORLD_LAND_BORDER_LAYER_ID,
   WORLD_LAND_FILL_LAYER_ID,
+  PRODUCT,
+  PRODUCTLEGENDS,
 } from '@/constants';
 import type {
   CircleLayerSpecification,
@@ -17,6 +19,8 @@ import type {
   SymbolLayerSpecification,
 } from 'mapbox-gl';
 import anomalySeaLevelColorMap from './anomaly_sea_level_colormap.json';
+import type { ColorPalette } from '@/layers';
+import { convertLinearColorScaleToRamp } from '@/components';
 
 export const WAVE_BUOYS_LAYER_CONFIG: Partial<CircleLayerSpecification> = {
   filter: ['has', 'point_count'], // Only show clustered points
@@ -164,14 +168,43 @@ export const LAYERS_ORDER = [
 //this is from Gabriela.Semolinipilo@csiro.au and this should be same in python script when generate the raster image.
 export const gslaRasterImageColors = anomalySeaLevelColorMap as [number, number, number][];
 
-//this should be same in python script when generate the raster image
-export const gslaAnomalySeaLevelsRange = [-1.2, 1.2];
+// //this should be same in python script when generate the raster image
+// export const gslaAnomalySeaLevelsRange = [-1.2, 1.2];
 
-export const gslaAnomalySeaLevelsColorsLegendConfig = {
-  title: 'anomaly sea level (m)',
-  colors: gslaRasterImageColors,
-  min: gslaAnomalySeaLevelsRange[0],
-  max: gslaAnomalySeaLevelsRange[1],
-  numStops: 256,
-  threshode: 0.1, //this must be same as linthresh in python script when generate the raster image
+// export const gslaAnomalySeaLevelsColorsLegendConfig = {
+//   title: 'anomaly sea level (m)',
+//   colors: gslaRasterImageColors,
+//   min: gslaAnomalySeaLevelsRange[0],
+//   max: gslaAnomalySeaLevelsRange[1],
+//   numStops: 256,
+//   threshode: 0.1, //this must be same as linthresh in python script when generate the raster image
+// };
+
+// RdBu_r: dark blue (cold/negative) → white (zero) → dark red (warm/positive)
+const rdBuR: { colors: [number, number, number][] } = {
+  colors: [
+    [0.02, 0.188, 0.38], // dark blue
+    [0.094, 0.31, 0.635],
+    [0.22, 0.478, 0.745],
+    [0.396, 0.647, 0.82],
+    [0.62, 0.788, 0.882],
+    [0.82, 0.898, 0.941],
+    [0.969, 0.969, 0.969], // near white (centre)
+    [0.992, 0.859, 0.78],
+    [0.957, 0.694, 0.545],
+    [0.89, 0.49, 0.337],
+    [0.776, 0.275, 0.224],
+    [0.62, 0.102, 0.118],
+    [0.403, 0.0, 0.122], // dark red
+  ],
+};
+
+export const sstAnomMosaicLinearPalette: ColorPalette = {
+  name: 'linear RdBu_r SST',
+  colors: convertLinearColorScaleToRamp({
+    colors: rdBuR.colors,
+    min: PRODUCTLEGENDS[PRODUCT.SST_ANOMALY_MOSAIC].range[0],
+    max: PRODUCTLEGENDS[PRODUCT.SST_ANOMALY_MOSAIC].range[1],
+    numStops: 256,
+  }),
 };

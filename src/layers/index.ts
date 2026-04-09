@@ -5,3 +5,5 @@ export * from './circleLayer';
 export * from './VectorField';
 export * from './symbolLayer';
 export * from './fillLayer';
+export * from './WebGLOverlayField';
+export * from './webglOverlayLayer';

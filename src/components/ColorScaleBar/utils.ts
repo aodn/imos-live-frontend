@@ -4,6 +4,32 @@ function rgbToString(r: number, g: number, b: number): string {
   return `rgb(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)})`;
 }
 
+export function convertLinearColorScaleToRamp({
+  min,
+  max,
+  colors,
+  numStops,
+}: {
+  min: number;
+  max: number;
+  numStops: number;
+  colors: [number, number, number][];
+}): Record<string, string> {
+  const values = Array.from(
+    { length: numStops },
+    (_, i) => min + (max - min) * (i / (numStops - 1)),
+  );
+  const colorStops: Record<string, string> = {};
+
+  values.forEach(v => {
+    const percent = (v - min) / (max - min);
+    const color = interpolateColor(percent, colors, 'hex');
+    colorStops[percent.toFixed(2)] = color;
+  });
+
+  return colorStops;
+}
+
 /**
  * Converts a logarithmic color scale to a color ramp suitable for WebGL textures.
  *

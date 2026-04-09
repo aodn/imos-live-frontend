@@ -7,8 +7,10 @@ import speedColors from '../config/speed_colormap.json' with { type: 'json' };
 export const PRODUCT = {
   GSLA_OCEAN_GEOSTROPHIC_CURRENT: 'gsla-ocean-geostrophic-current',
   GSLA_ANOMALY_SEA_LEVELS: 'gsla-anomaly-sea-levels',
+  GSLA_ANOMALY_SEA_LEVELS_WEBGL: 'gsla-anomaly-sea-levels-webgl',
   WAVE_BUOYS: 'wave-buoys',
   SST_ANOMALY_MOSAIC: 'sst-anom-mosaic',
+  SST_ANOM_MOSAIC_WEBGL: 'sst-anom-mosaic-webgl',
 } as const;
 
 export type ProductType = (typeof PRODUCT)[keyof typeof PRODUCT];
@@ -40,6 +42,16 @@ export const PRODUCTS = {
     layerId: 'sst-anom-mosaic-layer',
     sourceId: 'sst-anom-mosaic-source',
   },
+  [PRODUCT.SST_ANOM_MOSAIC_WEBGL]: {
+    name: 'SST Anomaly Mosaic (WebGL)',
+    layerId: 'sst-anom-mosaic-webgl-layer',
+    sourceId: 'sst-anom-mosaic-webgl-source',
+  },
+  [PRODUCT.GSLA_ANOMALY_SEA_LEVELS_WEBGL]: {
+    name: 'GSLA Anomaly Sea Levels (WebGL)',
+    layerId: 'gsla-anomaly-sea-levels-webgl-layer',
+    sourceId: 'gsla-anomaly-sea-levels-webgl-source',
+  },
 } as const satisfies Record<ProductType, ProductValue>;
 
 export const MAX_VECTOR_SPEED = 3.0 as const;
@@ -49,10 +61,12 @@ export type VectorLegendArgs = {
   colors?: [number, number, number][];
   min?: number;
   max?: number;
+  ramge?: [number, number];
 };
 export type RasterLegendArgs = {
   scales?: number[];
   label: string;
+  range?: [number, number];
 };
 
 export const PRODUCTLEGENDS = {
@@ -62,14 +76,27 @@ export const PRODUCTLEGENDS = {
     colors: speedColors as [number, number, number][],
     min: 0.01,
     max: MAX_VECTOR_SPEED,
+    range: [0.01, MAX_VECTOR_SPEED],
   },
   [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: {
     scales: [-1.2, -0.5, -0.2, -0.1, 0, 0.1, 0.2, 0.5, 1.2],
     label: 'sea level anomaly (m)',
+    range: [-1.2, 1.2],
   },
   [PRODUCT.SST_ANOMALY_MOSAIC]: {
     scales: [-4, -2, 0, 2, 4],
     label: 'degrees Celsius (°C)',
+    range: [-4, 4],
+  },
+  [PRODUCT.SST_ANOM_MOSAIC_WEBGL]: {
+    scales: [-4, -2, 0, 2, 4],
+    label: 'degrees Celsius (°C)',
+    range: [-4, 4],
+  },
+  [PRODUCT.GSLA_ANOMALY_SEA_LEVELS_WEBGL]: {
+    scales: [-1.2, -0.5, -0.2, -0.1, 0, 0.1, 0.2, 0.5, 1.2],
+    label: 'sea level anomaly (m)',
+    range: [-1.2, 1.2],
   },
 } as const satisfies Record<
   Exclude<ProductType, 'wave-buoys'>,

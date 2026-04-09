@@ -19,7 +19,7 @@ export function useWebGLOverlayLayer(map: React.RefObject<mapboxgl.Map | null>) 
   const { webglOverlay, dataset } = useMapUIStore(
     useShallow(s => ({
       webglOverlay: s.webglOverlay,
-      dataset: s.dataset,
+      dataset: s.date,
     })),
   );
 

@@ -1,10 +1,10 @@
 import { LAYERS_ORDER } from '@/config';
-import type { VectoryLayerInterface } from '@/layers';
+import type { VectoryLayerInterface, WebGLOverlayLayerInterface } from '@/layers';
 import type { Layer } from 'mapbox-gl';
 
 export function addLayerInOrder(
   map: React.RefObject<mapboxgl.Map | null>,
-  layer: Layer | VectoryLayerInterface | null,
+  layer: Layer | VectoryLayerInterface | WebGLOverlayLayerInterface | null,
 ) {
   if (!layer) return;
 

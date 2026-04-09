@@ -29,6 +29,7 @@ import {
   WAVE_BUOYS_LAYER_ID,
   WAVE_BUOYS_SOURCE_ID,
 } from '@/constants';
+import { useSstAnomMosaicWebGLLayer } from '@/hooks/layers/useSstAnomMosaicWebGLLayer';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_KEY;
 
@@ -57,6 +58,7 @@ export const MapComponent = memo(function MapComponent() {
   //2. create layer, set data to layer and add layer to map.
   const { measurePointsGeojson, setMeasurePointsGeojson } = useDistanceMeasurementLayers(map);
   useWorldLandLayer(map);
+  useSstAnomMosaicWebGLLayer(map);
   useRasterLayer({
     map,
     layerId: GSLA_RASTER_LAYER_ID,

@@ -10,7 +10,7 @@ import { useCallback, useEffect, useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { useDidMountEffect } from '../useDidMountEffect';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
-import { useParticleLayerVisibility } from './useParticleLayerVisibility';
+import { useCustomLayerVisibility } from './useCustomLayerVisibility';
 
 type UseOParticleLayer = {
   map: React.RefObject<mapboxgl.Map | null>;
@@ -81,7 +81,7 @@ export function useParticleLayer({ map, layerId, sourceId, product }: UseOPartic
 
   const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [setupLayer]);
 
-  useParticleLayerVisibility(map, loadComplete, particleLayer, enabled && !isError);
+  useCustomLayerVisibility(map, loadComplete, particleLayer, enabled && !isError);
 
   useEffect(() => {
     if (!map || !loadComplete || !particleLayer) return;

@@ -1,6 +1,6 @@
 import mapboxgl from 'mapbox-gl';
 import * as twgl from 'twgl.js';
-import { vs, fs, vsQuad, fsScreen, fsUpdate } from '../utils/shader.js';
+import { vectorVs, vectorFs, vectorVsQuad, vectorFsScreen, vectorFsUpdate } from '../utils';
 import { particleConfig } from '@/store';
 
 /**
@@ -167,11 +167,11 @@ function VectorField(map, gl) {
     //Together, these define how things are drawn on the screen in the WebGL context.
 
     //Draw particles
-    programInfo = twgl.createProgramInfo(gl, [vs, fs]);
+    programInfo = twgl.createProgramInfo(gl, [vectorVs, vectorFs]);
     //Render final frame to screen
-    screenProgramInfo = twgl.createProgramInfo(gl, [vsQuad, fsScreen]);
+    screenProgramInfo = twgl.createProgramInfo(gl, [vectorVsQuad, vectorFsScreen]);
     //Update particle positions
-    updateProgramInfo = twgl.createProgramInfo(gl, [vsQuad, fsUpdate]);
+    updateProgramInfo = twgl.createProgramInfo(gl, [vectorVsQuad, vectorFsUpdate]);
 
     //initial setting of particle positions
     setParticles(nParticles);
@@ -231,7 +231,7 @@ function VectorField(map, gl) {
    * @private
    */
   function drawParticles() {
-    //vs, fs is used here.
+    //vectorVs, vectorFs is used here.
     gl.useProgram(programInfo.program);
 
     const arrays = {
@@ -271,7 +271,7 @@ function VectorField(map, gl) {
    * @param {number} opacity - Opacity between 0–1.
    */
   function drawTexture(texture, opacity) {
-    //vsQuad, fsScreen is used here
+    //vectorVsQuad, vectorFsScreen is used here
     gl.useProgram(screenProgramInfo.program);
 
     const arrays = {
@@ -357,7 +357,7 @@ function VectorField(map, gl) {
     );
 
     gl.viewport(0, 0, particleRes, particleRes);
-    //vsQuad, fsUpdate is used here
+    //vectorVsQuad, vectorFsUpdate is used here
     gl.useProgram(updateProgramInfo.program);
 
     const arrays = {

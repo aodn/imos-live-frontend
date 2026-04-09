@@ -1,17 +1,17 @@
 import * as twgl from 'twgl.js';
 import { getColorRamp, webglOverlayFs, webglOverlayVs } from '@/utils';
-import { gslaAnomalySeaLevelsRange } from '@/config';
+import { PRODUCT, PRODUCTLEGENDS } from '@/constants';
 
-export interface ColorPalette {
+export type ColorPalette = {
   name: string;
   colors: Record<string, string>; // hex colors
-}
+};
 
-interface GSLAData {
+type GSLAData = {
   data: ImageBitmap;
   range: [number, number];
   bounds: [number, number, number, number]; // [west, south, east, north]
-}
+};
 
 export interface WebGLOverlayFieldAPI {
   setData: (dataObject: GSLAData) => void;
@@ -173,7 +173,10 @@ export function webGLOverlayField(
       u_bottomRight: [bottomRight.x, bottomRight.y],
       u_viewport: [gl.canvas.width, gl.canvas.height],
       u_range: [range[0], range[1]],
-      u_legend_range: [gslaAnomalySeaLevelsRange[0], gslaAnomalySeaLevelsRange[1]],
+      u_legend_range: [
+        PRODUCTLEGENDS[PRODUCT.GSLA_ANOMALY_SEA_LEVELS].range[0],
+        PRODUCTLEGENDS[PRODUCT.GSLA_ANOMALY_SEA_LEVELS].range[1],
+      ],
     };
 
     twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo);

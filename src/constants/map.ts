@@ -6,8 +6,14 @@ export const GSLA_PARTICLE_LAYER_ID = PRODUCTS['gsla-ocean-geostrophic-current']
 export const GSLA_PARTICLE_SOURCE_ID = PRODUCTS['gsla-ocean-geostrophic-current'].sourceId;
 export const GSLA_RASTER_LAYER_ID = PRODUCTS['gsla-anomaly-sea-levels'].layerId;
 export const GSLA_RASTER_SOURCE_ID = PRODUCTS['gsla-anomaly-sea-levels'].sourceId;
+export const GSLA_WEBGL_LAYER_ID = PRODUCTS['gsla-anomaly-sea-levels-webgl'].layerId;
+export const GSLA_WEBGL_SOURCE_ID = PRODUCTS['gsla-anomaly-sea-levels-webgl'].sourceId;
+
 export const SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID = PRODUCTS['sst-anom-mosaic'].sourceId;
 export const SST_ANOMALY_MOSAIC_RASTER_LAYER_ID = PRODUCTS['sst-anom-mosaic'].layerId;
+export const SST_ANOM_MOSAIC_WEBGL_LAYER_ID = PRODUCTS['sst-anom-mosaic-webgl'].layerId;
+export const SST_ANOM_MOSAIC_WEBGL_SOURCE_ID = PRODUCTS['sst-anom-mosaic-webgl'].sourceId;
+
 export const WAVE_BUOYS_LAYER_ID = PRODUCTS['wave-buoys'].layerId;
 export const WAVE_BUOYS_SOURCE_ID = PRODUCTS['wave-buoys'].sourceId;
 
@@ -15,6 +21,7 @@ export const ProductSourceIds: ProductSourceId[] = [
   GSLA_PARTICLE_SOURCE_ID,
   GSLA_RASTER_SOURCE_ID,
   SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID,
+  SST_ANOM_MOSAIC_WEBGL_SOURCE_ID,
   WAVE_BUOYS_SOURCE_ID,
 ];
 
@@ -28,6 +35,9 @@ export type RasterLayer = typeof GSLA_RASTER_LAYER_ID | typeof SST_ANOMALY_MOSAI
 export type RasterSource =
   | typeof GSLA_RASTER_SOURCE_ID
   | typeof SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID;
+
+export type WebGLLayer = typeof GSLA_WEBGL_LAYER_ID | typeof SST_ANOM_MOSAIC_WEBGL_LAYER_ID;
+export type WebGLSource = typeof GSLA_WEBGL_SOURCE_ID | typeof SST_ANOM_MOSAIC_WEBGL_SOURCE_ID;
 
 export type BuoySource = typeof WAVE_BUOYS_SOURCE_ID;
 export type BuoyLayer = typeof WAVE_BUOYS_LAYER_ID;
@@ -67,3 +77,5 @@ export const GSLA_DATA_NAME = 'gsla_data.json';
 export const WORLD_LAND_SOURCE_ID = 'world-land-source';
 export const WORLD_LAND_BORDER_LAYER_ID = 'world-land-border-layer';
 export const WORLD_LAND_FILL_LAYER_ID = 'world-land-fill-layer';
+
+export const SST_ANOM_MOSAIC_META_NAME = 'sst_anom_mosaic_meta.json';

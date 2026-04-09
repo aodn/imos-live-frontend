@@ -1,10 +1,14 @@
-import type { ColorPalette, WebGLOverlayFieldAPI } from './webGLOverlayField';
-import { webGLOverlayField } from './webGLOverlayField';
+import type { ColorPalette, WebGLOverlayFieldAPI } from './WebGLOverlayField';
+import { webGLOverlayField } from './WebGLOverlayField';
 
 export interface WebGLOverlayLayerInterface extends mapboxgl.CustomLayerInterface {
   sourceId: string;
   visible: boolean;
-  metadata?: { bounds: [number, number, number, number]; range: [number, number] };
+  metadata?: {
+    bounds: [number, number, number, number];
+    range: [number, number]; //the range of the data values, used for color mapping
+    legendRange?: [number, number]; //the range to display in the legend, which may differ from the actual data range for better visualization
+  };
   webGLOverlayField?: WebGLOverlayFieldAPI;
   palette: ColorPalette;
   setData: (data: ImageBitmap) => void;

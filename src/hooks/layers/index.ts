@@ -2,7 +2,7 @@ export * from './useMapboxLayerSetup';
 export * from './useMapboxLayerVisibility';
 export * from './useRasterLayer';
 export * from './useParticleLayer';
-export * from './useParticleLayerVisibility';
+export * from './useCustomLayerVisibility';
 export * from './useParticleRasterLayersEventHandlers';
 export * from './useWaveBuoysLayer';
 export * from './useWaveBuoysLayerEventHandler';
