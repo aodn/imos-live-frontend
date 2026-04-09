@@ -53,7 +53,7 @@ export function useSstAnomMosaicWebGLLayer(map: React.RefObject<mapboxgl.Map | n
 
       const displayLonRange = rawLonRange || lonRange;
       const displayLatRange = rawLatRange || latRange;
-
+      //TODO: investigate why this is different from bounds in processMetaData
       const overlayBounds: [number, number, number, number] = [
         displayLonRange[0], // west
         displayLatRange[0], // south

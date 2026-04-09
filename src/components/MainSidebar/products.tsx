@@ -11,6 +11,7 @@ import {
   WAVE_BUOYS_LAYER_ID,
   PRODUCT,
   SST_ANOMALY_MOSAIC_RASTER_LAYER_ID,
+  SST_ANOM_MOSAIC_WEBGL_LAYER_ID,
   PRODUCTLEGENDS,
 } from '@/constants';
 import {
@@ -22,7 +23,7 @@ import {
   WaveIcon,
 } from '../Icons';
 import type { LayersDataset } from './MainSidebarContent';
-import { LogColorScaleBar, RasterLegend } from '../ColorScaleBar';
+import { LinearColorScaleBar, LogColorScaleBar, RasterLegend } from '../ColorScaleBar';
 import { setProductEnabledByProduct } from '@/store';
 import { gslaUrl, sstaUrl } from '@/api/fileExist';
 
@@ -104,6 +105,47 @@ export const featuredDataset: LayersDataset[] = [
       <RasterLegend
         rasterSource={SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID}
         {...PRODUCTLEGENDS['sst-anom-mosaic']}
+      />
+    ),
+    addToMap: setProductEnabledByProduct,
+    dateCheckUrl: sstaUrl,
+    portalLink:
+      'https://catalogue-imos.aodn.org.au/geonetwork/srv/eng/catalog.search#/search?any=IMOS%20-%20AusTemp%20-%20Sea%20Surface%20Temperature',
+  },
+  {
+    image: {
+      src: sstImage,
+      alt: 'AUS TEMP WebGL',
+    },
+    title: 'Sea surface skin temperature anomaly (WebGL)',
+    icon: <ThermometerIcon size="lg" />,
+    description:
+      'AusTemp is a specialised remote sensing application for the monitoring of SST conditions that lead to coral bleaching. The BOM legacy system was developed in consultation with Great Barrier Reef Marine Park Authority (GBRMPA) reef management and replaces the original CSIRO ReefTemp system (Maynard et al, 2008).',
+    layerId: SST_ANOM_MOSAIC_WEBGL_LAYER_ID,
+    visible: false,
+    isError: false,
+    product: PRODUCT.SST_ANOM_MOSAIC_WEBGL,
+    legend: (
+      <LinearColorScaleBar
+        className="w-full"
+        min={PRODUCTLEGENDS['sst-anom-mosaic-webgl'].range[0]}
+        max={PRODUCTLEGENDS['sst-anom-mosaic-webgl'].range[1]}
+        label={PRODUCTLEGENDS['sst-anom-mosaic-webgl'].label}
+        colors={[
+          'rgb(5,48,97)',
+          'rgb(24,79,162)',
+          'rgb(56,122,190)',
+          'rgb(101,165,209)',
+          'rgb(158,201,225)',
+          'rgb(209,229,240)',
+          'rgb(247,247,247)',
+          'rgb(253,219,199)',
+          'rgb(244,177,139)',
+          'rgb(227,125,86)',
+          'rgb(198,70,57)',
+          'rgb(158,26,30)',
+          'rgb(103,0,31)',
+        ]}
       />
     ),
     addToMap: setProductEnabledByProduct,

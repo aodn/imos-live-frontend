@@ -46,6 +46,7 @@ export const webGLOverlayLayer = (
       data,
       range: this.metadata.range,
       bounds: this.metadata.bounds,
+      legendRange: this.metadata.legendRange,
     });
     if (this.visible) this.webGLOverlayField?.setVisible(true);
   },

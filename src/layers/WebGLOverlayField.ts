@@ -1,6 +1,6 @@
 import * as twgl from 'twgl.js';
 import { getColorRamp, webglOverlayFs, webglOverlayVs } from '@/utils';
-import { PRODUCT, PRODUCTLEGENDS } from '@/constants';
+import mapboxgl from 'mapbox-gl';
 
 export type ColorPalette = {
   name: string;
@@ -11,6 +11,7 @@ type GSLAData = {
   data: ImageBitmap;
   range: [number, number];
   bounds: [number, number, number, number]; // [west, south, east, north]
+  legendRange?: [number, number];
 };
 
 export interface WebGLOverlayFieldAPI {
@@ -28,6 +29,7 @@ export function webGLOverlayField(
   let data: ImageBitmap | null = null;
   let bounds: [number, number, number, number] = [0, 0, 0, 0];
   let range: [number, number];
+  let legendRange: [number, number] | undefined;
   let palette: ColorPalette = initialPalette;
 
   let programInfo: twgl.ProgramInfo | null = null;
@@ -113,7 +115,7 @@ export function webGLOverlayField(
   }
 
   function setData(dataObject: GSLAData) {
-    ({ data, bounds, range } = dataObject);
+    ({ data, bounds, range, legendRange } = dataObject);
     if (!programInfo) initialize();
 
     if (gl && data) {
@@ -166,6 +168,12 @@ export function webGLOverlayField(
     const bottomLeft = map.project([west, south]);
     const bottomRight = map.project([east, south]);
 
+    // Mercator Y values for north/south boundaries — passed to the shader so it
+    // can invert the Mercator projection and map each fragment to the correct row
+    // of the equirectangular source image, fixing the southward drift at Australia's latitudes.
+    const northMercY = mapboxgl.MercatorCoordinate.fromLngLat({ lng: west, lat: north }).y;
+    const southMercY = mapboxgl.MercatorCoordinate.fromLngLat({ lng: west, lat: south }).y;
+
     const uniforms = {
       u_topLeft: [topLeft.x, topLeft.y],
       u_topRight: [topRight.x, topRight.y],
@@ -173,10 +181,10 @@ export function webGLOverlayField(
       u_bottomRight: [bottomRight.x, bottomRight.y],
       u_viewport: [gl.canvas.width, gl.canvas.height],
       u_range: [range[0], range[1]],
-      u_legend_range: [
-        PRODUCTLEGENDS[PRODUCT.GSLA_ANOMALY_SEA_LEVELS].range[0],
-        PRODUCTLEGENDS[PRODUCT.GSLA_ANOMALY_SEA_LEVELS].range[1],
-      ],
+      u_legend_range: legendRange ?? [range[0], range[1]],
+      u_merc_y_north: northMercY,
+      u_merc_y_south: southMercY,
+      u_lat_range: [south, north],
     };
 
     twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo);
