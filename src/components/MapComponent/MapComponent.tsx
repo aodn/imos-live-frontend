@@ -10,6 +10,7 @@ import {
   useWaveBuoysLayer,
   useWaveBuoysLayerEventHandler,
   useWorldLandLayer,
+  useOverlayWebGLLayer,
 } from '@/hooks';
 import { useMapUIStore } from '@/store';
 import { cn } from '@/utils';
@@ -33,7 +34,6 @@ import {
   SST_ANOM_MOSAIC_WEBGL_SOURCE_ID,
   SST_ANOM_MOSAIC_WEBGL_LAYER_ID,
 } from '@/constants';
-import { useOverlayWebGLLayer } from '@/hooks/layers/useOverlayWebGLLayer';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_KEY;
 

@@ -9,3 +9,4 @@ export * from './useWaveBuoysLayerEventHandler';
 export * from './useWorldLandLayer';
 export * from './useDistanceMeasurementLayers';
 export * from './useDistanceMeasurementLayersEventHandler';
+export * from './useOverlayWebGLLayer';
