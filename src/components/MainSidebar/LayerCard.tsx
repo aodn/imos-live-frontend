@@ -31,7 +31,11 @@ export function LayerCard({
   dateCheckUrl,
   portalLink,
 }: LayerCardProps) {
-  const isRasterProduct = product === 'gsla-anomaly-sea-levels' || product === 'sst-anom-mosaic';
+  const isRasterProduct =
+    product === 'gsla-anomaly-sea-levels' ||
+    product === 'sst-anom-mosaic' ||
+    product === 'gsla-anomaly-sea-levels-webgl' ||
+    product === 'sst-anom-mosaic-webgl';
   const isGeostrophicCurrentProduct = product === 'gsla-ocean-geostrophic-current';
   const isWaveBuoyProduct = product === 'wave-buoys';
   // this is a temporary solution to get the latest available raster date. We should have a better way to get the latest date

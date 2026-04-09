@@ -40,7 +40,9 @@ export type ProductType = (typeof PRODUCT)[keyof typeof PRODUCT];
 
 export type WebGlLayerProduct = Exclude<
   ProductType,
-  'wave-buoys' | 'gsla-anomaly-sea-levels' | 'sst-anom-mosaic'
+  | typeof PRODUCT.WAVE_BUOYS
+  | typeof PRODUCT.GSLA_ANOMALY_SEA_LEVELS
+  | typeof PRODUCT.SST_ANOMALY_MOSAIC
 >;
 
 type ProductValue = {
@@ -166,15 +168,15 @@ export const PRODUCTLEGENDS = {
 export const PRODUCTCOLORPALETTES = {
   [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: {
     name: 'linear Viridis Ocean Current',
-    colors: convertLogColorScaleToRamp(PRODUCTLEGENDS['gsla-ocean-geostrophic-current']),
+    colors: convertLogColorScaleToRamp(PRODUCTLEGENDS[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]),
   },
   [PRODUCT.GSLA_ANOMALY_SEA_LEVELS_WEBGL]: {
     name: 'linear RdBu_r Sea Level Anomaly',
-    colors: convertLinearColorScaleToRamp(PRODUCTLEGENDS['gsla-anomaly-sea-levels-webgl']),
+    colors: convertLinearColorScaleToRamp(PRODUCTLEGENDS[PRODUCT.GSLA_ANOMALY_SEA_LEVELS_WEBGL]),
   },
   [PRODUCT.SST_ANOM_MOSAIC_WEBGL]: {
     name: 'linear RdBu_r SST',
-    colors: convertLinearColorScaleToRamp(PRODUCTLEGENDS['sst-anom-mosaic-webgl']),
+    colors: convertLinearColorScaleToRamp(PRODUCTLEGENDS[PRODUCT.SST_ANOM_MOSAIC_WEBGL]),
   },
 } as const satisfies Record<WebGlLayerProduct, ColorPalette>;
 

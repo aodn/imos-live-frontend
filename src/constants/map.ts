@@ -17,13 +17,7 @@ export const SST_ANOM_MOSAIC_WEBGL_SOURCE_ID = PRODUCTS['sst-anom-mosaic-webgl']
 export const WAVE_BUOYS_LAYER_ID = PRODUCTS['wave-buoys'].layerId;
 export const WAVE_BUOYS_SOURCE_ID = PRODUCTS['wave-buoys'].sourceId;
 
-export const ProductSourceIds: ProductSourceId[] = [
-  GSLA_PARTICLE_SOURCE_ID,
-  GSLA_RASTER_SOURCE_ID,
-  SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID,
-  SST_ANOM_MOSAIC_WEBGL_SOURCE_ID,
-  WAVE_BUOYS_SOURCE_ID,
-];
+export const ProductSourceIds = Object.values(PRODUCTS).map(p => p.sourceId) as ProductSourceId[];
 
 export const RasterProductSourceIds: RasterSource[] = [
   GSLA_RASTER_SOURCE_ID,

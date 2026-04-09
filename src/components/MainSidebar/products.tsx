@@ -7,6 +7,7 @@ import {
   GSLA_RASTER_SOURCE_ID,
   GSLA_RASTER_LAYER_ID,
   GSLA_PARTICLE_LAYER_ID,
+  GSLA_WEBGL_LAYER_ID,
   SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID,
   WAVE_BUOYS_LAYER_ID,
   PRODUCT,
@@ -82,6 +83,50 @@ export const featuredDataset: LayersDataset[] = [
       <RasterLegend
         rasterSource={GSLA_RASTER_SOURCE_ID}
         {...PRODUCTLEGENDS['gsla-anomaly-sea-levels']}
+      />
+    ),
+    addToMap: setProductEnabledByProduct,
+    dateCheckUrl: gslaUrl,
+    portalLink: 'https://portal-beta.aodn.org.au/details/0c9eb39c-9cbe-4c6a-8a10-5867087e703a',
+  },
+  {
+    image: {
+      src: anomalySeaLevelImage,
+      alt: 'GSLA sea level anomaly WebGL',
+    },
+    title: 'GSLA sea level anomaly (WebGL)',
+    icon: <WaterSurfaceIcon size="lg" />,
+    description:
+      'Gridded (adjusted) sea level anomaly (GSLA)' +
+      ' for the Australasian region.' +
+      ' GSLA is mapped using optimal interpolation of detided, de-meaned, inverse-barometer-adjusted altimeter' +
+      ' and tidegauge estimates of sea level. GSL is GSLA plus an estimate of the departure of mean sea level from the geoid.' +
+      ' The geostrophic velocities are derived from GSL.',
+    layerId: GSLA_WEBGL_LAYER_ID,
+    visible: false,
+    isError: false,
+    product: PRODUCT.GSLA_ANOMALY_SEA_LEVELS_WEBGL,
+    legend: (
+      <LinearColorScaleBar
+        className="w-full"
+        min={PRODUCTLEGENDS['gsla-anomaly-sea-levels-webgl'].range[0]}
+        max={PRODUCTLEGENDS['gsla-anomaly-sea-levels-webgl'].range[1]}
+        label={PRODUCTLEGENDS['gsla-anomaly-sea-levels-webgl'].label}
+        colors={[
+          'rgb(5,48,97)',
+          'rgb(24,79,162)',
+          'rgb(56,122,190)',
+          'rgb(101,165,209)',
+          'rgb(158,201,225)',
+          'rgb(209,229,240)',
+          'rgb(247,247,247)',
+          'rgb(253,219,199)',
+          'rgb(244,177,139)',
+          'rgb(227,125,86)',
+          'rgb(198,70,57)',
+          'rgb(158,26,30)',
+          'rgb(103,0,31)',
+        ]}
       />
     ),
     addToMap: setProductEnabledByProduct,

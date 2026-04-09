@@ -36,7 +36,7 @@ export function useParticleLayer({ map, layerId, sourceId, product }: UseOPartic
     );
 
   const currentParticleQuery = useQuery({
-    queryKey: [GSLA_META_NAME, date],
+    queryKey: [GSLA_META_NAME, date, product],
     queryFn: () => getMetaData(buildGSLADatasetPath(date, GSLA_META_NAME)),
     enabled: !!date,
   });

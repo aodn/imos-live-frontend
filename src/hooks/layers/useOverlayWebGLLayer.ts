@@ -27,9 +27,9 @@ export function useOverlayWebGLLayer({ map, layerId, sourceId, product }: UseOve
       isError: s.productError[product],
     })),
   );
-
+  if (enabled) console.log(product, enabled, PRODUCTS[product].metaDataName);
   const currentMetaDataQuery = useQuery({
-    queryKey: [PRODUCTS[product].metaDataName, date],
+    queryKey: [PRODUCTS[product].metaDataName, date, product],
     queryFn: () => axios.get(PRODUCTS[product].metaDataName),
     enabled: !!date && enabled,
   });
@@ -42,6 +42,7 @@ export function useOverlayWebGLLayer({ map, layerId, sourceId, product }: UseOve
   const setDataByDataset = useCallback(async () => {
     try {
       const data = await currentMetaDataQuery.promise;
+      console.log(data);
       if (!data) return;
 
       const meta = data.data;
