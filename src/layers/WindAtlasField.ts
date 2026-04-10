@@ -156,7 +156,7 @@ export function createWindAtlasField(
         mag: gl.LINEAR,
         min: gl.LINEAR,
         width: 256,
-        height: 16,
+        height: 1,
         format: gl.RGBA,
         src: getColorRamp(colors),
         wrap: gl.CLAMP_TO_EDGE,

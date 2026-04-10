@@ -205,8 +205,7 @@ void main() {
     float speed_t   = length(velocity) / max_speed;
     
 
-    vec2 ramp_pos = vec2(fract(16.0 * speed_t), floor(16.0 * speed_t) / 16.0);
-    fragColor = texture(u_color_ramp, ramp_pos);
+    fragColor = texture(u_color_ramp, vec2(speed_t, 0.5));
 }
 `;
 

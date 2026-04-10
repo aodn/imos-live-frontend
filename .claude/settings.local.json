@@ -11,7 +11,8 @@
       "Bash(npx tsc:*)",
       "WebFetch(domain:api.mapbox.com)",
       "Bash(pnpm import:*)",
-      "Bash(pnpm add:*)"
+      "Bash(pnpm add:*)",
+      "Bash(grep -E \"\\\\.\\(ts|js|tsx\\)$\")"
     ],
     "deny": [],
     "ask": []
