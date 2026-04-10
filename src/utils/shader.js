@@ -1,44 +1,25 @@
-/**
- * Fix using the packing method from GitHub issue https://github.com/mapbox/webgl-wind/issues/12
- * This properly handles precision on devices without float texture support
- */
-
-const vectorVs = `
+const vectorVs = `#version 300 es
 precision highp float;
 
-attribute float a_index;
+in float a_index;
 
 uniform sampler2D u_particles;
 uniform float u_particles_res;
 uniform float u_point_size;
 
-varying vec2 v_particle_pos;
-
-const vec2 bitEnc = vec2(1.,255.);
-const vec2 bitDec = 1./bitEnc;
-
-// decode particle position from pixel RGBA
-vec2 fromRGBA(const vec4 color) {
-  vec4 rounded_color = floor(color * 255.0 + 0.5) / 255.0;
-  float x = dot(rounded_color.rg, bitDec);
-  float y = dot(rounded_color.ba, bitDec);
-  return vec2(x, y);
-}
+out vec2 v_particle_pos;
 
 void main() {
-    vec4 color = texture2D(u_particles, vec2(
+    v_particle_pos = texture(u_particles, vec2(
         fract(a_index / u_particles_res),
-        floor(a_index / u_particles_res) / u_particles_res));
-
-    // Use the proper decoding method
-    v_particle_pos = fromRGBA(color);
+        floor(a_index / u_particles_res) / u_particles_res)).rg;
 
     gl_PointSize = u_point_size;
     gl_Position = vec4(2.0 * v_particle_pos.x - 1.0, 1.0 - 2.0 * v_particle_pos.y, 0, 1);
 }
 `;
 
-const vectorFs = `
+const vectorFs = `#version 300 es
 precision highp float;
 
 // uniforms are constants, these variables are set by the CPU to GPU, from js to shader.
@@ -52,18 +33,19 @@ uniform float u_max_speed;
 uniform vec4 u_bounds;
 uniform vec4 u_data_bounds;
 
-varying vec2 v_particle_pos;
+in vec2 v_particle_pos;
+out vec4 fragColor;
 
 // vector magnitude lookup; use manual bilinear filtering based on 4 adjacent pixels for smooth interpolation
 vec2 lookup_vector(const vec2 uv) {
-    // return texture2D(u_vector, uv).rg; // lower-res hardware filtering
+    // return texture(u_vector, uv).rg; // lower-res hardware filtering
     vec2 px = 1.0 / u_vector_res;
     vec2 vc = (floor(uv * u_vector_res)) * px;
     vec2 f = fract(uv * u_vector_res);
-    vec2 tl = texture2D(u_vector, vc).rg;
-    vec2 tr = texture2D(u_vector, vc + vec2(px.x, 0)).rg;
-    vec2 bl = texture2D(u_vector, vc + vec2(0, px.y)).rg;
-    vec2 br = texture2D(u_vector, vc + px).rg;
+    vec2 tl = texture(u_vector, vc).rg;
+    vec2 tr = texture(u_vector, vc + vec2(px.x, 0)).rg;
+    vec2 bl = texture(u_vector, vc + vec2(0, px.y)).rg;
+    vec2 br = texture(u_vector, vc + px).rg;
     return mix(mix(tl, tr, f.x), mix(bl, br, f.x), f.y);
 }
 
@@ -106,7 +88,7 @@ void main() {
         (lat - u_data_bounds.y) / lat_domain
     );
     // if b is < 0.99, it is null data point, which means the land from gsla dataset.
-    if (texture2D(u_vector, pos_lookup).b < 0.99) {
+    if (texture(u_vector, pos_lookup).b < 0.99) {
         discard;
     }
 
@@ -122,17 +104,17 @@ void main() {
         fract(16.0 * speed_t),
         floor(16.0 * speed_t) / 16.0);
 
-    // set correct color from gradient to particle     
-    gl_FragColor = texture2D(u_color_ramp, ramp_pos);
+    // set correct color from gradient to particle
+    fragColor = texture(u_color_ramp, ramp_pos);
 }
 `;
 
-const vectorVsQuad = `
+const vectorVsQuad = `#version 300 es
 precision highp float;
 
-attribute vec2 a_pos;
+in vec2 a_pos;
 
-varying vec2 v_tex_pos;
+out vec2 v_tex_pos;
 
 void main() {
     v_tex_pos = a_pos;
@@ -140,22 +122,23 @@ void main() {
 }
 `;
 
-const vectorFsScreen = `
+const vectorFsScreen = `#version 300 es
 precision highp float;
 
 uniform sampler2D u_screen;
 uniform float u_opacity;
 
-varying vec2 v_tex_pos;
+in vec2 v_tex_pos;
+out vec4 fragColor;
 
 void main() {
-    vec4 color = texture2D(u_screen, 1.0 - v_tex_pos);
+    vec4 color = texture(u_screen, 1.0 - v_tex_pos);
     // a hack to guarantee opacity fade out even with a value close to 1.0
-    gl_FragColor = vec4(floor(255.0 * color * u_opacity) / 255.0);
+    fragColor = vec4(floor(255.0 * color * u_opacity) / 255.0);
 }
 `;
 
-const vectorFsUpdate = `
+const vectorFsUpdate = `#version 300 es
 precision highp float;
 
 uniform sampler2D u_particles;
@@ -170,10 +153,8 @@ uniform float u_drop_rate_bump;
 uniform vec4 u_bounds;
 uniform vec4 u_data_bounds;
 
-varying vec2 v_tex_pos;
-
-const vec2 bitEnc = vec2(1.,255.);
-const vec2 bitDec = 1./bitEnc;
+in vec2 v_tex_pos;
+out vec4 fragColor;
 
 // pseudo-random generator
 const vec3 rand_constants = vec3(12.9898, 78.233, 4375.85453);
@@ -182,37 +163,16 @@ float rand(const vec2 co) {
     return fract(sin(t) * (rand_constants.z + t));
 }
 
-// decode particle position from pixel RGBA
-vec2 fromRGBA(const vec4 color) {
-  vec4 rounded_color = floor(color * 255.0 + 0.5) / 255.0;
-  float x = dot(rounded_color.rg, bitDec);
-  float y = dot(rounded_color.ba, bitDec);
-  return vec2(x, y);
-}
-
-// encode particle position to pixel RGBA
-vec4 toRGBA (const vec2 pos) {
-  vec2 rg = bitEnc * pos.x;
-  rg = fract(rg);
-  rg -= rg.yy * vec2(1. / 255., 0.);
-
-  vec2 ba = bitEnc * pos.y;
-  ba = fract(ba);
-  ba -= ba.yy * vec2(1. / 255., 0.);
-
-  return vec4(rg, ba);
-}
-
 // vector magnitude lookup; use manual bilinear filtering based on 4 adjacent pixels for smooth interpolation
 vec2 lookup_vector(const vec2 uv) {
-    // return texture2D(u_vector, uv).rg; // lower-res hardware filtering
+    // return texture(u_vector, uv).rg; // lower-res hardware filtering
     vec2 px = 1.0 / u_vector_res;
     vec2 vc = (floor(uv * u_vector_res)) * px;
     vec2 f = fract(uv * u_vector_res);
-    vec2 tl = texture2D(u_vector, vc).rg;
-    vec2 tr = texture2D(u_vector, vc + vec2(px.x, 0)).rg;
-    vec2 bl = texture2D(u_vector, vc + vec2(0, px.y)).rg;
-    vec2 br = texture2D(u_vector, vc + px).rg;
+    vec2 tl = texture(u_vector, vc).rg;
+    vec2 tr = texture(u_vector, vc + vec2(px.x, 0)).rg;
+    vec2 bl = texture(u_vector, vc + vec2(0, px.y)).rg;
+    vec2 br = texture(u_vector, vc + px).rg;
     return mix(mix(tl, tr, f.x), mix(bl, br, f.x), f.y);
 }
 
@@ -230,10 +190,8 @@ vec2 returnLonLat(float x_domain, float y_domain, vec2 pos) {
 }
 
 void main() {
-    vec4 color = texture2D(u_particles, v_tex_pos);
-    
-    // Use the proper decoding method
-    vec2 pos = fromRGBA(color);
+    // particle position stored directly as float (x, y) in RG channels
+    vec2 pos = texture(u_particles, v_tex_pos).rg;
 
     //convert from 0-1 to degrees for proper texture value lookup
     float x_domain = abs(u_bounds.x - u_bounds.z);
@@ -273,15 +231,15 @@ void main() {
         rand(seed + 2.1));
     pos = mix(pos, random_pos, drop);
 
-    // Use the proper encoding method
-    gl_FragColor = toRGBA(pos);
+    // store new position directly as float in RG channels
+    fragColor = vec4(pos, 0.0, 1.0);
 }
 `;
 
-const webglOverlayVs = `
+const webglOverlayVs = `#version 300 es
 precision highp float;
-attribute vec2 a_position;
-attribute vec2 a_texCoord;
+in vec2 a_position;
+in vec2 a_texCoord;
 uniform vec2 u_topLeft;
 uniform vec2 u_topRight;
 uniform vec2 u_bottomLeft;
@@ -289,8 +247,8 @@ uniform vec2 u_bottomRight;
 uniform vec2 u_viewport;
 uniform float u_merc_y_north;
 uniform float u_merc_y_south;
-varying vec2 v_texCoord;
-varying float v_merc_y;
+out vec2 v_texCoord;
+out float v_merc_y;
 
 void main() {
     // Bilinear interpolation between the four corners, as gsla data points are grid data, evenly regularly populated across the bounds.
@@ -312,15 +270,16 @@ void main() {
 }
 `;
 
-const webglOverlayFs = `
+const webglOverlayFs = `#version 300 es
 precision highp float;
 uniform sampler2D u_dataTexture;
 uniform sampler2D u_paletteTexture;
 uniform vec2 u_range;
 uniform vec2 u_legend_range;
 uniform vec2 u_lat_range; // [south, north] geographic degrees
-varying vec2 v_texCoord;
-varying float v_merc_y;
+in vec2 v_texCoord;
+in float v_merc_y;
+out vec4 fragColor;
 
 const float PI = 3.14159265358979323846;
 
@@ -351,16 +310,16 @@ void main() {
     float north = u_lat_range.y;
     float tex_v = (north - lat) / (north - south);
 
-    vec4 encodedData = texture2D(u_dataTexture, vec2(v_texCoord.x, tex_v));
+    vec4 encodedData = texture(u_dataTexture, vec2(v_texCoord.x, tex_v));
 
     if (encodedData.a < 0.01) {
         discard;
     }
 
     float normalizedValue = decodeRGBToNormalized(encodedData.rgb);
-    vec4 color = texture2D(u_paletteTexture, vec2(normalizedValue, 0.5));
+    vec4 color = texture(u_paletteTexture, vec2(normalizedValue, 0.5));
 
-    gl_FragColor = vec4(color.rgb, encodedData.a);
+    fragColor = vec4(color.rgb, encodedData.a);
 }
 `;
 
@@ -373,48 +332,3 @@ export {
   webglOverlayVs,
   webglOverlayFs,
 };
-
-/**
- * why fix works?
- * 
- * original code:
- *  vec4 color = texture2D(u_particles, v_tex_pos);
-    vec2 pos = vec2(
-        color.r / 255.0 + color.b,
-        color.g / 255.0 + color.a); // decode particle position from pixel RGBA
-
-     gl_FragColor = vec4(
-        fract(pos * 255.0),
-        floor(pos * 255.0) / 255.0);
-    
-    color is rgba vec4 value, and each rgba is between 0 to 1.
-    rgba to position: color.r / 255.0 + color.b = pos.x, color.g / 255.0 + color.a=pos.y
-    postion to rgba: fract(pos.x * 255.0) = color.r, floor(pos.x * 255.0) / 255.0) = color.b, fract(pos.y * 255.0) = color.g, floor(pos.y * 255.0) / 255.0) = color.a
-    What has done is to packing r,b to represent pos.x and g,a represent pos.y, and revese this processing.
-    but the issue is when color.r/255.0, say color.r = 0.2195, then color.r/255.0 = 0.000861 which is fine precision, for some devices that do not support float texture,
-    there will be precision loss.
-
-    fixed code:
-    vec2 fromRGBA(const vec4 color) {
-        vec4 rounded_color = floor(color * 255.0 + 0.5) / 255.0;
-        float x = dot(rounded_color.rg, bitDec);
-        float y = dot(rounded_color.ba, bitDec);
-        return vec2(x, y);
-        }
-    vec4 toRGBA (const vec2 pos) {
-        vec2 rg = bitEnc * pos.x;
-        rg = fract(rg);
-        rg -= rg.yy * vec2(1. / 255., 0.);
-
-        vec2 ba = bitEnc * pos.y;
-        ba = fract(ba);
-        ba -= ba.yy * vec2(1. / 255., 0.);
-
-        return vec4(rg, ba);
-        }
-    v_particle_pos = fromRGBA(color);
-    gl_FragColor = toRGBA(pos);
-
-    now instead of color.r / 255.0 + color.b and color.g / 255.0 + color.a, vec4 rounded_color = floor(color * 255.0 + 0.5) / 255.0 is used, which an avoid fine precision,
-    because floor(color * 255.0 + 0.5) ensure to get nearest int from 0-255, and then the result divided by 255 is 8-bit value.
- */

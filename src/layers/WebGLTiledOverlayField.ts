@@ -25,7 +25,7 @@ export interface WebGLTiledOverlayFieldAPI {
 
 export function webGLTiledOverlayField(
   map: mapboxgl.Map,
-  gl: WebGLRenderingContext,
+  gl: WebGL2RenderingContext,
   initialPalette: ColorPalette,
 ): WebGLTiledOverlayFieldAPI {
   let palette: ColorPalette = initialPalette;

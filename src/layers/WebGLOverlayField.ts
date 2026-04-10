@@ -23,7 +23,7 @@ export interface WebGLOverlayFieldAPI {
 
 export function webGLOverlayField(
   map: mapboxgl.Map,
-  gl: WebGLRenderingContext,
+  gl: WebGL2RenderingContext,
   initialPalette: ColorPalette,
 ): WebGLOverlayFieldAPI {
   let data: ImageBitmap | null = null;

@@ -41,9 +41,9 @@ export type VectorFieldAPI = {
 /**
  * Creates a GPU-accelerated particle system for visualizing vector fields.
  * @param map A Mapbox GL map instance
- * @param gl The WebGLRenderingContext to render into
+ * @param gl The WebGL2RenderingContext to render into
  * @returns An object to control and update the vector field simulation
  */
-declare function VectorField(map: mapboxgl.Map, gl: WebGLRenderingContext): VectorFieldAPI;
+declare function VectorField(map: mapboxgl.Map, gl: WebGL2RenderingContext): VectorFieldAPI;
 
 export default VectorField;
