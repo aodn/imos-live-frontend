@@ -1,12 +1,14 @@
 # python:3.11  source visualization-venv/bin/activate
 """
-Wind field Atlas chunk generator for GSLA ocean current data.
+Ocean current field Atlas chunk generator for GSLA ocean current data.
 
 Produces per-LOD PNG chunks consumed by the WebGL Atlas renderer.
 
 Output layout:
   {base_dir}/ocean_current/manifest.json
+  {base_dir}/sea_level_anomaly/manifest.json
   {base_dir}/ocean_current/ocean_current_{lod}_{cx}_{cy}.png
+  {base_dir}/sea_level_anomaly/sea_level_anomaly_{lod}_{cx}_{cy}.png
 
 PNG channel encoding (matches existing gsla.py to_png_input format):
   R = U current component (8-bit, normalised across full region)
@@ -28,10 +30,6 @@ import numpy as np
 import s3fs
 import xarray as xr
 from PIL import Image
-
-# ── Region ───────────────────────────────────────────────────────────────────
-LON_MIN, LON_MAX = 89.9, 180.1
-LAT_MIN, LAT_MAX = -61.0, 10.1
 
 # ── LOD grid definitions ─────────────────────────────────────────────────────
 # Each LOD is described as (grid_cols, grid_rows).
@@ -62,13 +60,24 @@ def get_dataset(date: datetime.datetime) -> xr.Dataset:
 
 # ── Core helpers ─────────────────────────────────────────────────────────────
 
+def _get_bounds(ds: xr.Dataset) -> tuple[float, float, float, float]:
+    """Return (lon_min, lon_max, lat_min, lat_max) from the dataset's actual coordinates."""
+    return (
+        float(ds.LONGITUDE.min().values),
+        float(ds.LONGITUDE.max().values),
+        float(ds.LATITUDE.min().values),
+        float(ds.LATITUDE.max().values),
+    )
+
+
 def _resample_to_grid(ds: xr.Dataset, total_w: int, total_h: int) -> xr.Dataset:
     """
     Resample dataset to (total_w × total_h) on a regular lat/lon grid.
-    Latitudes run north→south (row 0 = LAT_MAX) to match image-space cy=0 being northernmost.
+    Latitudes run north→south (row 0 = lat_max) to match image-space cy=0 being northernmost.
     """
-    target_lons = np.linspace(LON_MIN, LON_MAX, total_w)
-    target_lats = np.linspace(LAT_MAX, LAT_MIN, total_h)  # north → south
+    lon_min, lon_max, lat_min, lat_max = _get_bounds(ds)
+    target_lons = np.linspace(lon_min, lon_max, total_w)
+    target_lats = np.linspace(lat_max, lat_min, total_h)  # north → south
     return ds.interp(LONGITUDE=target_lons, LATITUDE=target_lats, method='linear')
 
 
@@ -114,7 +123,7 @@ def _extract_chunk(
 
 # ── Main generators ───────────────────────────────────────────────────────────
 
-def to_chunk_png(ds: xr.Dataset, base_dir: Path, lod: int) -> None:
+def to_ocean_current_chunk_png(ds: xr.Dataset, base_dir: Path, lod: int) -> None:
     """
     Slice the full-region UCUR/VCUR grid into per-chunk PNGs for the given LOD.
 
@@ -179,49 +188,107 @@ def to_chunk_png(ds: xr.Dataset, base_dir: Path, lod: int) -> None:
     print(f"  LOD{lod}: saved {saved} chunks ({grid_cols}×{grid_rows}) to {base_dir / 'ocean_current'}")
 
 
+def to_sea_level_anomaly_chunk_png(ds: xr.Dataset, base_dir: Path, lod: int) -> None:
+    """
+    Slice the full-region GSLA (sea-level anomaly) grid into per-chunk PNGs for the given LOD.
+
+    Encoding matches gsla.py to_overlay_input:
+      R/G/B = 24-bit normalised GSLA value
+      A     = 255 for valid ocean, 0 for land/no-data (premultiplied)
+    """
+    grid_cols, grid_rows = LOD_GRIDS[lod]
+    total_w = grid_cols * CHUNK_PX[0]
+    total_h = grid_rows * CHUNK_PX[1]
+
+    val_min = float(ds.GSLA.min(skipna=True).values)
+    val_max = float(ds.GSLA.max(skipna=True).values)
+    if val_max == val_min:
+        val_max = val_min + 1.0
+    val_range = val_max - val_min
+
+    ds_r = _resample_to_grid(ds, total_w, total_h)
+    raw = ds_r.GSLA.values.squeeze()  # shape: (total_h, total_w)
+
+    ocean = (~np.isnan(raw)).astype(np.uint8)
+
+    filled = np.nan_to_num(raw, nan=0.0)
+    val_24 = np.clip((filled - val_min) / val_range * 16777215, 0, 16777215).astype(np.uint32)
+
+    saved = 0
+    for cy in range(grid_rows):
+        for cx in range(grid_cols):
+            chunk_24 = _extract_chunk(val_24, cx, cy, total_w, total_h)
+            chunk_m  = _extract_chunk(ocean,  cx, cy, total_w, total_h)
+
+            h, w = chunk_24.shape
+            img_array = np.zeros((h, w, 4), dtype=np.uint8)
+            img_array[:, :, 0] = (chunk_24 >> 16) & 0xFF  # R = high byte
+            img_array[:, :, 1] = (chunk_24 >> 8)  & 0xFF  # G = mid byte
+            img_array[:, :, 2] =  chunk_24         & 0xFF  # B = low byte
+            img_array[:, :, 3] = chunk_m * 255             # A = ocean mask
+
+            # Premultiplied alpha: zero RGB where land/no-data
+            img_array[chunk_m == 0, :3] = 0
+
+            out_path = base_dir / "sea_level_anomaly" / f"sea_level_anomaly_{lod}_{cx}_{cy}.png"
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            Image.fromarray(img_array, 'RGBA').save(out_path, optimize=False)
+            saved += 1
+
+    print(f"  LOD{lod}: saved {saved} overlay chunks ({grid_cols}×{grid_rows}) to {base_dir / 'sea_level_anomaly'}")
+
+
 def to_manifest(ds: xr.Dataset, base_dir: Path) -> None:
     """
-    Write manifest.json consumed by the frontend at startup.
+    Write one manifest.json per layer, consumed by the frontend at startup.
 
-    uRange / vRange hold the physical m/s bounds used by the shader to decode
-    normalised R/G values back into actual velocities.
+    ocean_current/manifest.json      — uRange/vRange for UCUR/VCUR chunk decoding.
+    sea_level_anomaly/manifest.json  — valueRange for GSLA chunk decoding.
     """
-    u_min = float(ds.UCUR.min(skipna=True).values)
-    u_max = float(ds.UCUR.max(skipna=True).values)
-    v_min = float(ds.VCUR.min(skipna=True).values)
-    v_max = float(ds.VCUR.max(skipna=True).values)
-
-    manifest = {
-        "bounds": {
-            "lonMin": LON_MIN,
-            "lonMax": LON_MAX,
-            "latMin": LAT_MIN,
-            "latMax": LAT_MAX,
-        },
-        "uRange": [u_min, u_max],
-        "vRange": [v_min, v_max],
-        "lods": {
-            str(lod): {
-                "grid": list(LOD_GRIDS[lod]),          # [cols, rows]
-                "chunkPx": list(CHUNK_PX),             # [width, height] data pixels
-                "storedPx": [CHUNK_PX[0] + 2 * PADDING, CHUNK_PX[1] + 2 * PADDING],
-                "padding": PADDING,
-            }
-            for lod in LOD_GRIDS
-        },
+    lon_min, lon_max, lat_min, lat_max = _get_bounds(ds)
+    bounds = {
+        "lonMin": lon_min,
+        "lonMax": lon_max,
+        "latMin": lat_min,
+        "latMax": lat_max,
+    }
+    lod_meta = {
+        str(lod): {
+            "grid": list(LOD_GRIDS[lod]),
+            "chunkPx": list(CHUNK_PX),
+            "storedPx": [CHUNK_PX[0] + 2 * PADDING, CHUNK_PX[1] + 2 * PADDING],
+            "padding": PADDING,
+        }
+        for lod in LOD_GRIDS
     }
 
-    out_path = base_dir / "ocean_current" / "manifest.json"
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(out_path, "w") as f:
-        json.dump(manifest, f, indent=2)
+    ocean_current_manifest = {
+        "bounds": bounds,
+        "uRange": [float(ds.UCUR.min(skipna=True).values), float(ds.UCUR.max(skipna=True).values)],
+        "vRange": [float(ds.VCUR.min(skipna=True).values), float(ds.VCUR.max(skipna=True).values)],
+        "lods": lod_meta,
+    }
 
-    print(f"  manifest: {out_path}")
+    sea_level_anomaly_manifest = {
+        "bounds": bounds,
+        "valueRange": [float(ds.GSLA.min(skipna=True).values), float(ds.GSLA.max(skipna=True).values)],
+        "lods": lod_meta,
+    }
+
+    for folder, manifest in [
+        ("ocean_current", ocean_current_manifest),
+        ("sea_level_anomaly", sea_level_anomaly_manifest),
+    ]:
+        out_path = base_dir / folder / "manifest.json"
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(out_path, "w") as f:
+            json.dump(manifest, f, indent=2)
+        print(f"  manifest: {out_path}")
 
 
 # ── Entry point ───────────────────────────────────────────────────────────────
 
-def create_wind_chunks_for_date(date: datetime.datetime, base_dir: Path) -> None:
+def create_chunks_for_date(date: datetime.datetime, base_dir: Path) -> None:
     """
     Generate all LOD chunk PNGs and manifest for a single date.
 
@@ -235,15 +302,17 @@ def create_wind_chunks_for_date(date: datetime.datetime, base_dir: Path) -> None
     save_dir.mkdir(parents=True, exist_ok=True)
 
     print("Generating chunks ...")
-    to_chunk_png(ds, save_dir, lod=1)
-    to_chunk_png(ds, save_dir, lod=2)
+    to_ocean_current_chunk_png(ds, save_dir, lod=1)
+    to_ocean_current_chunk_png(ds, save_dir, lod=2)
+    to_sea_level_anomaly_chunk_png(ds, save_dir, lod=1)
+    to_sea_level_anomaly_chunk_png(ds, save_dir, lod=2)
     to_manifest(ds, save_dir)
 
     print("Done.")
 
 
 if __name__ == "__main__":
-    create_wind_chunks_for_date(
+    create_chunks_for_date(
         date=datetime.datetime.strptime("26-01-01", "%y-%m-%d"),
         base_dir=Path("./generated-images"),
     )

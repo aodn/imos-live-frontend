@@ -1,7 +1,7 @@
 /**
- * WindAtlasField
+ * OceanCurrentAtlasField
  *
- * GPU particle engine for the wind-field Atlas renderer.
+ * GPU particle engine for the ocean-current-field Atlas renderer.
  * Replaces VectorField.js — same ping-pong simulation loop, same Mapbox
  * coordinate conventions, but samples velocity from the 2048² Atlas texture
  * instead of a single flat PNG.
@@ -16,14 +16,13 @@
 
 import mapboxgl from 'mapbox-gl';
 import * as twgl from 'twgl.js';
-import {} from '../utils/shader';
 import {
-  windAtlasFsParticle,
-  windAtlasFsUpdate,
-  windAtlasVs,
-  windAtlasVsQuad,
-  windAtlasFsScreen,
-} from '../utils/windShader';
+  oceanCurrentAtlasFsParticle,
+  oceanCurrentAtlasFsUpdate,
+  oceanCurrentAtlasVs,
+  oceanCurrentAtlasVsQuad,
+  oceanCurrentAtlasFsScreen,
+} from '../utils/oceanCurrentShader';
 import { createAtlasManager } from '../utils/AtlasManager';
 import { createChunkScheduler } from '../utils/ChunkScheduler';
 import { createLODController } from '../utils/LODController';
@@ -33,17 +32,12 @@ import type { LODControllerAPI } from '../utils/LODController';
 import type { CustomizableParticleConfig } from '@/config';
 import { INITIAL_PARTICLE_CONFIG } from '@/config';
 import { getColorRamp } from '@/utils';
+import type { OceanCurrentManifest } from '@/api';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type WindManifest = {
-  bounds: { lonMin: number; lonMax: number; latMin: number; latMax: number };
-  uRange: [number, number];
-  vRange: [number, number];
-};
-
-export type WindAtlasFieldAPI = {
-  setSource: (baseUrl: string) => Promise<void>;
+export type OceanCurrentAtlasFieldAPI = {
+  setSource: (manifest: OceanCurrentManifest, baseUrl: string) => Promise<void>;
   startAnimation: () => void;
   stopAnimation: () => void;
   draw: () => void;
@@ -54,17 +48,12 @@ export type WindAtlasFieldAPI = {
   setLodBlend: (value: number) => void;
 };
 
-// ── Constants ─────────────────────────────────────────────────────────────────
-
-const LOD1_COLS = 3;
-const LOD1_ROWS = 3;
-
 // ── Factory ───────────────────────────────────────────────────────────────────
 
-export function createWindAtlasField(
+export function createOceanCurrentAtlasField(
   map: mapboxgl.Map,
   gl: WebGL2RenderingContext,
-): WindAtlasFieldAPI {
+): OceanCurrentAtlasFieldAPI {
   // Required for RG32F ping-pong framebuffer (same as VectorField.js)
   gl.getExtension('EXT_color_buffer_float');
 
@@ -101,6 +90,8 @@ export function createWindAtlasField(
   let vectorMin: [number, number] | null = null; // [uMin, vMin]
   let vectorMax: [number, number] | null = null; // [uMax, vMax]
   let mapBounds: [number, number, number, number] | null = null;
+  let lod1Grid: [number, number] | null = null; // [cols, rows]
+  let lod2Grid: [number, number] | null = null; // [cols, rows]
 
   // ── LOD blend ────────────────────────────────────────────────────────────
   let lodController: LODControllerAPI = createLODController();
@@ -189,9 +180,15 @@ export function createWindAtlasField(
   }
 
   function initializeShaders() {
-    programInfo = twgl.createProgramInfo(gl, [windAtlasVs, windAtlasFsParticle]);
-    screenProgramInfo = twgl.createProgramInfo(gl, [windAtlasVsQuad, windAtlasFsScreen]);
-    updateProgramInfo = twgl.createProgramInfo(gl, [windAtlasVsQuad, windAtlasFsUpdate]);
+    programInfo = twgl.createProgramInfo(gl, [oceanCurrentAtlasVs, oceanCurrentAtlasFsParticle]);
+    screenProgramInfo = twgl.createProgramInfo(gl, [
+      oceanCurrentAtlasVsQuad,
+      oceanCurrentAtlasFsScreen,
+    ]);
+    updateProgramInfo = twgl.createProgramInfo(gl, [
+      oceanCurrentAtlasVsQuad,
+      oceanCurrentAtlasFsUpdate,
+    ]);
 
     setParticles(nParticles);
     setColorRamp(config.colours);
@@ -220,7 +217,9 @@ export function createWindAtlasField(
       !vectorMin ||
       !vectorMax ||
       !mapBounds ||
-      !particleIndices
+      !particleIndices ||
+      !lod1Grid ||
+      !lod2Grid
     )
       return;
 
@@ -235,8 +234,8 @@ export function createWindAtlasField(
       u_atlas: atlas.getTexture(),
       u_slots: atlas.getSlotsData(),
       u_loaded: atlas.getLoadedData(),
-      u_lod1_grid: [LOD1_COLS, LOD1_ROWS],
-      u_lod2_grid: [6, 5],
+      u_lod1_grid: lod1Grid,
+      u_lod2_grid: lod2Grid,
       u_lod_blend: lodController.getValue(),
       u_particles: particleTextures.particleTexture0,
       u_color_ramp: colorRampTexture.colorRampTexture,
@@ -303,7 +302,8 @@ export function createWindAtlasField(
       !dataBounds ||
       !vectorMin ||
       !vectorMax ||
-      !mapBounds
+      !mapBounds ||
+      !lod1Grid
     )
       return;
 
@@ -326,7 +326,7 @@ export function createWindAtlasField(
     twgl.setUniforms(updateProgramInfo, {
       u_atlas: atlas.getTexture(),
       u_slots: atlas.getSlotsData(),
-      u_lod1_grid: [LOD1_COLS, LOD1_ROWS],
+      u_lod1_grid: lod1Grid,
       u_particles: particleTextures.particleTexture0,
       u_vector_min: vectorMin,
       u_vector_max: vectorMax,
@@ -390,13 +390,13 @@ export function createWindAtlasField(
 
   // ── Public API ────────────────────────────────────────────────────────────
 
-  async function setSource(baseUrl: string): Promise<void> {
-    const manifest: WindManifest = await fetch(`${baseUrl}/manifest.json`).then(r => r.json());
-
+  async function setSource(manifest: OceanCurrentManifest, baseUrl: string): Promise<void> {
     const { lonMin, lonMax, latMin, latMax } = manifest.bounds;
     dataBounds = [lonMin, latMax, lonMax, latMin];
     vectorMin = [manifest.uRange[0], manifest.vRange[0]];
     vectorMax = [manifest.uRange[1], manifest.vRange[1]];
+    lod1Grid = manifest.lods['1'].grid;
+    lod2Grid = manifest.lods['2'].grid;
 
     // Reset atlas and LOD state for new date
     atlas?.destroy();
@@ -408,9 +408,10 @@ export function createWindAtlasField(
     atlas = createAtlasManager(gl);
 
     // Preload all LOD1 chunks in parallel
+    const [lod1Cols, lod1Rows] = lod1Grid;
     const lod1Ids: string[] = [];
-    for (let cy = 0; cy < LOD1_ROWS; cy++)
-      for (let cx = 0; cx < LOD1_COLS; cx++) lod1Ids.push(`1_${cx}_${cy}`);
+    for (let cy = 0; cy < lod1Rows; cy++)
+      for (let cx = 0; cx < lod1Cols; cx++) lod1Ids.push(`1_${cx}_${cy}`);
 
     await Promise.all(
       lod1Ids.map(async id => {
@@ -423,7 +424,14 @@ export function createWindAtlasField(
     // Compile shaders and set up GPU resources on first call
     if (!programInfo) initializeShaders();
 
-    scheduler = createChunkScheduler(atlas, baseUrl, onChunkLoaded);
+    scheduler = createChunkScheduler(atlas, baseUrl, onChunkLoaded, {
+      lonMin,
+      lonMax,
+      latMin,
+      latMax,
+      cols: lod2Grid[0],
+      rows: lod2Grid[1],
+    });
   }
 
   function startAnimation() {

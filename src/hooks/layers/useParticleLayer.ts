@@ -1,9 +1,10 @@
 import type { ParticleLayer, ProductType } from '@/constants';
-import { PRODUCT } from '@/constants';
+import { getOceanCurrentManifest } from '@/api';
 import { addLayerInOrder } from '@/helpers';
-import { windAtlasLayer } from '@/layers';
+import { oceanCurrentAtlasLayer } from '@/layers';
 import { useMapUIStore, setProductErrorByProduct } from '@/store';
 import { useCallback, useEffect, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useShallow } from 'zustand/shallow';
 import { useDidMountEffect } from '../useDidMountEffect';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
@@ -31,21 +32,29 @@ export function useParticleLayer({ map, layerId, product }: UseParticleLayer) {
       })),
     );
 
-  const particleLayer = useMemo(() => windAtlasLayer(layerId), [layerId]);
+  const baseUrl = `${'26-01-01'}/ocean_current`;
+
+  const particleLayer = useMemo(() => oceanCurrentAtlasLayer(layerId), [layerId]);
+
+  const manifestQuery = useQuery({
+    queryKey: ['oceanCurrentAtlasManifest', date],
+    queryFn: () => getOceanCurrentManifest(baseUrl),
+    enabled: !!date,
+  });
 
   const setDataByDataset = useCallback(async () => {
-    if (!date) return;
-    const baseUrl = `${'26-01-01'}/ocean_current`;
-    try {
-      await particleLayer.setSource(baseUrl);
-      setProductErrorByProduct(PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT, false);
-    } catch {
-      setProductErrorByProduct(PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT, true);
-    }
-  }, [date, particleLayer]);
+    setProductErrorByProduct(product, false);
+    const manifest = await manifestQuery.promise.catch(() => {
+      setProductErrorByProduct(product, true);
+      return null;
+    });
+    if (!manifest) return;
+    await particleLayer.setSource(manifest, baseUrl).catch(() => {
+      setProductErrorByProduct(product, true);
+    });
+  }, [manifestQuery.promise, particleLayer, baseUrl, product]);
 
   const setupLayer = useCallback(async () => {
-    if (!particleLayer) return;
     if (!map.current!.getLayer(particleLayer.id)) {
       addLayerInOrder(map, particleLayer);
     }
@@ -58,14 +67,13 @@ export function useParticleLayer({ map, layerId, product }: UseParticleLayer) {
 
   useEffect(() => {
     if (!map || !loadComplete || !particleLayer) return;
-    const customizableConfig = {
+    particleLayer.oceanCurrentAtlasField?.updateConfig({
       fadeOpacity,
       speedFactor,
       dropRate,
       pointSize,
       nParticles,
-    };
-    particleLayer.windAtlasField?.updateConfig(customizableConfig);
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadComplete, fadeOpacity, speedFactor, dropRate, pointSize, nParticles]);
 

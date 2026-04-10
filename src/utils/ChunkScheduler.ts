@@ -1,7 +1,7 @@
 /**
  * ChunkScheduler
  *
- * Manages dynamic LOD2 chunk fetching for the wind-field Atlas renderer.
+ * Manages dynamic LOD2 chunk fetching for the ocean-curent-field Atlas renderer.
  * LOD1 (9 chunks) is preloaded at startup by the caller — this scheduler
  * only handles LOD2 (30 chunks, 6×5 grid).
  *
@@ -19,18 +19,6 @@
 
 import type { AtlasManagerAPI } from './AtlasManager';
 
-// ── Region constants (must match gsla_chunking.py) ───────────────────────────
-const LON_MIN = 89.9;
-const LON_MAX = 180.1;
-const LAT_MIN = -61.0;
-const LAT_MAX = 10.1;
-
-const LOD2_COLS = 6;
-const LOD2_ROWS = 5;
-
-const CHUNK_LON = (LON_MAX - LON_MIN) / LOD2_COLS; // ≈ 15.03° per chunk
-const CHUNK_LAT = (LAT_MAX - LAT_MIN) / LOD2_ROWS; // ≈ 14.22° per chunk
-
 const LOD2_ZOOM_THRESHOLD = 6;
 const CONCURRENCY = 6;
 
@@ -41,6 +29,15 @@ export type MapBounds = {
   east: number;
   south: number;
   north: number;
+};
+
+export type ChunkRegion = {
+  lonMin: number;
+  lonMax: number;
+  latMin: number;
+  latMax: number;
+  cols: number;
+  rows: number;
 };
 
 type QueueEntry = {
@@ -59,20 +56,20 @@ export type ChunkSchedulerAPI = {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 /** Convert a map bounds + expansion to the set of LOD2 chunkIds that intersect it. */
-function chunksInBounds(bounds: MapBounds, expandChunks = 0): string[] {
-  const expandLon = expandChunks * CHUNK_LON;
-  const expandLat = expandChunks * CHUNK_LAT;
+function chunksInBounds(bounds: MapBounds, region: ChunkRegion, expandChunks = 0): string[] {
+  const chunkLon = (region.lonMax - region.lonMin) / region.cols;
+  const chunkLat = (region.latMax - region.latMin) / region.rows;
 
-  const west = bounds.west - expandLon;
-  const east = bounds.east + expandLon;
-  const south = bounds.south - expandLat;
-  const north = bounds.north + expandLat;
+  const west = bounds.west - expandChunks * chunkLon;
+  const east = bounds.east + expandChunks * chunkLon;
+  const south = bounds.south - expandChunks * chunkLat;
+  const north = bounds.north + expandChunks * chunkLat;
 
   // cx: west→east, cy: north→south (cy=0 is northernmost, matching chunk generation)
-  const cxMin = Math.max(0, Math.floor((west - LON_MIN) / CHUNK_LON));
-  const cxMax = Math.min(LOD2_COLS - 1, Math.floor((east - LON_MIN) / CHUNK_LON));
-  const cyMin = Math.max(0, Math.floor((LAT_MAX - north) / CHUNK_LAT));
-  const cyMax = Math.min(LOD2_ROWS - 1, Math.floor((LAT_MAX - south) / CHUNK_LAT));
+  const cxMin = Math.max(0, Math.floor((west - region.lonMin) / chunkLon));
+  const cxMax = Math.min(region.cols - 1, Math.floor((east - region.lonMin) / chunkLon));
+  const cyMin = Math.max(0, Math.floor((region.latMax - north) / chunkLat));
+  const cyMax = Math.min(region.rows - 1, Math.floor((region.latMax - south) / chunkLat));
 
   // Clamp: if viewport is entirely outside the region return empty
   if (cxMin > cxMax || cyMin > cyMax) return [];
@@ -102,6 +99,7 @@ export function createChunkScheduler(
   atlas: AtlasManagerAPI,
   baseUrl: string,
   onChunkLoaded: (chunkId: string) => void,
+  region: ChunkRegion,
 ): ChunkSchedulerAPI {
   let inflight = 0;
   let queue: QueueEntry[] = [];
@@ -168,8 +166,8 @@ export function createChunkScheduler(
       return;
     }
 
-    visibleIds = chunksInBounds(bounds, 0);
-    const buffered = chunksInBounds(bounds, 1).filter(id => !visibleIds.includes(id));
+    visibleIds = chunksInBounds(bounds, region, 0);
+    const buffered = chunksInBounds(bounds, region, 1).filter(id => !visibleIds.includes(id));
 
     // Cancel requests that are no longer in scope
     const needed = new Set([...visibleIds, ...buffered]);

@@ -1,5 +1,5 @@
 /**
- * Wind Atlas shaders — atlas-aware replacements for vectorFs and vectorFsUpdate.
+ * Ocean Current Atlas shaders — atlas-aware replacements for vectorFs and vectorFsUpdate.
  *
  * Uniform conventions (unchanged from VectorField.js):
  *   u_bounds      vec4  [nwMercatorX, seMercatorY, seMercatorX, nwMercatorY]
@@ -15,11 +15,9 @@
  *   u_lod2_grid   vec2       (6.0, 5.0)
  *   u_lod_blend   float      0.0 = LOD1 only, 1.0 = full LOD2
  *
- * Vertex shaders (vectorVs, vectorVsQuad) and screen shader (vectorFsScreen)
- * are unchanged — import them directly from shader.js.
  */
 
-export const windAtlasVs = `#version 300 es
+export const oceanCurrentAtlasVs = `#version 300 es
 precision highp float;
 
 in float a_index;
@@ -40,7 +38,7 @@ void main() {
 }
 `;
 
-export const windAtlasVsQuad = `#version 300 es
+export const oceanCurrentAtlasVsQuad = `#version 300 es
 precision highp float;
 
 in vec2 a_pos;
@@ -53,7 +51,7 @@ void main() {
 }
 `;
 
-export const windAtlasFsScreen = `#version 300 es
+export const oceanCurrentAtlasFsScreen = `#version 300 es
 precision highp float;
 
 uniform sampler2D u_screen;
@@ -140,7 +138,7 @@ vec2 sampleAtlasRG(vec2 uv) {
 // ── Draw shader ───────────────────────────────────────────────────────────────
 // Replaces vectorFs. Adds LOD1/LOD2 atlas sampling with crossfade.
 
-export const windAtlasFsParticle = /* glsl */ `#version 300 es
+export const oceanCurrentAtlasFsParticle = /* glsl */ `#version 300 es
 precision highp float;
 
 uniform sampler2D u_atlas;
@@ -177,7 +175,7 @@ void main() {
     if (texture(u_atlas, uv1).b < 0.99) discard;
 
     // LOD1 velocity (always available)
-    vec2 wind1 = mix(u_vector_min, u_vector_max, sampleAtlasRG(uv1));
+    vec2 current1 = mix(u_vector_min, u_vector_max, sampleAtlasRG(uv1));
 
     // LOD2 velocity — only blend when the chunk covering this position is loaded
     float lonRange = u_data_bounds.z - u_data_bounds.x;
@@ -193,13 +191,13 @@ void main() {
     int lod2SlotIdx = 9 + cy2 * int(u_lod2_grid.x) + cx2;
     bool has2 = u_loaded[lod2SlotIdx] == 1;
 
-    vec2 wind2 = wind1;  // fallback: LOD1 value
+    vec2 current2 = current1;  // fallback: LOD1 value
     if (has2) {
         vec2 uv2 = worldToAtlasUV(lonlat, u_lod2_grid, 9);
-        wind2 = mix(u_vector_min, u_vector_max, sampleAtlasRG(uv2));
+        current2 = mix(u_vector_min, u_vector_max, sampleAtlasRG(uv2));
     }
 
-    vec2 velocity = mix(wind1, wind2, has2 ? u_lod_blend : 0.0);
+    vec2 velocity = mix(current1, current2, has2 ? u_lod_blend : 0.0);
 
     float max_speed = (u_max_speed > 0.0) ? u_max_speed : length(u_vector_max);
     float speed_t   = length(velocity) / max_speed;
@@ -213,7 +211,7 @@ void main() {
 // Replaces vectorFsUpdate. Uses LOD1 only — position updates don't need
 // LOD2 precision, and this avoids the u_loaded guard in the hot update path.
 
-export const windAtlasFsUpdate = /* glsl */ `#version 300 es
+export const oceanCurrentAtlasFsUpdate = /* glsl */ `#version 300 es
 precision highp float;
 
 uniform sampler2D u_particles;

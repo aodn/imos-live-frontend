@@ -1,7 +1,7 @@
 /**
  * AtlasManager
  *
- * Manages a single 2048×2048 WebGL texture that stores all wind-field chunks
+ * Manages a single 2048×2048 WebGL texture that stores all ocean-current-field chunks
  * (LOD1 + LOD2) in a fixed grid of slots. Each slot holds one 242×194 chunk PNG
  * (240×192 data pixels + 1-px padding on each side).
  *

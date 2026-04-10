@@ -12,9 +12,24 @@ export type OceanCurrentDataResponse = {
   data: DataPoint[][];
 };
 
+export type OceanCurrentManifest = {
+  bounds: { lonMin: number; lonMax: number; latMin: number; latMax: number };
+  uRange: [number, number];
+  vRange: [number, number];
+  lods: {
+    '1': { grid: [number, number] };
+    '2': { grid: [number, number] };
+  };
+};
+
 export const getOceanCurrentData = async (date: string): Promise<OceanCurrentDataResponse> => {
   const response = await axios.get<OceanCurrentDataResponse>(
     buildGSLADatasetPath(date, GSLA_DATA_NAME),
   );
+  return response.data;
+};
+
+export const getOceanCurrentManifest = async (baseUrl: string): Promise<OceanCurrentManifest> => {
+  const response = await axios.get<OceanCurrentManifest>(`${baseUrl}/manifest.json`);
   return response.data;
 };

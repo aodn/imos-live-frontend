@@ -2,7 +2,7 @@ import { LAYERS_ORDER } from '@/config';
 import type {
   VectoryLayerInterface,
   WebGLOverlayLayerInterface,
-  WindAtlasLayerInterface,
+  OceanCurrentAtlasLayerInterface,
 } from '@/layers';
 import type { Layer } from 'mapbox-gl';
 
@@ -12,7 +12,7 @@ export function addLayerInOrder(
     | Layer
     | VectoryLayerInterface
     | WebGLOverlayLayerInterface
-    | WindAtlasLayerInterface
+    | OceanCurrentAtlasLayerInterface
     | null,
 ) {
   if (!layer) return;

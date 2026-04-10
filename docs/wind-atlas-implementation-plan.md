@@ -1,4 +1,4 @@
-# Wind Field Atlas Rendering System — Implementation Plan
+# Ocean Current Field Atlas Rendering System — Implementation Plan
 
 **Scope:** Australia region ocean current (GSLA) particle renderer  
 **Goal:** Replace the single flat-texture approach with a chunked Atlas system to support LOD1/LOD2 zoom-level detail switching  
@@ -56,11 +56,11 @@ The Python script gains chunking logic to slice the full grid into per-LOD PNG f
 ### New files to create
 
 ```
-src/layers/WindAtlasField.ts          # replaces VectorField.js for wind atlas rendering
+src/layers/OceanCurrentAtlasField.ts          # replaces VectorField.js for wind atlas rendering
 src/utils/AtlasManager.ts             # 2048² texture + slot allocation + LRU
 src/utils/ChunkScheduler.ts           # LOD2 priority queue + fetch orchestration
 src/utils/LODController.ts            # zoom-driven LOD blend animation
-src/utils/windShader.ts               # new shaders (atlas-aware vectorFs + vectorFsUpdate)
+src/utils/oceanCurrentShader.ts               # new shaders (atlas-aware vectorFs + vectorFsUpdate)
 ```
 
 ### Files to modify
@@ -68,7 +68,7 @@ src/utils/windShader.ts               # new shaders (atlas-aware vectorFs + vect
 ```
 script/gsla.py                        # add chunk generation (to_chunk_png)
 src/utils/shader.js                   # no change — existing shaders stay for non-atlas use
-src/hooks/layers/useParticleLayer.ts  # wire up WindAtlasField instead of image source
+src/hooks/layers/useParticleLayer.ts  # wire up OceanCurrentAtlasField instead of image source
 src/constants/product.ts              # update sourceId/layerId if needed
 ```
 
@@ -350,7 +350,7 @@ export class AtlasManager {
 
 **File:** `src/utils/ChunkScheduler.ts`
 
-Manages LOD2 fetch queue. LOD1 is preloaded at startup by `WindAtlasField` directly — the scheduler only handles LOD2.
+Manages LOD2 fetch queue. LOD1 is preloaded at startup by `OceanCurrentAtlasField` directly — the scheduler only handles LOD2.
 
 ```typescript
 type Bounds = { west: number; east: number; south: number; north: number };
@@ -482,7 +482,7 @@ export class ChunkScheduler {
 
 ## Phase 4 — New Shaders
 
-**File:** `src/utils/windShader.ts`
+**File:** `src/utils/oceanCurrentShader.ts`
 
 The key change: replace `u_vector` + `u_data_bounds`-based UV lookup with `u_atlas` + atlas slot lookup. The `lookup_vector()` bilinear filter is preserved but re-expressed in atlas UV space.
 
@@ -603,7 +603,7 @@ void main() {
 }
 ```
 
-### `windFsUpdateAtlas` (replaces `vectorFsUpdate`)
+### `oceanCurrentFsUpdateAtlas` (replaces `vectorFsUpdate`)
 
 Same atlas UV approach for the position-update shader. Replace the `lookup_vector()` + `pos_lookup` block with:
 
@@ -647,9 +647,9 @@ void main() {
 
 ---
 
-## Phase 5 — WindAtlasField
+## Phase 5 — OceanCurrentAtlasField
 
-**File:** `src/layers/WindAtlasField.ts`
+**File:** `src/layers/OceanCurrentAtlasField.ts`
 
 This is the orchestrator — mirrors `VectorField.js` structure but wires in `AtlasManager`, `ChunkScheduler`, and the new shaders.
 
@@ -661,7 +661,7 @@ Key responsibilities:
 - Expose `updateConfig()` compatible with existing `particleConfig`
 
 ```typescript
-export function WindAtlasField(map: mapboxgl.Map, gl: WebGL2RenderingContext) {
+export function OceanCurrentAtlasField(map: mapboxgl.Map, gl: WebGL2RenderingContext) {
   const atlas = new AtlasManager(gl);
   let scheduler: ChunkScheduler | null = null;
   let lodController: LODController | null = null;
@@ -757,7 +757,7 @@ export class LODController {
     const tick = () => {
       const t = Math.min((performance.now() - t0) / duration, 1);
       this.blendValue = start + (target - start) * t;
-      // gl.uniform1f(u_lod_blend_loc, this.blendValue) is called in WindAtlasField.draw()
+      // gl.uniform1f(u_lod_blend_loc, this.blendValue) is called in OceanCurrentAtlasField.draw()
       if (t < 1) requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
@@ -777,19 +777,19 @@ export class LODController {
 
 **File:** `src/hooks/layers/useParticleLayer.ts`
 
-Replace the Mapbox image source approach with direct `WindAtlasField` management:
+Replace the Mapbox image source approach with direct `OceanCurrentAtlasField` management:
 
 ```typescript
 // Remove: addOrUpdateImageSource, vectorLayer (Mapbox source/layer)
-// Add: WindAtlasField instance driven by date + map ref
+// Add: OceanCurrentAtlasField instance driven by date + map ref
 
-const windAtlasRef = useRef<WindAtlasFieldAPI | null>(null);
+const oceanCurrentAtlasRef = useRef<OceanCurrentAtlasFieldAPI | null>(null);
 
 const setDataByDataset = useCallback(async () => {
   const data = await currentParticleQuery.promise.catch(...);
   if (!data) return;
   const baseUrl = buildGSLADatasetPath(date, '');  // base dir for wind chunks
-  await windAtlasRef.current?.setData(baseUrl);
+  await oceanCurrentAtlasRef.current?.setData(baseUrl);
 }, [...]);
 ```
 
@@ -828,10 +828,10 @@ WebGL2 minimum guarantee is 256 vec4 = 1024 float components. 80 slots × 4 floa
 Phase 1  →  Python chunking                          (gsla.py)
 Phase 2  →  AtlasManager                             (src/utils/AtlasManager.ts)
 Phase 3  →  ChunkScheduler                           (src/utils/ChunkScheduler.ts)
-Phase 4  →  New shaders                              (src/utils/windShader.ts)
-Phase 5  →  WindAtlasField (LOD1 only first)         (src/layers/WindAtlasField.ts)
+Phase 4  →  New shaders                              (src/utils/oceanCurrentShader.ts)
+Phase 5  →  OceanCurrentAtlasField (LOD1 only first)         (src/layers/OceanCurrentAtlasField.ts)
            Verify: particles animate correctly with atlas
-Phase 5b →  Add LOD2 to WindAtlasField + LODController
+Phase 5b →  Add LOD2 to OceanCurrentAtlasField + LODController
 Phase 6  →  LODController                            (src/utils/LODController.ts)
 Phase 7  →  useParticleLayer hook update             (src/hooks/layers/useParticleLayer.ts)
 ```

@@ -1,14 +1,18 @@
 import type {
   VectoryLayerInterface,
   WebGLOverlayLayerInterface,
-  WindAtlasLayerInterface,
+  OceanCurrentAtlasLayerInterface,
 } from '@/layers';
 import { useEffect } from 'react';
 
 export function useCustomLayerVisibility(
   map: React.RefObject<mapboxgl.Map | null>,
   loadComplete: boolean,
-  layer: VectoryLayerInterface | WebGLOverlayLayerInterface | WindAtlasLayerInterface | null,
+  layer:
+    | VectoryLayerInterface
+    | WebGLOverlayLayerInterface
+    | OceanCurrentAtlasLayerInterface
+    | null,
   visible: boolean,
 ) {
   useEffect(() => {
