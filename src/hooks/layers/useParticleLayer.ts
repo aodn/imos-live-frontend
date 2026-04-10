@@ -12,14 +12,14 @@ import { useDidMountEffect } from '../useDidMountEffect';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useCustomLayerVisibility } from './useCustomLayerVisibility';
 
-type UseOParticleLayer = {
+type UseParticleLayer = {
   map: React.RefObject<mapboxgl.Map | null>;
   layerId: ParticleLayer;
   sourceId: ParticleSource;
   product: ProductType;
 };
 
-export function useParticleLayer({ map, layerId, sourceId, product }: UseOParticleLayer) {
+export function useParticleLayer({ map, layerId, sourceId, product }: UseParticleLayer) {
   const { date, nParticles, fadeOpacity, speedFactor, dropRate, pointSize, isError, enabled } =
     useMapUIStore(
       useShallow(s => ({

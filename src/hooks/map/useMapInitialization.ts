@@ -24,7 +24,6 @@ export function useMapInitialization() {
   useEffect(() => {
     map.current = new mapboxgl.Map({
       container: mapContainer.current!,
-      minZoom: 1,
       maxZoom: MAX_ZOOM,
       antialias: true,
       projection: 'mercator',

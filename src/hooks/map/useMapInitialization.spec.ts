@@ -73,7 +73,6 @@ describe('useMapInitialization', () => {
 
     expect(mapboxgl.Map).toHaveBeenCalledWith(
       expect.objectContaining({
-        minZoom: 1,
         maxZoom: 18,
         antialias: true,
         projection: 'mercator',
