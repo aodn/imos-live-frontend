@@ -19,6 +19,56 @@
  * are unchanged — import them directly from shader.js.
  */
 
+export const windAtlasVs = `#version 300 es
+precision highp float;
+
+in float a_index;
+
+uniform sampler2D u_particles;
+uniform float u_particles_res;
+uniform float u_point_size;
+
+out vec2 v_particle_pos;
+
+void main() {
+    v_particle_pos = texture(u_particles, vec2(
+        fract(a_index / u_particles_res),
+        floor(a_index / u_particles_res) / u_particles_res)).rg;
+
+    gl_PointSize = u_point_size;
+    gl_Position = vec4(2.0 * v_particle_pos.x - 1.0, 1.0 - 2.0 * v_particle_pos.y, 0, 1);
+}
+`;
+
+export const windAtlasVsQuad = `#version 300 es
+precision highp float;
+
+in vec2 a_pos;
+
+out vec2 v_tex_pos;
+
+void main() {
+    v_tex_pos = a_pos;
+    gl_Position = vec4(1.0 - 2.0 * a_pos, 0, 1);
+}
+`;
+
+export const windAtlasFsScreen = `#version 300 es
+precision highp float;
+
+uniform sampler2D u_screen;
+uniform float u_opacity;
+
+in vec2 v_tex_pos;
+out vec4 fragColor;
+
+void main() {
+    vec4 color = texture(u_screen, 1.0 - v_tex_pos);
+    // a hack to guarantee opacity fade out even with a value close to 1.0
+    fragColor = vec4(floor(255.0 * color * u_opacity) / 255.0);
+}
+`;
+
 // Shared GLSL helpers embedded as a template string prefix.
 // Duplicated across both shaders — GLSL has no #include system.
 const SHARED_GLSL = /* glsl */ `
@@ -69,6 +119,7 @@ vec2 worldToAtlasUV(vec2 lonlat, vec2 grid, int slotOffset) {
     vec4 slot = u_slots[slotIdx];
     return slot.xy + vec2(localU, localV) * slot.zw;
 }
+
 
 // ── Manual bilinear filter in atlas UV space ──────────────────────────────────
 // Matches the lookup_vector() approach in the original shaders for smooth
@@ -152,6 +203,7 @@ void main() {
 
     float max_speed = (u_max_speed > 0.0) ? u_max_speed : length(u_vector_max);
     float speed_t   = length(velocity) / max_speed;
+    
 
     vec2 ramp_pos = vec2(fract(16.0 * speed_t), floor(16.0 * speed_t) / 16.0);
     fragColor = texture(u_color_ramp, ramp_pos);

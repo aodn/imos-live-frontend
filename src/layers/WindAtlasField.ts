@@ -16,8 +16,14 @@
 
 import mapboxgl from 'mapbox-gl';
 import * as twgl from 'twgl.js';
-import { vectorVs, vectorVsQuad, vectorFsScreen } from '../utils/shader';
-import { windAtlasFsParticle, windAtlasFsUpdate } from '../utils/windShader';
+import {} from '../utils/shader';
+import {
+  windAtlasFsParticle,
+  windAtlasFsUpdate,
+  windAtlasVs,
+  windAtlasVsQuad,
+  windAtlasFsScreen,
+} from '../utils/windShader';
 import { createAtlasManager } from '../utils/AtlasManager';
 import { createChunkScheduler } from '../utils/ChunkScheduler';
 import { createLODController } from '../utils/LODController';
@@ -183,9 +189,9 @@ export function createWindAtlasField(
   }
 
   function initializeShaders() {
-    programInfo = twgl.createProgramInfo(gl, [vectorVs, windAtlasFsParticle]);
-    screenProgramInfo = twgl.createProgramInfo(gl, [vectorVsQuad, vectorFsScreen]);
-    updateProgramInfo = twgl.createProgramInfo(gl, [vectorVsQuad, windAtlasFsUpdate]);
+    programInfo = twgl.createProgramInfo(gl, [windAtlasVs, windAtlasFsParticle]);
+    screenProgramInfo = twgl.createProgramInfo(gl, [windAtlasVsQuad, windAtlasFsScreen]);
+    updateProgramInfo = twgl.createProgramInfo(gl, [windAtlasVsQuad, windAtlasFsUpdate]);
 
     setParticles(nParticles);
     setColorRamp(config.colours);

@@ -17,6 +17,8 @@
  * ChunkId convention: "{lod}_{cx}_{cy}"  e.g. "1_0_0", "2_3_2"
  */
 
+//TODO: LRU 驱逐 (Eviction)： 如果你不断平移地图，加载的 Chunk 越来越多，71 个 LOD2 专属空槽位快用完了怎么办？它会触发 LRU（最近最少使用）算法。系统会找出那些早就被你移出屏幕外、最久没被访问过的 Chunk，无情地把它们从 Atlas 槽位中踢掉，腾出空间给新进入屏幕的 Chunk。
+
 const ATLAS_W = 2048;
 const ATLAS_H = 2048;
 const SLOT_W = 242; // 240 data + 2 padding

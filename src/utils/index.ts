@@ -33,3 +33,4 @@ export * from './AtlasManager';
 export * from './ChunkScheduler';
 export * from './windShader';
 export * from './LODController';
+export * from './pipe';
