@@ -1,5 +1,3 @@
-import axios from 'axios';
-
 export type RangeType = [number, number];
 
 //latRange, lonRange are adjusted with offset. raw_latRange and raw_lonRange without offest adjustment.
@@ -14,9 +12,4 @@ export type MetaType = {
   vRange: RangeType;
   speedRange: RangeType;
   gslaRange: RangeType;
-};
-
-export const getMetaData = async (url: string): Promise<MetaType> => {
-  const response = await axios.get<MetaType>(url);
-  return response.data;
 };

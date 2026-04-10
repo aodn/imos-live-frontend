@@ -7,3 +7,5 @@ export * from './symbolLayer';
 export * from './fillLayer';
 export * from './WebGLOverlayField';
 export * from './webglOverlayLayer';
+export * from './WindAtlasField';
+export * from './windAtlasLayer';

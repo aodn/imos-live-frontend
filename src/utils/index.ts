@@ -29,3 +29,7 @@ export * from './minusOneUTCDay';
 export * from './throttle';
 export * from './formatLatLngToDirectional';
 export * from './getColorRamp';
+export * from './AtlasManager';
+export * from './ChunkScheduler';
+export * from './windShader';
+export * from './LODController';
