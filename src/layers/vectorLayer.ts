@@ -27,7 +27,7 @@ export const vectorLayer = (id: string, sourceId: string): VectoryLayerInterface
   metadata: undefined,
   vectorField: undefined, // Initialize vectorField
 
-  onAdd: async function (map: mapboxgl.Map, gl: WebGLRenderingContext) {
+  onAdd: async function (map: mapboxgl.Map, gl: WebGL2RenderingContext) {
     this.vectorField = this.vectorField === undefined ? VectorField(map, gl) : this.vectorField;
 
     map.on('sourcedata', e => {

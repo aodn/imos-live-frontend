@@ -20,6 +20,8 @@ import { particleConfig } from '@/store';
 const config = particleConfig;
 
 function VectorField(map, gl) {
+  // Required to use float textures (RG32F) as framebuffer render targets
+  gl.getExtension('EXT_color_buffer_float');
   let data;
   let bounds;
   let range;
@@ -88,21 +90,20 @@ function VectorField(map, gl) {
     particleRes = Math.ceil(Math.sqrt(num));
     numParticles = particleRes * particleRes;
 
-    //create a Uint8Array of size numParticles * 4 (RGBA) to store particle positions
-    //each particle will be represented by 4 bytes (R, G, B, A)
-    /**
-     * Channel	Possible Meaning	Example
-        R	Velocity X 	0–255 mapped to -1–1d
-        G	Velocity Y  0–255 mapped to -1–1
-     */
-    const particleState = new Uint8Array(numParticles * 4);
-
-    //put random values in the particleState array
-    //each value is between 0 and 255 (inclusive) for RGBA
-    //the reason that set random values is to create a random distribution of particles
-    //across the screen, so that they are not all in one place
-    for (let i = 0; i < particleState.length; i++) {
-      particleState[i] = Math.floor(Math.random() * 256);
+    // Particle position textures — GPU-side scratch space that tracks where each
+    // particle is. These have nothing to do with the ocean current PNG (u_image).
+    // Every frame, fsUpdate reads from one texture and writes updated positions to
+    // the other (ping-pong), then they swap.
+    //
+    // In WebGL1 positions had to be packed into RGBA Uint8 bytes (the toRGBA /
+    // fromRGBA trick) because WebGL1 cannot render to float textures. WebGL2
+    // supports RG32F as a framebuffer attachment (via EXT_color_buffer_float), so
+    // x and y are stored as plain floats — R channel = x, G channel = y.
+    // numParticles * 2 because each particle is 2 floats (x, y), not 4 bytes.
+    const particleState = new Float32Array(numParticles * 2);
+    for (let i = 0; i < numParticles; i++) {
+      particleState[i * 2] = Math.random(); // x
+      particleState[i * 2 + 1] = Math.random(); // y
     }
 
     //create two textures for the particles
@@ -113,7 +114,9 @@ function VectorField(map, gl) {
         min: gl.NEAREST,
         width: particleRes,
         height: particleRes,
-        format: gl.RGBA,
+        internalFormat: gl.RG32F,
+        format: gl.RG,
+        type: gl.FLOAT,
         src: particleState,
         wrap: gl.CLAMP_TO_EDGE,
       },
@@ -122,7 +125,9 @@ function VectorField(map, gl) {
         min: gl.NEAREST,
         width: particleRes,
         height: particleRes,
-        format: gl.RGBA,
+        internalFormat: gl.RG32F,
+        format: gl.RG,
+        type: gl.FLOAT,
         src: particleState,
         wrap: gl.CLAMP_TO_EDGE,
       },
@@ -191,6 +196,12 @@ function VectorField(map, gl) {
     const myData = context.getImageData(0, 0, data.width, data.height);
 
     const emptyPixels = new Uint8Array(gl.canvas.width * gl.canvas.height * 4);
+
+    // u_image is the ocean current PNG — read-only input that tells the shader the
+    // velocity (U, V) at every geographic point. U is encoded in the R channel and
+    // V in the G channel of the PNG pixels. Format stays gl.RGBA because that is
+    // what the PNG provides; we never write to this texture.
+    // This is completely separate from the particle position textures above.
     dataTextures = twgl.createTextures(gl, {
       u_image: {
         mag: gl.LINEAR,
