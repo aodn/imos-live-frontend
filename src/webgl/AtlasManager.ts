@@ -1,23 +1,32 @@
 /**
  * AtlasManager
  *
- * Manages a single 2048×2048 WebGL texture that stores all ocean-current-field chunks
- * (LOD1 + LOD2) in a fixed grid of slots. Each slot holds one 242×194 chunk PNG
- * (240×192 data pixels + 1-px padding on each side).
+ * Manages a single 2048×2048 WebGL texture that packs all chunk PNGs for one
+ * heatmap product (sea level anomaly, SSTA, etc.) into fixed "slots".
+ * Each slot holds one 242×194 chunk PNG (240×192 data pixels + 1-px padding per side).
  *
- * Slot assignment is formula-based so it matches the shader's O(1) lookup:
- *   LOD1 slot index = cy * 3 + cx          (range 0–8,  offset 0)
- *   LOD2 slot index = 9 + cy * 6 + cx      (range 9–38, offset 9)
+ * There are TWO separate grids to keep straight:
  *
- * Atlas layout:
- *   2048 / 242 = 8 columns
- *   2048 / 194 = 10 rows
- *   Total 80 slots — slots 0–8 are LOD1 (resident), 9–38 are LOD2.
+ *   1. Chunk grid (cx, cy) — geographic subdivision defined by the manifest:
+ *        LOD1: 3 cols × 3 rows = 9  chunks   (coarse, always resident)
+ *        LOD2: 6 cols × 5 rows = 30 chunks   (fine,   loaded on demand)
+ *
+ *   2. Atlas texture layout — how slots are physically packed in the 2048×2048 texture:
+ *        2048 / 242 = 8 columns
+ *        2048 / 194 = 10 rows  →  80 total slots
+ *      Slots 0–8 = LOD1, slots 9–38 = LOD2, slots 39–79 unused.
+ *
+ * The slot index bridges the two grids:
+ *   LOD1 slot index = cy * 3 + cx          (0–8)
+ *   LOD2 slot index = 9 + cy * 6 + cx      (9–38)
+ * Then: col = slotIdx % 8,  row = floor(slotIdx / 8)
+ * gives the physical pixel position in the atlas for texSubImage2D / shader UV lookup.
  *
  * ChunkId convention: "{lod}_{cx}_{cy}"  e.g. "1_0_0", "2_3_2"
  */
 
 //TODO: LRU 驱逐 (Eviction)： 如果你不断平移地图，加载的 Chunk 越来越多，71 个 LOD2 专属空槽位快用完了怎么办？它会触发 LRU（最近最少使用）算法。系统会找出那些早就被你移出屏幕外、最久没被访问过的 Chunk，无情地把它们从 Atlas 槽位中踢掉，腾出空间给新进入屏幕的 Chunk。
+//TODO: 1. LOD threshold is not good. 2. upload chunkings files to s3 bucket and fetch from there instead of local public/ folder. 3. investigate, if ssta data array is too large, better create a simple serverless lambda function as rest api to return each data point's value based on lat/lng query.
 
 const ATLAS_W = 2048;
 const ATLAS_H = 2048;
@@ -29,15 +38,15 @@ const TOTAL_SLOTS = 80;
 const LOD1_GRID = { cols: 3, rows: 3, offset: 0 } as const;
 const LOD2_GRID = { cols: 6, rows: 5, offset: 9 } as const;
 
-// Pre-compute the UV offset/scale for every slot — these never change.
+// Pre-compute the UV offset/scale for every slot — these never change. From index 0, every four floats in this generated array correspond to one slot: [uvOffsetX, uvOffsetY, uvScaleX, uvScaleY]
 // u_slots[i] = [uvOffsetX, uvOffsetY, uvScaleX, uvScaleY]
 function buildStaticSlotsData(): Float32Array {
   const data = new Float32Array(TOTAL_SLOTS * 4);
   for (let i = 0; i < TOTAL_SLOTS; i++) {
-    const col = i % ATLAS_COLS;
-    const row = Math.floor(i / ATLAS_COLS);
-    const texX = col * SLOT_W;
-    const texY = row * SLOT_H;
+    const col = i % ATLAS_COLS; // get column in the atlas texture for this slot
+    const row = Math.floor(i / ATLAS_COLS); //get row in the atlas texture for this slot
+    const texX = col * SLOT_W; // calculate the pixel X position in the atlas for this slot
+    const texY = row * SLOT_H; // calculate the pixel Y position in the atlas for this slot
     const base = i * 4;
     data[base] = texX / ATLAS_W; // uvOffsetX
     data[base + 1] = texY / ATLAS_H; // uvOffsetY

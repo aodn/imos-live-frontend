@@ -53,7 +53,7 @@ export type ChunkSchedulerAPI = {
   destroy: () => void;
 };
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// Helpers
 
 /** Convert a map bounds + expansion to the set of LOD2 chunkIds that intersect it. */
 function chunksInBounds(bounds: MapBounds, region: ChunkRegion, expandChunks = 0): string[] {
@@ -93,7 +93,7 @@ async function fetchChunk(url: string): Promise<ImageBitmap> {
   return createImageBitmap(blob, { premultiplyAlpha: 'none' });
 }
 
-// ── Factory ───────────────────────────────────────────────────────────────────
+// Factory
 
 export function createChunkScheduler(
   atlas: AtlasManagerAPI,
