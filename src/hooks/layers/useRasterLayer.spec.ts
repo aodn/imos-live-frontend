@@ -5,7 +5,7 @@
 import { renderHook, act } from '@testing-library/react';
 import type { Mock } from 'vitest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { useRasterLayer } from './useRasterLayer';
+import { useRasterHeatmapLayer } from './useRasterHeatmapLayer';
 import { useMapUIStore } from '@/store';
 import { addLayerInOrder, addOrUpdateWMSSource, rasterUrl } from '@/helpers';
 import { imageLayer } from '@/layers';
@@ -105,7 +105,7 @@ describe('useRasterLayer', () => {
   });
 
   it('should initialize with raster enabled and setup layer on load', () => {
-    renderHook(() => useRasterLayer(defaultProps));
+    renderHook(() => useRasterHeatmapLayer(defaultProps));
 
     // setupLayer is now passed as dependency instead of RasterLayer
     expect(useMapboxLayerSetup).toHaveBeenCalledWith(mockMap, expect.any(Function), [
@@ -123,7 +123,7 @@ describe('useRasterLayer', () => {
   it('should disable layer visibility when raster is disabled', () => {
     mockStoreState.productEnabled.gsla = false;
 
-    renderHook(() => useRasterLayer(defaultProps));
+    renderHook(() => useRasterHeatmapLayer(defaultProps));
 
     expect(useMapboxLayerVisibility).toHaveBeenCalledWith(
       mockMap,
@@ -136,7 +136,7 @@ describe('useRasterLayer', () => {
   it('should disable layer visibility when product has error', () => {
     mockStoreState.productError.gsla = true;
 
-    renderHook(() => useRasterLayer(defaultProps));
+    renderHook(() => useRasterHeatmapLayer(defaultProps));
 
     expect(useMapboxLayerVisibility).toHaveBeenCalledWith(
       mockMap,
@@ -147,7 +147,7 @@ describe('useRasterLayer', () => {
   });
 
   it('should call addOrUpdateWMSSource and addLayerInOrder during setup', async () => {
-    renderHook(() => useRasterLayer(defaultProps));
+    renderHook(() => useRasterHeatmapLayer(defaultProps));
 
     const setupLayerCall = (useMapboxLayerSetup as Mock).mock.calls[0];
     const setupLayerFn = setupLayerCall[1];
@@ -174,7 +174,7 @@ describe('useRasterLayer', () => {
     // In the new approach, rasterUrl returns an invalid URL instead of throwing
     (rasterUrl as Mock).mockResolvedValue('invalid-url');
 
-    renderHook(() => useRasterLayer(defaultProps));
+    renderHook(() => useRasterHeatmapLayer(defaultProps));
 
     const setupLayerCall = (useMapboxLayerSetup as Mock).mock.calls[0];
     const setupLayerFn = setupLayerCall[1];
@@ -192,7 +192,7 @@ describe('useRasterLayer', () => {
   });
 
   it('should update data source when date changes', async () => {
-    const { rerender } = renderHook(() => useRasterLayer(defaultProps));
+    const { rerender } = renderHook(() => useRasterHeatmapLayer(defaultProps));
 
     mockStoreState.date = '2024-01-02';
     (rasterUrl as Mock).mockResolvedValue('http://example.com/tile/new-date.png');
@@ -209,7 +209,7 @@ describe('useRasterLayer', () => {
   });
 
   it('should toggle raster layer visibility correctly', () => {
-    const { rerender } = renderHook(() => useRasterLayer(defaultProps));
+    const { rerender } = renderHook(() => useRasterHeatmapLayer(defaultProps));
 
     expect(useMapboxLayerVisibility).toHaveBeenCalledWith(
       mockMap,

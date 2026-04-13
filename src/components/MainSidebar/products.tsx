@@ -27,6 +27,7 @@ import type { LayersDataset } from './MainSidebarContent';
 import { LinearColorScaleBar, LogColorScaleBar, RasterLegend } from '../ColorScaleBar';
 import { setProductEnabledByProduct } from '@/store';
 import { gslaUrl, sstaUrl } from '@/api/fileExist';
+import { colorTuplesToCss } from '@/utils/colorTuplesToCss';
 
 export const headerData = {
   title: 'IMOS Live',
@@ -112,21 +113,7 @@ export const featuredDataset: LayersDataset[] = [
         min={PRODUCTLEGENDS['gsla-anomaly-sea-levels-webgl'].range[0]}
         max={PRODUCTLEGENDS['gsla-anomaly-sea-levels-webgl'].range[1]}
         label={PRODUCTLEGENDS['gsla-anomaly-sea-levels-webgl'].label}
-        colors={[
-          'rgb(5,48,97)',
-          'rgb(24,79,162)',
-          'rgb(56,122,190)',
-          'rgb(101,165,209)',
-          'rgb(158,201,225)',
-          'rgb(209,229,240)',
-          'rgb(247,247,247)',
-          'rgb(253,219,199)',
-          'rgb(244,177,139)',
-          'rgb(227,125,86)',
-          'rgb(198,70,57)',
-          'rgb(158,26,30)',
-          'rgb(103,0,31)',
-        ]}
+        colors={colorTuplesToCss(PRODUCTLEGENDS['gsla-anomaly-sea-levels-webgl'].colors)}
       />
     ),
     addToMap: setProductEnabledByProduct,
@@ -176,21 +163,7 @@ export const featuredDataset: LayersDataset[] = [
         min={PRODUCTLEGENDS['sst-anom-mosaic-webgl'].range[0]}
         max={PRODUCTLEGENDS['sst-anom-mosaic-webgl'].range[1]}
         label={PRODUCTLEGENDS['sst-anom-mosaic-webgl'].label}
-        colors={[
-          'rgb(5,48,97)',
-          'rgb(24,79,162)',
-          'rgb(56,122,190)',
-          'rgb(101,165,209)',
-          'rgb(158,201,225)',
-          'rgb(209,229,240)',
-          'rgb(247,247,247)',
-          'rgb(253,219,199)',
-          'rgb(244,177,139)',
-          'rgb(227,125,86)',
-          'rgb(198,70,57)',
-          'rgb(158,26,30)',
-          'rgb(103,0,31)',
-        ]}
+        colors={colorTuplesToCss(PRODUCTLEGENDS['sst-anom-mosaic-webgl'].colors)}
       />
     ),
     addToMap: setProductEnabledByProduct,

@@ -29,7 +29,6 @@ export type RasterSource =
   | typeof GSLA_RASTER_SOURCE_ID
   | typeof SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID;
 
-export type WebGLOverlayLayer = typeof GSLA_WEBGL_LAYER_ID | typeof SST_ANOM_MOSAIC_WEBGL_LAYER_ID;
 export type WebGLOverlaySource =
   | typeof GSLA_WEBGL_SOURCE_ID
   | typeof SST_ANOM_MOSAIC_WEBGL_SOURCE_ID;

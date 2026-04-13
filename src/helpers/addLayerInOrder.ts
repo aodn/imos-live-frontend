@@ -1,19 +1,10 @@
 import { LAYERS_ORDER } from '@/config';
-import type {
-  VectoryLayerInterface,
-  WebGLOverlayLayerInterface,
-  OceanCurrentAtlasLayerInterface,
-} from '@/layers';
+import type { ParticlesAtlasLayerInterface, HeatmapAtlasLayerInterface } from '@/layers';
 import type { Layer } from 'mapbox-gl';
 
 export function addLayerInOrder(
   map: React.RefObject<mapboxgl.Map | null>,
-  layer:
-    | Layer
-    | VectoryLayerInterface
-    | WebGLOverlayLayerInterface
-    | OceanCurrentAtlasLayerInterface
-    | null,
+  layer: Layer | ParticlesAtlasLayerInterface | HeatmapAtlasLayerInterface | null,
 ) {
   if (!layer) return;
 

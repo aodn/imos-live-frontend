@@ -2,10 +2,10 @@
  * this is the single truth of all the products in this project, and
  * the single truth of product's layerId, sourceId.
  */
-import type { ColorPalette } from '@/layers/WebGLTiledOverlayField';
 import speedColors from '../config/speed_colormap.json' with { type: 'json' };
 import { convertLinearColorScaleToRamp, convertLogColorScaleToRamp } from '@/components';
 import anomalySeaLevelColorMap from '@/config/anomaly_sea_level_colormap.json';
+import type { ColorPalette } from '@/layers';
 
 export const rdBuR: { colors: [number, number, number][] } = {
   colors: [
@@ -49,60 +49,41 @@ type ProductValue = {
   name: string;
   layerId: string;
   sourceId: string;
-  imageName: string;
-  metaDataName: string;
 };
 
-export const GSLA_SEA_LEVEL_NAME = 'gsla_overlay_input.png';
-export const GSLA_PARTICLE_NAME = 'gsla_input.png';
 export const GSLA_META_NAME = 'gsla_meta.json';
 export const GSLA_DATA_NAME = 'gsla_data.json';
-
-export const SST_MOSAIC_NAME = 'sst_anom_mosaic_overlay_input.png';
-export const SST_ANOM_MOSAIC_META_NAME = 'sst_anom_mosaic_meta.json';
 
 export const PRODUCTS = {
   [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: {
     name: 'GSLA Ocean Geostrophic Current',
     layerId: 'gsla-particle-layer',
     sourceId: 'gsla-particle-source',
-    imageName: GSLA_PARTICLE_NAME,
-    metaDataName: GSLA_META_NAME,
   },
   [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: {
     name: 'GSLA Anomaly Sea Levels',
     layerId: 'gsla-raster-layer',
     sourceId: 'gsla-raster-source',
-    imageName: '',
-    metaDataName: '',
   },
   [PRODUCT.WAVE_BUOYS]: {
     name: 'Wave Buoys',
     layerId: 'wave-buoys-layer',
     sourceId: 'wave-buoys-source',
-    imageName: '',
-    metaDataName: '',
   },
   [PRODUCT.SST_ANOMALY_MOSAIC]: {
     name: 'SST Anomaly Mosaic',
     layerId: 'sst-anom-mosaic-layer',
     sourceId: 'sst-anom-mosaic-source',
-    imageName: '',
-    metaDataName: '',
   },
   [PRODUCT.SST_ANOM_MOSAIC_WEBGL]: {
     name: 'SST Anomaly Mosaic (WebGL)',
     layerId: 'sst-anom-mosaic-webgl-layer',
     sourceId: 'sst-anom-mosaic-webgl-source',
-    imageName: SST_MOSAIC_NAME,
-    metaDataName: SST_ANOM_MOSAIC_META_NAME,
   },
   [PRODUCT.GSLA_ANOMALY_SEA_LEVELS_WEBGL]: {
     name: 'GSLA Anomaly Sea Levels (WebGL)',
     layerId: 'gsla-anomaly-sea-levels-webgl-layer',
     sourceId: 'gsla-anomaly-sea-levels-webgl-source',
-    imageName: GSLA_SEA_LEVEL_NAME,
-    metaDataName: GSLA_META_NAME,
   },
 } as const satisfies Record<ProductType, ProductValue>;
 

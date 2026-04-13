@@ -1,7 +1,7 @@
 import type { ParticleLayer, ProductType } from '@/constants';
 import { getOceanCurrentManifest } from '@/api';
 import { addLayerInOrder } from '@/helpers';
-import { oceanCurrentAtlasLayer } from '@/layers';
+import { particlesAtlasLayer } from '@/layers';
 import { useMapUIStore, setProductErrorByProduct } from '@/store';
 import { useCallback, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -34,7 +34,7 @@ export function useParticleLayer({ map, layerId, product }: UseParticleLayer) {
 
   const baseUrl = `${'26-01-01'}/ocean_current`;
 
-  const particleLayer = useMemo(() => oceanCurrentAtlasLayer(layerId), [layerId]);
+  const particleLayer = useMemo(() => particlesAtlasLayer(layerId), [layerId]);
 
   const manifestQuery = useQuery({
     queryKey: ['oceanCurrentAtlasManifest', date],

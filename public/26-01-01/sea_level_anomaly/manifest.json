@@ -1,0 +1,23 @@
+{
+  "bounds": {
+    "lonMin": 90.0,
+    "lonMax": 180.0,
+    "latMin": -60.0,
+    "latMax": 10.0
+  },
+  "valueRange": [-0.4342850148677826, 0.6741641759872437],
+  "lods": {
+    "1": {
+      "grid": [3, 3],
+      "chunkPx": [240, 192],
+      "storedPx": [242, 194],
+      "padding": 1
+    },
+    "2": {
+      "grid": [6, 5],
+      "chunkPx": [240, 192],
+      "storedPx": [242, 194],
+      "padding": 1
+    }
+  }
+}
