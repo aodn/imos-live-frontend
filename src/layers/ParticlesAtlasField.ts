@@ -339,6 +339,7 @@ export function createParticlesAtlasField(
     twgl.setUniforms(updateProgramInfo, {
       u_atlas: atlas.getTexture(),
       u_slots: atlas.getSlotsData(),
+      u_chunk_slots: atlas.getChunkSlots(),
       u_lod_grids: lodGridsFlat,
       u_lod_offsets: atlas.getLodOffsets(),
       u_particles: particleTextures.particleTexture0,
