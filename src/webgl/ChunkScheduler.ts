@@ -1,25 +1,26 @@
 /**
  * ChunkScheduler
  *
- * Manages dynamic LOD2 chunk fetching for the ocean-curent-field Atlas renderer.
- * LOD1 (9 chunks) is preloaded at startup by the caller — this scheduler
- * only handles LOD2 (30 chunks, 6×5 grid).
+ * Manages dynamic on-demand chunk fetching for a single LOD level.
+ * LOD1 is preloaded at startup by the caller — one scheduler instance
+ * is created per on-demand LOD (LOD2, LOD3, etc.).
  *
  * Responsibilities:
- *  - On each map move/zoom, compute which LOD2 chunks are needed
+ *  - On each map move/zoom, compute which chunks for this LOD are needed
  *    (visible viewport + 1-chunk buffer ring)
+ *  - Skip scheduling if zoom is below this LOD's threshold
  *  - Abort in-flight requests for chunks that scrolled out of scope
  *  - Fetch + decode remaining chunks in priority order (viewport first)
  *  - Upload each decoded ImageBitmap to the AtlasManager
  *  - Fire onChunkLoaded so the LODController can trigger crossfade
  *
- * ChunkId convention: "{lod}_{cx}_{cy}"  e.g. "2_3_2"
- * File URL:           "{baseUrl}/ocean_current_{lod}_{cx}_{cy}.png"
+ * ChunkId convention: "{lod}_{cx}_{cy}"  e.g. "2_3_2", "3_5_4"
+ * File URL:           "{baseUrl}/{filePrefix}_{lod}_{cx}_{cy}.png"
  */
 
 import type { AtlasManagerAPI } from './AtlasManager';
 
-const LOD2_ZOOM_THRESHOLD = 6;
+const DEFAULT_ZOOM_THRESHOLD = 6;
 const CONCURRENCY = 6;
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -55,8 +56,12 @@ export type ChunkSchedulerAPI = {
 
 // Helpers
 
-/** Convert a map bounds + expansion to the set of LOD2 chunkIds that intersect it. */
-function chunksInBounds(bounds: MapBounds, region: ChunkRegion, expandChunks = 0): string[] {
+/** Convert a map bounds + expansion to the set of chunk grid positions that intersect it. */
+function chunksInBounds(
+  bounds: MapBounds,
+  region: ChunkRegion,
+  expandChunks = 0,
+): { cx: number; cy: number }[] {
   const chunkLon = (region.lonMax - region.lonMin) / region.cols;
   const chunkLat = (region.latMax - region.latMin) / region.rows;
 
@@ -74,13 +79,13 @@ function chunksInBounds(bounds: MapBounds, region: ChunkRegion, expandChunks = 0
   // Clamp: if viewport is entirely outside the region return empty
   if (cxMin > cxMax || cyMin > cyMax) return [];
 
-  const ids: string[] = [];
+  const positions: { cx: number; cy: number }[] = [];
   for (let cy = cyMin; cy <= cyMax; cy++) {
     for (let cx = cxMin; cx <= cxMax; cx++) {
-      ids.push(`2_${cx}_${cy}`);
+      positions.push({ cx, cy });
     }
   }
-  return ids;
+  return positions;
 }
 
 async function fetchChunk(url: string): Promise<ImageBitmap> {
@@ -101,6 +106,10 @@ export function createChunkScheduler(
   onChunkLoaded: (chunkId: string) => void,
   region: ChunkRegion,
   filePrefix = 'ocean_current',
+  /** 1-based LOD number this scheduler handles (2 = LOD2, 3 = LOD3, ...). */
+  lod = 2,
+  /** Zoom level below which this LOD is not activated. */
+  zoomThreshold = DEFAULT_ZOOM_THRESHOLD,
 ): ChunkSchedulerAPI {
   let inflight = 0;
   let queue: QueueEntry[] = [];
@@ -108,14 +117,19 @@ export function createChunkScheduler(
   const aborts = new Map<string, AbortController>();
   let visibleIds: string[] = [];
 
-  function chunkUrl(chunkId: string): string {
-    return `${baseUrl}/${filePrefix}_${chunkId}.png`;
+  // chunkId format: "${lod}_${cx}_${cy}"
+  function makeChunkId(cx: number, cy: number): string {
+    return `${lod}_${cx}_${cy}`;
   }
 
-  function cancelChunk(chunkId: string) {
-    aborts.get(chunkId)?.abort();
-    aborts.delete(chunkId);
-    loading.delete(chunkId);
+  function chunkUrl(id: string): string {
+    return `${baseUrl}/${filePrefix}_${id}.png`;
+  }
+
+  function cancelChunk(id: string) {
+    aborts.get(id)?.abort();
+    aborts.delete(id);
+    loading.delete(id);
     inflight = Math.max(0, inflight - 1);
   }
 
@@ -124,33 +138,33 @@ export function createChunkScheduler(
       // Always process highest priority (lowest number) first
       queue.sort((a, b) => a.priority - b.priority);
       const entry = queue.shift()!;
-      const { chunkId } = entry;
+      const { chunkId: id } = entry;
 
-      if (loading.has(chunkId) || atlas.has(chunkId)) continue;
+      if (loading.has(id) || atlas.has(id)) continue;
 
       const ctrl = new AbortController();
-      aborts.set(chunkId, ctrl);
-      loading.add(chunkId);
+      aborts.set(id, ctrl);
+      loading.add(id);
       inflight++;
 
       // Capture inflight reference so the finally block can decrement correctly
       // even if cancelChunk already ran.
-      fetchChunk(chunkUrl(chunkId))
+      fetchChunk(chunkUrl(id))
         .then(img => {
           // Only upload if not cancelled while in flight
-          if (loading.has(chunkId)) {
-            atlas.upload(chunkId, img);
-            onChunkLoaded(chunkId);
+          if (loading.has(id)) {
+            atlas.upload(id, img);
+            onChunkLoaded(id);
           }
         })
         .catch(err => {
           if (err?.name !== 'AbortError') {
-            console.warn('[ChunkScheduler] fetch failed:', chunkId, err);
+            console.warn('[ChunkScheduler] fetch failed:', id, err);
           }
         })
         .finally(() => {
-          loading.delete(chunkId);
-          aborts.delete(chunkId);
+          loading.delete(id);
+          aborts.delete(id);
           inflight = Math.max(0, inflight - 1);
           drain();
         });
@@ -158,16 +172,27 @@ export function createChunkScheduler(
   }
 
   function update(bounds: MapBounds, zoom: number) {
-    if (zoom <= LOD2_ZOOM_THRESHOLD) {
-      // LOD2 not active — abort everything and reset
+    if (zoom <= zoomThreshold) {
+      // This LOD not active — abort everything and reset
       aborts.forEach((_, id) => cancelChunk(id));
       queue = [];
       visibleIds = [];
       return;
     }
 
-    visibleIds = chunksInBounds(bounds, region, 0);
-    const buffered = chunksInBounds(bounds, region, 1).filter(id => !visibleIds.includes(id));
+    const toIds = (positions: { cx: number; cy: number }[]) =>
+      positions.map(({ cx, cy }) => makeChunkId(cx, cy));
+
+    visibleIds = toIds(chunksInBounds(bounds, region, 0));
+
+    // Refresh LRU timestamp for every visible chunk already in the atlas.
+    for (const id of visibleIds) {
+      if (atlas.has(id)) atlas.touch(id);
+    }
+
+    const buffered = toIds(chunksInBounds(bounds, region, 1)).filter(
+      id => !visibleIds.includes(id),
+    );
 
     // Cancel requests that are no longer in scope
     const needed = new Set([...visibleIds, ...buffered]);

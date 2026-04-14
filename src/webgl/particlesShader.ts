@@ -2,19 +2,19 @@
  * Ocean Current Atlas shaders — atlas-aware replacements for vectorFs and vectorFsUpdate.
  *
  * Uniform conventions (unchanged from VectorField.js):
- *   u_bounds      vec4  [nwMercatorX, seMercatorY, seMercatorX, nwMercatorY]
- *   u_data_bounds vec4  [lonMin, latMax, lonMax, latMin]
- *   u_vector_min  vec2  [uMin_m/s, vMin_m/s]
- *   u_vector_max  vec2  [uMax_m/s, vMax_m/s]
+ *   u_bounds        vec4      [nwMercatorX, seMercatorY, seMercatorX, nwMercatorY]
+ *   u_data_bounds   vec4      [lonMin, latMax, lonMax, latMin]
+ *   u_vector_min    vec2      [uMin_m/s, vMin_m/s]
+ *   u_vector_max    vec2      [uMax_m/s, vMax_m/s]
  *
  * New atlas uniforms:
- *   u_atlas       sampler2D  the 2048×2048 atlas texture
- *   u_slots       vec4[80]   [uvOffsetX, uvOffsetY, uvScaleX, uvScaleY] per slot
- *   u_loaded      int[80]    1 = slot has been uploaded, 0 = empty
- *   u_lod1_grid   vec2       (3.0, 3.0)
- *   u_lod2_grid   vec2       (6.0, 5.0)
- *   u_lod_blend   float      0.0 = LOD1 only, 1.0 = full LOD2
- *
+ *   u_atlas         sampler2D the 2048×2048 atlas texture
+ *   u_slots         vec4[80]  [uvOffsetX, uvOffsetY, uvScaleX, uvScaleY] per slot
+ *   u_loaded        int[80]   1 = slot has been uploaded, 0 = empty
+ *   u_lod_grids     vec2[4]   grid [cols, rows] per LOD, ordered coarse→fine
+ *   u_lod_offsets   int[4]    cumulative slot offset per LOD
+ *   u_lod_count     int       number of active LODs (1–4)
+ *   u_lod_blend     float     0.0→1.0, controls the final LOD transition
  */
 
 export const oceanCurrentAtlasVs = `#version 300 es
@@ -70,8 +70,14 @@ void main() {
 // Shared GLSL helpers embedded as a template string prefix.
 // Duplicated across both shaders — GLSL has no #include system.
 const SHARED_GLSL = /* glsl */ `
+uniform vec4 u_bounds;          // [nwX, seY, seX, nwY]
+uniform vec4 u_data_bounds;     // [lonMin, latMax, lonMax, latMin]
+uniform vec4 u_slots[80];       // static UV layout per physical slot
+uniform int  u_chunk_slots[256]; // virtual chunk index → physical slot (−1 = not loaded)
+uniform vec2 u_lod_grids[4];
+uniform int  u_lod_offsets[4];
+
 // ── Mercator → lon/lat ────────────────────────────────────────────────────────
-// Identical to the function in the original vectorFs / vectorFsUpdate.
 vec2 returnLonLat(float x_domain, float y_domain, vec2 pos) {
     float mercator_x = fract(u_bounds.x + pos.x * x_domain);
     float mercator_y = u_bounds.w + pos.y * y_domain;
@@ -81,43 +87,45 @@ vec2 returnLonLat(float x_domain, float y_domain, vec2 pos) {
     return vec2(lon, lat);
 }
 
-// ── World (lon, lat) → atlas UV ───────────────────────────────────────────────
-// O(1): no loop, only arithmetic + one u_slots[] lookup.
-//
-// Coordinate system:
-//   cx = 0 → westernmost chunk   (lon near u_data_bounds.x)
-//   cy = 0 → northernmost chunk  (lat near u_data_bounds.y)
-//   This matches the Python chunk generator (gsla_chunking.py).
-//
-// u_data_bounds: x=lonMin, y=latMax, z=lonMax, w=latMin
-vec2 worldToAtlasUV(vec2 lonlat, vec2 grid, int slotOffset) {
-    float lonRange = u_data_bounds.z - u_data_bounds.x;  // positive
-    float latRange = u_data_bounds.y - u_data_bounds.w;  // positive (latMax - latMin)
+// ── Returns the physical atlas slot for this LOD/position, or −1 if not resident ──
+// lodIdx is 0-based (0 = LOD1, 1 = LOD2, ...).
+int physicalSlot(vec2 lonlat, int lodIdx) {
+    vec2 grid = u_lod_grids[lodIdx];
+    float lonRange = u_data_bounds.z - u_data_bounds.x;
+    float latRange = u_data_bounds.y - u_data_bounds.w;
+    int cx = clamp(int(floor((lonlat.x - u_data_bounds.x) / (lonRange / grid.x))), 0, int(grid.x) - 1);
+    int cy = clamp(int(floor((u_data_bounds.y - lonlat.y) / (latRange / grid.y))), 0, int(grid.y) - 1);
+    int virtualIdx = u_lod_offsets[lodIdx] + cy * int(grid.x) + cx;
+    return u_chunk_slots[virtualIdx];
+}
 
+// ── World (lon, lat) → atlas UV (call only when physicalSlot >= 0) ────────────
+// cx=0 = westernmost chunk, cy=0 = northernmost chunk.
+vec2 worldToAtlasUV(vec2 lonlat, int lodIdx) {
+    vec2 grid = u_lod_grids[lodIdx];
+    float lonRange = u_data_bounds.z - u_data_bounds.x;
+    float latRange = u_data_bounds.y - u_data_bounds.w;
     float chunkLonSize = lonRange / grid.x;
     float chunkLatSize = latRange / grid.y;
 
     int cx = clamp(int(floor((lonlat.x - u_data_bounds.x) / chunkLonSize)), 0, int(grid.x) - 1);
     int cy = clamp(int(floor((u_data_bounds.y - lonlat.y) / chunkLatSize)), 0, int(grid.y) - 1);
-    int slotIdx = slotOffset + cy * int(grid.x) + cx;
 
     // Northwest corner of the resolved chunk
     float chunkLonOrigin    = float(cx) * chunkLonSize + u_data_bounds.x;
     float chunkLatNorthEdge = u_data_bounds.y - float(cy) * chunkLatSize;
 
-    // Local UV in [0, 1]: (0,0) = NW corner, (1,1) = SE corner
     float localU = (lonlat.x - chunkLonOrigin)    / chunkLonSize;
     float localV = (chunkLatNorthEdge - lonlat.y) / chunkLatSize;
 
     // Padding correction: stored chunk is 242×194, data occupies inner 240×192.
-    // Map [0,1] → [1/242, 241/242] in U and [1/194, 193/194] in V.
     localU = localU * (240.0 / 242.0) + (1.0 / 242.0);
     localV = localV * (192.0 / 194.0) + (1.0 / 194.0);
 
-    vec4 slot = u_slots[slotIdx];
+    int virtIdx = u_lod_offsets[lodIdx] + cy * int(grid.x) + cx;
+    vec4 slot = u_slots[u_chunk_slots[virtIdx]];
     return slot.xy + vec2(localU, localV) * slot.zw;
 }
-
 
 // ── Manual bilinear filter in atlas UV space ──────────────────────────────────
 // Matches the lookup_vector() approach in the original shaders for smooth
@@ -136,7 +144,7 @@ vec2 sampleAtlasRG(vec2 uv) {
 `;
 
 // ── Draw shader ───────────────────────────────────────────────────────────────
-// Replaces vectorFs. Adds LOD1/LOD2 atlas sampling with crossfade.
+// Replaces vectorFs. Samples velocity from the atlas with LOD crossfade.
 
 export const oceanCurrentAtlasFsParticle = /* glsl */ `#version 300 es
 precision highp float;
@@ -146,12 +154,8 @@ uniform vec2      u_vector_min;
 uniform vec2      u_vector_max;
 uniform sampler2D u_color_ramp;
 uniform float     u_max_speed;
-uniform vec4      u_bounds;
-uniform vec4      u_data_bounds;
 uniform vec4      u_slots[80];
-uniform int       u_loaded[80];
-uniform vec2      u_lod1_grid;
-uniform vec2      u_lod2_grid;
+uniform int       u_lod_count;
 uniform float     u_lod_blend;
 
 in  vec2 v_particle_pos;
@@ -171,45 +175,32 @@ void main() {
     }
 
     // Ocean mask — sampled from LOD1 B channel (always loaded, no guard needed)
-    vec2 uv1 = worldToAtlasUV(lonlat, u_lod1_grid, 0);
-    if (texture(u_atlas, uv1).b < 0.99) discard;
+    vec2 uv0 = worldToAtlasUV(lonlat, 0);
+    if (texture(u_atlas, uv0).b < 0.99) discard;
 
-    // LOD1 velocity (always available)
-    vec2 current1 = mix(u_vector_min, u_vector_max, sampleAtlasRG(uv1));
+    // LOD1 velocity — always available as the base
+    vec2 velocity = mix(u_vector_min, u_vector_max, sampleAtlasRG(uv0));
 
-    // LOD2 velocity — only blend when the chunk covering this position is loaded
-    float lonRange = u_data_bounds.z - u_data_bounds.x;
-    float latRange = u_data_bounds.y - u_data_bounds.w;
-    int cx2 = clamp(
-        int(floor((lonlat.x - u_data_bounds.x) / (lonRange / u_lod2_grid.x))),
-        0, int(u_lod2_grid.x) - 1
-    );
-    int cy2 = clamp(
-        int(floor((u_data_bounds.y - lonlat.y) / (latRange / u_lod2_grid.y))),
-        0, int(u_lod2_grid.y) - 1
-    );
-    int lod2SlotIdx = 9 + cy2 * int(u_lod2_grid.x) + cx2;
-    bool has2 = u_loaded[lod2SlotIdx] == 1;
-
-    vec2 current2 = current1;  // fallback: LOD1 value
-    if (has2) {
-        vec2 uv2 = worldToAtlasUV(lonlat, u_lod2_grid, 9);
-        current2 = mix(u_vector_min, u_vector_max, sampleAtlasRG(uv2));
+    // Blend in finer LODs coarse→fine.
+    // Intermediate LODs blend at 100% when resident; finest active LOD uses u_lod_blend.
+    for (int i = 1; i < u_lod_count; i++) {
+        if (physicalSlot(lonlat, i) >= 0) {
+            vec2 finerVelocity = mix(u_vector_min, u_vector_max, sampleAtlasRG(worldToAtlasUV(lonlat, i)));
+            float t = (i == u_lod_count - 1) ? u_lod_blend : 1.0;
+            velocity = mix(velocity, finerVelocity, t);
+        }
     }
-
-    vec2 velocity = mix(current1, current2, has2 ? u_lod_blend : 0.0);
 
     float max_speed = (u_max_speed > 0.0) ? u_max_speed : length(u_vector_max);
     float speed_t   = length(velocity) / max_speed;
-    
 
     fragColor = texture(u_color_ramp, vec2(speed_t, 0.5));
 }
 `;
 
 // ── Position-update shader ────────────────────────────────────────────────────
-// Replaces vectorFsUpdate. Uses LOD1 only — position updates don't need
-// LOD2 precision, and this avoids the u_loaded guard in the hot update path.
+// Replaces vectorFsUpdate. Uses LOD1 only (lodIdx=0) — position updates don't
+// need LOD2+ precision, and this avoids the u_loaded guard in the hot update path.
 
 export const oceanCurrentAtlasFsUpdate = /* glsl */ `#version 300 es
 precision highp float;
@@ -222,10 +213,7 @@ uniform float     u_rand_seed;
 uniform float     u_speed_factor;
 uniform float     u_drop_rate;
 uniform float     u_drop_rate_bump;
-uniform vec4      u_bounds;
-uniform vec4      u_data_bounds;
 uniform vec4      u_slots[80];
-uniform vec2      u_lod1_grid;
 
 in  vec2 v_tex_pos;
 out vec4 fragColor;
@@ -247,9 +235,9 @@ void main() {
     float y_domain = abs(u_bounds.y - u_bounds.w);
     vec2 lonlat = returnLonLat(x_domain, y_domain, pos);
 
-    // Sample LOD1 for velocity — always available, no guard needed
-    vec2 uv1      = worldToAtlasUV(lonlat, u_lod1_grid, 0);
-    vec2 velocity = mix(u_vector_min, u_vector_max, sampleAtlasRG(uv1));
+    // Sample LOD1 (lodIdx=0) for velocity — always available, no guard needed
+    vec2 uv0      = worldToAtlasUV(lonlat, 0);
+    vec2 velocity = mix(u_vector_min, u_vector_max, sampleAtlasRG(uv0));
 
     float speed_t = length(velocity) / length(u_vector_max);
 

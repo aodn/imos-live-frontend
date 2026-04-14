@@ -4,21 +4,22 @@
  * Renders a full-viewport quad; each fragment:
  *   1. Reconstructs lon/lat from its Mercator position (via u_bounds).
  *   2. Discards if outside the data region or on land (A < 0.01).
- *   3. Looks up the correct atlas chunk slot (LOD1 base, LOD2 detail blend).
+ *   3. Samples LOD1 (always loaded), then blends in finer LODs as they arrive.
  *   4. Decodes the 24-bit RGB scalar value.
  *   5. Maps the value to a color ramp via u_color_ramp.
  *
  * Uniform conventions (shared with oceanCurrentAtlasShader):
- *   u_bounds      vec4  [nwMercatorX, seMercatorY, seMercatorX, nwMercatorY]
- *   u_data_bounds vec4  [lonMin, latMax, lonMax, latMin]
- *   u_atlas       sampler2D  the 2048×2048 atlas texture
- *   u_slots       vec4[80]   [uvOffsetX, uvOffsetY, uvScaleX, uvScaleY] per slot
- *   u_loaded      int[80]    1 = slot uploaded, 0 = empty
- *   u_lod1_grid   vec2       e.g. (3.0, 3.0)
- *   u_lod2_grid   vec2       e.g. (6.0, 5.0)
- *   u_lod_blend   float      0.0 = LOD1 only, 1.0 = full LOD2
- *   u_value_range  vec2  [rawMin, rawMax] — the dataset's actual value range
- *   u_legend_range vec2  [legendMin, legendMax] — color ramp clamp range
+ *   u_bounds        vec4      [nwMercatorX, seMercatorY, seMercatorX, nwMercatorY]
+ *   u_data_bounds   vec4      [lonMin, latMax, lonMax, latMin]
+ *   u_atlas         sampler2D the 2048×2048 atlas texture
+ *   u_slots         vec4[80]  [uvOffsetX, uvOffsetY, uvScaleX, uvScaleY] per slot
+ *   u_loaded        int[80]   1 = slot uploaded, 0 = empty
+ *   u_lod_grids     vec2[4]   grid [cols, rows] per LOD, ordered coarse→fine
+ *   u_lod_offsets   int[4]    cumulative slot offset per LOD
+ *   u_lod_count     int       number of active LODs (1–4)
+ *   u_lod_blend     float     0.0→1.0, controls the final LOD transition
+ *   u_value_range   vec2      [rawMin, rawMax] — the dataset's actual value range
+ *   u_legend_range  vec2      [legendMin, legendMax] — color ramp clamp range
  */
 
 // Full-viewport quad vertex shader.
@@ -39,9 +40,12 @@ void main() {
 
 // Shared GLSL helpers (duplicated from oceanCurrentAtlasShader — GLSL has no #include).
 const SHARED_GLSL = /* glsl */ `
-uniform vec4 u_bounds;      // [nwX, seY, seX, nwY]
-uniform vec4 u_data_bounds; // [lonMin, latMax, lonMax, latMin]
-uniform vec4 u_slots[80];
+uniform vec4 u_bounds;          // [nwX, seY, seX, nwY]
+uniform vec4 u_data_bounds;     // [lonMin, latMax, lonMax, latMin]
+uniform vec4 u_slots[80];       // static UV layout per physical slot
+uniform int  u_chunk_slots[256]; // virtual chunk index → physical slot (−1 = not loaded)
+uniform vec2 u_lod_grids[4];
+uniform int  u_lod_offsets[4];
 
 // Mercator position [0,1]×[0,1] → geographic lon/lat (degrees)
 vec2 returnLonLat(float x_domain, float y_domain, vec2 pos) {
@@ -53,19 +57,29 @@ vec2 returnLonLat(float x_domain, float y_domain, vec2 pos) {
     return vec2(lon, lat);
 }
 
-// World (lon, lat) → atlas UV (O(1), no loop)
-// cx=0 is westernmost chunk, cy=0 is northernmost chunk.
-// u_data_bounds: x=lonMin, y=latMax, z=lonMax, w=latMin
-vec2 worldToAtlasUV(vec2 lonlat, vec2 grid, int slotOffset) {
+// Returns the physical atlas slot for this LOD/position, or −1 if not resident.
+// lodIdx is 0-based (0 = LOD1, 1 = LOD2, ...).
+int physicalSlot(vec2 lonlat, int lodIdx) {
+    vec2 grid = u_lod_grids[lodIdx];
     float lonRange = u_data_bounds.z - u_data_bounds.x;
     float latRange = u_data_bounds.y - u_data_bounds.w;
+    int cx = clamp(int(floor((lonlat.x - u_data_bounds.x) / (lonRange / grid.x))), 0, int(grid.x) - 1);
+    int cy = clamp(int(floor((u_data_bounds.y - lonlat.y) / (latRange / grid.y))), 0, int(grid.y) - 1);
+    int virtualIdx = u_lod_offsets[lodIdx] + cy * int(grid.x) + cx;
+    return u_chunk_slots[virtualIdx];
+}
 
+// World (lon, lat) → atlas UV for a known loaded LOD (call only when physicalSlot >= 0).
+// cx=0 is westernmost chunk, cy=0 is northernmost chunk.
+vec2 worldToAtlasUV(vec2 lonlat, int lodIdx) {
+    vec2 grid = u_lod_grids[lodIdx];
+    float lonRange = u_data_bounds.z - u_data_bounds.x;
+    float latRange = u_data_bounds.y - u_data_bounds.w;
     float chunkLonSize = lonRange / grid.x;
     float chunkLatSize = latRange / grid.y;
 
     int cx = clamp(int(floor((lonlat.x - u_data_bounds.x) / chunkLonSize)), 0, int(grid.x) - 1);
     int cy = clamp(int(floor((u_data_bounds.y - lonlat.y) / chunkLatSize)), 0, int(grid.y) - 1);
-    int slotIdx = slotOffset + cy * int(grid.x) + cx;
 
     float chunkLonOrigin    = float(cx) * chunkLonSize + u_data_bounds.x;
     float chunkLatNorthEdge = u_data_bounds.y - float(cy) * chunkLatSize;
@@ -77,7 +91,8 @@ vec2 worldToAtlasUV(vec2 lonlat, vec2 grid, int slotOffset) {
     localU = localU * (240.0 / 242.0) + (1.0 / 242.0);
     localV = localV * (192.0 / 194.0) + (1.0 / 194.0);
 
-    vec4 slot = u_slots[slotIdx];
+    int virtIdx = u_lod_offsets[lodIdx] + cy * int(grid.x) + cx;
+    vec4 slot = u_slots[u_chunk_slots[virtIdx]];
     return slot.xy + vec2(localU, localV) * slot.zw;
 }
 `;
@@ -86,9 +101,7 @@ export const scalarAtlasFs = /* glsl */ `#version 300 es
 precision highp float;
 
 uniform sampler2D u_atlas;
-uniform int       u_loaded[80];
-uniform vec2      u_lod1_grid;
-uniform vec2      u_lod2_grid;
+uniform int       u_lod_count;
 uniform float     u_lod_blend;
 uniform vec2      u_value_range;
 uniform vec2      u_legend_range;
@@ -121,38 +134,28 @@ void main() {
         discard;
     }
 
-    // LOD1 sample (always loaded)
-    vec2 uv1     = worldToAtlasUV(lonlat, u_lod1_grid, 0);
-    vec4 sample1 = texture(u_atlas, uv1);
+    // LOD1 (lodIdx=0) is always preloaded — use as the base sample.
+    vec4 finalSample = texture(u_atlas, worldToAtlasUV(lonlat, 0));
 
-    // Land/null mask stored in A channel
-    if (sample1.a < 0.01) discard;
+    // Land / null-data mask is stored in the A channel.
+    if (finalSample.a < 0.01) discard;
 
-    // LOD2 blend when chunk is loaded
-    float lonRange = u_data_bounds.z - u_data_bounds.x;
-    float latRange = u_data_bounds.y - u_data_bounds.w;
-    int cx2 = clamp(
-        int(floor((lonlat.x - u_data_bounds.x) / (lonRange / u_lod2_grid.x))),
-        0, int(u_lod2_grid.x) - 1
-    );
-    int cy2 = clamp(
-        int(floor((u_data_bounds.y - lonlat.y) / (latRange / u_lod2_grid.y))),
-        0, int(u_lod2_grid.y) - 1
-    );
-    int lod2SlotIdx = 9 + cy2 * int(u_lod2_grid.x) + cx2;
-    bool has2 = u_loaded[lod2SlotIdx] == 1;
-
-    vec4 finalSample = sample1;
-    if (has2) {
-        vec2 uv2     = worldToAtlasUV(lonlat, u_lod2_grid, 9);
-        vec4 sample2 = texture(u_atlas, uv2);
-        if (sample2.a >= 0.01) {
-            finalSample = mix(sample1, sample2, u_lod_blend);
+    // Blend in finer LODs coarse→fine.
+    // All intermediate LODs are shown at 100% when their chunk is resident.
+    // Only the finest active LOD uses u_lod_blend (animates the crossfade).
+    for (int i = 1; i < u_lod_count; i++) {
+        int physSlot = physicalSlot(lonlat, i);
+        if (physSlot >= 0) {
+            vec4 finerSample = texture(u_atlas, worldToAtlasUV(lonlat, i));
+            if (finerSample.a >= 0.01) {
+                float t = (i == u_lod_count - 1) ? u_lod_blend : 1.0;
+                finalSample = mix(finalSample, finerSample, t);
+            }
         }
     }
 
-    float t = decodeScalar(finalSample.rgb);
-    vec4 color = texture(u_color_ramp, vec2(t, 0.5));
+    float scalar = decodeScalar(finalSample.rgb);
+    vec4 color = texture(u_color_ramp, vec2(scalar, 0.5));
     fragColor = vec4(color.rgb, finalSample.a);
 }
 `;

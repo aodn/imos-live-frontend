@@ -81,7 +81,8 @@ export function createParticlesAtlasField(
 
   // ── Atlas + chunk management ─────────────────────────────────────────────
   let atlas: AtlasManagerAPI | null = null;
-  let scheduler: ChunkSchedulerAPI | null = null;
+  /** One scheduler per on-demand LOD (LODs 2..N). Index 0 = LOD2, index 1 = LOD3, etc. */
+  let schedulers: ChunkSchedulerAPI[] = [];
 
   // ── Data state ───────────────────────────────────────────────────────────
   // u_data_bounds format: [lonMin, latMax, lonMax, latMin]
@@ -89,8 +90,8 @@ export function createParticlesAtlasField(
   let vectorMin: [number, number] | null = null; // [uMin, vMin]
   let vectorMax: [number, number] | null = null; // [uMax, vMax]
   let mapBounds: [number, number, number, number] | null = null;
-  let lod1Grid: [number, number] | null = null; // [cols, rows]
-  let lod2Grid: [number, number] | null = null; // [cols, rows]
+  /** Flat [cols0, rows0, cols1, rows1, ...] for u_lod_grids uniform, padded to 8 floats (4 LODs). */
+  let lodGridsFlat: Float32Array | null = null;
 
   // ── LOD blend ────────────────────────────────────────────────────────────
   let lodController: LODControllerAPI = createLODController();
@@ -232,9 +233,10 @@ export function createParticlesAtlasField(
     twgl.setUniforms(programInfo, {
       u_atlas: atlas.getTexture(),
       u_slots: atlas.getSlotsData(),
-      u_loaded: atlas.getLoadedData(),
-      u_lod1_grid: lod1Grid,
-      u_lod2_grid: lod2Grid,
+      u_chunk_slots: atlas.getChunkSlots(),
+      u_lod_grids: lodGridsFlat,
+      u_lod_offsets: atlas.getLodOffsets(),
+      u_lod_count: atlas.getLodCount(),
       u_lod_blend: lodController.getValue(),
       u_particles: particleTextures.particleTexture0,
       u_color_ramp: colorRampTexture.colorRampTexture,
@@ -325,7 +327,8 @@ export function createParticlesAtlasField(
     twgl.setUniforms(updateProgramInfo, {
       u_atlas: atlas.getTexture(),
       u_slots: atlas.getSlotsData(),
-      u_lod1_grid: lod1Grid,
+      u_lod_grids: lodGridsFlat,
+      u_lod_offsets: atlas.getLodOffsets(),
       u_particles: particleTextures.particleTexture0,
       u_vector_min: vectorMin,
       u_vector_max: vectorMax,
@@ -348,7 +351,7 @@ export function createParticlesAtlasField(
   // ── ChunkScheduler callback ───────────────────────────────────────────────
 
   function onChunkLoaded(_id: string) {
-    if (scheduler?.allVisibleLoaded()) {
+    if (schedulers.every(s => s.allVisibleLoaded())) {
       lodController.startBlendIn();
     }
   }
@@ -390,24 +393,38 @@ export function createParticlesAtlasField(
   // ── Public API ────────────────────────────────────────────────────────────
 
   async function setSource(manifest: OceanCurrentManifest, baseUrl: string): Promise<void> {
+    const lodsSorted = Object.entries(manifest.lods)
+      .sort(([a], [b]) => Number(a) - Number(b))
+      .map(([, entry]) => entry);
+
+    const lod1 = lodsSorted[0]!;
+
     const { lonMin, lonMax, latMin, latMax } = manifest.bounds;
     dataBounds = [lonMin, latMax, lonMax, latMin];
     vectorMin = [manifest.uRange[0], manifest.vRange[0]];
     vectorMax = [manifest.uRange[1], manifest.vRange[1]];
-    lod1Grid = manifest.lods['1'].grid;
-    lod2Grid = manifest.lods['2'].grid;
+
+    // Build flat LOD grids array for the shader uniform (padded to MAX_LODS=4 × 2 floats)
+    lodGridsFlat = new Float32Array(4 * 2);
+    lodsSorted.forEach(({ grid }, i) => {
+      lodGridsFlat![i * 2] = grid[0];
+      lodGridsFlat![i * 2 + 1] = grid[1];
+    });
 
     // Reset atlas and LOD state for new date
     atlas?.destroy();
-    scheduler?.destroy();
-    scheduler = null;
+    schedulers.forEach(s => s.destroy());
+    schedulers = [];
     lodController.destroy();
     lodController = createLODController();
 
-    atlas = createAtlasManager(gl);
+    atlas = createAtlasManager(gl, {
+      slotPx: lod1.storedPx,
+      lods: lodsSorted.map(({ grid }) => ({ grid })),
+    });
 
     // Preload all LOD1 chunks in parallel
-    const [lod1Cols, lod1Rows] = lod1Grid;
+    const [lod1Cols, lod1Rows] = lod1.grid;
     const lod1Ids: string[] = [];
     for (let cy = 0; cy < lod1Rows; cy++)
       for (let cx = 0; cx < lod1Cols; cx++) lod1Ids.push(`1_${cx}_${cy}`);
@@ -423,14 +440,20 @@ export function createParticlesAtlasField(
     // Compile shaders and set up GPU resources on first call
     if (!programInfo) initializeShaders();
 
-    scheduler = createChunkScheduler(atlas, baseUrl, onChunkLoaded, {
-      lonMin,
-      lonMax,
-      latMin,
-      latMax,
-      cols: lod2Grid[0],
-      rows: lod2Grid[1],
-    });
+    // Create one scheduler per on-demand LOD (LODs 2..N)
+    for (let lodNum = 2; lodNum <= lodsSorted.length; lodNum++) {
+      const lodEntry = lodsSorted[lodNum - 1];
+      schedulers.push(
+        createChunkScheduler(
+          atlas,
+          baseUrl,
+          onChunkLoaded,
+          { lonMin, lonMax, latMin, latMax, cols: lodEntry.grid[0], rows: lodEntry.grid[1] },
+          'ocean_current',
+          lodNum,
+        ),
+      );
+    }
   }
 
   function startAnimation() {
@@ -475,20 +498,21 @@ export function createParticlesAtlasField(
   function onMapMove(bounds: mapboxgl.LngLatBounds, zoom: number) {
     updateMapBounds(bounds);
 
-    // Reset blend to 0 when entering LOD2 range — new chunks will be fetched
-    if (zoom > 6 && scheduler && !scheduler.allVisibleLoaded()) {
+    // Reset blend if any scheduler has unloaded visible chunks (new area entered)
+    if (schedulers.some(s => !s.allVisibleLoaded())) {
       lodController.reset();
     }
 
-    scheduler?.update(
-      {
-        west: bounds.getWest(),
-        east: bounds.getEast(),
-        south: bounds.getSouth(),
-        north: bounds.getNorth(),
-      },
-      zoom,
-    );
+    const mapBoundsObj = {
+      west: bounds.getWest(),
+      east: bounds.getEast(),
+      south: bounds.getSouth(),
+      north: bounds.getNorth(),
+    };
+
+    for (const scheduler of schedulers) {
+      scheduler.update(mapBoundsObj, zoom);
+    }
   }
 
   function setLodBlend(value: number) {
