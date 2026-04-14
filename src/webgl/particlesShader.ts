@@ -69,13 +69,17 @@ void main() {
 
 // Shared GLSL helpers embedded as a template string prefix.
 // Duplicated across both shaders — GLSL has no #include system.
-const SHARED_GLSL = /* glsl */ `
+// totalSlots is injected at compile time so the GLSL array size matches the atlas layout.
+function makeSharedGlsl(totalSlots: number): string {
+  return /* glsl */ `
 uniform vec4 u_bounds;          // [nwX, seY, seX, nwY]
 uniform vec4 u_data_bounds;     // [lonMin, latMax, lonMax, latMin]
-uniform vec4 u_slots[80];       // static UV layout per physical slot
+uniform vec4 u_slots[${totalSlots}];  // static UV layout per physical slot
 uniform int  u_chunk_slots[256]; // virtual chunk index → physical slot (−1 = not loaded)
 uniform vec2 u_lod_grids[4];
 uniform int  u_lod_offsets[4];
+uniform vec2 u_uv_scale;        // chunkPx / storedPx — maps local [0,1] into data region
+uniform vec2 u_uv_offset;       // padding / storedPx — shifts past the padding border
 
 // ── Mercator → lon/lat ────────────────────────────────────────────────────────
 vec2 returnLonLat(float x_domain, float y_domain, vec2 pos) {
@@ -118,9 +122,9 @@ vec2 worldToAtlasUV(vec2 lonlat, int lodIdx) {
     float localU = (lonlat.x - chunkLonOrigin)    / chunkLonSize;
     float localV = (chunkLatNorthEdge - lonlat.y) / chunkLatSize;
 
-    // Padding correction: stored chunk is 242×194, data occupies inner 240×192.
-    localU = localU * (240.0 / 242.0) + (1.0 / 242.0);
-    localV = localV * (192.0 / 194.0) + (1.0 / 194.0);
+    // Shift local [0,1] into the data region, skipping the padding border.
+    localU = localU * u_uv_scale.x + u_uv_offset.x;
+    localV = localV * u_uv_scale.y + u_uv_offset.y;
 
     int virtIdx = u_lod_offsets[lodIdx] + cy * int(grid.x) + cx;
     vec4 slot = u_slots[u_chunk_slots[virtIdx]];
@@ -142,11 +146,13 @@ vec2 sampleAtlasRG(vec2 uv) {
     return mix(mix(tl, tr, f.x), mix(bl, br, f.x), f.y);
 }
 `;
+}
 
 // ── Draw shader ───────────────────────────────────────────────────────────────
 // Replaces vectorFs. Samples velocity from the atlas with LOD crossfade.
 
-export const oceanCurrentAtlasFsParticle = /* glsl */ `#version 300 es
+export function makeOceanCurrentAtlasFsParticle(totalSlots: number): string {
+  return /* glsl */ `#version 300 es
 precision highp float;
 
 uniform sampler2D u_atlas;
@@ -154,14 +160,13 @@ uniform vec2      u_vector_min;
 uniform vec2      u_vector_max;
 uniform sampler2D u_color_ramp;
 uniform float     u_max_speed;
-uniform vec4      u_slots[80];
 uniform int       u_lod_count;
 uniform float     u_lod_blend;
 
 in  vec2 v_particle_pos;
 out vec4 fragColor;
 
-${SHARED_GLSL}
+${makeSharedGlsl(totalSlots)}
 
 void main() {
     float x_domain = abs(u_bounds.x - u_bounds.z);
@@ -197,12 +202,14 @@ void main() {
     fragColor = texture(u_color_ramp, vec2(speed_t, 0.5));
 }
 `;
+}
 
 // ── Position-update shader ────────────────────────────────────────────────────
 // Replaces vectorFsUpdate. Uses LOD1 only (lodIdx=0) — position updates don't
 // need LOD2+ precision, and this avoids the u_loaded guard in the hot update path.
 
-export const oceanCurrentAtlasFsUpdate = /* glsl */ `#version 300 es
+export function makeOceanCurrentAtlasFsUpdate(totalSlots: number): string {
+  return /* glsl */ `#version 300 es
 precision highp float;
 
 uniform sampler2D u_particles;
@@ -213,7 +220,6 @@ uniform float     u_rand_seed;
 uniform float     u_speed_factor;
 uniform float     u_drop_rate;
 uniform float     u_drop_rate_bump;
-uniform vec4      u_slots[80];
 
 in  vec2 v_tex_pos;
 out vec4 fragColor;
@@ -225,7 +231,7 @@ float rand(const vec2 co) {
     return fract(sin(t) * (rand_constants.z + t));
 }
 
-${SHARED_GLSL}
+${makeSharedGlsl(totalSlots)}
 
 void main() {
     // Particle position stored as plain floats in RG (WebGL2 RG32F texture)
@@ -256,3 +262,4 @@ void main() {
     fragColor = vec4(pos, 0.0, 1.0);
 }
 `;
+}

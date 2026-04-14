@@ -29,8 +29,9 @@
 
 //TODO: 1. LOD threshold is not good. 2. upload chunkings files to s3 bucket and fetch from there instead of local public/ folder. 3. investigate, if ssta data array is too large, better create a simple serverless lambda function as rest api to return each data point's value based on lat/lng query.
 
-const ATLAS_W = 2048;
-const ATLAS_H = 2048;
+export const ATLAS_SIZE = 2048;
+const ATLAS_W = ATLAS_SIZE;
+const ATLAS_H = ATLAS_SIZE;
 
 /** Maximum number of LODs the shader supports. Drives the GLSL array sizes. */
 export const MAX_LODS = 4;

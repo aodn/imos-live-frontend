@@ -17,7 +17,15 @@ export type OceanCurrentManifest = {
   uRange: [number, number];
   vRange: [number, number];
   /** Keyed by LOD level ('1', '2', ...). The renderer currently uses LODs '1' and '2'. */
-  lods: Record<string, { grid: [number, number]; storedPx: [number, number] }>;
+  lods: Record<
+    string,
+    {
+      grid: [number, number];
+      storedPx: [number, number];
+      chunkPx: [number, number];
+      padding: number;
+    }
+  >;
 };
 
 export const getOceanCurrentData = async (date: string): Promise<OceanCurrentDataResponse> => {

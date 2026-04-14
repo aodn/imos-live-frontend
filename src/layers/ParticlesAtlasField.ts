@@ -23,12 +23,13 @@ import { getColorRamp } from '@/utils';
 import type { OceanCurrentManifest } from '@/api';
 import type { AtlasManagerAPI, ChunkSchedulerAPI, LODControllerAPI } from '@/webgl';
 import {
+  ATLAS_SIZE,
   createLODController,
   oceanCurrentAtlasVs,
-  oceanCurrentAtlasFsParticle,
+  makeOceanCurrentAtlasFsParticle,
   oceanCurrentAtlasVsQuad,
   oceanCurrentAtlasFsScreen,
-  oceanCurrentAtlasFsUpdate,
+  makeOceanCurrentAtlasFsUpdate,
   createAtlasManager,
   createChunkScheduler,
 } from '@/webgl';
@@ -92,6 +93,10 @@ export function createParticlesAtlasField(
   let mapBounds: [number, number, number, number] | null = null;
   /** Flat [cols0, rows0, cols1, rows1, ...] for u_lod_grids uniform, padded to 8 floats (4 LODs). */
   let lodGridsFlat: Float32Array | null = null;
+  /** chunkPx / storedPx — maps local [0,1] UV into the data region (excluding padding). */
+  let uvScale: [number, number] | null = null;
+  /** padding / storedPx — shifts UV past the padding border. */
+  let uvOffset: [number, number] | null = null;
 
   // ── LOD blend ────────────────────────────────────────────────────────────
   let lodController: LODControllerAPI = createLODController();
@@ -179,15 +184,18 @@ export function createParticlesAtlasField(
     });
   }
 
-  function initializeShaders() {
-    programInfo = twgl.createProgramInfo(gl, [oceanCurrentAtlasVs, oceanCurrentAtlasFsParticle]);
+  function initializeShaders(totalSlots: number) {
+    programInfo = twgl.createProgramInfo(gl, [
+      oceanCurrentAtlasVs,
+      makeOceanCurrentAtlasFsParticle(totalSlots),
+    ]);
     screenProgramInfo = twgl.createProgramInfo(gl, [
       oceanCurrentAtlasVsQuad,
       oceanCurrentAtlasFsScreen,
     ]);
     updateProgramInfo = twgl.createProgramInfo(gl, [
       oceanCurrentAtlasVsQuad,
-      oceanCurrentAtlasFsUpdate,
+      makeOceanCurrentAtlasFsUpdate(totalSlots),
     ]);
 
     setParticles(nParticles);
@@ -218,8 +226,9 @@ export function createParticlesAtlasField(
       !vectorMax ||
       !mapBounds ||
       !particleIndices ||
-      !lod1Grid ||
-      !lod2Grid
+      !lodGridsFlat ||
+      !uvScale ||
+      !uvOffset
     )
       return;
 
@@ -238,6 +247,8 @@ export function createParticlesAtlasField(
       u_lod_offsets: atlas.getLodOffsets(),
       u_lod_count: atlas.getLodCount(),
       u_lod_blend: lodController.getValue(),
+      u_uv_scale: uvScale,
+      u_uv_offset: uvOffset,
       u_particles: particleTextures.particleTexture0,
       u_color_ramp: colorRampTexture.colorRampTexture,
       u_particles_res: particleRes,
@@ -304,7 +315,8 @@ export function createParticlesAtlasField(
       !vectorMin ||
       !vectorMax ||
       !mapBounds ||
-      !lod1Grid
+      !uvScale ||
+      !uvOffset
     )
       return;
 
@@ -333,6 +345,8 @@ export function createParticlesAtlasField(
       u_vector_min: vectorMin,
       u_vector_max: vectorMax,
       u_rand_seed: Math.random(),
+      u_uv_scale: uvScale,
+      u_uv_offset: uvOffset,
       u_bounds: mapBounds,
       u_data_bounds: dataBounds,
       u_speed_factor: config.speedFactor,
@@ -403,6 +417,8 @@ export function createParticlesAtlasField(
     dataBounds = [lonMin, latMax, lonMax, latMin];
     vectorMin = [manifest.uRange[0], manifest.vRange[0]];
     vectorMax = [manifest.uRange[1], manifest.vRange[1]];
+    uvScale = [lod1.chunkPx[0] / lod1.storedPx[0], lod1.chunkPx[1] / lod1.storedPx[1]];
+    uvOffset = [lod1.padding / lod1.storedPx[0], lod1.padding / lod1.storedPx[1]];
 
     // Build flat LOD grids array for the shader uniform (padded to MAX_LODS=4 × 2 floats)
     lodGridsFlat = new Float32Array(4 * 2);
@@ -438,7 +454,9 @@ export function createParticlesAtlasField(
     );
 
     // Compile shaders and set up GPU resources on first call
-    if (!programInfo) initializeShaders();
+    const totalSlots =
+      Math.floor(ATLAS_SIZE / lod1.storedPx[0]) * Math.floor(ATLAS_SIZE / lod1.storedPx[1]);
+    if (!programInfo) initializeShaders(totalSlots);
 
     // Create one scheduler per on-demand LOD (LODs 2..N)
     for (let lodNum = 2; lodNum <= lodsSorted.length; lodNum++) {

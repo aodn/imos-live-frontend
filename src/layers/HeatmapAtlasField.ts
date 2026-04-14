@@ -21,10 +21,11 @@ import mapboxgl from 'mapbox-gl';
 import * as twgl from 'twgl.js';
 import type { AtlasManagerAPI, ChunkSchedulerAPI, LODControllerAPI } from '@/webgl';
 import {
+  ATLAS_SIZE,
   createAtlasManager,
   createChunkScheduler,
   createLODController,
-  scalarAtlasFs,
+  makeScalarAtlasFs,
   scalarAtlasVs,
 } from '@/webgl';
 import { getColorRamp } from '@/utils';
@@ -71,14 +72,18 @@ export function createHeatmapAtlasField(
   let mapBounds: [number, number, number, number] | null = null; // [nwX, seY, seX, nwY]
   /** Flat [cols0, rows0, cols1, rows1, ...] for u_lod_grids uniform, padded to 8 floats (4 LODs). */
   let lodGridsFlat: Float32Array | null = null;
+  /** chunkPx / storedPx — maps local [0,1] UV into the data region (excluding padding). */
+  let uvScale: [number, number] | null = null;
+  /** padding / storedPx — shifts UV past the padding border. */
+  let uvOffset: [number, number] | null = null;
 
   // ── Visibility ───────────────────────────────────────────────────────────
   let visible = false;
 
   // ── Private helpers ───────────────────────────────────────────────────────
 
-  function initializeShaders() {
-    programInfo = twgl.createProgramInfo(gl, [scalarAtlasVs, scalarAtlasFs]);
+  function initializeShaders(totalSlots: number) {
+    programInfo = twgl.createProgramInfo(gl, [scalarAtlasVs, makeScalarAtlasFs(totalSlots)]);
 
     // Full-viewport quad: (0,0)=bottom-left, (1,1)=top-right
     bufferInfo = twgl.createBufferInfoFromArrays(gl, {
@@ -136,6 +141,8 @@ export function createHeatmapAtlasField(
     dataBounds = [lonMin, latMax, lonMax, latMin];
     valueRange = manifest.valueRange;
     legendRange = newLegendRange;
+    uvScale = [lod1.chunkPx[0] / lod1.storedPx[0], lod1.chunkPx[1] / lod1.storedPx[1]];
+    uvOffset = [lod1.padding / lod1.storedPx[0], lod1.padding / lod1.storedPx[1]];
 
     // Build flat LOD grids array for the shader uniform (padded to MAX_LODS=4 × 2 floats)
     lodGridsFlat = new Float32Array(4 * 2);
@@ -170,7 +177,9 @@ export function createHeatmapAtlasField(
       }),
     );
 
-    if (!programInfo) initializeShaders();
+    const totalSlots =
+      Math.floor(ATLAS_SIZE / lod1.storedPx[0]) * Math.floor(ATLAS_SIZE / lod1.storedPx[1]);
+    if (!programInfo) initializeShaders(totalSlots);
 
     // Create one scheduler per on-demand LOD (LODs 2..N)
     for (let lodNum = 2; lodNum <= lodsSorted.length; lodNum++) {
@@ -207,7 +216,9 @@ export function createHeatmapAtlasField(
       !valueRange ||
       !legendRange ||
       !mapBounds ||
-      !lodGridsFlat
+      !lodGridsFlat ||
+      !uvScale ||
+      !uvOffset
     )
       return;
 
@@ -229,6 +240,8 @@ export function createHeatmapAtlasField(
       u_lod_blend: lodController.getValue(),
       u_bounds: mapBounds,
       u_data_bounds: dataBounds,
+      u_uv_scale: uvScale,
+      u_uv_offset: uvOffset,
       u_value_range: valueRange,
       u_legend_range: legendRange,
       u_color_ramp: colorRampTexture,

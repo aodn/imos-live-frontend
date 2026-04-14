@@ -6,7 +6,12 @@ import axios from 'axios';
  */
 export type LodEntry = {
   grid: [number, number];
+  /** Physical pixel dimensions of each stored chunk PNG [width, height] */
   storedPx: [number, number];
+  /** Inner data pixels [width, height] — excludes padding on both sides */
+  chunkPx: [number, number];
+  /** Padding pixels on each side (total = 2 × padding per axis) */
+  padding: number;
 };
 
 export type HeatmapAtlasManifest = {

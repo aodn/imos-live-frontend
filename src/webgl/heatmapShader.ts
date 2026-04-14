@@ -39,13 +39,17 @@ void main() {
 `;
 
 // Shared GLSL helpers (duplicated from oceanCurrentAtlasShader — GLSL has no #include).
-const SHARED_GLSL = /* glsl */ `
+// totalSlots is injected at compile time so the GLSL array size matches the atlas layout.
+function makeSharedGlsl(totalSlots: number): string {
+  return /* glsl */ `
 uniform vec4 u_bounds;          // [nwX, seY, seX, nwY]
 uniform vec4 u_data_bounds;     // [lonMin, latMax, lonMax, latMin]
-uniform vec4 u_slots[80];       // static UV layout per physical slot
+uniform vec4 u_slots[${totalSlots}];  // static UV layout per physical slot
 uniform int  u_chunk_slots[256]; // virtual chunk index → physical slot (−1 = not loaded)
 uniform vec2 u_lod_grids[4];
 uniform int  u_lod_offsets[4];
+uniform vec2 u_uv_scale;        // chunkPx / storedPx — maps local [0,1] into data region
+uniform vec2 u_uv_offset;       // padding / storedPx — shifts past the padding border
 
 // Mercator position [0,1]×[0,1] → geographic lon/lat (degrees)
 vec2 returnLonLat(float x_domain, float y_domain, vec2 pos) {
@@ -87,17 +91,19 @@ vec2 worldToAtlasUV(vec2 lonlat, int lodIdx) {
     float localU = (lonlat.x - chunkLonOrigin)    / chunkLonSize;
     float localV = (chunkLatNorthEdge - lonlat.y) / chunkLatSize;
 
-    // Padding correction: stored chunk is 242×194, data occupies inner 240×192.
-    localU = localU * (240.0 / 242.0) + (1.0 / 242.0);
-    localV = localV * (192.0 / 194.0) + (1.0 / 194.0);
+    // Shift local [0,1] into the data region, skipping the padding border.
+    localU = localU * u_uv_scale.x + u_uv_offset.x;
+    localV = localV * u_uv_scale.y + u_uv_offset.y;
 
     int virtIdx = u_lod_offsets[lodIdx] + cy * int(grid.x) + cx;
     vec4 slot = u_slots[u_chunk_slots[virtIdx]];
     return slot.xy + vec2(localU, localV) * slot.zw;
 }
 `;
+}
 
-export const scalarAtlasFs = /* glsl */ `#version 300 es
+export function makeScalarAtlasFs(totalSlots: number): string {
+  return /* glsl */ `#version 300 es
 precision highp float;
 
 uniform sampler2D u_atlas;
@@ -110,7 +116,7 @@ uniform sampler2D u_color_ramp;
 in  vec2 v_screen_pos;
 out vec4 fragColor;
 
-${SHARED_GLSL}
+${makeSharedGlsl(totalSlots)}
 
 // Decode 24-bit RGB scalar and normalise to [0, 1] for color ramp lookup.
 float decodeScalar(vec3 rgb) {
@@ -159,3 +165,4 @@ void main() {
     fragColor = vec4(color.rgb, finalSample.a);
 }
 `;
+}
