@@ -39,7 +39,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build Website
-        run: pnpm build
+        run: pnpm build --mode ${{ inputs.env }}
         env:
           NODE_ENV: production
           VITE_MAPBOX_KEY: ${{ vars.MAPBOX_KEY }}
