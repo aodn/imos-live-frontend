@@ -23,10 +23,14 @@ import { useDrawerStore, refreshDates, closeLeftDrawer } from '@/store';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useEffect, useMemo } from 'react';
 
+const MODE_TITLE_PREFIX: Record<string, string> = {
+  development: '[DEV] ',
+  edge: '[EDGE] ',
+};
+
 export function Map() {
   const { isSmallScreen } = useViewportSize();
   const leftDrawer = useDrawerStore(s => s.leftDrawer);
-
   useEffect(() => {
     refreshDates();
   }, []);
@@ -98,7 +102,7 @@ export function Map() {
   return (
     <>
       <Helmet>
-        <title>Map — IMOS Live</title>
+        <title>{`${MODE_TITLE_PREFIX[import.meta.env.MODE] ?? ''}Map — IMOS Live`}</title>
         <meta
           name="description"
           content="Explore real-time ocean data including sea surface temperature, geostrophic currents, and wave buoys across the Australasian region."
