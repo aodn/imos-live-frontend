@@ -12,6 +12,11 @@ export type LodEntry = {
   chunkPx: [number, number];
   /** Padding pixels on each side (total = 2 × padding per axis) */
   padding: number;
+  /**
+   * Minimum map zoom at which this LOD's scheduler activates.
+   * Omit to use the system default (6). Only meaningful for LOD2 and finer.
+   */
+  zoomThreshold?: number;
 };
 
 export type HeatmapAtlasManifest = {

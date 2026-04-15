@@ -59,21 +59,28 @@ Each product has a `manifest.json` that describes its chunking layout:
   "valueRange": [-0.43, 0.67],
   "lods": {
     "1": { "grid": [3, 3], "chunkPx": [240, 192], "storedPx": [242, 194], "padding": 1 },
-    "2": { "grid": [6, 5], "chunkPx": [240, 192], "storedPx": [242, 194], "padding": 1 }
+    "2": {
+      "grid": [6, 5],
+      "chunkPx": [240, 192],
+      "storedPx": [242, 194],
+      "padding": 1,
+      "zoomThreshold": 6
+    }
   }
 }
 ```
 
-| Field                | Meaning                                                       |
-| -------------------- | ------------------------------------------------------------- |
-| `bounds`             | Geographic extent of the dataset                              |
-| `valueRange`         | Raw min/max of the encoded scalar (used for RGB24 decoding)   |
-| `lods['N'].grid`     | `[cols, rows]` — how many chunks tile this LOD level          |
-| `lods['N'].storedPx` | `[width, height]` — pixel dimensions of each stored chunk PNG |
-| `lods['N'].chunkPx`  | Inner data pixels (excludes padding)                          |
-| `lods['N'].padding`  | 1-pixel padding on each side (total 2px per axis)             |
+| Field                     | Meaning                                                                                                                    |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `bounds`                  | Geographic extent of the dataset                                                                                           |
+| `valueRange`              | Raw min/max of the encoded scalar (used for RGB24 decoding)                                                                |
+| `lods['N'].grid`          | `[cols, rows]` — how many chunks tile this LOD level                                                                       |
+| `lods['N'].storedPx`      | `[width, height]` — pixel dimensions of each stored chunk PNG                                                              |
+| `lods['N'].chunkPx`       | Inner data pixels (excludes padding)                                                                                       |
+| `lods['N'].padding`       | Padding pixels on each side (total 2× per axis)                                                                            |
+| `lods['N'].zoomThreshold` | _(optional)_ Minimum map zoom to activate this LOD's scheduler. Defaults to `DEFAULT_ZOOM_THRESHOLD = 6`. LOD1 ignores it. |
 
-The system supports any number of LODs. The renderer currently uses two (LOD1 coarse, LOD2 fine).
+The system supports any number of LODs (up to `MAX_LODS = 4`). LOD keys are sorted numerically at runtime — insertion order in the JSON does not matter.
 
 ---
 
@@ -85,8 +92,8 @@ src/
     AtlasManager.ts       — GPU texture + LRU slot pool
     ChunkScheduler.ts     — on-demand fetch queue per LOD
     LODController.ts      — crossfade blend animation
-    heatmapShader.ts      — vertex + fragment shaders for scalar overlays
-    particlesShader.ts    — vertex + fragment shaders for particle field
+    heatmapShader.ts      — vertex shader + makeScalarAtlasFs() factory
+    particlesShader.ts    — makeOceanCurrentAtlasFsParticle/Update() factories
 
   layers/
     HeatmapAtlasField.ts  — orchestrates atlas for scalar products
@@ -117,12 +124,17 @@ useWebGLHeatmapLayer / useParticleLayer
     ▼
 HeatmapAtlasField / ParticlesAtlasField  (setSource)
     │  1. sorts manifest.lods by LOD number
-    │  2. creates AtlasManager(gl, { slotPx, lods })
-    │  3. preloads all LOD1 PNGs → atlas.upload()
-    │  4. creates one ChunkScheduler per on-demand LOD (2..N)
+    │  2. computes totalSlots = floor(ATLAS_SIZE/storedW) × floor(ATLAS_SIZE/storedH)
+    │  3. compiles shaders via makeScalarAtlasFs(totalSlots) (u_slots size injected)
+    │  4. computes uvScale = chunkPx/storedPx, uvOffset = padding/storedPx
+    │  5. creates AtlasManager(gl, { slotPx, lods })
+    │  6. preloads all LOD1 PNGs → atlas.upload()
+    │  7. creates one ChunkScheduler per on-demand LOD (2..N),
+    │     passing lodEntry.zoomThreshold from manifest
     ▼
 Map interactions (pan / zoom)  →  onMapMove(bounds, zoom)
     │  ChunkScheduler.update(bounds, zoom)
+    │      - no-ops if zoom ≤ zoomThreshold
     │      - touches visible loaded chunks (LRU refresh)
     │      - fetches missing chunks in priority order
     │      - uploads each ImageBitmap → atlas.upload()
@@ -133,12 +145,13 @@ onChunkLoaded  →  if all schedulers' visible chunks loaded
     ▼
 draw()  (called every frame from Mapbox render())
     │  setUniforms(u_atlas, u_slots, u_chunk_slots, u_lod_grids,
-    │              u_lod_offsets, u_lod_count, u_lod_blend, …)
+    │              u_lod_offsets, u_lod_count, u_lod_blend,
+    │              u_uv_scale, u_uv_offset, …)
     ▼
 GPU fragment shader
     │  virtualIdx = u_lod_offsets[lod] + cy*cols + cx
     │  physSlot   = u_chunk_slots[virtualIdx]   // −1 = not resident
-    │  UV         = u_slots[physSlot]
+    │  UV         = u_slots[physSlot].xy + localUV * u_slots[physSlot].zw
     │  sample atlas texture → decode → colorise
     ▼
 Screen
@@ -156,6 +169,7 @@ Manages the 2048×2048 GPU texture and the virtual→physical slot mapping.
 
 | Constant             | Value | Meaning                                                           |
 | -------------------- | ----- | ----------------------------------------------------------------- |
+| `ATLAS_SIZE`         | 2048  | Width and height of the atlas texture                             |
 | `MAX_LODS`           | 4     | Maximum LOD levels the GLSL arrays are sized for                  |
 | `MAX_VIRTUAL_CHUNKS` | 256   | Size of `u_chunk_slots` — covers up to LOD3 with reasonable grids |
 
@@ -197,15 +211,17 @@ One instance per on-demand LOD. Manages the fetch queue for that LOD.
 ```ts
 createChunkScheduler(
   atlas, baseUrl, onChunkLoaded, region,
-  filePrefix, lod, zoomThreshold
+  filePrefix, lod, zoomThreshold?
 ): ChunkSchedulerAPI
 ```
+
+`zoomThreshold` defaults to `DEFAULT_ZOOM_THRESHOLD = 6` (exported constant). Pass `lodEntry.zoomThreshold` from the manifest to make it per-LOD.
 
 | Behaviour             | Detail                                                                                     |
 | --------------------- | ------------------------------------------------------------------------------------------ |
 | **Viewport priority** | Chunks inside the viewport are queued at priority 0; the 1-chunk buffer ring at priority 1 |
 | **Concurrency**       | At most 6 in-flight fetches at once                                                        |
-| **Zoom gate**         | Returns immediately if `zoom ≤ zoomThreshold` (default 6)                                  |
+| **Zoom gate**         | Returns immediately (aborts all in-flight) if `zoom ≤ zoomThreshold`                       |
 | **Cancellation**      | Chunks that scroll out of the buffer ring are aborted                                      |
 | **LRU refresh**       | Calls `atlas.touch(id)` for every visible loaded chunk on each `update()`                  |
 
@@ -229,13 +245,15 @@ Animates `u_lod_blend` (0 → 1) over 300 ms using an ease-out quadratic curve. 
 
 ## Shader uniforms
 
-Both `heatmapShader` and `particlesShader` share the same atlas uniform set via `SHARED_GLSL`:
+The fragment shader source is produced by factory functions — `makeScalarAtlasFs(totalSlots)` and `makeOceanCurrentAtlasFsParticle/Update(totalSlots)` — which inject `totalSlots` as a GLSL compile-time constant. `totalSlots = floor(ATLAS_SIZE/storedW) × floor(ATLAS_SIZE/storedH)` and is computed in `setSource` from the manifest's `storedPx`.
+
+Both shader families share the same atlas uniform set via `makeSharedGlsl(totalSlots)`:
 
 | Uniform         | Type       | Description                                                                        |
 | --------------- | ---------- | ---------------------------------------------------------------------------------- |
 | `u_bounds`      | `vec4`     | Viewport in Mercator: `[nwX, seY, seX, nwY]`                                       |
 | `u_data_bounds` | `vec4`     | Data region in lon/lat: `[lonMin, latMax, lonMax, latMin]`                         |
-| `u_slots`       | `vec4[80]` | Static UV layout per physical slot                                                 |
+| `u_slots`       | `vec4[N]`  | Static UV layout per physical slot. N = totalSlots, injected at compile time.      |
 | `u_chunk_slots` | `int[256]` | Virtual chunk index → physical slot (−1 = not resident)                            |
 | `u_lod_grids`   | `vec2[4]`  | `[cols, rows]` per LOD, ordered coarse→fine                                        |
 | `u_lod_offsets` | `int[4]`   | Cumulative virtual offset per LOD                                                  |
@@ -284,6 +302,8 @@ for (int i = 1; i < u_lod_count; i++) {
 
 With 1 LOD the loop is dead code. With 2 LODs it runs once using `u_lod_blend`. With 3 LODs, LOD2 blends fully when loaded and LOD3 blends using `u_lod_blend`.
 
+The particle update shader (`makeOceanCurrentAtlasFsUpdate`) samples LOD1 only (`lodIdx=0`) for velocity — it does not run the LOD loop. Both the draw and update shaders must receive `u_chunk_slots` to correctly map virtual chunk indices to physical atlas slots.
+
 ---
 
 ## Adding a new atlas product
@@ -309,16 +329,13 @@ With 1 LOD the loop is dead code. With 2 LODs it runs once using `u_lod_blend`. 
 
 5. **Add sidebar entry** in `src/components/MainSidebar/products.tsx`.
 
-No changes to the atlas, shader, or scheduler code are needed unless the new product introduces a different slot pixel size (`storedPx`) or more than 4 LODs.
+No changes to the atlas, shader, or scheduler code are needed unless the new product introduces more than 4 LODs or a total virtual chunk count exceeding 256.
 
 ---
 
 ## Known limitations & TODOs
 
-| Issue                                                            | Status                                                                                                            |
-| ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| LOD zoom thresholds are hardcoded (`DEFAULT_ZOOM_THRESHOLD = 6`) | TODO — should be per-product or per-LOD from the manifest                                                         |
-| Chunk PNGs served from `public/` folder                          | TODO — move to S3                                                                                                 |
-| Padding correction                                               | Fixed — driven by `chunkPx`/`storedPx`/`padding` from manifest via `u_uv_scale`/`u_uv_offset` uniforms            |
-| `MAX_VIRTUAL_CHUNKS = 256` limits LOD4 with large grids          | Increase constant if needed                                                                                       |
-| `u_slots` array size                                             | Fixed — `totalSlots` injected at shader compile time from `floor(ATLAS_SIZE/storedW) × floor(ATLAS_SIZE/storedH)` |
+| Issue                                                   | Status                      |
+| ------------------------------------------------------- | --------------------------- |
+| Chunk PNGs served from `public/` folder                 | TODO — move to S3           |
+| `MAX_VIRTUAL_CHUNKS = 256` limits LOD4 with large grids | Increase constant if needed |

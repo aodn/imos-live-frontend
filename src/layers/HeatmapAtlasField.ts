@@ -192,6 +192,7 @@ export function createHeatmapAtlasField(
           { lonMin, lonMax, latMin, latMax, cols: lodEntry.grid[0], rows: lodEntry.grid[1] },
           filePrefix,
           lodNum,
+          lodEntry.zoomThreshold,
         ),
       );
     }

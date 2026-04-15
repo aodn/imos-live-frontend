@@ -1,6 +1,7 @@
 import { GSLA_DATA_NAME } from '@/constants';
 import { buildGSLADatasetPath } from '@/utils';
 import axios from 'axios';
+import type { LodEntry } from './scalarAtlas';
 
 type DataPoint = [number, number, number];
 
@@ -17,15 +18,7 @@ export type OceanCurrentManifest = {
   uRange: [number, number];
   vRange: [number, number];
   /** Keyed by LOD level ('1', '2', ...). The renderer currently uses LODs '1' and '2'. */
-  lods: Record<
-    string,
-    {
-      grid: [number, number];
-      storedPx: [number, number];
-      chunkPx: [number, number];
-      padding: number;
-    }
-  >;
+  lods: Record<string, LodEntry>;
 };
 
 export const getOceanCurrentData = async (date: string): Promise<OceanCurrentDataResponse> => {

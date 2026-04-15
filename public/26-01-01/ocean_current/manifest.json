@@ -18,7 +18,8 @@
       "grid": [6, 5],
       "chunkPx": [240, 192],
       "storedPx": [242, 194],
-      "padding": 1
+      "padding": 1,
+      "zoomThreshold": 6
     }
   }
 }

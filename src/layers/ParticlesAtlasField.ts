@@ -470,6 +470,7 @@ export function createParticlesAtlasField(
           { lonMin, lonMax, latMin, latMax, cols: lodEntry.grid[0], rows: lodEntry.grid[1] },
           'ocean_current',
           lodNum,
+          lodEntry.zoomThreshold,
         ),
       );
     }

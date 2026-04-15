@@ -20,7 +20,7 @@
 
 import type { AtlasManagerAPI } from './AtlasManager';
 
-const DEFAULT_ZOOM_THRESHOLD = 6;
+export const DEFAULT_ZOOM_THRESHOLD = 6;
 const CONCURRENCY = 6;
 
 // ── Types ─────────────────────────────────────────────────────────────────────
