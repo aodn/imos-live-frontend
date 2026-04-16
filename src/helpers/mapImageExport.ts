@@ -15,6 +15,11 @@ export type MapBounds = {
   north: number;
 };
 
+const IMOS_LIVE_URLS: Record<string, string> = {
+  edge: 'https://imoslive.edge.aodn.org.au',
+  production: 'https://imoslive-beta.aodn.org.au',
+};
+
 /** Below this CSS width the compact theme is applied for a better fit. */
 const COMPACT_BREAKPOINT_PX = 800;
 
@@ -314,7 +319,11 @@ const drawInfoColumn = (
 
   ctx.font = `${t.urlFontSize}px sans-serif`;
   ctx.fillStyle = t.urlColor;
-  ctx.fillText('https://imoslive.edge.aodn.org.au', x, y + t.titleLineH + t.subLineH * 2 - 4);
+  ctx.fillText(
+    IMOS_LIVE_URLS[import.meta.env.MODE] || 'https://imoslive.aodn.org.au',
+    x,
+    y + t.titleLineH + t.subLineH * 2 - 4,
+  );
 };
 
 /** Draws the product name, legend image, scale values, and label in the info panel. */
@@ -553,7 +562,9 @@ const calculateInfoPanelLayout = ({
   ctx.font = `${t.subFontSize}px sans-serif`;
   const dateWidth = ctx.measureText('9999-99-99').width;
   ctx.font = `${t.urlFontSize}px sans-serif`;
-  const urlWidth = ctx.measureText('https://imoslive.edge.aodn.org.au').width;
+  const urlWidth = ctx.measureText(
+    IMOS_LIVE_URLS[import.meta.env.MODE] || 'https://imoslive.aodn.org.au',
+  ).width;
   const leftColWidth = Math.max(titleWidth, dateWidth, urlWidth);
 
   ctx.font = `bold ${t.productNameFontSize}px sans-serif`;
