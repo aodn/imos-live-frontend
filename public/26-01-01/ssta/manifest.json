@@ -18,6 +18,13 @@
       "chunkPx": [240, 192],
       "storedPx": [242, 194],
       "padding": 1,
+      "zoomThreshold": 5
+    },
+    "3": {
+      "grid": [12, 10],
+      "chunkPx": [240, 192],
+      "storedPx": [242, 194],
+      "padding": 1,
       "zoomThreshold": 6
     }
   }

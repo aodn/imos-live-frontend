@@ -8,17 +8,10 @@
   "valueRange": [-0.4342850148677826, 0.6741641759872437],
   "lods": {
     "1": {
-      "grid": [3, 3],
+      "grid": [2, 2],
       "chunkPx": [240, 192],
       "storedPx": [242, 194],
       "padding": 1
-    },
-    "2": {
-      "grid": [6, 5],
-      "chunkPx": [240, 192],
-      "storedPx": [242, 194],
-      "padding": 1,
-      "zoomThreshold": 6
     }
   }
 }

@@ -1,25 +1,18 @@
 {
   "bounds": {
-    "lonMin": 89.9,
-    "lonMax": 180.1,
-    "latMin": -61.0,
-    "latMax": 10.1
+    "lonMin": 90.0,
+    "lonMax": 180.0,
+    "latMin": -60.0,
+    "latMax": 10.0
   },
   "uRange": [-1.1150107383728027, 1.3490912914276123],
   "vRange": [-1.7466009855270386, 1.4820014238357544],
   "lods": {
     "1": {
-      "grid": [3, 3],
+      "grid": [2, 2],
       "chunkPx": [240, 192],
       "storedPx": [242, 194],
       "padding": 1
-    },
-    "2": {
-      "grid": [6, 5],
-      "chunkPx": [240, 192],
-      "storedPx": [242, 194],
-      "padding": 1,
-      "zoomThreshold": 6
     }
   }
 }

@@ -47,7 +47,7 @@ export function useWebGLHeatmapLayer({
   const manifestQuery = useQuery({
     queryKey: [queryKey, date],
     queryFn: () => getHeatmapAtlasManifest(baseUrl),
-    enabled: !!date,
+    enabled: !!date && enabled,
   });
 
   const legendRange = PRODUCTLEGENDS[product].range as [number, number];
@@ -68,17 +68,17 @@ export function useWebGLHeatmapLayer({
     if (!map.current!.getLayer(layer.id)) {
       addLayerInOrder(map, layer);
     }
-    await setDataByDataset();
-  }, [map, layer, setDataByDataset]);
+    if (enabled) await setDataByDataset();
+  }, [map, layer, setDataByDataset, enabled]);
 
   const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [setupLayer]);
 
   useCustomLayerVisibility(map, loadComplete, layer, enabled && !isError);
 
   useDidMountEffect(() => {
-    if (!map.current || !loadComplete) return;
+    if (!map.current || !loadComplete || !enabled) return;
     setDataByDataset();
-  }, [loadComplete, date]);
+  }, [loadComplete, enabled, date]);
 
   return {
     updateLegendRange: (range: [number, number]) => layer.updateLegendRange(range),

@@ -39,7 +39,7 @@ export function useParticleLayer({ map, layerId, product }: UseParticleLayer) {
   const manifestQuery = useQuery({
     queryKey: ['oceanCurrentAtlasManifest', date],
     queryFn: () => getOceanCurrentManifest(baseUrl),
-    enabled: !!date,
+    enabled: !!date && enabled,
   });
 
   const setDataByDataset = useCallback(async () => {
@@ -58,8 +58,8 @@ export function useParticleLayer({ map, layerId, product }: UseParticleLayer) {
     if (!map.current!.getLayer(particleLayer.id)) {
       addLayerInOrder(map, particleLayer);
     }
-    await setDataByDataset();
-  }, [map, particleLayer, setDataByDataset]);
+    if (enabled) await setDataByDataset();
+  }, [map, particleLayer, setDataByDataset, enabled]);
 
   const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [setupLayer]);
 
@@ -78,7 +78,7 @@ export function useParticleLayer({ map, layerId, product }: UseParticleLayer) {
   }, [loadComplete, fadeOpacity, speedFactor, dropRate, pointSize, nParticles]);
 
   useDidMountEffect(() => {
-    if (!map.current || !loadComplete) return;
+    if (!map.current || !loadComplete || !enabled) return;
     setDataByDataset();
-  }, [loadComplete, date]);
+  }, [loadComplete, enabled, date]);
 }
