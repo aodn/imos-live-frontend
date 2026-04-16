@@ -5,17 +5,17 @@ import { addYears } from '@/utils';
 
 const THREDDS_PATHS = {
   GSLA: 'IMOS/OceanCurrent/GSLA/NRT',
-  SST: 'IMOS/SRS/AusTemp/ssta',
+  SST: 'IMOS/SRS/AusTemp/Marine-Heatwave',
 } as const;
 
 const FILE_PATTERNS = {
   GSLA: (dateString: string) => `IMOS_OceanCurrent_HV_${dateString}T`,
-  SST: (dateString: string) => `${dateString}_IMOS_AusTemp-sst-anomaly_AUS_fv02.nc`,
+  SST: (dateString: string) => `${dateString}_IMOS_AusTemp-marine-heatwave_AUS_fv02.nc`,
 } as const;
 
 const LAYER_NAMES = {
   [GSLA_RASTER_SOURCE_ID]: 'GSLA',
-  [SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID]: 'sst_anom_mosaic',
+  [SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID]: 'ssta',
 } as const;
 
 const WMS_CONFIG = {
@@ -26,7 +26,7 @@ const WMS_CONFIG = {
     legendPalette: 'x-Rainbow',
   },
   [SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID]: {
-    layers: 'sst_anom_mosaic',
+    layers: 'ssta',
     colorScaleRange: '-4,4',
     styles: 'raster/div-RdBu-inv',
     legendPalette: 'div-RdBu-inv',
