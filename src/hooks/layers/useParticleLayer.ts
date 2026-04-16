@@ -38,7 +38,7 @@ export function useParticleLayer({ map, layerId, sourceId, product }: UseOPartic
   const currentParticleQuery = useQuery({
     queryKey: [GSLA_META_NAME, date],
     queryFn: () => getMetaData(buildGSLADatasetPath(date, GSLA_META_NAME)),
-    enabled: !!date,
+    enabled: !!date && enabled,
   });
 
   const particleLayer = useMemo(() => vectorLayer(layerId, sourceId), [layerId, sourceId]);
@@ -73,11 +73,13 @@ export function useParticleLayer({ map, layerId, sourceId, product }: UseOPartic
 
   const setupLayer = useCallback(async () => {
     if (!particleLayer) return;
-    await setDataByDataset();
+    if (enabled) {
+      await setDataByDataset();
+    }
     if (!map.current!.getLayer(particleLayer.id)) {
       addLayerInOrder(map, particleLayer);
     }
-  }, [map, particleLayer, setDataByDataset]);
+  }, [enabled, map, particleLayer, setDataByDataset]);
 
   const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [setupLayer]);
 
@@ -97,7 +99,7 @@ export function useParticleLayer({ map, layerId, sourceId, product }: UseOPartic
   }, [loadComplete, fadeOpacity, speedFactor, dropRate, pointSize, nParticles]);
 
   useDidMountEffect(() => {
-    if (!map.current || !loadComplete) return;
+    if (!map.current || !loadComplete || !enabled) return;
     setDataByDataset();
-  }, [loadComplete, date]);
+  }, [loadComplete, date, enabled]);
 }
