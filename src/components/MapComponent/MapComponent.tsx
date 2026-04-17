@@ -41,6 +41,7 @@ export const MapComponent = memo(function MapComponent() {
     distanceMeasurementEnabled,
     gslaAnomalySeaLevelsEnabled,
     sstAnomMosaicEnabled,
+    dhdAnomalMosaicEnabled,
     waveBuoysEnabled,
     oceanCurrentEnabled,
   } = useMapUIStore(
@@ -48,6 +49,7 @@ export const MapComponent = memo(function MapComponent() {
       distanceMeasurementEnabled: s.distanceMeasurementEnabled,
       gslaAnomalySeaLevelsEnabled: s.productEnabled[PRODUCT.GSLA_ANOMALY_SEA_LEVELS],
       sstAnomMosaicEnabled: s.productEnabled[PRODUCT.AUSTEMP_SSTA_MOSAIC],
+      dhdAnomalMosaicEnabled: s.productEnabled[PRODUCT.AUSTEMP_DHD_MOSAIC],
       waveBuoysEnabled: s.productEnabled[PRODUCT.WAVE_BUOYS],
       oceanCurrentEnabled: s.productEnabled[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT],
     })),
@@ -96,7 +98,7 @@ export const MapComponent = memo(function MapComponent() {
 
   useParticleRasterLayersEventHandlers({
     map,
-    raster: gslaAnomalySeaLevelsEnabled || sstAnomMosaicEnabled,
+    raster: gslaAnomalySeaLevelsEnabled || sstAnomMosaicEnabled || dhdAnomalMosaicEnabled,
     oceanCurrentEnabled,
     distanceMeasurementEnabled,
   });

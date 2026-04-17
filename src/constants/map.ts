@@ -1,5 +1,5 @@
-import type { ProductSourceId } from './product';
-import { PRODUCTS } from './product';
+import type { ProductSourceId, ProductType } from './product';
+import { PRODUCTS, PRODUCT } from './product';
 
 //product layer id and source id, keep single truth from: import { PRODUCTS } from "./product";
 export const GSLA_PARTICLE_LAYER_ID = PRODUCTS['gsla-ocean-geostrophic-current'].layerId;
@@ -24,6 +24,7 @@ export const ProductSourceIds: ProductSourceId[] = [
 export const RasterProductSourceIds: RasterSource[] = [
   GSLA_RASTER_SOURCE_ID,
   AUSTEMP_SSTA_MOSAIC_RASTER_SOURCE_ID,
+  AUSTEMP_DHD_MOSAIC_RASTER_SOURCE_ID,
 ];
 
 export type RasterLayer =
@@ -41,6 +42,15 @@ export type BuoyLayer = typeof WAVE_BUOYS_LAYER_ID;
 
 export type ParticleLayer = typeof GSLA_PARTICLE_LAYER_ID;
 export type ParticleSource = typeof GSLA_PARTICLE_SOURCE_ID;
+
+export const isRasterProduct = (product: ProductType) =>
+  product === PRODUCT.GSLA_ANOMALY_SEA_LEVELS ||
+  product === PRODUCT.AUSTEMP_SSTA_MOSAIC ||
+  product === PRODUCT.AUSTEMP_DHD_MOSAIC;
+
+export const isGeostrophicCurrentProduct = (product: ProductType) =>
+  product === PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT;
+export const isWaveBuoyProduct = (product: ProductType) => product === PRODUCT.WAVE_BUOYS;
 
 export const isProductSourceId = (id: string): id is ProductSourceId =>
   ProductSourceIds.includes(id as ProductSourceId);

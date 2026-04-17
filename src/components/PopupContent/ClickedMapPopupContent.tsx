@@ -24,15 +24,21 @@ export function ClickedMapPopupContent({
   mapSize,
   point,
 }: ClickedMapPopupContentProps) {
-  const { gslaAnomalySeaLevelsEnabled, sstAnomMosaicEnabled, oceanCurrentEnabled, date } =
-    useMapUIStore(
-      useShallow(s => ({
-        gslaAnomalySeaLevelsEnabled: s.productEnabled[PRODUCT.GSLA_ANOMALY_SEA_LEVELS],
-        sstAnomMosaicEnabled: s.productEnabled[PRODUCT.AUSTEMP_SSTA_MOSAIC],
-        oceanCurrentEnabled: s.productEnabled[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT],
-        date: s.date,
-      })),
-    );
+  const {
+    gslaAnomalySeaLevelsEnabled,
+    sstAnomMosaicEnabled,
+    dhdAnomalMosaicEnabled,
+    oceanCurrentEnabled,
+    date,
+  } = useMapUIStore(
+    useShallow(s => ({
+      gslaAnomalySeaLevelsEnabled: s.productEnabled[PRODUCT.GSLA_ANOMALY_SEA_LEVELS],
+      sstAnomMosaicEnabled: s.productEnabled[PRODUCT.AUSTEMP_SSTA_MOSAIC],
+      dhdAnomalMosaicEnabled: s.productEnabled[PRODUCT.AUSTEMP_DHD_MOSAIC],
+      oceanCurrentEnabled: s.productEnabled[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT],
+      date: s.date,
+    })),
+  );
 
   const { data, isLoading } = useClickedMapPopupContentData({
     mapBounds,
@@ -40,6 +46,7 @@ export function ClickedMapPopupContent({
     oceanCurrentEnabled,
     gslaAnomalySeaLevelsEnabled,
     sstAnomMosaicEnabled,
+    dhdAnomalMosaicEnabled,
     date,
     lngLat,
     point,
@@ -112,6 +119,18 @@ export function ClickedMapPopupContent({
                 <span className="text-gray-600 ">Sea surface temperature anomaly:</span>
                 <span className="text-gray-900 ">
                   {data[PRODUCT.AUSTEMP_SSTA_MOSAIC]?.sstAnom?.toFixed(2)} °C
+                </span>
+              </div>
+            )}
+
+            {dhdAnomalMosaicEnabled && data[PRODUCT.AUSTEMP_DHD_MOSAIC] && (
+              <div
+                className="flex-col md:flex-row flex justify-between md:items-center"
+                aria-label="Sea level anomaly details"
+              >
+                <span className="text-gray-600 ">DHD anomaly:</span>
+                <span className="text-gray-900 ">
+                  {data[PRODUCT.AUSTEMP_DHD_MOSAIC]?.dhdAnom?.toFixed(2)} m
                 </span>
               </div>
             )}

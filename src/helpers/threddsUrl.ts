@@ -3,6 +3,8 @@ import {
   GSLA_RASTER_SOURCE_ID,
   AUSTEMP_SSTA_MOSAIC_RASTER_SOURCE_ID,
   AUSTEMP_DHD_MOSAIC_RASTER_SOURCE_ID,
+  PRODUCT,
+  PRODUCTLEGENDS,
 } from '@/constants';
 import { getThreddsCatalog } from '@/api';
 import { addYears } from '@/utils';
@@ -28,21 +30,21 @@ const LAYER_NAMES = {
 const WMS_CONFIG = {
   [GSLA_RASTER_SOURCE_ID]: {
     layers: 'GSLA',
-    colorScaleRange: '-1.2,1.2',
-    styles: 'raster/x-Rainbow',
-    legendPalette: 'x-Rainbow',
+    colorScaleRange: `${PRODUCTLEGENDS[PRODUCT.GSLA_ANOMALY_SEA_LEVELS].min},${PRODUCTLEGENDS[PRODUCT.GSLA_ANOMALY_SEA_LEVELS].max}`,
+    styles: `raster/${PRODUCTLEGENDS[PRODUCT.GSLA_ANOMALY_SEA_LEVELS].colors}`,
+    legendPalette: PRODUCTLEGENDS[PRODUCT.GSLA_ANOMALY_SEA_LEVELS].colors,
   },
   [AUSTEMP_SSTA_MOSAIC_RASTER_SOURCE_ID]: {
     layers: 'ssta',
-    colorScaleRange: '-4,4',
-    styles: 'raster/div-RdBu-inv',
-    legendPalette: 'div-RdBu-inv',
+    colorScaleRange: `${PRODUCTLEGENDS[PRODUCT.AUSTEMP_SSTA_MOSAIC].min},${PRODUCTLEGENDS[PRODUCT.AUSTEMP_SSTA_MOSAIC].max}`,
+    styles: `raster/${PRODUCTLEGENDS[PRODUCT.AUSTEMP_SSTA_MOSAIC].colors}`,
+    legendPalette: PRODUCTLEGENDS[PRODUCT.AUSTEMP_SSTA_MOSAIC].colors,
   },
   [AUSTEMP_DHD_MOSAIC_RASTER_SOURCE_ID]: {
     layers: 'dhd',
-    colorScaleRange: '-4,4',
-    styles: 'raster/div-RdBu-inv',
-    legendPalette: 'div-RdBu-inv',
+    colorScaleRange: `${PRODUCTLEGENDS[PRODUCT.AUSTEMP_DHD_MOSAIC].min},${PRODUCTLEGENDS[PRODUCT.AUSTEMP_DHD_MOSAIC].max}`,
+    styles: `raster/${PRODUCTLEGENDS[PRODUCT.AUSTEMP_DHD_MOSAIC].colors}`,
+    legendPalette: PRODUCTLEGENDS[PRODUCT.AUSTEMP_DHD_MOSAIC].colors,
   },
 } as const;
 

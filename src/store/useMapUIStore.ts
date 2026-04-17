@@ -11,7 +11,7 @@ import {
   INITIAL_PARTICLE_CONFIG,
 } from '@/config';
 import type { ProductType } from '@/constants';
-import { PRODUCT } from '@/constants';
+import { PRODUCT, isRasterProduct } from '@/constants';
 import type { StyleTitle } from '@/styles';
 import { type LngLat } from 'mapbox-gl';
 import { create } from 'zustand';
@@ -149,16 +149,12 @@ export const useMapUIStore = create(
       setProductEnabledByProduct: (product, enabled) => {
         set(prev => {
           const next = { ...prev.productEnabled };
-          if (product === PRODUCT.GSLA_ANOMALY_SEA_LEVELS) {
-            next[PRODUCT.GSLA_ANOMALY_SEA_LEVELS] = enabled;
-            if (next[PRODUCT.AUSTEMP_SSTA_MOSAIC]) next[PRODUCT.AUSTEMP_SSTA_MOSAIC] = !enabled;
-          } else if (product === PRODUCT.AUSTEMP_SSTA_MOSAIC) {
-            next[PRODUCT.AUSTEMP_SSTA_MOSAIC] = enabled;
-            if (next[PRODUCT.GSLA_ANOMALY_SEA_LEVELS])
-              next[PRODUCT.GSLA_ANOMALY_SEA_LEVELS] = !enabled;
-          } else {
-            next[product] = enabled;
+          if (enabled && isRasterProduct(product)) {
+            for (const key of Object.keys(next) as ProductType[]) {
+              if (isRasterProduct(key)) next[key] = false;
+            }
           }
+          next[product] = enabled;
 
           return {
             ...prev,

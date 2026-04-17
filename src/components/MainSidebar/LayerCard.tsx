@@ -1,4 +1,9 @@
-import { PRODUCT, WAVE_BUOYS_LAYER_ID } from '@/constants';
+import {
+  isGeostrophicCurrentProduct,
+  isRasterProduct,
+  isWaveBuoyProduct,
+  WAVE_BUOYS_LAYER_ID,
+} from '@/constants';
 import { cn, getLatestFulfilledDate, toCompactDate, toISOFromCompact } from '@/utils';
 import type { ReactNode } from 'react';
 import { Button } from '../Button';
@@ -31,12 +36,9 @@ export function LayerCard({
   dateCheckUrl,
   portalLink,
 }: LayerCardProps) {
-  const isRasterProduct =
-    product === PRODUCT.GSLA_ANOMALY_SEA_LEVELS ||
-    product === PRODUCT.AUSTEMP_SSTA_MOSAIC ||
-    product === PRODUCT.AUSTEMP_DHD_MOSAIC;
-  const isGeostrophicCurrentProduct = product === PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT;
-  const isWaveBuoyProduct = product === PRODUCT.WAVE_BUOYS;
+  const isRasterProducts = isRasterProduct(product);
+  const isGeostrophicCurrentProducts = isGeostrophicCurrentProduct(product);
+  const isWaveBuoyProducts = isWaveBuoyProduct(product);
   // this is a temporary solution to get the latest available raster date. We should have a better way to get the latest date
   // for each product in the future, like have a json file in s3 bucket that get updated when new data available.
   const { data: latestRasterDate, isLoading: isRasterDateLoading } = useQuery({
@@ -46,7 +48,7 @@ export function LayerCard({
       return Promise.allSettled(candidates);
     },
     select: data => getLatestFulfilledDate(data),
-    enabled: isRasterProduct || isGeostrophicCurrentProduct,
+    enabled: isRasterProducts || isGeostrophicCurrentProducts,
     retry: false,
   });
 
@@ -54,7 +56,7 @@ export function LayerCard({
     queryKey: ['wave_buoy_latest_date'],
     queryFn: getWaveBuoyLatestDate,
     select: data => toCompactDate(data),
-    enabled: isWaveBuoyProduct,
+    enabled: isWaveBuoyProducts,
   });
 
   const handleClick = () => {
@@ -123,7 +125,7 @@ export function LayerCard({
               {visible ? <MinusCircleIcon color="imos-white" /> : <AddCircleIcon />}
             </Button>
 
-            {(isRasterProduct || isGeostrophicCurrentProduct) && (
+            {(isRasterProducts || isGeostrophicCurrentProducts) && (
               <Button
                 variant="outline"
                 onClick={handleJumpToLatestRaster}
@@ -133,7 +135,7 @@ export function LayerCard({
                 Latest Date
               </Button>
             )}
-            {isWaveBuoyProduct && (
+            {isWaveBuoyProducts && (
               <Button
                 variant="outline"
                 onClick={handleJumpToLatestWaveBuoy}

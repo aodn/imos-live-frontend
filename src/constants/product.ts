@@ -59,6 +59,9 @@ export type VectorLegendArgs = {
 export type RasterLegendArgs = {
   scales?: number[];
   label: string;
+  colors: string;
+  min: number;
+  max: number;
 };
 
 export const PRODUCTLEGENDS = {
@@ -71,14 +74,23 @@ export const PRODUCTLEGENDS = {
   },
   [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: {
     scales: [-1.2, -0.5, -0.2, -0.1, 0, 0.1, 0.2, 0.5, 1.2],
+    min: -1.2,
+    max: 1.2,
+    colors: 'x-Rainbow',
     label: 'sea level anomaly (m)',
   },
   [PRODUCT.AUSTEMP_SSTA_MOSAIC]: {
     scales: [-4, -2, 0, 2, 4],
+    min: -4,
+    max: 4,
+    colors: 'div-RdBu-inv',
     label: 'degrees Celsius (°C)',
   },
   [PRODUCT.AUSTEMP_DHD_MOSAIC]: {
-    scales: [-4, -2, 0, 2, 4],
+    scales: [0, 25, 50, 75, 100], //TODO: confirm the scale values for DHD anomaly mosaic
+    min: 0,
+    max: 100,
+    colors: 'div-RdBu-inv',
     label: 'degrees Celsius (°C)',
   },
 } as const satisfies Record<

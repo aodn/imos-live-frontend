@@ -1,7 +1,12 @@
 import type { MapMouseEvent } from 'mapbox-gl';
 import { getFeatureInfoUrl } from './threddsUrl';
 import type { RasterSource } from '@/constants';
-import { GSLA_RASTER_SOURCE_ID, AUSTEMP_SSTA_MOSAIC_RASTER_SOURCE_ID, PRODUCT } from '@/constants';
+import {
+  GSLA_RASTER_SOURCE_ID,
+  AUSTEMP_SSTA_MOSAIC_RASTER_SOURCE_ID,
+  AUSTEMP_DHD_MOSAIC_RASTER_SOURCE_ID,
+  PRODUCT,
+} from '@/constants';
 
 /**
  * Parses XML response from WMS GetFeatureInfo request
@@ -40,6 +45,9 @@ type RasterSourceData = {
   [AUSTEMP_SSTA_MOSAIC_RASTER_SOURCE_ID]: {
     [PRODUCT.AUSTEMP_SSTA_MOSAIC]: { sstAnom: number };
   };
+  [AUSTEMP_DHD_MOSAIC_RASTER_SOURCE_ID]: {
+    [PRODUCT.AUSTEMP_DHD_MOSAIC]: { dhdAnom: number };
+  };
 };
 
 /**
@@ -74,6 +82,10 @@ const fetchRasterData =
         return {
           [PRODUCT.AUSTEMP_SSTA_MOSAIC]: { sstAnom: value },
         } as RasterSourceData[T];
+      } else if (rasterSource === AUSTEMP_DHD_MOSAIC_RASTER_SOURCE_ID) {
+        return {
+          [PRODUCT.AUSTEMP_DHD_MOSAIC]: { dhdAnom: value },
+        } as RasterSourceData[T];
       }
 
       return {};
@@ -85,6 +97,7 @@ const fetchRasterData =
 
 export const fetchGslaAnomalySeaLevelsData = fetchRasterData(GSLA_RASTER_SOURCE_ID);
 export const fetchSstAnomalyMosaic = fetchRasterData(AUSTEMP_SSTA_MOSAIC_RASTER_SOURCE_ID);
+export const fetchDhdAnomalyMosaic = fetchRasterData(AUSTEMP_DHD_MOSAIC_RASTER_SOURCE_ID);
 
 export function getMapMetaData(map: React.RefObject<mapboxgl.Map | null>) {
   if (!map.current) return {};
