@@ -6,28 +6,35 @@ export const GSLA_PARTICLE_LAYER_ID = PRODUCTS['gsla-ocean-geostrophic-current']
 export const GSLA_PARTICLE_SOURCE_ID = PRODUCTS['gsla-ocean-geostrophic-current'].sourceId;
 export const GSLA_RASTER_LAYER_ID = PRODUCTS['gsla-anomaly-sea-levels'].layerId;
 export const GSLA_RASTER_SOURCE_ID = PRODUCTS['gsla-anomaly-sea-levels'].sourceId;
-export const SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID = PRODUCTS['sst-anom-mosaic'].sourceId;
-export const SST_ANOMALY_MOSAIC_RASTER_LAYER_ID = PRODUCTS['sst-anom-mosaic'].layerId;
+export const AUSTEMP_SSTA_MOSAIC_RASTER_SOURCE_ID = PRODUCTS['austemp-ssta-mosaic'].sourceId;
+export const AUSTEMP_SSTA_MOSAIC_RASTER_LAYER_ID = PRODUCTS['austemp-ssta-mosaic'].layerId;
+export const AUSTEMP_DHD_MOSAIC_RASTER_SOURCE_ID = PRODUCTS['austemp-dhd-mosaic'].sourceId;
+export const AUSTEMP_DHD_MOSAIC_RASTER_LAYER_ID = PRODUCTS['austemp-dhd-mosaic'].layerId;
 export const WAVE_BUOYS_LAYER_ID = PRODUCTS['wave-buoys'].layerId;
 export const WAVE_BUOYS_SOURCE_ID = PRODUCTS['wave-buoys'].sourceId;
 
 export const ProductSourceIds: ProductSourceId[] = [
   GSLA_PARTICLE_SOURCE_ID,
   GSLA_RASTER_SOURCE_ID,
-  SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID,
+  AUSTEMP_SSTA_MOSAIC_RASTER_SOURCE_ID,
+  AUSTEMP_DHD_MOSAIC_RASTER_SOURCE_ID,
   WAVE_BUOYS_SOURCE_ID,
 ];
 
 export const RasterProductSourceIds: RasterSource[] = [
   GSLA_RASTER_SOURCE_ID,
-  SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID,
+  AUSTEMP_SSTA_MOSAIC_RASTER_SOURCE_ID,
 ];
 
-export type RasterLayer = typeof GSLA_RASTER_LAYER_ID | typeof SST_ANOMALY_MOSAIC_RASTER_LAYER_ID;
+export type RasterLayer =
+  | typeof GSLA_RASTER_LAYER_ID
+  | typeof AUSTEMP_SSTA_MOSAIC_RASTER_LAYER_ID
+  | typeof AUSTEMP_DHD_MOSAIC_RASTER_LAYER_ID;
 
 export type RasterSource =
   | typeof GSLA_RASTER_SOURCE_ID
-  | typeof SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID;
+  | typeof AUSTEMP_SSTA_MOSAIC_RASTER_SOURCE_ID
+  | typeof AUSTEMP_DHD_MOSAIC_RASTER_SOURCE_ID;
 
 export type BuoySource = typeof WAVE_BUOYS_SOURCE_ID;
 export type BuoyLayer = typeof WAVE_BUOYS_LAYER_ID;

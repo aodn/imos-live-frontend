@@ -7,11 +7,13 @@ import {
   GSLA_RASTER_SOURCE_ID,
   GSLA_RASTER_LAYER_ID,
   GSLA_PARTICLE_LAYER_ID,
-  SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID,
+  AUSTEMP_SSTA_MOSAIC_RASTER_SOURCE_ID,
   WAVE_BUOYS_LAYER_ID,
   PRODUCT,
-  SST_ANOMALY_MOSAIC_RASTER_LAYER_ID,
+  AUSTEMP_SSTA_MOSAIC_RASTER_LAYER_ID,
   PRODUCTLEGENDS,
+  AUSTEMP_DHD_MOSAIC_RASTER_LAYER_ID,
+  AUSTEMP_DHD_MOSAIC_RASTER_SOURCE_ID,
 } from '@/constants';
 import {
   RadarIcon,
@@ -24,7 +26,7 @@ import {
 import type { LayersDataset } from './MainSidebarContent';
 import { LogColorScaleBar, RasterLegend } from '../ColorScaleBar';
 import { setProductEnabledByProduct } from '@/store';
-import { gslaUrl, sstaUrl } from '@/api/fileExist';
+import { gslaUrl, ausTempUrl } from '@/api/fileExist';
 
 export const headerData = {
   title: 'IMOS Live',
@@ -54,7 +56,10 @@ export const featuredDataset: LayersDataset[] = [
     isError: false,
     product: PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT,
     legend: (
-      <LogColorScaleBar className="w-full" {...PRODUCTLEGENDS['gsla-ocean-geostrophic-current']} />
+      <LogColorScaleBar
+        className="w-full"
+        {...PRODUCTLEGENDS[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]}
+      />
     ),
     addToMap: setProductEnabledByProduct,
     dateCheckUrl: gslaUrl,
@@ -80,7 +85,7 @@ export const featuredDataset: LayersDataset[] = [
     legend: (
       <RasterLegend
         rasterSource={GSLA_RASTER_SOURCE_ID}
-        {...PRODUCTLEGENDS['gsla-anomaly-sea-levels']}
+        {...PRODUCTLEGENDS[PRODUCT.GSLA_ANOMALY_SEA_LEVELS]}
       />
     ),
     addToMap: setProductEnabledByProduct,
@@ -90,24 +95,48 @@ export const featuredDataset: LayersDataset[] = [
   {
     image: {
       src: sstImage,
-      alt: 'AUS TEMP',
+      alt: 'AUS SSTA TEMP',
     },
-    title: 'Sea surface skin temperature anomaly',
+    title: 'AusTemp Sea surface skin temperature anomaly',
     icon: <ThermometerIcon size="lg" />,
     description:
       'AusTemp is a specialised remote sensing application for the monitoring of SST conditions that lead to coral bleaching. The BOM legacy system was developed in consultation with Great Barrier Reef Marine Park Authority (GBRMPA) reef management and replaces the original CSIRO ReefTemp system (Maynard et al, 2008).',
-    layerId: SST_ANOMALY_MOSAIC_RASTER_LAYER_ID,
+    layerId: AUSTEMP_SSTA_MOSAIC_RASTER_LAYER_ID,
     visible: false,
     isError: false,
-    product: PRODUCT.SST_ANOMALY_MOSAIC,
+    product: PRODUCT.AUSTEMP_SSTA_MOSAIC,
     legend: (
       <RasterLegend
-        rasterSource={SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID}
-        {...PRODUCTLEGENDS['sst-anom-mosaic']}
+        rasterSource={AUSTEMP_SSTA_MOSAIC_RASTER_SOURCE_ID}
+        {...PRODUCTLEGENDS[PRODUCT.AUSTEMP_SSTA_MOSAIC]}
       />
     ),
     addToMap: setProductEnabledByProduct,
-    dateCheckUrl: sstaUrl,
+    dateCheckUrl: ausTempUrl,
+    portalLink:
+      'https://catalogue-imos.aodn.org.au/geonetwork/srv/eng/catalog.search#/search?any=IMOS%20-%20AusTemp%20-%20Sea%20Surface%20Temperature',
+  },
+  {
+    image: {
+      src: sstImage,
+      alt: 'AUS DHD TEMP',
+    },
+    title: 'AusTemp DHD',
+    icon: <ThermometerIcon size="lg" />,
+    description:
+      'AusTemp is a specialised remote sensing application for the monitoring of SST conditions that lead to coral bleaching. The BOM legacy system was developed in consultation with Great Barrier Reef Marine Park Authority (GBRMPA) reef management and replaces the original CSIRO ReefTemp system (Maynard et al, 2008).',
+    layerId: AUSTEMP_DHD_MOSAIC_RASTER_LAYER_ID,
+    visible: false,
+    isError: false,
+    product: PRODUCT.AUSTEMP_DHD_MOSAIC,
+    legend: (
+      <RasterLegend
+        rasterSource={AUSTEMP_DHD_MOSAIC_RASTER_SOURCE_ID}
+        {...PRODUCTLEGENDS[PRODUCT.AUSTEMP_DHD_MOSAIC]}
+      />
+    ),
+    addToMap: setProductEnabledByProduct,
+    dateCheckUrl: ausTempUrl,
     portalLink:
       'https://catalogue-imos.aodn.org.au/geonetwork/srv/eng/catalog.search#/search?any=IMOS%20-%20AusTemp%20-%20Sea%20Surface%20Temperature',
   },

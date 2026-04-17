@@ -3,7 +3,7 @@ import {
   GSLA_DATA_NAME,
   PRODUCT,
   GSLA_RASTER_SOURCE_ID,
-  SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID,
+  AUSTEMP_SSTA_MOSAIC_RASTER_SOURCE_ID,
 } from '@/constants';
 import { fetchGslaAnomalySeaLevelsData, fetchSstAnomalyMosaic } from '@/helpers';
 import { processOceanCurrentDetails } from '@/utils';
@@ -57,15 +57,16 @@ export function useClickedMapPopupContentData({
   });
 
   const { data: sstAnomalyMosatic, isLoading: isSstAnomalyMosaticLoading } = useQuery({
-    queryKey: [SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID, date, mapBounds, mapSize, point],
+    queryKey: [AUSTEMP_SSTA_MOSAIC_RASTER_SOURCE_ID, date, mapBounds, mapSize, point],
     queryFn: () => fetchSstAnomalyMosaic(date, mapBounds, mapSize, point),
     enabled: !!date && sstAnomMosaicEnabled,
   });
 
   const data = {
-    [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: gslaOceanCurrent?.['gsla-ocean-geostrophic-current'],
-    [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: gslaAnomalySeaLevels?.['gsla-anomaly-sea-levels'],
-    [PRODUCT.SST_ANOMALY_MOSAIC]: sstAnomalyMosatic?.['sst-anom-mosaic'],
+    [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]:
+      gslaOceanCurrent?.[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT],
+    [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: gslaAnomalySeaLevels?.[PRODUCT.GSLA_ANOMALY_SEA_LEVELS],
+    [PRODUCT.AUSTEMP_SSTA_MOSAIC]: sstAnomalyMosatic?.[PRODUCT.AUSTEMP_SSTA_MOSAIC],
   };
 
   return {

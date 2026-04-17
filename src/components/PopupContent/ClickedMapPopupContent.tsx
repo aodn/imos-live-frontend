@@ -4,6 +4,7 @@ import { useShallow } from 'zustand/shallow';
 import { LoaderIcon } from '../Icons';
 import type { LngLat, Point } from 'mapbox-gl';
 import type { ClosePopupFn } from '@/helpers';
+import { PRODUCT } from '@/constants';
 
 export type ClickedMapPopupContentProps = {
   onClose?: ClosePopupFn;
@@ -26,9 +27,9 @@ export function ClickedMapPopupContent({
   const { gslaAnomalySeaLevelsEnabled, sstAnomMosaicEnabled, oceanCurrentEnabled, date } =
     useMapUIStore(
       useShallow(s => ({
-        gslaAnomalySeaLevelsEnabled: s.productEnabled['gsla-anomaly-sea-levels'],
-        sstAnomMosaicEnabled: s.productEnabled['sst-anom-mosaic'],
-        oceanCurrentEnabled: s.productEnabled['gsla-ocean-geostrophic-current'],
+        gslaAnomalySeaLevelsEnabled: s.productEnabled[PRODUCT.GSLA_ANOMALY_SEA_LEVELS],
+        sstAnomMosaicEnabled: s.productEnabled[PRODUCT.AUSTEMP_SSTA_MOSAIC],
+        oceanCurrentEnabled: s.productEnabled[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT],
         date: s.date,
       })),
     );
@@ -75,7 +76,7 @@ export function ClickedMapPopupContent({
           </div>
         ) : (
           <div>
-            {oceanCurrentEnabled && data['gsla-ocean-geostrophic-current'] && (
+            {oceanCurrentEnabled && data[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT] && (
               <div
                 className="flex-col md:flex-row flex justify-between md:items-center"
                 aria-label="Ocean surface current details"
@@ -84,33 +85,33 @@ export function ClickedMapPopupContent({
                   Ocean geostrophic current direction:
                 </span>
                 <span className="text-gray-900 text-left">
-                  {Math.round(data['gsla-ocean-geostrophic-current']?.degree ?? 0)}° (
-                  {data['gsla-ocean-geostrophic-current']?.direction}) @{' '}
-                  {data['gsla-ocean-geostrophic-current']?.speed?.toFixed(2)} m/s
+                  {Math.round(data[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]?.degree ?? 0)}° (
+                  {data[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]?.direction}) @{' '}
+                  {data[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]?.speed?.toFixed(2)} m/s
                 </span>
               </div>
             )}
 
-            {gslaAnomalySeaLevelsEnabled && data['gsla-anomaly-sea-levels'] && (
+            {gslaAnomalySeaLevelsEnabled && data[PRODUCT.GSLA_ANOMALY_SEA_LEVELS] && (
               <div
                 className="flex-col md:flex-row flex justify-between md:items-center"
                 aria-label="Sea level anomaly details"
               >
                 <span className="text-gray-600 ">Sea level anomaly:</span>
                 <span className="text-gray-900 ">
-                  {data['gsla-anomaly-sea-levels']?.gsla?.toFixed(2)} m
+                  {data[PRODUCT.GSLA_ANOMALY_SEA_LEVELS]?.gsla?.toFixed(2)} m
                 </span>
               </div>
             )}
 
-            {sstAnomMosaicEnabled && data['sst-anom-mosaic'] && (
+            {sstAnomMosaicEnabled && data[PRODUCT.AUSTEMP_SSTA_MOSAIC] && (
               <div
                 className="flex-col md:flex-row flex justify-between md:items-center"
                 aria-label="Sea level anomaly details"
               >
                 <span className="text-gray-600 ">Sea surface temperature anomaly:</span>
                 <span className="text-gray-900 ">
-                  {data['sst-anom-mosaic']?.sstAnom?.toFixed(2)} °C
+                  {data[PRODUCT.AUSTEMP_SSTA_MOSAIC]?.sstAnom?.toFixed(2)} °C
                 </span>
               </div>
             )}

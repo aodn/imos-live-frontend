@@ -1,4 +1,4 @@
-import { WAVE_BUOYS_LAYER_ID } from '@/constants';
+import { PRODUCT, WAVE_BUOYS_LAYER_ID } from '@/constants';
 import { cn, getLatestFulfilledDate, toCompactDate, toISOFromCompact } from '@/utils';
 import type { ReactNode } from 'react';
 import { Button } from '../Button';
@@ -31,9 +31,12 @@ export function LayerCard({
   dateCheckUrl,
   portalLink,
 }: LayerCardProps) {
-  const isRasterProduct = product === 'gsla-anomaly-sea-levels' || product === 'sst-anom-mosaic';
-  const isGeostrophicCurrentProduct = product === 'gsla-ocean-geostrophic-current';
-  const isWaveBuoyProduct = product === 'wave-buoys';
+  const isRasterProduct =
+    product === PRODUCT.GSLA_ANOMALY_SEA_LEVELS ||
+    product === PRODUCT.AUSTEMP_SSTA_MOSAIC ||
+    product === PRODUCT.AUSTEMP_DHD_MOSAIC;
+  const isGeostrophicCurrentProduct = product === PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT;
+  const isWaveBuoyProduct = product === PRODUCT.WAVE_BUOYS;
   // this is a temporary solution to get the latest available raster date. We should have a better way to get the latest date
   // for each product in the future, like have a json file in s3 bucket that get updated when new data available.
   const { data: latestRasterDate, isLoading: isRasterDateLoading } = useQuery({

@@ -67,7 +67,7 @@ export function Map() {
               { Icon: WaveIcon, product: PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT },
               { Icon: WaterSurfaceIcon, product: PRODUCT.GSLA_ANOMALY_SEA_LEVELS },
               { Icon: WaveBuoyIcon, product: PRODUCT.WAVE_BUOYS },
-              { Icon: ThermometerIcon, product: PRODUCT.SST_ANOMALY_MOSAIC },
+              { Icon: ThermometerIcon, product: PRODUCT.AUSTEMP_SSTA_MOSAIC },
             ]}
           />
           <MapComponent key={isSmallScreen ? 'mobile' : 'desktop'} />
