@@ -1,8 +1,8 @@
 import { convertLogColorScaleToRamp } from '@/components/ColorScaleBar/utils';
 import { generateValueByPercentage } from '@/utils';
-import { MAX_VECTOR_SPEED, PRODUCTLEGENDS } from '@/constants';
+import { MAX_VECTOR_SPEED, PRODUCT, PRODUCTLEGENDS } from '@/constants';
 
-const colors = convertLogColorScaleToRamp(PRODUCTLEGENDS['gsla-ocean-geostrophic-current']);
+const colors = convertLogColorScaleToRamp(PRODUCTLEGENDS[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]);
 
 export type ParticleConfig = {
   maxSpeed: number;

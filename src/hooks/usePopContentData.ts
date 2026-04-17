@@ -3,9 +3,14 @@ import {
   GSLA_DATA_NAME,
   PRODUCT,
   GSLA_RASTER_SOURCE_ID,
-  SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID,
+  AUSTEMP_SSTA_MOSAIC_RASTER_SOURCE_ID,
+  AUSTEMP_DHD_MOSAIC_RASTER_SOURCE_ID,
 } from '@/constants';
-import { fetchGslaAnomalySeaLevelsData, fetchSstAnomalyMosaic } from '@/helpers';
+import {
+  fetchDhdAnomalyMosaic,
+  fetchGslaAnomalySeaLevelsData,
+  fetchSstAnomalyMosaic,
+} from '@/helpers';
 import { processOceanCurrentDetails } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
 import type { LngLat, Point } from 'mapbox-gl';
@@ -13,6 +18,7 @@ import type { LngLat, Point } from 'mapbox-gl';
 type UseClickedMapPopupContentData = {
   oceanCurrentEnabled: boolean;
   sstAnomMosaicEnabled: boolean;
+  dhdAnomalMosaicEnabled: boolean;
   gslaAnomalySeaLevelsEnabled: boolean;
   date: string;
   lngLat: LngLat;
@@ -30,6 +36,7 @@ export function useClickedMapPopupContentData({
   oceanCurrentEnabled,
   gslaAnomalySeaLevelsEnabled,
   sstAnomMosaicEnabled,
+  dhdAnomalMosaicEnabled,
   date,
   lngLat,
   point,
@@ -57,20 +64,31 @@ export function useClickedMapPopupContentData({
   });
 
   const { data: sstAnomalyMosatic, isLoading: isSstAnomalyMosaticLoading } = useQuery({
-    queryKey: [SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID, date, mapBounds, mapSize, point],
+    queryKey: [AUSTEMP_SSTA_MOSAIC_RASTER_SOURCE_ID, date, mapBounds, mapSize, point],
     queryFn: () => fetchSstAnomalyMosaic(date, mapBounds, mapSize, point),
     enabled: !!date && sstAnomMosaicEnabled,
   });
 
+  const { data: dhdAnomalyMosaic, isLoading: isDhdAnomalyMosaicLoading } = useQuery({
+    queryKey: [AUSTEMP_DHD_MOSAIC_RASTER_SOURCE_ID, date, mapBounds, mapSize, point],
+    queryFn: () => fetchDhdAnomalyMosaic(date, mapBounds, mapSize, point),
+    enabled: !!date && dhdAnomalMosaicEnabled,
+  });
+
   const data = {
-    [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: gslaOceanCurrent?.['gsla-ocean-geostrophic-current'],
-    [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: gslaAnomalySeaLevels?.['gsla-anomaly-sea-levels'],
-    [PRODUCT.SST_ANOMALY_MOSAIC]: sstAnomalyMosatic?.['sst-anom-mosaic'],
+    [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]:
+      gslaOceanCurrent?.[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT],
+    [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: gslaAnomalySeaLevels?.[PRODUCT.GSLA_ANOMALY_SEA_LEVELS],
+    [PRODUCT.AUSTEMP_SSTA_MOSAIC]: sstAnomalyMosatic?.[PRODUCT.AUSTEMP_SSTA_MOSAIC],
+    [PRODUCT.AUSTEMP_DHD_MOSAIC]: dhdAnomalyMosaic?.[PRODUCT.AUSTEMP_DHD_MOSAIC],
   };
 
   return {
     data,
     isLoading:
-      isGslaAnomalySeaLevelsLoading || isGslaOceanCurrentLoading || isSstAnomalyMosaticLoading,
+      isGslaAnomalySeaLevelsLoading ||
+      isGslaOceanCurrentLoading ||
+      isSstAnomalyMosaticLoading ||
+      isDhdAnomalyMosaicLoading,
   };
 }

@@ -1,35 +1,50 @@
 import type { RasterSource } from '@/constants';
-import { GSLA_RASTER_SOURCE_ID, SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID } from '@/constants';
+import {
+  GSLA_RASTER_SOURCE_ID,
+  AUSTEMP_SSTA_MOSAIC_RASTER_SOURCE_ID,
+  AUSTEMP_DHD_MOSAIC_RASTER_SOURCE_ID,
+  PRODUCT,
+  PRODUCTLEGENDS,
+} from '@/constants';
 import { getThreddsCatalog } from '@/api';
 import { addYears } from '@/utils';
 
 const THREDDS_PATHS = {
   GSLA: 'IMOS/OceanCurrent/GSLA/NRT',
-  SST: 'IMOS/SRS/AusTemp/Marine-Heatwave',
+  AUSTEMP_SSTA: 'IMOS/SRS/AusTemp/Marine-Heatwave',
+  AUSTEMP_DHD: 'IMOS/SRS/AusTemp/Marine-Heatwave',
 } as const;
 
 const FILE_PATTERNS = {
   GSLA: (dateString: string) => `IMOS_OceanCurrent_HV_${dateString}T`,
-  SST: (dateString: string) => `${dateString}_IMOS_AusTemp-marine-heatwave_AUS_fv02.nc`,
+  AUSTEMP_SSTA: (dateString: string) => `${dateString}_IMOS_AusTemp-marine-heatwave_AUS_fv02.nc`,
+  AUSTEMP_DHD: (dateString: string) => `${dateString}_IMOS_AusTemp-marine-heatwave_AUS_fv02.nc`,
 } as const;
 
 const LAYER_NAMES = {
   [GSLA_RASTER_SOURCE_ID]: 'GSLA',
-  [SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID]: 'ssta',
+  [AUSTEMP_SSTA_MOSAIC_RASTER_SOURCE_ID]: 'ssta',
+  [AUSTEMP_DHD_MOSAIC_RASTER_SOURCE_ID]: 'dhd',
 } as const;
 
 const WMS_CONFIG = {
   [GSLA_RASTER_SOURCE_ID]: {
     layers: 'GSLA',
-    colorScaleRange: '-1.2,1.2',
-    styles: 'raster/x-Rainbow',
-    legendPalette: 'x-Rainbow',
+    colorScaleRange: `${PRODUCTLEGENDS[PRODUCT.GSLA_ANOMALY_SEA_LEVELS].min},${PRODUCTLEGENDS[PRODUCT.GSLA_ANOMALY_SEA_LEVELS].max}`,
+    styles: `raster/${PRODUCTLEGENDS[PRODUCT.GSLA_ANOMALY_SEA_LEVELS].colors}`,
+    legendPalette: PRODUCTLEGENDS[PRODUCT.GSLA_ANOMALY_SEA_LEVELS].colors,
   },
-  [SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID]: {
+  [AUSTEMP_SSTA_MOSAIC_RASTER_SOURCE_ID]: {
     layers: 'ssta',
-    colorScaleRange: '-4,4',
-    styles: 'raster/div-RdBu-inv',
-    legendPalette: 'div-RdBu-inv',
+    colorScaleRange: `${PRODUCTLEGENDS[PRODUCT.AUSTEMP_SSTA_MOSAIC].min},${PRODUCTLEGENDS[PRODUCT.AUSTEMP_SSTA_MOSAIC].max}`,
+    styles: `raster/${PRODUCTLEGENDS[PRODUCT.AUSTEMP_SSTA_MOSAIC].colors}`,
+    legendPalette: PRODUCTLEGENDS[PRODUCT.AUSTEMP_SSTA_MOSAIC].colors,
+  },
+  [AUSTEMP_DHD_MOSAIC_RASTER_SOURCE_ID]: {
+    layers: 'dhd',
+    colorScaleRange: `${PRODUCTLEGENDS[PRODUCT.AUSTEMP_DHD_MOSAIC].min},${PRODUCTLEGENDS[PRODUCT.AUSTEMP_DHD_MOSAIC].max}`,
+    styles: `raster/${PRODUCTLEGENDS[PRODUCT.AUSTEMP_DHD_MOSAIC].colors}`,
+    legendPalette: PRODUCTLEGENDS[PRODUCT.AUSTEMP_DHD_MOSAIC].colors,
   },
 } as const;
 
@@ -76,14 +91,14 @@ const getGslaUrlFromCatalog = async (date: Date): Promise<string> => {
 };
 
 // SST file name pattern example: 20240615_IMOS_AusTemp-sst-anomaly_AUS_fv02.nc, but the file may be in next year folder.
-const getSstUrlFromCatalog = async (date: Date): Promise<string> => {
+const getAusTempSstaUrlFromCatalog = async (date: Date): Promise<string> => {
   const dateString = generateFileDateString(date);
-  const pattern = FILE_PATTERNS.SST(dateString);
+  const pattern = FILE_PATTERNS.AUSTEMP_SSTA(dateString);
   const dates = [date, addYears(date, 1)];
 
   const results = await Promise.allSettled(
     dates.map(async date => {
-      const doc = await generateDoc(THREDDS_PATHS.SST, date);
+      const doc = await generateDoc(THREDDS_PATHS.AUSTEMP_SSTA, date);
       return findLinkInCatalog(doc, pattern);
     }),
   );
@@ -100,12 +115,16 @@ const getSstUrlFromCatalog = async (date: Date): Promise<string> => {
   return `/thredds/wms/invalid_dataset`; //do not throw error here to avoid image loading failure test for legend url
 };
 
+const getAusTempDhdUrlFromCatalog = getAusTempSstaUrlFromCatalog;
+
 const baseUrl = async (id: RasterSource, date: Date): Promise<string> => {
   switch (id) {
     case GSLA_RASTER_SOURCE_ID:
       return await getGslaUrlFromCatalog(date);
-    case SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID:
-      return await getSstUrlFromCatalog(date);
+    case AUSTEMP_SSTA_MOSAIC_RASTER_SOURCE_ID:
+      return await getAusTempSstaUrlFromCatalog(date);
+    case AUSTEMP_DHD_MOSAIC_RASTER_SOURCE_ID:
+      return await getAusTempDhdUrlFromCatalog(date);
     default:
       throw new Error(`Unknown raster source: ${id}`);
   }

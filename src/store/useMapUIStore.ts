@@ -11,7 +11,7 @@ import {
   INITIAL_PARTICLE_CONFIG,
 } from '@/config';
 import type { ProductType } from '@/constants';
-import { PRODUCT } from '@/constants';
+import { PRODUCT, isRasterProduct } from '@/constants';
 import type { StyleTitle } from '@/styles';
 import { type LngLat } from 'mapbox-gl';
 import { create } from 'zustand';
@@ -119,13 +119,15 @@ export const useMapUIStore = create(
       productEnabled: {
         [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: true,
         [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: true,
-        [PRODUCT.SST_ANOMALY_MOSAIC]: false,
+        [PRODUCT.AUSTEMP_SSTA_MOSAIC]: false,
+        [PRODUCT.AUSTEMP_DHD_MOSAIC]: false,
         [PRODUCT.WAVE_BUOYS]: true,
       },
       productError: {
         [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: false,
         [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: false,
-        [PRODUCT.SST_ANOMALY_MOSAIC]: false,
+        [PRODUCT.AUSTEMP_SSTA_MOSAIC]: false,
+        [PRODUCT.AUSTEMP_DHD_MOSAIC]: false,
         [PRODUCT.WAVE_BUOYS]: false,
       },
       jumpToDate: null,
@@ -147,16 +149,12 @@ export const useMapUIStore = create(
       setProductEnabledByProduct: (product, enabled) => {
         set(prev => {
           const next = { ...prev.productEnabled };
-          if (product === PRODUCT.GSLA_ANOMALY_SEA_LEVELS) {
-            next[PRODUCT.GSLA_ANOMALY_SEA_LEVELS] = enabled;
-            if (next[PRODUCT.SST_ANOMALY_MOSAIC]) next[PRODUCT.SST_ANOMALY_MOSAIC] = !enabled;
-          } else if (product === PRODUCT.SST_ANOMALY_MOSAIC) {
-            next[PRODUCT.SST_ANOMALY_MOSAIC] = enabled;
-            if (next[PRODUCT.GSLA_ANOMALY_SEA_LEVELS])
-              next[PRODUCT.GSLA_ANOMALY_SEA_LEVELS] = !enabled;
-          } else {
-            next[product] = enabled;
+          if (enabled && isRasterProduct(product)) {
+            for (const key of Object.keys(next) as ProductType[]) {
+              if (isRasterProduct(key)) next[key] = false;
+            }
           }
+          next[product] = enabled;
 
           return {
             ...prev,

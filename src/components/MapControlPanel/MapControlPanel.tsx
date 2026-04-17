@@ -14,15 +14,17 @@ import { setSidebarOpen, useMapUIStore, useSidebarStore } from '@/store';
 import { exportMapImage, rasterLegendUrl } from '@/helpers';
 import { useShallow } from 'zustand/shallow';
 import type { RasterSource } from '@/constants';
-import { PRODUCTLEGENDS, PRODUCTS, type ProductType } from '@/constants';
+import { PRODUCT, PRODUCTLEGENDS, PRODUCTS, type ProductType } from '@/constants';
 import { useQuery } from '@tanstack/react-query';
 
 const getRasterProduct = (
   gslaAnomalySeaLevelsEnabled: boolean,
   sstAnomMosaicEnabled: boolean,
-): Exclude<ProductType, 'wave-buoys' | 'gsla-ocean-geostrophic-current'> | undefined => {
-  if (gslaAnomalySeaLevelsEnabled) return 'gsla-anomaly-sea-levels';
-  if (sstAnomMosaicEnabled) return 'sst-anom-mosaic';
+):
+  | Exclude<ProductType, typeof PRODUCT.WAVE_BUOYS | typeof PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT>
+  | undefined => {
+  if (gslaAnomalySeaLevelsEnabled) return PRODUCT.GSLA_ANOMALY_SEA_LEVELS;
+  if (sstAnomMosaicEnabled) return PRODUCT.AUSTEMP_SSTA_MOSAIC;
 };
 
 export function MapControlPanel({
@@ -39,8 +41,8 @@ export function MapControlPanel({
   const { date, gslaAnomalySeaLevelsEnabled, sstAnomMosaicEnabled } = useMapUIStore(
     useShallow(s => ({
       date: s.date,
-      gslaAnomalySeaLevelsEnabled: s.productEnabled['gsla-anomaly-sea-levels'],
-      sstAnomMosaicEnabled: s.productEnabled['sst-anom-mosaic'],
+      gslaAnomalySeaLevelsEnabled: s.productEnabled[PRODUCT.GSLA_ANOMALY_SEA_LEVELS],
+      sstAnomMosaicEnabled: s.productEnabled[PRODUCT.AUSTEMP_SSTA_MOSAIC],
     })),
   );
 
