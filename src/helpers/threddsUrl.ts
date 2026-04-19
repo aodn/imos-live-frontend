@@ -41,7 +41,7 @@ const WMS_CONFIG = {
     legendPalette: PRODUCTLEGENDS[PRODUCT.AUSTEMP_SSTA_MOSAIC].colors,
   },
   [AUSTEMP_DHD_MOSAIC_RASTER_SOURCE_ID]: {
-    layers: 'dhd',
+    layers: 'dhd_mosaic',
     colorScaleRange: `${PRODUCTLEGENDS[PRODUCT.AUSTEMP_DHD_MOSAIC].min},${PRODUCTLEGENDS[PRODUCT.AUSTEMP_DHD_MOSAIC].max}`,
     styles: `raster/${PRODUCTLEGENDS[PRODUCT.AUSTEMP_DHD_MOSAIC].colors}`,
     legendPalette: PRODUCTLEGENDS[PRODUCT.AUSTEMP_DHD_MOSAIC].colors,

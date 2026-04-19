@@ -87,9 +87,9 @@ export const PRODUCTLEGENDS = {
     label: 'degrees Celsius (°C)',
   },
   [PRODUCT.AUSTEMP_DHD_MOSAIC]: {
-    scales: [0, 25, 50, 75, 100], //TODO: confirm the scale values for DHD anomaly mosaic
+    scales: [0, 25, 50, 75, 150], //TODO: confirm the scale values for DHD anomaly mosaic
     min: 0,
-    max: 100,
+    max: 150,
     colors: 'div-RdBu-inv',
     label: 'degrees Celsius (°C)',
   },
