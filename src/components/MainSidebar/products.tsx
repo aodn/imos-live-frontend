@@ -121,7 +121,7 @@ export const featuredDataset: LayersDataset[] = [
       src: sstImage,
       alt: 'AUS DHD TEMP',
     },
-    title: 'AusTemp DHD',
+    title: 'AusTemp DHD mosaic',
     icon: <ThermometerIcon size="lg" />,
     description:
       'AusTemp is a specialised remote sensing application for the monitoring of SST conditions that lead to coral bleaching. The BOM legacy system was developed in consultation with Great Barrier Reef Marine Park Authority (GBRMPA) reef management and replaces the original CSIRO ReefTemp system (Maynard et al, 2008).',
