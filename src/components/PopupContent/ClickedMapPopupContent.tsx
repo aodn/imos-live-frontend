@@ -128,7 +128,7 @@ export function ClickedMapPopupContent({
                 className="flex-col md:flex-row flex justify-between md:items-center"
                 aria-label="Sea level anomaly details"
               >
-                <span className="text-gray-600 ">DHD anomaly mosaic:</span>
+                <span className="text-gray-600 ">DHD mosaic:</span>
                 <span className="text-gray-900 ">
                   {data[PRODUCT.AUSTEMP_DHD_MOSAIC]?.dhdAnom?.toFixed(2)} °C
                 </span>
