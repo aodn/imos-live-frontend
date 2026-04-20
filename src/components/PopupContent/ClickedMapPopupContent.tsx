@@ -130,7 +130,7 @@ export function ClickedMapPopupContent({
               >
                 <span className="text-gray-600 ">DHD anomaly mosaic:</span>
                 <span className="text-gray-900 ">
-                  {data[PRODUCT.AUSTEMP_DHD_MOSAIC]?.dhdAnom?.toFixed(2)} m
+                  {data[PRODUCT.AUSTEMP_DHD_MOSAIC]?.dhdAnom?.toFixed(2)} °C
                 </span>
               </div>
             )}
