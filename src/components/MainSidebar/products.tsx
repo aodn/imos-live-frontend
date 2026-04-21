@@ -97,7 +97,7 @@ export const featuredDataset: LayersDataset[] = [
       src: sstImage,
       alt: 'AUS SSTA TEMP',
     },
-    title: 'AusTemp Sea surface skin temperature anomaly',
+    title: 'AusTemp Sea surface skin temperature anomaly mosaic',
     icon: <ThermometerIcon size="lg" />,
     description:
       'AusTemp is a specialised remote sensing application for the monitoring of SST conditions that lead to coral bleaching. The BOM legacy system was developed in consultation with Great Barrier Reef Marine Park Authority (GBRMPA) reef management and replaces the original CSIRO ReefTemp system (Maynard et al, 2008).',

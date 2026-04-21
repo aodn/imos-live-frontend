@@ -29,7 +29,7 @@ const WMS_CONFIG = {
     legendPalette: PRODUCTLEGENDS[PRODUCT.GSLA_ANOMALY_SEA_LEVELS].colors,
   },
   [AUSTEMP_SSTA_MOSAIC_RASTER_SOURCE_ID]: {
-    layers: 'ssta',
+    layers: 'ssta_mosaic',
     colorScaleRange: `${PRODUCTLEGENDS[PRODUCT.AUSTEMP_SSTA_MOSAIC].min},${PRODUCTLEGENDS[PRODUCT.AUSTEMP_SSTA_MOSAIC].max}`,
     styles: `raster/${PRODUCTLEGENDS[PRODUCT.AUSTEMP_SSTA_MOSAIC].colors}`,
     legendPalette: PRODUCTLEGENDS[PRODUCT.AUSTEMP_SSTA_MOSAIC].colors,

@@ -4,9 +4,13 @@ import type { FixedLengthArray } from '@/types';
 
 dayjs.extend(utc);
 
-/** Format a date string (yyyy-mm-dd) or Date to the nanosecond UTC format expected by the wave buoy API */
+/** Convert a local date string (yyyy-mm-dd) or Date to the nanosecond UTC format expected by the wave buoy API
+ *
+ * In frontend, we display dates in local time to users, but the wave buoy API expects dates in UTC with nanosecond precision.
+ * We need to convert local dates to UTC and add the time component to ensure we are querying the correct date range.
+ */
 export function toWaveBuoyApiDate(date: string | Date): string {
-  return dayjs.utc(date).format('YYYY-MM-DDTHH:mm:ss.000000000[Z]');
+  return dayjs(date).utc().format('YYYY-MM-DDTHH:mm:ss.000000000[Z]');
 }
 
 export function getLastDates<const T extends number>(length: T) {

@@ -32,7 +32,7 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
   const { dateString, buoy, geometry } = toWaveBuoyChartData(waveBuoysData);
 
   const { from, to } = useMemo(() => {
-    const end = dayjs.utc(dateString).add(1, 'day'); // include the full dateString day
+    const end = dayjs(dateString).add(1, 'day'); // include the full dateString day in local time
     const start = end.subtract(7, 'day');
     return { from: toWaveBuoyApiDate(start.toDate()), to: toWaveBuoyApiDate(end.toDate()) };
   }, [dateString]);
