@@ -19,7 +19,7 @@ import { useShallow } from 'zustand/shallow';
 import { useDidMountEffect } from '../useDidMountEffect';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
-import dayjs from 'dayjs';
+import { toWaveBuoyApiDate } from '@/utils';
 
 type UseWaveBuoysLayer = {
   map: React.RefObject<mapboxgl.Map | null>;
@@ -39,7 +39,7 @@ export function useWaveBuoysLayer({ map, layerId, sourceId, product }: UseWaveBu
 
   const buoyQuery = useQuery({
     queryKey: ['wave_buoy_locations', date],
-    queryFn: () => getWaveBuoyLocations(dayjs(date).toISOString()),
+    queryFn: () => getWaveBuoyLocations(toWaveBuoyApiDate(date)),
     enabled: enabled && !!date,
   });
 
@@ -96,7 +96,6 @@ export function useWaveBuoysLayer({ map, layerId, sourceId, product }: UseWaveBu
         features: [],
       } as GeoJSON.FeatureCollection;
     });
-
     addOrUpdateGeoJsonSource({
       map: map.current!,
       id: sourceId,

@@ -1,4 +1,13 @@
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 import type { FixedLengthArray } from '@/types';
+
+dayjs.extend(utc);
+
+/** Format a date string (yyyy-mm-dd) or Date to the nanosecond UTC format expected by the wave buoy API */
+export function toWaveBuoyApiDate(date: string | Date): string {
+  return dayjs.utc(date).format('YYYY-MM-DDTHH:mm:ss.000000000[Z]');
+}
 
 export function getLastDates<const T extends number>(length: T) {
   return (format: string = 'yyyy-mm-dd'): FixedLengthArray<string, T> => {
