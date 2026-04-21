@@ -8,7 +8,7 @@ import { defineConfig, devices } from '@playwright/test';
 // import path from 'path';
 // dotenv.config({ path: path.resolve(__dirname, '.env') });
 
-const imosLiveBaseURL = 'http://localhost:5173';
+const imosLiveBaseURL = 'http://localhost:5174';
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -51,7 +51,7 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'npm run dev',
+    command: 'npm run dev -- --port 5174',
     url: imosLiveBaseURL,
     env: {
       VITE_AUTOMATED_TEST_RUNNING: 'true',
