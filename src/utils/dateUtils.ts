@@ -7,7 +7,7 @@ export function getLastDates<const T extends number>(length: T) {
     const endDate = new Date(today);
     endDate.setDate(today.getDate());
 
-    for (let i = length; i > 0; i--) {
+    for (let i = length - 1; i >= 0; i--) {
       const date = new Date(endDate);
       date.setDate(endDate.getDate() - i);
 
