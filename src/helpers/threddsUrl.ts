@@ -21,12 +21,6 @@ const FILE_PATTERNS = {
   AUSTEMP_DHD: (dateString: string) => `${dateString}_IMOS_AusTemp-marine-heatwave_AUS_fv02.nc`,
 } as const;
 
-const LAYER_NAMES = {
-  [GSLA_RASTER_SOURCE_ID]: 'GSLA',
-  [AUSTEMP_SSTA_MOSAIC_RASTER_SOURCE_ID]: 'ssta',
-  [AUSTEMP_DHD_MOSAIC_RASTER_SOURCE_ID]: 'dhd',
-} as const;
-
 const WMS_CONFIG = {
   [GSLA_RASTER_SOURCE_ID]: {
     layers: 'GSLA',
@@ -153,7 +147,7 @@ export const getFeatureInfoUrl = async (
   clickPoint: { x: number; y: number },
 ): Promise<string> => {
   const base = await baseUrl(id, date);
-  const layerName = LAYER_NAMES[id];
+  const layerName = WMS_CONFIG[id].layers;
 
   // WMS 1.3.0 uses EPSG:4326 (lat,lon order for this CRS)
   const [west, south, east, north] = mapBounds;
