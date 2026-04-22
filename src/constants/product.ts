@@ -87,9 +87,9 @@ export const PRODUCTLEGENDS = {
     label: 'degrees Celsius (°C)',
   },
   [PRODUCT.AUSTEMP_DHD_MOSAIC]: {
-    scales: [0, 35, 70, 105, 140, 175],
+    scales: [0, 35, 70, 105, 140, 175, 200],
     min: 0,
-    max: 175,
+    max: 200,
     colors: 'div-RdBu-inv',
     label: 'degrees Celsius (°C)',
   },
