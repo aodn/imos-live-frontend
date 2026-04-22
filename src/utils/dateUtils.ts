@@ -120,6 +120,11 @@ export function toISODateString(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
+/** Convert a UTC date to a local date string (YYYY-MM-DD) — use this instead of toISODateString when you need the date in the user's timezone */
+export function toLocalDateString(date: string | Date): string {
+  return dayjs.utc(date).local().format('YYYY-MM-DD');
+}
+
 /** Convert compact date string (yyyymmdd) to ISO format (yyyy-mm-dd) */
 export function toISOFromCompact(date: string): string {
   return `${date.slice(0, 4)}-${date.slice(4, 6)}-${date.slice(6, 8)}`;
