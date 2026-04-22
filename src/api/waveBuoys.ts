@@ -29,5 +29,6 @@ export const getWaveBuoyLocations = async (
 
 export const getWaveBuoyLatestDate = async (): Promise<string> => {
   const latestDate = await axios.get(`${WAVE_BUOY_COLLECTION_URL}/wave_buoy_latest_date`);
+  console.log({ latestDate });
   return latestDate.data;
 };
