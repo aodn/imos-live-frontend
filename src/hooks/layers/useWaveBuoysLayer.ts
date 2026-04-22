@@ -19,7 +19,6 @@ import { useShallow } from 'zustand/shallow';
 import { useDidMountEffect } from '../useDidMountEffect';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
-import { toWaveBuoyApiDate } from '@/utils';
 
 type UseWaveBuoysLayer = {
   map: React.RefObject<mapboxgl.Map | null>;
@@ -39,7 +38,7 @@ export function useWaveBuoysLayer({ map, layerId, sourceId, product }: UseWaveBu
 
   const buoyQuery = useQuery({
     queryKey: ['wave_buoy_locations', date],
-    queryFn: () => getWaveBuoyLocations(toWaveBuoyApiDate(date)),
+    queryFn: () => getWaveBuoyLocations(date),
     enabled: enabled && !!date,
   });
 

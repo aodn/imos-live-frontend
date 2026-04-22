@@ -2,12 +2,7 @@ import { getWaveBuoyDetails } from '@/api';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import type { WaveBuoyPositionFeature } from '@/types';
-import {
-  formatLatLngToDirectional,
-  toLocalDateTime,
-  toWaveBuoyApiDate,
-  toWaveBuoyChartData,
-} from '@/utils';
+import { formatLatLngToDirectional, toLocalDateTime, toWaveBuoyChartData } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useMemo } from 'react';
 import { buoyDataDirectionVariant, noneDirectionVariants, VariantReadableName } from './config';
@@ -34,7 +29,7 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
   const { from, to } = useMemo(() => {
     const end = dayjs(dateString).add(1, 'day'); // include the full dateString day in local time
     const start = end.subtract(7, 'day');
-    return { from: toWaveBuoyApiDate(start.toDate()), to: toWaveBuoyApiDate(end.toDate()) };
+    return { from: start.toDate(), to: end.toDate() };
   }, [dateString]);
 
   const {
@@ -42,7 +37,7 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
     isError,
     data: feature,
   } = useQuery({
-    queryKey: ['waveBuoyDetails', buoy, from, to],
+    queryKey: ['waveBuoyDetails', buoy, from.toISOString(), to.toISOString()],
     queryFn: () => {
       return getWaveBuoyDetails(from, to, buoy);
     },

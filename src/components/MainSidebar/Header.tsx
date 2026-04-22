@@ -50,7 +50,9 @@ export function Header({ image, title, className }: HeaderProps) {
       </div>
 
       <div className="flex-1">
-        <h1 className="text-title-lg text-imos-blue text-left md:text-center">{title}</h1>
+        <a href="/">
+          <h1 className="text-title-lg text-imos-blue text-left md:text-center">{title}</h1>
+        </a>
       </div>
     </div>
   );
