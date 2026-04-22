@@ -20,11 +20,13 @@ import { useQuery } from '@tanstack/react-query';
 const getRasterProduct = (
   gslaAnomalySeaLevelsEnabled: boolean,
   sstAnomMosaicEnabled: boolean,
+  dhdAnomMosaicEnabled: boolean,
 ):
   | Exclude<ProductType, typeof PRODUCT.WAVE_BUOYS | typeof PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT>
   | undefined => {
   if (gslaAnomalySeaLevelsEnabled) return PRODUCT.GSLA_ANOMALY_SEA_LEVELS;
   if (sstAnomMosaicEnabled) return PRODUCT.AUSTEMP_SSTA_MOSAIC;
+  if (dhdAnomMosaicEnabled) return PRODUCT.AUSTEMP_DHD_MOSAIC;
 };
 
 export function MapControlPanel({
@@ -38,15 +40,21 @@ export function MapControlPanel({
   const isZooming = useIsMapZooming(mapRef);
   const mapCanvasWidth = useMapCanvasWidth(mapRef);
 
-  const { date, gslaAnomalySeaLevelsEnabled, sstAnomMosaicEnabled } = useMapUIStore(
-    useShallow(s => ({
-      date: s.date,
-      gslaAnomalySeaLevelsEnabled: s.productEnabled[PRODUCT.GSLA_ANOMALY_SEA_LEVELS],
-      sstAnomMosaicEnabled: s.productEnabled[PRODUCT.AUSTEMP_SSTA_MOSAIC],
-    })),
-  );
+  const { date, gslaAnomalySeaLevelsEnabled, sstAnomMosaicEnabled, dhdAnomMosaicEnabled } =
+    useMapUIStore(
+      useShallow(s => ({
+        date: s.date,
+        gslaAnomalySeaLevelsEnabled: s.productEnabled[PRODUCT.GSLA_ANOMALY_SEA_LEVELS],
+        sstAnomMosaicEnabled: s.productEnabled[PRODUCT.AUSTEMP_SSTA_MOSAIC],
+        dhdAnomMosaicEnabled: s.productEnabled[PRODUCT.AUSTEMP_DHD_MOSAIC],
+      })),
+    );
 
-  const product = getRasterProduct(gslaAnomalySeaLevelsEnabled, sstAnomMosaicEnabled);
+  const product = getRasterProduct(
+    gslaAnomalySeaLevelsEnabled,
+    sstAnomMosaicEnabled,
+    dhdAnomMosaicEnabled,
+  );
 
   const { data: legendUrl } = useQuery({
     queryKey: ['rasterLegendUrl', PRODUCTS[product!]?.sourceId, date],
