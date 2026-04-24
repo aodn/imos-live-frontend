@@ -30,8 +30,6 @@ export type HeatmapAtlasLayerInterface = mapboxgl.CustomLayerInterface & {
   ) => Promise<void>;
   updateLegendRange: (range: [number, number]) => void;
   setVisible: (visible: boolean) => void;
-  onMoveStart: () => void;
-  onMoveEnd: () => void;
 };
 
 export function heatmapAtlasLayer(id: string, palette: ColorPalette): HeatmapAtlasLayerInterface {
@@ -43,9 +41,7 @@ export function heatmapAtlasLayer(id: string, palette: ColorPalette): HeatmapAtl
     onAdd(map, gl) {
       this.field = createHeatmapAtlasField(map, gl as WebGL2RenderingContext, palette.colors);
 
-      map.on('movestart', () => this.onMoveStart());
       map.on('moveend', () => {
-        this.onMoveEnd();
         if (this.visible) {
           const bounds = map.getBounds();
           if (bounds) this.field?.onMapMove(bounds, map.getZoom());
@@ -75,14 +71,6 @@ export function heatmapAtlasLayer(id: string, palette: ColorPalette): HeatmapAtl
     setVisible(visible: boolean) {
       this.visible = visible;
       this.field?.setVisible(visible);
-    },
-
-    onMoveStart() {
-      if (this.visible) this.field?.setVisible(false);
-    },
-
-    onMoveEnd() {
-      if (this.visible) this.field?.setVisible(true);
     },
   };
 }

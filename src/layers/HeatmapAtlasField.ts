@@ -203,6 +203,9 @@ export function createHeatmapAtlasField(
   }
 
   function draw() {
+    const currentBounds = map.getBounds();
+    if (currentBounds) updateMapBounds(currentBounds);
+
     if (
       !visible ||
       !programInfo ||
