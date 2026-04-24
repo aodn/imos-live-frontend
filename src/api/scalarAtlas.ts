@@ -19,7 +19,7 @@ export type LodEntry = {
   zoomThreshold?: number;
 };
 
-export type HeatmapAtlasManifest = {
+export type MetaDataManifest = {
   products: {
     austemp_sst_anomaly_sst_anom_mosaic: {
       available_dates: string[];
@@ -37,7 +37,7 @@ export type HeatmapAtlasManifest = {
   updated_at: string;
 };
 
-export type HeatmapAtlasProductManifest = {
+export type ProductManifest = {
   bounds: { lonMin: number; lonMax: number; latMin: number; latMax: number };
   valueRange?: [number, number];
   uRange?: [number, number];
@@ -49,17 +49,22 @@ export type HeatmapAtlasProductManifest = {
 export const S3_BASE_URL =
   'https://imos-live-test-leslie.s3.ap-southeast-2.amazonaws.com/imos-live-data';
 
-export const getHeatmapAtlasManifest = async (): Promise<HeatmapAtlasManifest> => {
-  const response = await axios.get<HeatmapAtlasManifest>(`${S3_BASE_URL}/manifest.json`);
+export const getMetaDataManifest = async (): Promise<MetaDataManifest> => {
+  const response = await axios.get<MetaDataManifest>(`${S3_BASE_URL}/manifest.json`);
   return response.data;
 };
 
-export const getHeatmapAtlasProductManifest = async (args: {
+export const getProductManifest = async (args: {
   product: string;
   date: string;
-}): Promise<HeatmapAtlasProductManifest> => {
-  const response = await axios.get<HeatmapAtlasProductManifest>(
+}): Promise<ProductManifest> => {
+  const response = await axios.get<ProductManifest>(
     `${S3_BASE_URL}/${args.product}/${args.date}/manifest.json`,
   );
+  return response.data;
+};
+
+export const getProductData = async (args: { product: string; date: string }) => {
+  const response = await axios.get(`${S3_BASE_URL}/${args.product}/${args.date}/data.json`);
   return response.data;
 };

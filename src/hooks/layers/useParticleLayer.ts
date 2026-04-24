@@ -1,6 +1,6 @@
 import type { WebGlLayerProduct } from '@/constants';
 import { PRODUCTLEGENDS, PRODUCTS } from '@/constants';
-import { S3_BASE_URL, getHeatmapAtlasProductManifest } from '@/api';
+import { S3_BASE_URL, getProductManifest } from '@/api';
 import { addLayerInOrder } from '@/helpers';
 import { particlesAtlasLayer } from '@/layers';
 import { useMapUIStore, setProductErrorByProduct } from '@/store';
@@ -43,7 +43,7 @@ export function useParticleLayer({ map, layerId, product }: UseParticleLayer) {
 
   const manifestQuery = useQuery({
     queryKey: [product, date],
-    queryFn: () => getHeatmapAtlasProductManifest({ product: filePrefix, date }),
+    queryFn: () => getProductManifest({ product: filePrefix, date }),
     enabled: !!date && enabled,
   });
 

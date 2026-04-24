@@ -13,7 +13,7 @@
  */
 
 import type { CustomizableParticleConfig } from '@/config';
-import type { HeatmapAtlasProductManifest } from '@/api';
+import type { ProductManifest } from '@/api';
 import { createParticlesAtlasField } from './ParticlesAtlasField';
 import type { ParticlesAtlasFieldAPI } from './ParticlesAtlasField';
 
@@ -21,7 +21,7 @@ export type ParticlesAtlasLayerInterface = mapboxgl.CustomLayerInterface & {
   visible: boolean;
   oceanCurrentAtlasField?: ParticlesAtlasFieldAPI;
   setSource: (
-    manifest: HeatmapAtlasProductManifest,
+    manifest: ProductManifest,
     tileBaseUrl: string,
     legendRange: [number, number],
   ) => Promise<void>;
@@ -62,11 +62,7 @@ export function particlesAtlasLayer(id: string): ParticlesAtlasLayerInterface {
       this.oceanCurrentAtlasField?.draw();
     },
 
-    async setSource(
-      manifest: HeatmapAtlasProductManifest,
-      tileBaseUrl: string,
-      legendRange: [number, number],
-    ) {
+    async setSource(manifest: ProductManifest, tileBaseUrl: string, legendRange: [number, number]) {
       await this.oceanCurrentAtlasField?.setSource(manifest, tileBaseUrl, legendRange);
       if (this.visible) this.oceanCurrentAtlasField?.startAnimation();
     },

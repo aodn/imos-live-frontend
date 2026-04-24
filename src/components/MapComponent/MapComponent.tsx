@@ -25,17 +25,9 @@ mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_KEY;
 const WaveBuoyChart = lazy(() => import('../Highcharts/WaveBuoyChart'));
 
 export const MapComponent = memo(function MapComponent() {
-  const {
-    distanceMeasurementEnabled,
-    gslaAnomalySeaLevelsEnabled,
-    sstAnomMosaicEnabled,
-    waveBuoysEnabled,
-    oceanCurrentEnabled,
-  } = useMapUIStore(
+  const { distanceMeasurementEnabled, waveBuoysEnabled, oceanCurrentEnabled } = useMapUIStore(
     useShallow(s => ({
       distanceMeasurementEnabled: s.distanceMeasurementEnabled,
-      gslaAnomalySeaLevelsEnabled: s.productEnabled[PRODUCT.GSLA_ANOMALY_SEA_LEVELS],
-      sstAnomMosaicEnabled: s.productEnabled[PRODUCT.SST_ANOMALY_MOSAIC],
       waveBuoysEnabled: s.productEnabled[PRODUCT.WAVE_BUOYS],
       oceanCurrentEnabled: s.productEnabled[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT],
     })),
@@ -75,7 +67,6 @@ export const MapComponent = memo(function MapComponent() {
 
   useParticleRasterLayersEventHandlers({
     map,
-    raster: gslaAnomalySeaLevelsEnabled || sstAnomMosaicEnabled,
     oceanCurrentEnabled,
     distanceMeasurementEnabled,
   });

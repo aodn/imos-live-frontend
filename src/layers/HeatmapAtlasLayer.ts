@@ -11,7 +11,7 @@
  *   layer.setVisible(true);
  */
 
-import type { HeatmapAtlasProductManifest } from '@/api';
+import type { ProductManifest } from '@/api';
 import { createHeatmapAtlasField } from './HeatmapAtlasField';
 import type { HeatmapAtlasFieldAPI } from './HeatmapAtlasField';
 
@@ -24,7 +24,7 @@ export type HeatmapAtlasLayerInterface = mapboxgl.CustomLayerInterface & {
   visible: boolean;
   field?: HeatmapAtlasFieldAPI;
   setSource: (
-    manifest: HeatmapAtlasProductManifest,
+    manifest: ProductManifest,
     tileBaseUrl: string,
     legendRange: [number, number],
   ) => Promise<void>;
@@ -63,11 +63,7 @@ export function heatmapAtlasLayer(id: string, palette: ColorPalette): HeatmapAtl
       this.field?.draw();
     },
 
-    async setSource(
-      manifest: HeatmapAtlasProductManifest,
-      tileBaseUrl: string,
-      legendRange: [number, number],
-    ) {
+    async setSource(manifest: ProductManifest, tileBaseUrl: string, legendRange: [number, number]) {
       await this.field?.setSource(manifest, tileBaseUrl, legendRange);
       if (this.visible) this.field?.setVisible(true);
     },

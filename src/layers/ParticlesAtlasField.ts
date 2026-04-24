@@ -20,7 +20,7 @@ import * as twgl from 'twgl.js';
 import type { CustomizableParticleConfig, ParticleConfig } from '@/config';
 import { INITIAL_PARTICLE_CONFIG } from '@/config';
 import { getColorRamp } from '@/utils';
-import type { HeatmapAtlasProductManifest } from '@/api';
+import type { ProductManifest } from '@/api';
 import type { AtlasManagerAPI, ChunkSchedulerAPI, LODControllerAPI } from '@/webgl';
 import {
   ATLAS_SIZE,
@@ -38,7 +38,7 @@ import {
 
 export type ParticlesAtlasFieldAPI = {
   setSource: (
-    manifest: HeatmapAtlasProductManifest,
+    manifest: ProductManifest,
     tileBaseUrl: string,
     legendRange: [number, number],
   ) => Promise<void>;
@@ -412,7 +412,7 @@ export function createParticlesAtlasField(
   // ── Public API ────────────────────────────────────────────────────────────
 
   async function setSource(
-    manifest: HeatmapAtlasProductManifest,
+    manifest: ProductManifest,
     tileBaseUrl: string,
     legendRange: [number, number],
   ): Promise<void> {

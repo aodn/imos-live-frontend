@@ -1,4 +1,4 @@
-import { type ClosePopupFn, createMapEventPriority, getMapMetaData, showPopup } from '@/helpers';
+import { type ClosePopupFn, createMapEventPriority, showPopup } from '@/helpers';
 import type { RefObject } from 'react';
 import { useCallback, useEffect, useMemo } from 'react';
 import {
@@ -11,14 +11,12 @@ import { ClickedMapPopupContent } from '@/components';
 
 type UseMapEventHandlersOptions = {
   map: RefObject<mapboxgl.Map | null>;
-  raster: boolean;
   oceanCurrentEnabled: boolean;
   distanceMeasurementEnabled: boolean;
 };
 
 export function useParticleRasterLayersEventHandlers({
   map,
-  raster,
   oceanCurrentEnabled,
   distanceMeasurementEnabled,
 }: UseMapEventHandlersOptions) {
@@ -38,39 +36,27 @@ export function useParticleRasterLayersEventHandlers({
 
   const handleMapClick = useCallback(
     async (e: mapboxgl.MapMouseEvent) => {
-      if (!map?.current || (!oceanCurrentEnabled && !raster)) return;
+      if (!map?.current || !oceanCurrentEnabled) return;
 
       if (!shouldHandleMapClick(e)) return;
-
-      const { mapBounds, mapSize } = getMapMetaData(map);
-      if (!mapBounds || !mapSize) return;
 
       const { lngLat, point } = e;
       if (!lngLat || !point) return;
 
-      //stop clicking on land.
       const landFeatures = map.current.queryRenderedFeatures(point, {
         layers: [WORLD_LAND_FILL_LAYER_ID],
       });
-      if (landFeatures.length > 0) {
-        return;
-      }
+      if (landFeatures.length > 0) return;
 
       showPopup({
         map,
         lngLat,
         PopupContent: (closeFn: ClosePopupFn) => (
-          <ClickedMapPopupContent
-            lngLat={lngLat}
-            point={point}
-            onClose={closeFn}
-            mapBounds={mapBounds}
-            mapSize={mapSize}
-          />
+          <ClickedMapPopupContent lngLat={lngLat} onClose={closeFn} />
         ),
       });
     },
-    [map, raster, oceanCurrentEnabled, shouldHandleMapClick],
+    [map, oceanCurrentEnabled, shouldHandleMapClick],
   );
 
   useEffect(() => {

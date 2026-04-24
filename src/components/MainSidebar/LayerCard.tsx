@@ -9,7 +9,7 @@ import { AddCircleIcon, ArrowIcon, MinusCircleIcon, VectorIcon } from '../Icons'
 import { Image } from '../Image';
 import type { LayersDataset } from './MainSidebarContent';
 import { useQuery } from '@tanstack/react-query';
-import { getHeatmapAtlasManifest, getWaveBuoyLatestDate } from '@/api';
+import { getMetaDataManifest, getWaveBuoyLatestDate } from '@/api';
 import { setJumpToDate } from '@/store';
 
 export type LayerCardProps = LayersDataset & {
@@ -33,7 +33,7 @@ export function LayerCard({
   const isWaveBuoyProduct = product === 'wave-buoys';
   const { data: webglProductData, isLoading: isWebglProductDateLoading } = useQuery({
     queryKey: ['webgl_product_latest_date'],
-    queryFn: () => getHeatmapAtlasManifest(),
+    queryFn: () => getMetaDataManifest(),
     select: ({ products }) => ({
       webglProductLatestDate:
         products[PRODUCTS[product as WebGlLayerProduct].bucketPath].latest_date,

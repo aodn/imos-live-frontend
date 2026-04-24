@@ -29,13 +29,13 @@ import {
   scalarAtlasVs,
 } from '@/webgl';
 import { getColorRamp } from '@/utils';
-import type { HeatmapAtlasProductManifest } from '@/api';
+import type { ProductManifest } from '@/api';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export type HeatmapAtlasFieldAPI = {
   setSource: (
-    manifest: HeatmapAtlasProductManifest,
+    manifest: ProductManifest,
     tileBaseUrl: string,
     legendRange: [number, number],
   ) => Promise<void>;
@@ -124,7 +124,7 @@ export function createHeatmapAtlasField(
   }
 
   async function setSource(
-    manifest: HeatmapAtlasProductManifest,
+    manifest: ProductManifest,
     tileBaseUrl: string,
     newLegendRange: [number, number],
   ): Promise<void> {
