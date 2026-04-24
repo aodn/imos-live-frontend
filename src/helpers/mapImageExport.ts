@@ -3,7 +3,7 @@ import { type ProductName } from '@/constants';
 
 type ExportProduct = {
   name: ProductName;
-  legendUrl?: string;
+  colors?: string[];
   scales?: number[];
   label?: string;
 };
@@ -323,7 +323,7 @@ const drawProductColumn = (
   x: number,
   y: number,
   product: ExportProduct,
-  legend: HTMLImageElement | null,
+  legend: HTMLCanvasElement | null,
   legendWidth: number,
   legendHeight: number,
   t: ExportTheme,
@@ -541,7 +541,7 @@ const calculateInfoPanelLayout = ({
   mapAreaH: number;
   logoAspect: number;
   product: ExportProduct | undefined;
-  legend: HTMLImageElement | null;
+  legend: HTMLCanvasElement | null;
   t: ExportTheme;
 }) => {
   const leftColHeight = t.titleLineH + t.subLineH * 2;
@@ -590,6 +590,19 @@ const calculateInfoPanelLayout = ({
   };
 };
 
+/** Builds a horizontal gradient canvas from an array of CSS color strings. */
+const createLegendCanvas = (colors: string[]): HTMLCanvasElement => {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 12;
+  const ctx = canvas.getContext('2d')!;
+  const gradient = ctx.createLinearGradient(0, 0, 256, 0);
+  colors.forEach((color, i) => gradient.addColorStop(i / (colors.length - 1), color));
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, 256, 12);
+  return canvas;
+};
+
 /** Renders the map canvas to a PNG with coordinate frame, scale bar, and info panel, then downloads it. */
 export const exportMapImage = async (
   mapCanvas: HTMLCanvasElement,
@@ -616,14 +629,9 @@ export const exportMapImage = async (
     ctx.fillRect(0, 0, offscreen.width, offscreen.height);
   }
 
-  let legend: HTMLImageElement | null = null;
-  if (product?.legendUrl) {
-    try {
-      legend = await loadImage(product.legendUrl);
-    } catch {
-      product = undefined; // hide the product column entirely if the legend image fails to load
-    }
-  }
+  const legend: HTMLCanvasElement | null = product?.colors?.length
+    ? createLegendCanvas(product.colors)
+    : null;
   const logo = await loadImage(imosLogo);
   const layout = calculateInfoPanelLayout({
     ctx,

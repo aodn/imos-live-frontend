@@ -11,19 +11,10 @@ import {
 import { INITIAL_ZOOM, MIN_EXPORT_MAP_WIDTH } from '@/config';
 import { useIsMapDragging, useIsMapZooming, useMapCanvasWidth } from '@/hooks';
 import { setSidebarOpen, useMapUIStore, useSidebarStore } from '@/store';
-import { exportMapImage, rasterLegendUrl } from '@/helpers';
+import { exportMapImage } from '@/helpers';
 import { useShallow } from 'zustand/shallow';
-import type { RasterSource } from '@/constants';
-import { PRODUCTLEGENDS, PRODUCTS, type ProductType } from '@/constants';
-import { useQuery } from '@tanstack/react-query';
-
-const getRasterProduct = (
-  gslaAnomalySeaLevelsEnabled: boolean,
-  sstAnomMosaicEnabled: boolean,
-): Exclude<ProductType, 'wave-buoys' | 'gsla-ocean-geostrophic-current'> | undefined => {
-  if (gslaAnomalySeaLevelsEnabled) return 'gsla-anomaly-sea-levels';
-  if (sstAnomMosaicEnabled) return 'sst-anom-mosaic';
-};
+import { PRODUCT, PRODUCTLEGENDS, PRODUCTS } from '@/constants';
+import { colorTuplesToCss } from '@/utils';
 
 export function MapControlPanel({
   ref: mapRef,
@@ -39,18 +30,16 @@ export function MapControlPanel({
   const { date, gslaAnomalySeaLevelsEnabled, sstAnomMosaicEnabled } = useMapUIStore(
     useShallow(s => ({
       date: s.date,
-      gslaAnomalySeaLevelsEnabled: s.productEnabled['gsla-anomaly-sea-levels'],
-      sstAnomMosaicEnabled: s.productEnabled['sst-anom-mosaic'],
+      gslaAnomalySeaLevelsEnabled: s.productEnabled[PRODUCT.GSLA_ANOMALY_SEA_LEVELS],
+      sstAnomMosaicEnabled: s.productEnabled[PRODUCT.SST_ANOMALY_MOSAIC],
     })),
   );
 
-  const product = getRasterProduct(gslaAnomalySeaLevelsEnabled, sstAnomMosaicEnabled);
-
-  const { data: legendUrl } = useQuery({
-    queryKey: ['rasterLegendUrl', PRODUCTS[product!]?.sourceId, date],
-    queryFn: () => rasterLegendUrl(PRODUCTS[product!]?.sourceId as RasterSource, new Date(date)),
-    enabled: !!date && !!product,
-  });
+  const activeProduct = gslaAnomalySeaLevelsEnabled
+    ? PRODUCT.GSLA_ANOMALY_SEA_LEVELS
+    : sstAnomMosaicEnabled
+      ? PRODUCT.SST_ANOMALY_MOSAIC
+      : undefined;
 
   const isMapOnOperation = isDragging || isZooming;
   const isMapTooNarrow = mapCanvasWidth > 0 && mapCanvasWidth < MIN_EXPORT_MAP_WIDTH;
@@ -78,12 +67,12 @@ export function MapControlPanel({
   const downloadMapImage = () => {
     if (!mapRef.current) return;
 
-    const productArg = product
+    const productArg = activeProduct
       ? {
-          name: PRODUCTS[product].name,
-          legendUrl,
-          scales: PRODUCTLEGENDS[product].scales,
-          label: PRODUCTLEGENDS[product].label,
+          name: PRODUCTS[activeProduct].name,
+          colors: colorTuplesToCss(PRODUCTLEGENDS[activeProduct].colors!),
+          scales: PRODUCTLEGENDS[activeProduct].scales,
+          label: PRODUCTLEGENDS[activeProduct].label,
         }
       : undefined;
 
