@@ -15,7 +15,7 @@
  *  - Fire onChunkLoaded so the LODController can trigger crossfade
  *
  * ChunkId convention: "{lod}_{cx}_{cy}"  e.g. "2_3_2", "3_5_4"
- * File URL:           "{baseUrl}/{filePrefix}/{date}/{lod}_{cx}_{cy}.png"
+ * File URL:           "{tileBaseUrl}/{lod}_{cx}_{cy}.png"
  */
 
 import type { AtlasManagerAPI } from './AtlasManager';
@@ -102,11 +102,9 @@ async function fetchChunk(url: string): Promise<ImageBitmap> {
 
 export function createChunkScheduler(
   atlas: AtlasManagerAPI,
-  baseUrl: string,
+  tileBaseUrl: string,
   onChunkLoaded: (chunkId: string) => void,
   region: ChunkRegion,
-  filePrefix: string,
-  date: string,
   /** 1-based LOD number this scheduler handles (2 = LOD2, 3 = LOD3, ...). */
   lod = 2,
   /** Zoom level below which this LOD is not activated. */
@@ -124,7 +122,7 @@ export function createChunkScheduler(
   }
 
   function chunkUrl(id: string): string {
-    return `${baseUrl}/${filePrefix}/${date}/${id}.png`;
+    return `${tileBaseUrl}/${id}.png`;
   }
 
   function cancelChunk(id: string) {

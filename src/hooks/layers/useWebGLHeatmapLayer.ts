@@ -48,6 +48,7 @@ export function useWebGLHeatmapLayer({
   });
 
   const legendRange = PRODUCTLEGENDS[product].range as [number, number];
+  const tileBaseUrl = `${baseUrl}/${filePrefix}/${date}`;
 
   const setDataByDataset = useCallback(async () => {
     setProductErrorByProduct(product, false);
@@ -56,10 +57,10 @@ export function useWebGLHeatmapLayer({
       return null;
     });
     if (!manifest) return;
-    await layer.setSource(manifest, baseUrl, filePrefix, date, legendRange).catch(() => {
+    await layer.setSource(manifest, tileBaseUrl, legendRange).catch(() => {
       setProductErrorByProduct(product, true);
     });
-  }, [manifestQuery.promise, layer, baseUrl, filePrefix, legendRange, product, date]);
+  }, [manifestQuery.promise, layer, tileBaseUrl, legendRange, product]);
 
   const setupLayer = useCallback(async () => {
     if (!map.current!.getLayer(layer.id)) {

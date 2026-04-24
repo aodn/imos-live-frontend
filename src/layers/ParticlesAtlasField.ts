@@ -7,7 +7,7 @@
  * instead of a single flat PNG.
  *
  * Caller contract:
- *   1. Call setSource(baseUrl) when date changes — awaits LOD1 preload.
+ *   1. Call setSource(manifest, tileBaseUrl, legendRange) when date changes — awaits LOD1 preload.
  *   2. Call onMapMove(bounds, zoom) on every moveend / zoom event.
  *   3. Call startAnimation() / stopAnimation() to control rendering.
  *   4. Call draw() from the Mapbox custom layer render() callback.
@@ -39,9 +39,7 @@ import {
 export type ParticlesAtlasFieldAPI = {
   setSource: (
     manifest: HeatmapAtlasProductManifest,
-    baseUrl: string,
-    filePrefix: string,
-    date: string,
+    tileBaseUrl: string,
     legendRange: [number, number],
   ) => Promise<void>;
   startAnimation: () => void;
@@ -415,9 +413,7 @@ export function createParticlesAtlasField(
 
   async function setSource(
     manifest: HeatmapAtlasProductManifest,
-    baseUrl: string,
-    filePrefix: string,
-    date: string,
+    tileBaseUrl: string,
     legendRange: [number, number],
   ): Promise<void> {
     config.maxSpeed = legendRange[1];
@@ -463,7 +459,7 @@ export function createParticlesAtlasField(
 
     await Promise.all(
       lod1Ids.map(async id => {
-        const blob = await fetch(`${baseUrl}/${filePrefix}/${date}/${id}.png`).then(r => r.blob());
+        const blob = await fetch(`${tileBaseUrl}/${id}.png`).then(r => r.blob());
         const img = await createImageBitmap(blob, { premultiplyAlpha: 'none' });
         atlas!.upload(id, img);
       }),
@@ -480,11 +476,9 @@ export function createParticlesAtlasField(
       schedulers.push(
         createChunkScheduler(
           atlas,
-          baseUrl,
+          tileBaseUrl,
           onChunkLoaded,
           { lonMin, lonMax, latMin, latMax, cols: lodEntry.grid[0], rows: lodEntry.grid[1] },
-          filePrefix,
-          date,
           lodNum,
           lodEntry.zoomThreshold,
         ),

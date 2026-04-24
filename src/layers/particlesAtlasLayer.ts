@@ -8,7 +8,7 @@
  * Usage:
  *   const layer = windAtlasLayer('gsla-wind-atlas');
  *   map.addLayer(layer);
- *   await layer.setSource('/26-01-01/ocean_current');
+ *   await layer.setSource(manifest, '/26-01-01/ocean_current', legendRange);
  *   layer.setVisible(true);
  */
 
@@ -22,9 +22,7 @@ export type ParticlesAtlasLayerInterface = mapboxgl.CustomLayerInterface & {
   oceanCurrentAtlasField?: ParticlesAtlasFieldAPI;
   setSource: (
     manifest: HeatmapAtlasProductManifest,
-    baseUrl: string,
-    filePrefix: string,
-    date: string,
+    tileBaseUrl: string,
     legendRange: [number, number],
   ) => Promise<void>;
   setVisible: (visible: boolean) => void;
@@ -66,18 +64,10 @@ export function particlesAtlasLayer(id: string): ParticlesAtlasLayerInterface {
 
     async setSource(
       manifest: HeatmapAtlasProductManifest,
-      baseUrl: string,
-      filePrefix: string,
-      date: string,
+      tileBaseUrl: string,
       legendRange: [number, number],
     ) {
-      await this.oceanCurrentAtlasField?.setSource(
-        manifest,
-        baseUrl,
-        filePrefix,
-        date,
-        legendRange,
-      );
+      await this.oceanCurrentAtlasField?.setSource(manifest, tileBaseUrl, legendRange);
       if (this.visible) this.oceanCurrentAtlasField?.startAnimation();
     },
 

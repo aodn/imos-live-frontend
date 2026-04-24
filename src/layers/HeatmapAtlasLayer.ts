@@ -7,7 +7,7 @@
  * Usage:
  *   const layer = scalarAtlasLayer('gsla-anomaly-sea-levels-webgl-layer', palette);
  *   map.addLayer(layer);
- *   await layer.setSource(manifest, '/26-01-01/sea_level_anomaly', 'sea_level_anomaly');
+ *   await layer.setSource(manifest, '/26-01-01/sea_level_anomaly', legendRange);
  *   layer.setVisible(true);
  */
 
@@ -25,9 +25,7 @@ export type HeatmapAtlasLayerInterface = mapboxgl.CustomLayerInterface & {
   field?: HeatmapAtlasFieldAPI;
   setSource: (
     manifest: HeatmapAtlasProductManifest,
-    baseUrl: string,
-    filePrefix: string,
-    date: string,
+    tileBaseUrl: string,
     legendRange: [number, number],
   ) => Promise<void>;
   updateLegendRange: (range: [number, number]) => void;
@@ -67,12 +65,10 @@ export function heatmapAtlasLayer(id: string, palette: ColorPalette): HeatmapAtl
 
     async setSource(
       manifest: HeatmapAtlasProductManifest,
-      baseUrl: string,
-      filePrefix: string,
-      date: string,
+      tileBaseUrl: string,
       legendRange: [number, number],
     ) {
-      await this.field?.setSource(manifest, baseUrl, filePrefix, date, legendRange);
+      await this.field?.setSource(manifest, tileBaseUrl, legendRange);
       if (this.visible) this.field?.setVisible(true);
     },
 
