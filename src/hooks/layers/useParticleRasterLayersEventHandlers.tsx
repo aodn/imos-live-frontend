@@ -12,12 +12,14 @@ import { ClickedMapPopupContent } from '@/components';
 type UseMapEventHandlersOptions = {
   map: RefObject<mapboxgl.Map | null>;
   oceanCurrentEnabled: boolean;
+  heatmapEnabled: boolean;
   distanceMeasurementEnabled: boolean;
 };
 
 export function useParticleRasterLayersEventHandlers({
   map,
   oceanCurrentEnabled,
+  heatmapEnabled,
   distanceMeasurementEnabled,
 }: UseMapEventHandlersOptions) {
   const { shouldHandleMapClick } = useMemo(
@@ -36,7 +38,7 @@ export function useParticleRasterLayersEventHandlers({
 
   const handleMapClick = useCallback(
     async (e: mapboxgl.MapMouseEvent) => {
-      if (!map?.current || !oceanCurrentEnabled) return;
+      if (!map?.current || (!oceanCurrentEnabled && !heatmapEnabled)) return;
 
       if (!shouldHandleMapClick(e)) return;
 
@@ -56,7 +58,7 @@ export function useParticleRasterLayersEventHandlers({
         ),
       });
     },
-    [map, oceanCurrentEnabled, shouldHandleMapClick],
+    [map, oceanCurrentEnabled, heatmapEnabled, shouldHandleMapClick],
   );
 
   useEffect(() => {
