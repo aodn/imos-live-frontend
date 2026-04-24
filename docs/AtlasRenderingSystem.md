@@ -37,11 +37,11 @@ Atlas dimensions are **per-product**, sized to fit all LOD tiles without LRU evi
 
 The heatmap atlas is wider (4096) so its pool of 151 comfortably holds all LOD2 (30) + LOD3 (120) = 150 tiles simultaneously, eliminating LRU eviction. The particles atlas stays at 2048×2048 because its GLSL shader has the size hardcoded as a compile-time constant.
 
-`AtlasConfig` accepts optional `atlasW` / `atlasH` fields (both default to `ATLAS_SIZE = 2048`):
+`AtlasConfig` accepts optional `atlasW` / `atlasH` fields (both default to `ATLAS_SIZE = 2048`). `slotPx` is set directly from `lod1.storedPx` — one atlas slot is exactly the size of one stored chunk PNG (242×194 px for current products):
 
 ```ts
 createAtlasManager(gl, {
-  slotPx: lod1.storedPx,
+  slotPx: lod1.storedPx, // [242, 194] — slotW=storedPx[0], slotH=storedPx[1]
   lods: lodsSorted.map(({ grid }) => ({ grid })),
   atlasW: 4096, // heatmap only; particles omit these to use the 2048 default
   atlasH: 2048,
