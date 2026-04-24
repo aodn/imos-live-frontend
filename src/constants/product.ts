@@ -30,10 +30,8 @@ export const gslaOverlayImageColors = anomalySeaLevelColorMap as [number, number
 export const PRODUCT = {
   GSLA_OCEAN_GEOSTROPHIC_CURRENT: 'gsla-ocean-geostrophic-current',
   GSLA_ANOMALY_SEA_LEVELS: 'gsla-anomaly-sea-levels',
-  // GSLA_ANOMALY_SEA_LEVELS_WEBGL: 'gsla-anomaly-sea-levels-webgl',
   WAVE_BUOYS: 'wave-buoys',
   SST_ANOMALY_MOSAIC: 'sst-anom-mosaic',
-  // SST_ANOM_MOSAIC_WEBGL: 'sst-anom-mosaic-webgl',
 } as const;
 
 export type ProductType = (typeof PRODUCT)[keyof typeof PRODUCT];
@@ -47,9 +45,6 @@ type ProductValue = {
   bucketPath?: string;
 };
 
-export const GSLA_META_NAME = 'gsla_meta.json';
-export const GSLA_DATA_NAME = 'gsla_data.json';
-
 export const PRODUCTS = {
   [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: {
     name: 'GSLA Ocean Geostrophic Current',
@@ -57,18 +52,6 @@ export const PRODUCTS = {
     sourceId: 'gsla-particle-source',
     bucketPath: 'ocean_current_gsla_ucur_vcur',
   },
-  // [PRODUCT.SST_ANOM_MOSAIC_WEBGL]: {
-  //   name: 'SST Anomaly Mosaic (WebGL)',
-  //   layerId: 'sst-anom-mosaic-webgl-layer',
-  //   sourceId: 'sst-anom-mosaic-webgl-source',
-  //   bucketPath: 'austemp_sst_anomaly_sst_anom_mosaic',
-  // },
-  // [PRODUCT.GSLA_ANOMALY_SEA_LEVELS_WEBGL]: {
-  //   name: 'GSLA Anomaly Sea Levels (WebGL)',
-  //   layerId: 'gsla-anomaly-sea-levels-webgl-layer',
-  //   sourceId: 'gsla-anomaly-sea-levels-webgl-source',
-  //   bucketPath: 'ocean_current_gsla_gsla',
-  // },
   [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: {
     name: 'GSLA Anomaly Sea Levels',
     layerId: 'gsla-raster-layer',
