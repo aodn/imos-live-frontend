@@ -4,7 +4,7 @@ import { S3_BASE_URL, getHeatmapAtlasProductManifest } from '@/api';
 import { addLayerInOrder } from '@/helpers';
 import { particlesAtlasLayer } from '@/layers';
 import { useMapUIStore, setProductErrorByProduct } from '@/store';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useShallow } from 'zustand/shallow';
 import { useDidMountEffect } from '../useDidMountEffect';
@@ -33,6 +33,8 @@ export function useParticleLayer({ map, layerId, product }: UseParticleLayer) {
       })),
     );
 
+  const [isLoading, setIsLoading] = useState(false);
+
   const legendRange = PRODUCTLEGENDS[product].range as [number, number];
   const filePrefix = PRODUCTS[product].bucketPath;
   const tileBaseUrl = `${S3_BASE_URL}/${filePrefix}/${date}`;
@@ -46,15 +48,20 @@ export function useParticleLayer({ map, layerId, product }: UseParticleLayer) {
   });
 
   const setDataByDataset = useCallback(async () => {
+    setIsLoading(true);
     setProductErrorByProduct(product, false);
     const manifest = await manifestQuery.promise.catch(() => {
       setProductErrorByProduct(product, true);
       return null;
     });
-    if (!manifest) return;
+    if (!manifest) {
+      setIsLoading(false);
+      return;
+    }
     await layer.setSource(manifest, tileBaseUrl, legendRange).catch(() => {
       setProductErrorByProduct(product, true);
     });
+    setIsLoading(false);
   }, [manifestQuery.promise, layer, tileBaseUrl, legendRange, product]);
 
   const setupLayer = useCallback(async () => {
@@ -66,7 +73,7 @@ export function useParticleLayer({ map, layerId, product }: UseParticleLayer) {
 
   const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [setupLayer]);
 
-  useCustomLayerVisibility(map, loadComplete, layer, enabled && !isError);
+  useCustomLayerVisibility(map, loadComplete, layer, enabled && !isError && !isLoading);
 
   useEffect(() => {
     if (!map.current || !loadComplete || !layer) return;
