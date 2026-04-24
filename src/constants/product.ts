@@ -92,6 +92,7 @@ export const PRODUCTS = {
 } as const satisfies Record<ProductType, ProductValue>;
 
 export const MAX_VECTOR_SPEED = 3.0 as const;
+
 export type VectorLegendArgs = {
   label: string;
   numStops?: number;

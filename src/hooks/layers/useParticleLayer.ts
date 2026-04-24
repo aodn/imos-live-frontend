@@ -1,4 +1,5 @@
 import type { WebGlLayerProduct } from '@/constants';
+import { PRODUCTLEGENDS } from '@/constants';
 import { getHeatmapAtlasProductManifest } from '@/api';
 import { addLayerInOrder } from '@/helpers';
 import { particlesAtlasLayer } from '@/layers';
@@ -43,6 +44,8 @@ export function useParticleLayer({ map, layerId, product, baseUrl, filePrefix }:
     enabled: !!date && enabled,
   });
 
+  const legendRange = PRODUCTLEGENDS[product].range as [number, number];
+
   const setDataByDataset = useCallback(async () => {
     setProductErrorByProduct(product, false);
     const manifest = await manifestQuery.promise.catch(() => {
@@ -50,10 +53,10 @@ export function useParticleLayer({ map, layerId, product, baseUrl, filePrefix }:
       return null;
     });
     if (!manifest) return;
-    await layer.setSource(manifest, baseUrl, filePrefix, date).catch(() => {
+    await layer.setSource(manifest, baseUrl, filePrefix, date, legendRange).catch(() => {
       setProductErrorByProduct(product, true);
     });
-  }, [manifestQuery.promise, layer, baseUrl, filePrefix, date, product]);
+  }, [manifestQuery.promise, layer, baseUrl, filePrefix, date, legendRange, product]);
 
   const setupLayer = useCallback(async () => {
     if (!map.current!.getLayer(layer.id)) {

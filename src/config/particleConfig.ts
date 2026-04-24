@@ -40,8 +40,7 @@ export const POINT_SIZE_RANGE = {
 } as const;
 
 export const INITIAL_PARTICLE_CONFIG = {
-  // the maxSpeed determines how particles speed normilized in [0,1], visualized corresponding color from graident colors ramp.
-  maxSpeed: MAX_VECTOR_SPEED, //NOTICE!!! color legend (ColorScaleBar) must use this one as max range. Must be a float number, if not larger than 0, dataset's own max speed will be maxSpeed.
+  maxSpeed: MAX_VECTOR_SPEED,
 
   nParticles: 30000,
 

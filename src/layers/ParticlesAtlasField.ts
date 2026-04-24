@@ -17,7 +17,7 @@
 import mapboxgl from 'mapbox-gl';
 import * as twgl from 'twgl.js';
 
-import type { CustomizableParticleConfig } from '@/config';
+import type { CustomizableParticleConfig, ParticleConfig } from '@/config';
 import { INITIAL_PARTICLE_CONFIG } from '@/config';
 import { getColorRamp } from '@/utils';
 import type { HeatmapAtlasProductManifest } from '@/api';
@@ -42,6 +42,7 @@ export type ParticlesAtlasFieldAPI = {
     baseUrl: string,
     filePrefix: string,
     date: string,
+    legendRange: [number, number],
   ) => Promise<void>;
   startAnimation: () => void;
   stopAnimation: () => void;
@@ -64,7 +65,7 @@ export function createParticlesAtlasField(
 
   // Mutable config — updated in place by updateConfig so the draw loop
   // always reads current values without a closure update.
-  const config = { ...INITIAL_PARTICLE_CONFIG };
+  const config: ParticleConfig = { ...INITIAL_PARTICLE_CONFIG };
 
   // ── Shader programs ──────────────────────────────────────────────────────
   let programInfo: twgl.ProgramInfo | null = null; // draw particles
@@ -417,7 +418,9 @@ export function createParticlesAtlasField(
     baseUrl: string,
     filePrefix: string,
     date: string,
+    legendRange: [number, number],
   ): Promise<void> {
+    config.maxSpeed = legendRange[1];
     const lodsSorted = Object.entries(manifest.lods)
       .sort(([a], [b]) => Number(a) - Number(b))
       .map(([, entry]) => entry);

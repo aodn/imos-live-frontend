@@ -25,6 +25,7 @@ export type ParticlesAtlasLayerInterface = mapboxgl.CustomLayerInterface & {
     baseUrl: string,
     filePrefix: string,
     date: string,
+    legendRange: [number, number],
   ) => Promise<void>;
   setVisible: (visible: boolean) => void;
   updateConfig: (config: Partial<CustomizableParticleConfig>) => void;
@@ -68,8 +69,15 @@ export function particlesAtlasLayer(id: string): ParticlesAtlasLayerInterface {
       baseUrl: string,
       filePrefix: string,
       date: string,
+      legendRange: [number, number],
     ) {
-      await this.oceanCurrentAtlasField?.setSource(manifest, baseUrl, filePrefix, date);
+      await this.oceanCurrentAtlasField?.setSource(
+        manifest,
+        baseUrl,
+        filePrefix,
+        date,
+        legendRange,
+      );
       if (this.visible) this.oceanCurrentAtlasField?.startAnimation();
     },
 
