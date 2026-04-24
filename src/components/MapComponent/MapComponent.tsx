@@ -63,15 +63,11 @@ export const MapComponent = memo(function MapComponent() {
     map,
     layerId: GSLA_WEBGL_LAYER_ID,
     product: PRODUCT.GSLA_ANOMALY_SEA_LEVELS_WEBGL,
-    baseUrl: 'https://imos-live-test-leslie.s3.ap-southeast-2.amazonaws.com/imos-live-data',
-    filePrefix: 'ocean_current_gsla_gsla',
   });
   useWebGLHeatmapLayer({
     map,
     layerId: SST_ANOM_MOSAIC_WEBGL_LAYER_ID,
     product: PRODUCT.SST_ANOM_MOSAIC_WEBGL,
-    baseUrl: 'https://imos-live-test-leslie.s3.ap-southeast-2.amazonaws.com/imos-live-data',
-    filePrefix: 'austemp_sst_anomaly_sst_anom_mosaic',
   });
   useRasterHeatmapLayer({
     map,
@@ -89,8 +85,6 @@ export const MapComponent = memo(function MapComponent() {
     map,
     layerId: GSLA_PARTICLE_LAYER_ID,
     product: PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT,
-    baseUrl: 'https://imos-live-test-leslie.s3.ap-southeast-2.amazonaws.com/imos-live-data',
-    filePrefix: 'ocean_current_gsla_ucur_vcur',
   });
   useWaveBuoysLayer({
     map,

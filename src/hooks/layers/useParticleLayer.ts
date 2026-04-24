@@ -1,6 +1,6 @@
 import type { WebGlLayerProduct } from '@/constants';
-import { PRODUCTLEGENDS } from '@/constants';
-import { getHeatmapAtlasProductManifest } from '@/api';
+import { PRODUCTLEGENDS, PRODUCTS } from '@/constants';
+import { S3_BASE_URL, getHeatmapAtlasProductManifest } from '@/api';
 import { addLayerInOrder } from '@/helpers';
 import { particlesAtlasLayer } from '@/layers';
 import { useMapUIStore, setProductErrorByProduct } from '@/store';
@@ -15,12 +15,9 @@ type UseParticleLayer = {
   map: React.RefObject<mapboxgl.Map | null>;
   layerId: string;
   product: WebGlLayerProduct;
-  baseUrl: string;
-  /** Chunk filename prefix, e.g. 'ocean_current_gsla_ucur_vcur'. */
-  filePrefix: string;
 };
 
-export function useParticleLayer({ map, layerId, product, baseUrl, filePrefix }: UseParticleLayer) {
+export function useParticleLayer({ map, layerId, product }: UseParticleLayer) {
   const { date, nParticles, fadeOpacity, speedFactor, dropRate, pointSize, isError, enabled } =
     useMapUIStore(
       useShallow(s => ({
@@ -36,6 +33,10 @@ export function useParticleLayer({ map, layerId, product, baseUrl, filePrefix }:
       })),
     );
 
+  const legendRange = PRODUCTLEGENDS[product].range as [number, number];
+  const filePrefix = PRODUCTS[product].bucketPath;
+  const tileBaseUrl = `${S3_BASE_URL}/${filePrefix}/${date}`;
+
   const layer = useMemo(() => particlesAtlasLayer(layerId), [layerId]);
 
   const manifestQuery = useQuery({
@@ -43,9 +44,6 @@ export function useParticleLayer({ map, layerId, product, baseUrl, filePrefix }:
     queryFn: () => getHeatmapAtlasProductManifest({ product: filePrefix, date }),
     enabled: !!date && enabled,
   });
-
-  const legendRange = PRODUCTLEGENDS[product].range as [number, number];
-  const tileBaseUrl = `${baseUrl}/${filePrefix}/${date}`;
 
   const setDataByDataset = useCallback(async () => {
     setProductErrorByProduct(product, false);

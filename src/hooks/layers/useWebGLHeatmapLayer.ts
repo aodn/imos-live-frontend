@@ -1,6 +1,6 @@
 import type { WebGlLayerProduct } from '@/constants';
-import { PRODUCTCOLORPALETTES, PRODUCTLEGENDS } from '@/constants';
-import { getHeatmapAtlasProductManifest } from '@/api';
+import { PRODUCTCOLORPALETTES, PRODUCTLEGENDS, PRODUCTS } from '@/constants';
+import { S3_BASE_URL, getHeatmapAtlasProductManifest } from '@/api';
 import { addLayerInOrder } from '@/helpers';
 import { heatmapAtlasLayer } from '@/layers';
 import { useMapUIStore, setProductErrorByProduct } from '@/store';
@@ -15,19 +15,9 @@ type UseWebGLHeatmapLayer = {
   map: React.RefObject<mapboxgl.Map | null>;
   layerId: string;
   product: WebGlLayerProduct;
-  /** Public path to the directory containing the manifest and chunk PNGs. */
-  baseUrl: string;
-  /** Chunk filename prefix, e.g. 'sea_level_anomaly' or 'ssta'. */
-  filePrefix: string;
 };
 
-export function useWebGLHeatmapLayer({
-  map,
-  layerId,
-  product,
-  baseUrl,
-  filePrefix,
-}: UseWebGLHeatmapLayer) {
+export function useWebGLHeatmapLayer({ map, layerId, product }: UseWebGLHeatmapLayer) {
   const { date, enabled, isError } = useMapUIStore(
     useShallow(s => ({
       date: s.date,
@@ -35,6 +25,10 @@ export function useWebGLHeatmapLayer({
       isError: s.productError[product],
     })),
   );
+
+  const legendRange = PRODUCTLEGENDS[product].range as [number, number];
+  const filePrefix = PRODUCTS[product].bucketPath;
+  const tileBaseUrl = `${S3_BASE_URL}/${filePrefix}/${date}`;
 
   const layer = useMemo(
     () => heatmapAtlasLayer(layerId, PRODUCTCOLORPALETTES[product]),
@@ -46,9 +40,6 @@ export function useWebGLHeatmapLayer({
     queryFn: () => getHeatmapAtlasProductManifest({ product: filePrefix, date }),
     enabled: !!date && enabled,
   });
-
-  const legendRange = PRODUCTLEGENDS[product].range as [number, number];
-  const tileBaseUrl = `${baseUrl}/${filePrefix}/${date}`;
 
   const setDataByDataset = useCallback(async () => {
     setProductErrorByProduct(product, false);

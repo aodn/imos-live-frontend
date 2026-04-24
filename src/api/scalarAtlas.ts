@@ -46,11 +46,11 @@ export type HeatmapAtlasProductManifest = {
   lods: Record<string, LodEntry>;
 };
 
-export const BASE_URL =
+export const S3_BASE_URL =
   'https://imos-live-test-leslie.s3.ap-southeast-2.amazonaws.com/imos-live-data';
 
 export const getHeatmapAtlasManifest = async (): Promise<HeatmapAtlasManifest> => {
-  const response = await axios.get<HeatmapAtlasManifest>(`${BASE_URL}/manifest.json`);
+  const response = await axios.get<HeatmapAtlasManifest>(`${S3_BASE_URL}/manifest.json`);
   return response.data;
 };
 
@@ -59,7 +59,7 @@ export const getHeatmapAtlasProductManifest = async (args: {
   date: string;
 }): Promise<HeatmapAtlasProductManifest> => {
   const response = await axios.get<HeatmapAtlasProductManifest>(
-    `${BASE_URL}/${args.product}/${args.date}/manifest.json`,
+    `${S3_BASE_URL}/${args.product}/${args.date}/manifest.json`,
   );
   return response.data;
 };
