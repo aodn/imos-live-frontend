@@ -1,6 +1,6 @@
 import type { WebGlLayerProduct } from '@/constants';
 import { PRODUCTCOLORPALETTES, PRODUCTLEGENDS } from '@/constants';
-import { getHeatmapAtlasManifest } from '@/api';
+import { getHeatmapAtlasProductManifest } from '@/api';
 import { addLayerInOrder } from '@/helpers';
 import { heatmapAtlasLayer } from '@/layers';
 import { useMapUIStore, setProductErrorByProduct } from '@/store';
@@ -19,8 +19,6 @@ type UseWebGLHeatmapLayer = {
   baseUrl: string;
   /** Chunk filename prefix, e.g. 'sea_level_anomaly' or 'ssta'. */
   filePrefix: string;
-  /** React Query cache key — must be unique per product. */
-  queryKey: string;
 };
 
 export function useWebGLHeatmapLayer({
@@ -29,7 +27,6 @@ export function useWebGLHeatmapLayer({
   product,
   baseUrl,
   filePrefix,
-  queryKey,
 }: UseWebGLHeatmapLayer) {
   const { date, enabled, isError } = useMapUIStore(
     useShallow(s => ({
@@ -45,8 +42,8 @@ export function useWebGLHeatmapLayer({
   );
 
   const manifestQuery = useQuery({
-    queryKey: [queryKey, date],
-    queryFn: () => getHeatmapAtlasManifest(baseUrl),
+    queryKey: [product, date],
+    queryFn: () => getHeatmapAtlasProductManifest({ product: filePrefix, date }),
     enabled: !!date && enabled,
   });
 
@@ -59,10 +56,10 @@ export function useWebGLHeatmapLayer({
       return null;
     });
     if (!manifest) return;
-    await layer.setSource(manifest, baseUrl, filePrefix, legendRange).catch(() => {
+    await layer.setSource(manifest, baseUrl, filePrefix, date, legendRange).catch(() => {
       setProductErrorByProduct(product, true);
     });
-  }, [manifestQuery.promise, layer, baseUrl, filePrefix, legendRange, product]);
+  }, [manifestQuery.promise, layer, baseUrl, filePrefix, legendRange, product, date]);
 
   const setupLayer = useCallback(async () => {
     if (!map.current!.getLayer(layer.id)) {

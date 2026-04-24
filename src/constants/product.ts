@@ -49,6 +49,7 @@ type ProductValue = {
   name: string;
   layerId: string;
   sourceId: string;
+  bucketPath?: string;
 };
 
 export const GSLA_META_NAME = 'gsla_meta.json';
@@ -59,6 +60,19 @@ export const PRODUCTS = {
     name: 'GSLA Ocean Geostrophic Current',
     layerId: 'gsla-particle-layer',
     sourceId: 'gsla-particle-source',
+    bucketPath: 'ocean_current_gsla_ucur_vcur',
+  },
+  [PRODUCT.SST_ANOM_MOSAIC_WEBGL]: {
+    name: 'SST Anomaly Mosaic (WebGL)',
+    layerId: 'sst-anom-mosaic-webgl-layer',
+    sourceId: 'sst-anom-mosaic-webgl-source',
+    bucketPath: 'austemp_sst_anomaly_sst_anom_mosaic',
+  },
+  [PRODUCT.GSLA_ANOMALY_SEA_LEVELS_WEBGL]: {
+    name: 'GSLA Anomaly Sea Levels (WebGL)',
+    layerId: 'gsla-anomaly-sea-levels-webgl-layer',
+    sourceId: 'gsla-anomaly-sea-levels-webgl-source',
+    bucketPath: 'ocean_current_gsla_gsla',
   },
   [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: {
     name: 'GSLA Anomaly Sea Levels',
@@ -74,16 +88,6 @@ export const PRODUCTS = {
     name: 'SST Anomaly Mosaic',
     layerId: 'sst-anom-mosaic-layer',
     sourceId: 'sst-anom-mosaic-source',
-  },
-  [PRODUCT.SST_ANOM_MOSAIC_WEBGL]: {
-    name: 'SST Anomaly Mosaic (WebGL)',
-    layerId: 'sst-anom-mosaic-webgl-layer',
-    sourceId: 'sst-anom-mosaic-webgl-source',
-  },
-  [PRODUCT.GSLA_ANOMALY_SEA_LEVELS_WEBGL]: {
-    name: 'GSLA Anomaly Sea Levels (WebGL)',
-    layerId: 'gsla-anomaly-sea-levels-webgl-layer',
-    sourceId: 'gsla-anomaly-sea-levels-webgl-source',
   },
 } as const satisfies Record<ProductType, ProductValue>;
 

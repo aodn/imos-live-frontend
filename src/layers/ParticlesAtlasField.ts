@@ -20,7 +20,7 @@ import * as twgl from 'twgl.js';
 import type { CustomizableParticleConfig } from '@/config';
 import { INITIAL_PARTICLE_CONFIG } from '@/config';
 import { getColorRamp } from '@/utils';
-import type { OceanCurrentManifest } from '@/api';
+import type { HeatmapAtlasProductManifest } from '@/api';
 import type { AtlasManagerAPI, ChunkSchedulerAPI, LODControllerAPI } from '@/webgl';
 import {
   ATLAS_SIZE,
@@ -37,7 +37,12 @@ import {
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export type ParticlesAtlasFieldAPI = {
-  setSource: (manifest: OceanCurrentManifest, baseUrl: string) => Promise<void>;
+  setSource: (
+    manifest: HeatmapAtlasProductManifest,
+    baseUrl: string,
+    filePrefix: string,
+    date: string,
+  ) => Promise<void>;
   startAnimation: () => void;
   stopAnimation: () => void;
   draw: () => void;
@@ -407,7 +412,12 @@ export function createParticlesAtlasField(
 
   // ── Public API ────────────────────────────────────────────────────────────
 
-  async function setSource(manifest: OceanCurrentManifest, baseUrl: string): Promise<void> {
+  async function setSource(
+    manifest: HeatmapAtlasProductManifest,
+    baseUrl: string,
+    filePrefix: string,
+    date: string,
+  ): Promise<void> {
     const lodsSorted = Object.entries(manifest.lods)
       .sort(([a], [b]) => Number(a) - Number(b))
       .map(([, entry]) => entry);
@@ -415,9 +425,11 @@ export function createParticlesAtlasField(
     const lod1 = lodsSorted[0]!;
 
     const { lonMin, lonMax, latMin, latMax } = manifest.bounds;
+    const { uRange, vRange } = manifest;
+    if (!uRange || !vRange) throw new Error('Particle manifest missing uRange/vRange');
     dataBounds = [lonMin, latMax, lonMax, latMin];
-    vectorMin = [manifest.uRange[0], manifest.vRange[0]];
-    vectorMax = [manifest.uRange[1], manifest.vRange[1]];
+    vectorMin = [uRange[0], vRange[0]];
+    vectorMax = [uRange[1], vRange[1]];
     uvScale = [lod1.chunkPx[0] / lod1.storedPx[0], lod1.chunkPx[1] / lod1.storedPx[1]];
     uvOffset = [lod1.padding / lod1.storedPx[0], lod1.padding / lod1.storedPx[1]];
 
@@ -448,7 +460,7 @@ export function createParticlesAtlasField(
 
     await Promise.all(
       lod1Ids.map(async id => {
-        const blob = await fetch(`${baseUrl}/ocean_current_${id}.png`).then(r => r.blob());
+        const blob = await fetch(`${baseUrl}/${filePrefix}/${date}/${id}.png`).then(r => r.blob());
         const img = await createImageBitmap(blob, { premultiplyAlpha: 'none' });
         atlas!.upload(id, img);
       }),
@@ -468,7 +480,8 @@ export function createParticlesAtlasField(
           baseUrl,
           onChunkLoaded,
           { lonMin, lonMax, latMin, latMax, cols: lodEntry.grid[0], rows: lodEntry.grid[1] },
-          'ocean_current',
+          filePrefix,
+          date,
           lodNum,
           lodEntry.zoomThreshold,
         ),

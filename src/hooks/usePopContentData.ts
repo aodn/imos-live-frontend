@@ -1,4 +1,3 @@
-import { getOceanCurrentData } from '@/api';
 import {
   GSLA_DATA_NAME,
   PRODUCT,
@@ -36,7 +35,8 @@ export function useClickedMapPopupContentData({
 }: UseClickedMapPopupContentData) {
   const { data: gslaOceanCurrent, isLoading: isGslaOceanCurrentLoading } = useQuery({
     queryKey: [GSLA_DATA_NAME, date],
-    queryFn: () => getOceanCurrentData(date),
+    // queryFn: () => getOceanCurrentData(date),
+    // TODO: get clicked point data
     enabled: !!date && oceanCurrentEnabled,
     select: raw => {
       const oceanCurrentDetails = processOceanCurrentDetails(lngLat, raw);

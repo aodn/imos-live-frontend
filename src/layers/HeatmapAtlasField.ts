@@ -29,15 +29,16 @@ import {
   scalarAtlasVs,
 } from '@/webgl';
 import { getColorRamp } from '@/utils';
-import type { HeatmapAtlasManifest } from '@/api';
+import type { HeatmapAtlasProductManifest } from '@/api';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export type HeatmapAtlasFieldAPI = {
   setSource: (
-    manifest: HeatmapAtlasManifest,
+    manifest: HeatmapAtlasProductManifest,
     baseUrl: string,
     filePrefix: string,
+    date: string,
     legendRange: [number, number],
   ) => Promise<void>;
   updateLegendRange: (range: [number, number]) => void;
@@ -125,9 +126,10 @@ export function createHeatmapAtlasField(
   }
 
   async function setSource(
-    manifest: HeatmapAtlasManifest,
+    manifest: HeatmapAtlasProductManifest,
     baseUrl: string,
     filePrefix: string,
+    date: string,
     newLegendRange: [number, number],
   ): Promise<void> {
     // The renderer uses exactly LODs '1' (preloaded) and '2' (on-demand).
@@ -162,7 +164,6 @@ export function createHeatmapAtlasField(
       slotPx: lod1.storedPx,
       lods: lodsSorted.map(({ grid }) => ({ grid })),
     });
-
     // Preload all LOD1 chunks in parallel
     const [lod1Cols, lod1Rows] = lod1.grid;
     const lod1Ids: string[] = [];
@@ -171,7 +172,7 @@ export function createHeatmapAtlasField(
 
     await Promise.all(
       lod1Ids.map(async id => {
-        const blob = await fetch(`${baseUrl}/${filePrefix}_${id}.png`).then(r => r.blob());
+        const blob = await fetch(`${baseUrl}/${filePrefix}/${date}/${id}.png`).then(r => r.blob());
         const img = await createImageBitmap(blob, { premultiplyAlpha: 'none' });
         atlas!.upload(id, img);
       }),
@@ -191,6 +192,7 @@ export function createHeatmapAtlasField(
           onChunkLoaded,
           { lonMin, lonMax, latMin, latMax, cols: lodEntry.grid[0], rows: lodEntry.grid[1] },
           filePrefix,
+          date,
           lodNum,
           lodEntry.zoomThreshold,
         ),

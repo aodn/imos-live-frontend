@@ -1,5 +1,5 @@
-import type { ParticleLayer, ProductType } from '@/constants';
-import { getOceanCurrentManifest } from '@/api';
+import type { WebGlLayerProduct } from '@/constants';
+import { getHeatmapAtlasProductManifest } from '@/api';
 import { addLayerInOrder } from '@/helpers';
 import { particlesAtlasLayer } from '@/layers';
 import { useMapUIStore, setProductErrorByProduct } from '@/store';
@@ -12,11 +12,14 @@ import { useCustomLayerVisibility } from './useCustomLayerVisibility';
 
 type UseParticleLayer = {
   map: React.RefObject<mapboxgl.Map | null>;
-  layerId: ParticleLayer;
-  product: ProductType;
+  layerId: string;
+  product: WebGlLayerProduct;
+  baseUrl: string;
+  /** Chunk filename prefix, e.g. 'ocean_current_gsla_ucur_vcur'. */
+  filePrefix: string;
 };
 
-export function useParticleLayer({ map, layerId, product }: UseParticleLayer) {
+export function useParticleLayer({ map, layerId, product, baseUrl, filePrefix }: UseParticleLayer) {
   const { date, nParticles, fadeOpacity, speedFactor, dropRate, pointSize, isError, enabled } =
     useMapUIStore(
       useShallow(s => ({
@@ -32,13 +35,11 @@ export function useParticleLayer({ map, layerId, product }: UseParticleLayer) {
       })),
     );
 
-  const baseUrl = `${'26-01-01'}/ocean_current`;
-
-  const particleLayer = useMemo(() => particlesAtlasLayer(layerId), [layerId]);
+  const layer = useMemo(() => particlesAtlasLayer(layerId), [layerId]);
 
   const manifestQuery = useQuery({
-    queryKey: ['oceanCurrentAtlasManifest', date],
-    queryFn: () => getOceanCurrentManifest(baseUrl),
+    queryKey: [product, date],
+    queryFn: () => getHeatmapAtlasProductManifest({ product: filePrefix, date }),
     enabled: !!date && enabled,
   });
 
@@ -49,33 +50,32 @@ export function useParticleLayer({ map, layerId, product }: UseParticleLayer) {
       return null;
     });
     if (!manifest) return;
-    await particleLayer.setSource(manifest, baseUrl).catch(() => {
+    await layer.setSource(manifest, baseUrl, filePrefix, date).catch(() => {
       setProductErrorByProduct(product, true);
     });
-  }, [manifestQuery.promise, particleLayer, baseUrl, product]);
+  }, [manifestQuery.promise, layer, baseUrl, filePrefix, date, product]);
 
   const setupLayer = useCallback(async () => {
-    if (!map.current!.getLayer(particleLayer.id)) {
-      addLayerInOrder(map, particleLayer);
+    if (!map.current!.getLayer(layer.id)) {
+      addLayerInOrder(map, layer);
     }
     if (enabled) await setDataByDataset();
-  }, [map, particleLayer, setDataByDataset, enabled]);
+  }, [map, layer, setDataByDataset, enabled]);
 
   const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [setupLayer]);
 
-  useCustomLayerVisibility(map, loadComplete, particleLayer, enabled && !isError);
+  useCustomLayerVisibility(map, loadComplete, layer, enabled && !isError);
 
   useEffect(() => {
-    if (!map || !loadComplete || !particleLayer) return;
-    particleLayer.oceanCurrentAtlasField?.updateConfig({
+    if (!map.current || !loadComplete || !layer) return;
+    layer.oceanCurrentAtlasField?.updateConfig({
       fadeOpacity,
       speedFactor,
       dropRate,
       pointSize,
       nParticles,
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loadComplete, fadeOpacity, speedFactor, dropRate, pointSize, nParticles]);
+  }, [map, layer, loadComplete, fadeOpacity, speedFactor, dropRate, pointSize, nParticles]);
 
   useDidMountEffect(() => {
     if (!map.current || !loadComplete || !enabled) return;
