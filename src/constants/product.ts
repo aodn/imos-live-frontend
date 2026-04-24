@@ -30,20 +30,15 @@ export const gslaOverlayImageColors = anomalySeaLevelColorMap as [number, number
 export const PRODUCT = {
   GSLA_OCEAN_GEOSTROPHIC_CURRENT: 'gsla-ocean-geostrophic-current',
   GSLA_ANOMALY_SEA_LEVELS: 'gsla-anomaly-sea-levels',
-  GSLA_ANOMALY_SEA_LEVELS_WEBGL: 'gsla-anomaly-sea-levels-webgl',
+  // GSLA_ANOMALY_SEA_LEVELS_WEBGL: 'gsla-anomaly-sea-levels-webgl',
   WAVE_BUOYS: 'wave-buoys',
   SST_ANOMALY_MOSAIC: 'sst-anom-mosaic',
-  SST_ANOM_MOSAIC_WEBGL: 'sst-anom-mosaic-webgl',
+  // SST_ANOM_MOSAIC_WEBGL: 'sst-anom-mosaic-webgl',
 } as const;
 
 export type ProductType = (typeof PRODUCT)[keyof typeof PRODUCT];
 
-export type WebGlLayerProduct = Exclude<
-  ProductType,
-  | typeof PRODUCT.WAVE_BUOYS
-  | typeof PRODUCT.GSLA_ANOMALY_SEA_LEVELS
-  | typeof PRODUCT.SST_ANOMALY_MOSAIC
->;
+export type WebGlLayerProduct = Exclude<ProductType, typeof PRODUCT.WAVE_BUOYS>;
 
 type ProductValue = {
   name: string;
@@ -62,22 +57,23 @@ export const PRODUCTS = {
     sourceId: 'gsla-particle-source',
     bucketPath: 'ocean_current_gsla_ucur_vcur',
   },
-  [PRODUCT.SST_ANOM_MOSAIC_WEBGL]: {
-    name: 'SST Anomaly Mosaic (WebGL)',
-    layerId: 'sst-anom-mosaic-webgl-layer',
-    sourceId: 'sst-anom-mosaic-webgl-source',
-    bucketPath: 'austemp_sst_anomaly_sst_anom_mosaic',
-  },
-  [PRODUCT.GSLA_ANOMALY_SEA_LEVELS_WEBGL]: {
-    name: 'GSLA Anomaly Sea Levels (WebGL)',
-    layerId: 'gsla-anomaly-sea-levels-webgl-layer',
-    sourceId: 'gsla-anomaly-sea-levels-webgl-source',
-    bucketPath: 'ocean_current_gsla_gsla',
-  },
+  // [PRODUCT.SST_ANOM_MOSAIC_WEBGL]: {
+  //   name: 'SST Anomaly Mosaic (WebGL)',
+  //   layerId: 'sst-anom-mosaic-webgl-layer',
+  //   sourceId: 'sst-anom-mosaic-webgl-source',
+  //   bucketPath: 'austemp_sst_anomaly_sst_anom_mosaic',
+  // },
+  // [PRODUCT.GSLA_ANOMALY_SEA_LEVELS_WEBGL]: {
+  //   name: 'GSLA Anomaly Sea Levels (WebGL)',
+  //   layerId: 'gsla-anomaly-sea-levels-webgl-layer',
+  //   sourceId: 'gsla-anomaly-sea-levels-webgl-source',
+  //   bucketPath: 'ocean_current_gsla_gsla',
+  // },
   [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: {
     name: 'GSLA Anomaly Sea Levels',
     layerId: 'gsla-raster-layer',
     sourceId: 'gsla-raster-source',
+    bucketPath: 'ocean_current_gsla_gsla',
   },
   [PRODUCT.WAVE_BUOYS]: {
     name: 'Wave Buoys',
@@ -88,6 +84,7 @@ export const PRODUCTS = {
     name: 'SST Anomaly Mosaic',
     layerId: 'sst-anom-mosaic-layer',
     sourceId: 'sst-anom-mosaic-source',
+    bucketPath: 'austemp_sst_anomaly_sst_anom_mosaic',
   },
 } as const satisfies Record<ProductType, ProductValue>;
 
@@ -117,17 +114,7 @@ export const PRODUCTLEGENDS = {
     max: MAX_VECTOR_SPEED,
     range: [0.01, MAX_VECTOR_SPEED],
   },
-  [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: {
-    scales: [-1.2, -0.5, -0.2, -0.1, 0, 0.1, 0.2, 0.5, 1.2],
-    label: 'sea level anomaly (m)',
-    range: [-1.2, 1.2],
-  },
   [PRODUCT.SST_ANOMALY_MOSAIC]: {
-    scales: [-4, -2, 0, 2, 4],
-    label: 'degrees Celsius (°C)',
-    range: [-4, 4],
-  },
-  [PRODUCT.SST_ANOM_MOSAIC_WEBGL]: {
     scales: [-4, -2, 0, 2, 4],
     label: 'degrees Celsius (°C)',
     range: [-4, 4],
@@ -137,7 +124,7 @@ export const PRODUCTLEGENDS = {
     numStops: 256,
     threshold: 0.1,
   },
-  [PRODUCT.GSLA_ANOMALY_SEA_LEVELS_WEBGL]: {
+  [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: {
     scales: [-1.2, -0.5, -0.2, -0.1, 0, 0.1, 0.2, 0.5, 1.2],
     label: 'sea level anomaly (m)',
     range: [-1.2, 1.2],
@@ -156,13 +143,13 @@ export const PRODUCTCOLORPALETTES = {
     name: 'linear Viridis Ocean Current',
     colors: convertLogColorScaleToRamp(PRODUCTLEGENDS[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]),
   },
-  [PRODUCT.GSLA_ANOMALY_SEA_LEVELS_WEBGL]: {
+  [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: {
     name: 'linear RdBu_r Sea Level Anomaly',
-    colors: convertLinearColorScaleToRamp(PRODUCTLEGENDS[PRODUCT.GSLA_ANOMALY_SEA_LEVELS_WEBGL]),
+    colors: convertLinearColorScaleToRamp(PRODUCTLEGENDS[PRODUCT.GSLA_ANOMALY_SEA_LEVELS]),
   },
-  [PRODUCT.SST_ANOM_MOSAIC_WEBGL]: {
+  [PRODUCT.SST_ANOMALY_MOSAIC]: {
     name: 'linear RdBu_r SST',
-    colors: convertLinearColorScaleToRamp(PRODUCTLEGENDS[PRODUCT.SST_ANOM_MOSAIC_WEBGL]),
+    colors: convertLinearColorScaleToRamp(PRODUCTLEGENDS[PRODUCT.SST_ANOMALY_MOSAIC]),
   },
 } as const satisfies Record<WebGlLayerProduct, ColorPalette>;
 

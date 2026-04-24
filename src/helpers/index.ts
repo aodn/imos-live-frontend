@@ -4,7 +4,6 @@ export * from './addOrUpdateGeoJsonSource.ts';
 export * from './addLayerInOrder.ts';
 export * from './createZoomLimitPoints.ts';
 export * from './removeZoomLimitTempPoints.ts';
-export * from './addOrUpdateWMSSource.ts';
 export * from './addOrUpdateVectorSource.ts';
 export * from './getRasterData.ts';
 export * from './threddsUrl.ts';

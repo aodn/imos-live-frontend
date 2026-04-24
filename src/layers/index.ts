@@ -1,5 +1,4 @@
 export * from './lineLayer';
-export * from './imageLayer';
 export * from './circleLayer';
 export * from './symbolLayer';
 export * from './fillLayer';

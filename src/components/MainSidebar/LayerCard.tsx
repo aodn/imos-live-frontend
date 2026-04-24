@@ -1,6 +1,6 @@
 import type { WebGlLayerProduct } from '@/constants';
 import { PRODUCTS, WAVE_BUOYS_LAYER_ID } from '@/constants';
-import { cn, getLatestFulfilledDate, toCompactDate, toISOFromCompact } from '@/utils';
+import { cn, toCompactDate, toISOFromCompact } from '@/utils';
 import type { ReactNode } from 'react';
 import { Button } from '../Button';
 import type { TriggerArgs } from '../Collapsible';
@@ -9,9 +9,8 @@ import { AddCircleIcon, ArrowIcon, MinusCircleIcon, VectorIcon } from '../Icons'
 import { Image } from '../Image';
 import type { LayersDataset } from './MainSidebarContent';
 import { useQuery } from '@tanstack/react-query';
-import { fileExist, getHeatmapAtlasManifest, getWaveBuoyLatestDate } from '@/api';
+import { getHeatmapAtlasManifest, getWaveBuoyLatestDate } from '@/api';
 import { setJumpToDate } from '@/store';
-import { QUERY_DATE_RANGE } from '@/config';
 
 export type LayerCardProps = LayersDataset & {
   dateCheckUrl?: (date: string) => string | string[];
@@ -29,30 +28,9 @@ export function LayerCard({
   icon,
   product,
   legend,
-  dateCheckUrl,
   portalLink,
 }: LayerCardProps) {
-  const isRasterProduct = product === 'gsla-anomaly-sea-levels' || product === 'sst-anom-mosaic';
-
-  const isWebglProduct =
-    product === 'gsla-ocean-geostrophic-current' ||
-    product === 'gsla-anomaly-sea-levels-webgl' ||
-    product === 'sst-anom-mosaic-webgl';
-
   const isWaveBuoyProduct = product === 'wave-buoys';
-  // this is a temporary solution to get the latest available raster date. We should have a better way to get the latest date
-  // for each product in the future, like have a json file in s3 bucket that get updated when new data available.
-  const { data: latestRasterDate, isLoading: isRasterDateLoading } = useQuery({
-    queryKey: [product, QUERY_DATE_RANGE],
-    queryFn: () => {
-      const candidates = QUERY_DATE_RANGE.map(d => fileExist(dateCheckUrl!(d), d));
-      return Promise.allSettled(candidates);
-    },
-    select: data => getLatestFulfilledDate(data),
-    enabled: isRasterProduct,
-    retry: false,
-  });
-
   const { data: webglProductData, isLoading: isWebglProductDateLoading } = useQuery({
     queryKey: ['webgl_product_latest_date'],
     queryFn: () => getHeatmapAtlasManifest(),
@@ -60,7 +38,7 @@ export function LayerCard({
       webglProductLatestDate:
         products[PRODUCTS[product as WebGlLayerProduct].bucketPath].latest_date,
     }),
-    enabled: isWebglProduct,
+    enabled: !isWaveBuoyProduct,
   });
 
   const webglProductLatestDate = webglProductData?.webglProductLatestDate;
@@ -75,12 +53,6 @@ export function LayerCard({
   const handleClick = () => {
     if (addToMap) addToMap(product, !visible);
     if (layerId === WAVE_BUOYS_LAYER_ID) import('../Highcharts/WaveBuoyChart'); //preload wavebuoy chart when wavebuoylayer added.
-  };
-
-  const handleJumpToLatestRaster = () => {
-    if (latestRasterDate) {
-      setJumpToDate(toISOFromCompact(latestRasterDate));
-    }
   };
 
   const handleJumpToLatestWebglProduct = () => {
@@ -143,17 +115,7 @@ export function LayerCard({
               {visible ? <MinusCircleIcon color="imos-white" /> : <AddCircleIcon />}
             </Button>
 
-            {isRasterProduct && (
-              <Button
-                variant="outline"
-                onClick={handleJumpToLatestRaster}
-                disabled={isRasterDateLoading || !latestRasterDate}
-                className="text-btn-mobile md:text-btn text-imos-grey w-fit relative z-10"
-              >
-                Latest Date
-              </Button>
-            )}
-            {isWebglProduct && (
+            {!isWaveBuoyProduct && (
               <Button
                 variant="outline"
                 onClick={handleJumpToLatestWebglProduct}

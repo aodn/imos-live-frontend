@@ -1,6 +1,6 @@
 import {
   MEASURE_POINTS_LAYER_ID,
-  GSLA_RASTER_LAYER_ID,
+  GSLA_ANOMALY_LAYER_ID,
   GSLA_PARTICLE_LAYER_ID,
   UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
   WAVE_BUOYS_LAYER_ID,
@@ -424,7 +424,7 @@ test.describe('Anomaly sea levels and Ocean Current', () => {
   });
 
   test('User can see the current value from a map particle of different days', async ({ page }) => {
-    await mapComponent.waitUntilLayerLoaded(page, GSLA_RASTER_LAYER_ID);
+    await mapComponent.waitUntilLayerLoaded(page, GSLA_ANOMALY_LAYER_ID);
     await mapComponent.expectPopupToHaveContent(page, {
       gsla: '3.00',
       speed: '1.00',
@@ -512,13 +512,13 @@ test.describe('Ocean Current, Anomaly sea levels and Wave Buoys', () => {
 
   test('All the products are selected by default', async ({ page }) => {
     await mapComponent.waitUntilLayerLoaded(page, GSLA_PARTICLE_LAYER_ID);
-    await mapComponent.waitUntilLayerLoaded(page, GSLA_RASTER_LAYER_ID);
+    await mapComponent.waitUntilLayerLoaded(page, GSLA_ANOMALY_LAYER_ID);
     await mapComponent.waitUntilLayerLoaded(page, WAVE_BUOYS_LAYER_ID);
   });
 
   test('User can deselect all the products', async ({ page }) => {
     await mapComponent.waitUntilLayerLoaded(page, GSLA_PARTICLE_LAYER_ID);
-    await mapComponent.waitUntilLayerLoaded(page, GSLA_RASTER_LAYER_ID);
+    await mapComponent.waitUntilLayerLoaded(page, GSLA_ANOMALY_LAYER_ID);
     await mapComponent.waitUntilLayerLoaded(page, WAVE_BUOYS_LAYER_ID);
 
     await sidebarComponent.deselectProduct(page, 'GSLA Ocean geostrophic current product');
@@ -526,7 +526,7 @@ test.describe('Ocean Current, Anomaly sea levels and Wave Buoys', () => {
     await sidebarComponent.deselectProduct(page, 'Wave buoys product');
 
     await mapComponent.waitUntilLayerNotLoaded(page, GSLA_PARTICLE_LAYER_ID);
-    await mapComponent.waitUntilLayerNotLoaded(page, GSLA_RASTER_LAYER_ID);
+    await mapComponent.waitUntilLayerNotLoaded(page, GSLA_ANOMALY_LAYER_ID);
     await mapComponent.waitUntilLayerNotLoaded(page, WAVE_BUOYS_LAYER_ID);
   });
 });

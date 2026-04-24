@@ -4,7 +4,6 @@ import {
   useMapInitialization,
   useMapResize,
   useMapStyle,
-  useRasterHeatmapLayer,
   useParticleLayer,
   useParticleRasterLayersEventHandlers,
   useWaveBuoysLayer,
@@ -19,18 +18,7 @@ import { lazy, memo, Suspense, useEffect } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { DistanceMeasurement } from '../DistanceMeasurement';
 import { MapControlPanel } from '../MapControlPanel';
-import {
-  GSLA_RASTER_LAYER_ID,
-  GSLA_RASTER_SOURCE_ID,
-  GSLA_PARTICLE_LAYER_ID,
-  PRODUCT,
-  SST_ANOMALY_MOSAIC_RASTER_LAYER_ID,
-  SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID,
-  WAVE_BUOYS_LAYER_ID,
-  WAVE_BUOYS_SOURCE_ID,
-  GSLA_WEBGL_LAYER_ID,
-  SST_ANOM_MOSAIC_WEBGL_LAYER_ID,
-} from '@/constants';
+import { PRODUCT, PRODUCTS } from '@/constants';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_KEY;
 
@@ -46,10 +34,10 @@ export const MapComponent = memo(function MapComponent() {
   } = useMapUIStore(
     useShallow(s => ({
       distanceMeasurementEnabled: s.distanceMeasurementEnabled,
-      gslaAnomalySeaLevelsEnabled: s.productEnabled['gsla-anomaly-sea-levels'],
-      sstAnomMosaicEnabled: s.productEnabled['sst-anom-mosaic'],
-      waveBuoysEnabled: s.productEnabled['wave-buoys'],
-      oceanCurrentEnabled: s.productEnabled['gsla-ocean-geostrophic-current'],
+      gslaAnomalySeaLevelsEnabled: s.productEnabled[PRODUCT.GSLA_ANOMALY_SEA_LEVELS],
+      sstAnomMosaicEnabled: s.productEnabled[PRODUCT.SST_ANOMALY_MOSAIC],
+      waveBuoysEnabled: s.productEnabled[PRODUCT.WAVE_BUOYS],
+      oceanCurrentEnabled: s.productEnabled[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT],
     })),
   );
 
@@ -61,35 +49,23 @@ export const MapComponent = memo(function MapComponent() {
   useWorldLandLayer(map);
   useWebGLHeatmapLayer({
     map,
-    layerId: GSLA_WEBGL_LAYER_ID,
-    product: PRODUCT.GSLA_ANOMALY_SEA_LEVELS_WEBGL,
+    layerId: PRODUCTS[PRODUCT.GSLA_ANOMALY_SEA_LEVELS].layerId,
+    product: PRODUCT.GSLA_ANOMALY_SEA_LEVELS,
   });
   useWebGLHeatmapLayer({
     map,
-    layerId: SST_ANOM_MOSAIC_WEBGL_LAYER_ID,
-    product: PRODUCT.SST_ANOM_MOSAIC_WEBGL,
-  });
-  useRasterHeatmapLayer({
-    map,
-    layerId: GSLA_RASTER_LAYER_ID,
-    sourceId: GSLA_RASTER_SOURCE_ID,
-    product: PRODUCT.GSLA_ANOMALY_SEA_LEVELS,
-  });
-  useRasterHeatmapLayer({
-    map,
-    layerId: SST_ANOMALY_MOSAIC_RASTER_LAYER_ID,
-    sourceId: SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID,
+    layerId: PRODUCTS[PRODUCT.SST_ANOMALY_MOSAIC].layerId,
     product: PRODUCT.SST_ANOMALY_MOSAIC,
   });
   useParticleLayer({
     map,
-    layerId: GSLA_PARTICLE_LAYER_ID,
+    layerId: PRODUCTS[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT].layerId,
     product: PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT,
   });
   useWaveBuoysLayer({
     map,
-    layerId: WAVE_BUOYS_LAYER_ID,
-    sourceId: WAVE_BUOYS_SOURCE_ID,
+    layerId: PRODUCTS[PRODUCT.WAVE_BUOYS].layerId,
+    sourceId: PRODUCTS[PRODUCT.WAVE_BUOYS].sourceId,
     product: PRODUCT.WAVE_BUOYS,
   });
 

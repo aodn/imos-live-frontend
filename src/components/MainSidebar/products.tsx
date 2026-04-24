@@ -4,16 +4,12 @@ import anomalySeaLevelImage from '@/assets/sea-levels.webp';
 import waveBuoysImage from '@/assets/wave-buoys.webp';
 import sstImage from '@/assets/sst.jpg';
 import {
-  GSLA_RASTER_SOURCE_ID,
-  GSLA_RASTER_LAYER_ID,
   GSLA_PARTICLE_LAYER_ID,
-  GSLA_WEBGL_LAYER_ID,
-  SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID,
   WAVE_BUOYS_LAYER_ID,
   PRODUCT,
-  SST_ANOMALY_MOSAIC_RASTER_LAYER_ID,
-  SST_ANOM_MOSAIC_WEBGL_LAYER_ID,
   PRODUCTLEGENDS,
+  GSLA_ANOMALY_LAYER_ID,
+  SST_ANOMALY_MOSAIC_LAYER_ID,
 } from '@/constants';
 import {
   RadarIcon,
@@ -24,7 +20,7 @@ import {
   WaveIcon,
 } from '../Icons';
 import type { LayersDataset } from './MainSidebarContent';
-import { LinearColorScaleBar, LogColorScaleBar, RasterLegend } from '../ColorScaleBar';
+import { LinearColorScaleBar, LogColorScaleBar } from '../ColorScaleBar';
 import { setProductEnabledByProduct } from '@/store';
 import { gslaUrl, sstaUrl } from '@/api/fileExist';
 import { colorTuplesToCss } from '@/utils/colorTuplesToCss';
@@ -66,33 +62,6 @@ export const featuredDataset: LayersDataset[] = [
   {
     image: {
       src: anomalySeaLevelImage,
-      alt: 'GSLA sea level anomaly',
-    },
-    title: 'GSLA sea level anomaly',
-    icon: <WaterSurfaceIcon size="lg" />,
-    description:
-      'Gridded (adjusted) sea level anomaly (GSLA)' +
-      ' for the Australasian region.' +
-      ' GSLA is mapped using optimal interpolation of detided, de-meaned, inverse-barometer-adjusted altimeter' +
-      ' and tidegauge estimates of sea level. GSL is GSLA plus an estimate of the departure of mean sea level from the geoid.' +
-      ' The geostrophic velocities are derived from GSL.',
-    layerId: GSLA_RASTER_LAYER_ID,
-    visible: false,
-    isError: false,
-    product: PRODUCT.GSLA_ANOMALY_SEA_LEVELS,
-    legend: (
-      <RasterLegend
-        rasterSource={GSLA_RASTER_SOURCE_ID}
-        {...PRODUCTLEGENDS['gsla-anomaly-sea-levels']}
-      />
-    ),
-    addToMap: setProductEnabledByProduct,
-    dateCheckUrl: gslaUrl,
-    portalLink: 'https://portal-beta.aodn.org.au/details/0c9eb39c-9cbe-4c6a-8a10-5867087e703a',
-  },
-  {
-    image: {
-      src: anomalySeaLevelImage,
       alt: 'GSLA sea level anomaly WebGL',
     },
     title: 'GSLA sea level anomaly (WebGL)',
@@ -103,46 +72,22 @@ export const featuredDataset: LayersDataset[] = [
       ' GSLA is mapped using optimal interpolation of detided, de-meaned, inverse-barometer-adjusted altimeter' +
       ' and tidegauge estimates of sea level. GSL is GSLA plus an estimate of the departure of mean sea level from the geoid.' +
       ' The geostrophic velocities are derived from GSL.',
-    layerId: GSLA_WEBGL_LAYER_ID,
+    layerId: GSLA_ANOMALY_LAYER_ID,
     visible: false,
     isError: false,
-    product: PRODUCT.GSLA_ANOMALY_SEA_LEVELS_WEBGL,
+    product: PRODUCT.GSLA_ANOMALY_SEA_LEVELS,
     legend: (
       <LinearColorScaleBar
         className="w-full"
-        min={PRODUCTLEGENDS['gsla-anomaly-sea-levels-webgl'].range[0]}
-        max={PRODUCTLEGENDS['gsla-anomaly-sea-levels-webgl'].range[1]}
-        label={PRODUCTLEGENDS['gsla-anomaly-sea-levels-webgl'].label}
-        colors={colorTuplesToCss(PRODUCTLEGENDS['gsla-anomaly-sea-levels-webgl'].colors)}
+        min={PRODUCTLEGENDS[PRODUCT.GSLA_ANOMALY_SEA_LEVELS].range[0]}
+        max={PRODUCTLEGENDS[PRODUCT.GSLA_ANOMALY_SEA_LEVELS].range[1]}
+        label={PRODUCTLEGENDS[PRODUCT.GSLA_ANOMALY_SEA_LEVELS].label}
+        colors={colorTuplesToCss(PRODUCTLEGENDS[PRODUCT.GSLA_ANOMALY_SEA_LEVELS].colors)}
       />
     ),
     addToMap: setProductEnabledByProduct,
     dateCheckUrl: gslaUrl,
     portalLink: 'https://portal-beta.aodn.org.au/details/0c9eb39c-9cbe-4c6a-8a10-5867087e703a',
-  },
-  {
-    image: {
-      src: sstImage,
-      alt: 'AUS TEMP',
-    },
-    title: 'Sea surface skin temperature anomaly',
-    icon: <ThermometerIcon size="lg" />,
-    description:
-      'AusTemp is a specialised remote sensing application for the monitoring of SST conditions that lead to coral bleaching. The BOM legacy system was developed in consultation with Great Barrier Reef Marine Park Authority (GBRMPA) reef management and replaces the original CSIRO ReefTemp system (Maynard et al, 2008).',
-    layerId: SST_ANOMALY_MOSAIC_RASTER_LAYER_ID,
-    visible: false,
-    isError: false,
-    product: PRODUCT.SST_ANOMALY_MOSAIC,
-    legend: (
-      <RasterLegend
-        rasterSource={SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID}
-        {...PRODUCTLEGENDS['sst-anom-mosaic']}
-      />
-    ),
-    addToMap: setProductEnabledByProduct,
-    dateCheckUrl: sstaUrl,
-    portalLink:
-      'https://catalogue-imos.aodn.org.au/geonetwork/srv/eng/catalog.search#/search?any=IMOS%20-%20AusTemp%20-%20Sea%20Surface%20Temperature',
   },
   {
     image: {
@@ -153,17 +98,17 @@ export const featuredDataset: LayersDataset[] = [
     icon: <ThermometerIcon size="lg" />,
     description:
       'AusTemp is a specialised remote sensing application for the monitoring of SST conditions that lead to coral bleaching. The BOM legacy system was developed in consultation with Great Barrier Reef Marine Park Authority (GBRMPA) reef management and replaces the original CSIRO ReefTemp system (Maynard et al, 2008).',
-    layerId: SST_ANOM_MOSAIC_WEBGL_LAYER_ID,
+    layerId: SST_ANOMALY_MOSAIC_LAYER_ID,
     visible: false,
     isError: false,
-    product: PRODUCT.SST_ANOM_MOSAIC_WEBGL,
+    product: PRODUCT.SST_ANOMALY_MOSAIC,
     legend: (
       <LinearColorScaleBar
         className="w-full"
-        min={PRODUCTLEGENDS['sst-anom-mosaic-webgl'].range[0]}
-        max={PRODUCTLEGENDS['sst-anom-mosaic-webgl'].range[1]}
-        label={PRODUCTLEGENDS['sst-anom-mosaic-webgl'].label}
-        colors={colorTuplesToCss(PRODUCTLEGENDS['sst-anom-mosaic-webgl'].colors)}
+        min={PRODUCTLEGENDS[PRODUCT.SST_ANOMALY_MOSAIC].range[0]}
+        max={PRODUCTLEGENDS[PRODUCT.SST_ANOMALY_MOSAIC].range[1]}
+        label={PRODUCTLEGENDS[PRODUCT.SST_ANOMALY_MOSAIC].label}
+        colors={colorTuplesToCss(PRODUCTLEGENDS[PRODUCT.SST_ANOMALY_MOSAIC].colors)}
       />
     ),
     addToMap: setProductEnabledByProduct,

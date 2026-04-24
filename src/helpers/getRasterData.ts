@@ -1,7 +1,7 @@
 import type { MapMouseEvent } from 'mapbox-gl';
 import { getFeatureInfoUrl } from './threddsUrl';
 import type { RasterSource } from '@/constants';
-import { GSLA_RASTER_SOURCE_ID, SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID, PRODUCT } from '@/constants';
+import { GSLA_ANOMALY_SOURCE_ID, SST_ANOMALY_MOSAIC_SOURCE_ID, PRODUCT } from '@/constants';
 
 /**
  * Parses XML response from WMS GetFeatureInfo request
@@ -34,10 +34,10 @@ function parseFeatureInfoXML(xmlString: string): number | null {
 }
 
 type RasterSourceData = {
-  [GSLA_RASTER_SOURCE_ID]: {
+  [GSLA_ANOMALY_SOURCE_ID]: {
     [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: { gsla: number };
   };
-  [SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID]: {
+  [SST_ANOMALY_MOSAIC_SOURCE_ID]: {
     [PRODUCT.SST_ANOMALY_MOSAIC]: { sstAnom: number };
   };
 };
@@ -66,11 +66,11 @@ const fetchRasterData =
       }
 
       // Map the value to the appropriate Product field based on raster source
-      if (rasterSource === GSLA_RASTER_SOURCE_ID) {
+      if (rasterSource === GSLA_ANOMALY_SOURCE_ID) {
         return {
           [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: { gsla: value },
         } as RasterSourceData[T];
-      } else if (rasterSource === SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID) {
+      } else if (rasterSource === SST_ANOMALY_MOSAIC_SOURCE_ID) {
         return {
           [PRODUCT.SST_ANOMALY_MOSAIC]: { sstAnom: value },
         } as RasterSourceData[T];
@@ -83,8 +83,8 @@ const fetchRasterData =
     }
   };
 
-export const fetchGslaAnomalySeaLevelsData = fetchRasterData(GSLA_RASTER_SOURCE_ID);
-export const fetchSstAnomalyMosaic = fetchRasterData(SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID);
+export const fetchGslaAnomalySeaLevelsData = fetchRasterData(GSLA_ANOMALY_SOURCE_ID);
+export const fetchSstAnomalyMosaic = fetchRasterData(SST_ANOMALY_MOSAIC_SOURCE_ID);
 
 export function getMapMetaData(map: React.RefObject<mapboxgl.Map | null>) {
   if (!map.current) return {};

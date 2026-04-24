@@ -1,10 +1,8 @@
 import {
   MEASURE_LINES_LAYER_ID,
   MEASURE_POINTS_LAYER_ID,
-  GSLA_RASTER_LAYER_ID,
-  GSLA_WEBGL_LAYER_ID,
-  SST_ANOMALY_MOSAIC_RASTER_LAYER_ID,
-  SST_ANOM_MOSAIC_WEBGL_LAYER_ID,
+  GSLA_ANOMALY_LAYER_ID,
+  SST_ANOMALY_MOSAIC_LAYER_ID,
   GSLA_PARTICLE_LAYER_ID,
   UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
   WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID,
@@ -104,15 +102,6 @@ export const ZOOM_LIMIT_TEMP_CONNECTION_LINES_LAYER_PARTIAL: Partial<LineLayerSp
   },
 } as const;
 
-export const RASTER_LAYER_CONFIG = {
-  paint: {
-    'raster-fade-duration': 0,
-    'raster-resampling': 'nearest',
-  },
-  type: 'raster',
-  slot: 'middle',
-} as const;
-
 export const MEASURE_POINT_CONFIG: Partial<CircleLayerSpecification> = {
   paint: {
     'circle-radius': 5,
@@ -150,10 +139,8 @@ export const WORLD_LAND_FILL_CONFIG: Partial<FillLayerSpecification> = {
 
 //last one is the top layer.
 export const LAYERS_ORDER = [
-  GSLA_RASTER_LAYER_ID,
-  GSLA_WEBGL_LAYER_ID,
-  SST_ANOMALY_MOSAIC_RASTER_LAYER_ID,
-  SST_ANOM_MOSAIC_WEBGL_LAYER_ID,
+  GSLA_ANOMALY_LAYER_ID,
+  SST_ANOMALY_MOSAIC_LAYER_ID,
   GSLA_PARTICLE_LAYER_ID,
   WORLD_LAND_BORDER_LAYER_ID,
   WORLD_LAND_FILL_LAYER_ID,

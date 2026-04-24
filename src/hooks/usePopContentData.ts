@@ -1,8 +1,8 @@
 import {
   GSLA_DATA_NAME,
   PRODUCT,
-  GSLA_RASTER_SOURCE_ID,
-  SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID,
+  GSLA_ANOMALY_SOURCE_ID,
+  SST_ANOMALY_MOSAIC_SOURCE_ID,
 } from '@/constants';
 import { fetchGslaAnomalySeaLevelsData, fetchSstAnomalyMosaic } from '@/helpers';
 import { processOceanCurrentDetails } from '@/utils';
@@ -51,13 +51,13 @@ export function useClickedMapPopupContentData({
   });
 
   const { data: gslaAnomalySeaLevels, isLoading: isGslaAnomalySeaLevelsLoading } = useQuery({
-    queryKey: [GSLA_RASTER_SOURCE_ID, date, mapBounds, mapSize, point],
+    queryKey: [GSLA_ANOMALY_SOURCE_ID, date, mapBounds, mapSize, point],
     queryFn: () => fetchGslaAnomalySeaLevelsData(date, mapBounds, mapSize, point),
     enabled: !!date && gslaAnomalySeaLevelsEnabled,
   });
 
   const { data: sstAnomalyMosatic, isLoading: isSstAnomalyMosaticLoading } = useQuery({
-    queryKey: [SST_ANOMALY_MOSAIC_RASTER_SOURCE_ID, date, mapBounds, mapSize, point],
+    queryKey: [SST_ANOMALY_MOSAIC_SOURCE_ID, date, mapBounds, mapSize, point],
     queryFn: () => fetchSstAnomalyMosaic(date, mapBounds, mapSize, point),
     enabled: !!date && sstAnomMosaicEnabled,
   });

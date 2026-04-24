@@ -1,6 +1,5 @@
 export * from './useMapboxLayerSetup';
 export * from './useMapboxLayerVisibility';
-export * from './useRasterHeatmapLayer';
 export * from './useParticleLayer';
 export * from './useCustomLayerVisibility';
 export * from './useParticleRasterLayersEventHandlers';

@@ -119,16 +119,12 @@ export const useMapUIStore = create(
       productEnabled: {
         [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: false,
         [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: false,
-        [PRODUCT.GSLA_ANOMALY_SEA_LEVELS_WEBGL]: false,
         [PRODUCT.SST_ANOMALY_MOSAIC]: false,
-        [PRODUCT.SST_ANOM_MOSAIC_WEBGL]: false,
         [PRODUCT.WAVE_BUOYS]: true,
       },
       productError: {
         [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: false,
-        [PRODUCT.SST_ANOM_MOSAIC_WEBGL]: false,
         [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: false,
-        [PRODUCT.GSLA_ANOMALY_SEA_LEVELS_WEBGL]: false,
         [PRODUCT.SST_ANOMALY_MOSAIC]: false,
         [PRODUCT.WAVE_BUOYS]: false,
       },
