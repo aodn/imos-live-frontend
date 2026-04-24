@@ -88,8 +88,8 @@ function chunksInBounds(
   return positions;
 }
 
-async function fetchChunk(url: string): Promise<ImageBitmap> {
-  const resp = await fetch(url);
+async function fetchChunk(url: string, signal: AbortSignal): Promise<ImageBitmap> {
+  const resp = await fetch(url, { signal });
   if (!resp.ok) throw new Error(`HTTP ${resp.status} fetching ${url}`);
   const blob = await resp.blob();
   // premultiplyAlpha:'none' — A channel is always 255 in our PNGs so this is
@@ -146,15 +146,10 @@ export function createChunkScheduler(
       loading.add(id);
       inflight++;
 
-      // Capture inflight reference so the finally block can decrement correctly
-      // even if cancelChunk already ran.
-      fetchChunk(chunkUrl(id))
+      fetchChunk(chunkUrl(id), ctrl.signal)
         .then(img => {
-          // Only upload if not cancelled while in flight
-          if (loading.has(id)) {
-            atlas.upload(id, img);
-            onChunkLoaded(id);
-          }
+          atlas.upload(id, img);
+          onChunkLoaded(id);
         })
         .catch(err => {
           if (err?.name !== 'AbortError') {

@@ -30,8 +30,6 @@
 //TODO: 1. LOD threshold is not good. 2. upload chunkings files to s3 bucket and fetch from there instead of local public/ folder. 3. investigate, if ssta data array is too large, better create a simple serverless lambda function as rest api to return each data point's value based on lat/lng query.
 
 export const ATLAS_SIZE = 2048;
-const ATLAS_W = ATLAS_SIZE;
-const ATLAS_H = ATLAS_SIZE;
 
 /** Maximum number of LODs the shader supports. Drives the GLSL array sizes. */
 export const MAX_LODS = 4;
@@ -53,6 +51,10 @@ export type AtlasConfig = {
    * Index 0 = LOD '1', index 1 = LOD '2', etc. Up to MAX_LODS entries.
    */
   lods: Array<{ grid: [number, number] }>;
+  /** Atlas texture width in pixels. Defaults to ATLAS_SIZE. */
+  atlasW?: number;
+  /** Atlas texture height in pixels. Defaults to ATLAS_SIZE. */
+  atlasH?: number;
 };
 
 export type AtlasManagerAPI = {
@@ -86,8 +88,10 @@ export function createAtlasManager(
   config: AtlasConfig,
 ): AtlasManagerAPI {
   const [slotW, slotH] = config.slotPx;
-  const atlasCols = Math.floor(ATLAS_W / slotW);
-  const atlasRows = Math.floor(ATLAS_H / slotH);
+  const atlasW = config.atlasW ?? ATLAS_SIZE;
+  const atlasH = config.atlasH ?? ATLAS_SIZE;
+  const atlasCols = Math.floor(atlasW / slotW);
+  const atlasRows = Math.floor(atlasH / slotH);
   const totalSlots = atlasCols * atlasRows;
 
   // ── Virtual index offsets ──────────────────────────────────────────────────
@@ -120,10 +124,10 @@ export function createAtlasManager(
     const col = i % atlasCols;
     const row = Math.floor(i / atlasCols);
     const base = i * 4;
-    slotsData[base] = (col * slotW) / ATLAS_W;
-    slotsData[base + 1] = (row * slotH) / ATLAS_H;
-    slotsData[base + 2] = slotW / ATLAS_W;
-    slotsData[base + 3] = slotH / ATLAS_H;
+    slotsData[base] = (col * slotW) / atlasW;
+    slotsData[base + 1] = (row * slotH) / atlasH;
+    slotsData[base + 2] = slotW / atlasW;
+    slotsData[base + 3] = slotH / atlasH;
   }
 
   // ── Dynamic chunk→slot mapping (the LRU data structure) ───────────────────
@@ -144,7 +148,7 @@ export function createAtlasManager(
   // ── WebGL texture ──────────────────────────────────────────────────────────
   const texture = gl.createTexture()!;
   gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, ATLAS_W, ATLAS_H, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, atlasW, atlasH, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);

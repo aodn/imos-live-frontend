@@ -21,13 +21,17 @@ import mapboxgl from 'mapbox-gl';
 import * as twgl from 'twgl.js';
 import type { AtlasManagerAPI, ChunkSchedulerAPI, LODControllerAPI } from '@/webgl';
 import {
-  ATLAS_SIZE,
   createAtlasManager,
   createChunkScheduler,
   createLODController,
   makeScalarAtlasFs,
   scalarAtlasVs,
 } from '@/webgl';
+
+// 4096×2048 gives 16×10 = 160 slots. Pool = 151, fitting all LOD2 (30) + LOD3 (120) = 150 tiles
+// with no LRU eviction. Particles keep their own 2048×2048 atlas (hardcoded in particlesShader).
+const HEATMAP_ATLAS_W = 4096;
+const HEATMAP_ATLAS_H = 2048;
 import { getColorRamp } from '@/utils';
 import type { ProductManifest } from '@/api';
 
@@ -114,6 +118,7 @@ export function createHeatmapAtlasField(
     // Start blending in when all on-demand schedulers have their visible chunks loaded
     if (schedulers.every(s => s.allVisibleLoaded())) {
       lodController.startBlendIn();
+      map.triggerRepaint();
     }
   }
 
@@ -159,6 +164,8 @@ export function createHeatmapAtlasField(
     atlas = createAtlasManager(gl, {
       slotPx: lod1.storedPx,
       lods: lodsSorted.map(({ grid }) => ({ grid })),
+      atlasW: HEATMAP_ATLAS_W,
+      atlasH: HEATMAP_ATLAS_H,
     });
     // Preload all LOD1 chunks in parallel
     const [lod1Cols, lod1Rows] = lod1.grid;
@@ -175,7 +182,8 @@ export function createHeatmapAtlasField(
     );
 
     const totalSlots =
-      Math.floor(ATLAS_SIZE / lod1.storedPx[0]) * Math.floor(ATLAS_SIZE / lod1.storedPx[1]);
+      Math.floor(HEATMAP_ATLAS_W / lod1.storedPx[0]) *
+      Math.floor(HEATMAP_ATLAS_H / lod1.storedPx[1]);
     if (!programInfo) initializeShaders(totalSlots);
 
     // Create one scheduler per on-demand LOD (LODs 2..N)
@@ -229,6 +237,9 @@ export function createHeatmapAtlasField(
 
     gl.useProgram(programInfo.program);
 
+    const lodBlend = lodController.getValue();
+    if (lodController.isAnimating()) map.triggerRepaint();
+
     twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo);
     twgl.setUniforms(programInfo, {
       u_atlas: atlas.getTexture(),
@@ -237,7 +248,7 @@ export function createHeatmapAtlasField(
       u_lod_grids: lodGridsFlat,
       u_lod_offsets: atlas.getLodOffsets(),
       u_lod_count: atlas.getLodCount(),
-      u_lod_blend: lodController.getValue(),
+      u_lod_blend: lodBlend,
       u_bounds: mapBounds,
       u_data_bounds: dataBounds,
       u_uv_scale: uvScale,

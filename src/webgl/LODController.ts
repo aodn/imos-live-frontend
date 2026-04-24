@@ -23,6 +23,8 @@ export type LODControllerAPI = {
   reset: () => void;
   /** Return current blend value; advances animation if in progress. */
   getValue: () => number;
+  /** True while the blend animation is running. */
+  isAnimating: () => boolean;
   /** Release resources when the controller is no longer needed. */
   destroy: () => void;
 };
@@ -64,9 +66,13 @@ export function createLODController(): LODControllerAPI {
     return currentValue;
   }
 
+  function isAnimating() {
+    return animating;
+  }
+
   function destroy() {
     reset();
   }
 
-  return { startBlendIn, reset, getValue, destroy };
+  return { startBlendIn, reset, getValue, isAnimating, destroy };
 }
