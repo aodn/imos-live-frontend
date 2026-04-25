@@ -9,3 +9,4 @@ export * from './useWorldLandLayer';
 export * from './useDistanceMeasurementLayers';
 export * from './useDistanceMeasurementLayersEventHandler';
 export * from './useWebGLHeatmapLayer';
+export * from './useProductDateAvailability';

@@ -10,6 +10,7 @@ import { useShallow } from 'zustand/shallow';
 import { useDidMountEffect } from '../useDidMountEffect';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useCustomLayerVisibility } from './useCustomLayerVisibility';
+import { useProductDateAvailability } from './useProductDateAvailability';
 
 type UseParticleLayer = {
   map: React.RefObject<mapboxgl.Map | null>;
@@ -35,6 +36,8 @@ export function useParticleLayer({ map, layerId, product }: UseParticleLayer) {
 
   const [isLoading, setIsLoading] = useState(false);
 
+  const { isDateAvailable, isMetaManifestLoaded } = useProductDateAvailability(product, date);
+
   const legendRange = PRODUCTLEGENDS[product].range as [number, number];
   const filePrefix = PRODUCTS[product].bucketPath;
   const tileBaseUrl = `${S3_BASE_URL}/${filePrefix}/${date}`;
@@ -44,17 +47,30 @@ export function useParticleLayer({ map, layerId, product }: UseParticleLayer) {
     [layerId, product],
   );
 
-  const manifestQuery = useQuery({
+  const productManifestQuery = useQuery({
     queryKey: [product, date],
     queryFn: () => getProductManifest({ product: filePrefix, date }),
-    enabled: !!date && enabled,
+    enabled: !!date && enabled && isDateAvailable,
   });
 
+  useEffect(() => {
+    if (!isMetaManifestLoaded) return;
+    if (!isDateAvailable) {
+      setProductErrorByProduct(product, 'date_unavailable');
+    } else if (isError === 'date_unavailable') {
+      setProductErrorByProduct(product, null);
+    }
+  }, [isMetaManifestLoaded, isDateAvailable, product, isError]);
+
   const setDataByDataset = useCallback(async () => {
+    if (!isDateAvailable) {
+      setProductErrorByProduct(product, 'date_unavailable');
+      return;
+    }
     setIsLoading(true);
-    setProductErrorByProduct(product, false);
-    const manifest = await manifestQuery.promise.catch(() => {
-      setProductErrorByProduct(product, true);
+    setProductErrorByProduct(product, null);
+    const manifest = await productManifestQuery.promise.catch(() => {
+      setProductErrorByProduct(product, 'fetch_error');
       return null;
     });
     if (!manifest) {
@@ -62,10 +78,10 @@ export function useParticleLayer({ map, layerId, product }: UseParticleLayer) {
       return;
     }
     await layer.setSource(manifest, tileBaseUrl, legendRange).catch(() => {
-      setProductErrorByProduct(product, true);
+      setProductErrorByProduct(product, 'fetch_error');
     });
     setIsLoading(false);
-  }, [manifestQuery.promise, layer, tileBaseUrl, legendRange, product]);
+  }, [productManifestQuery.promise, layer, tileBaseUrl, legendRange, product, isDateAvailable]);
 
   const setupLayer = useCallback(async () => {
     if (!map.current!.getLayer(layer.id)) {

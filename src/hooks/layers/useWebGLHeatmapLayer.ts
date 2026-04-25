@@ -4,12 +4,13 @@ import { S3_BASE_URL, getProductManifest } from '@/api';
 import { addLayerInOrder } from '@/helpers';
 import { heatmapAtlasLayer } from '@/layers';
 import { useMapUIStore, setProductErrorByProduct } from '@/store';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useShallow } from 'zustand/shallow';
 import { useDidMountEffect } from '../useDidMountEffect';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useCustomLayerVisibility } from './useCustomLayerVisibility';
+import { useProductDateAvailability } from './useProductDateAvailability';
 
 type UseWebGLHeatmapLayer = {
   map: React.RefObject<mapboxgl.Map | null>;
@@ -28,6 +29,8 @@ export function useWebGLHeatmapLayer({ map, layerId, product }: UseWebGLHeatmapL
 
   const [isLoading, setIsLoading] = useState(false);
 
+  const { isDateAvailable, isMetaManifestLoaded } = useProductDateAvailability(product, date);
+
   const legendRange = PRODUCTLEGENDS[product].range as [number, number];
   const filePrefix = PRODUCTS[product].bucketPath;
   const tileBaseUrl = `${S3_BASE_URL}/${filePrefix}/${date}`;
@@ -37,17 +40,30 @@ export function useWebGLHeatmapLayer({ map, layerId, product }: UseWebGLHeatmapL
     [layerId, product],
   );
 
-  const manifestQuery = useQuery({
+  const productManifestQuery = useQuery({
     queryKey: [product, date],
     queryFn: () => getProductManifest({ product: filePrefix, date }),
-    enabled: !!date && enabled,
+    enabled: !!date && enabled && isDateAvailable,
   });
 
+  useEffect(() => {
+    if (!isMetaManifestLoaded) return;
+    if (!isDateAvailable) {
+      setProductErrorByProduct(product, 'date_unavailable');
+    } else if (isError === 'date_unavailable') {
+      setProductErrorByProduct(product, null);
+    }
+  }, [isMetaManifestLoaded, isDateAvailable, product, isError]);
+
   const setDataByDataset = useCallback(async () => {
+    if (!isDateAvailable) {
+      setProductErrorByProduct(product, 'date_unavailable');
+      return;
+    }
     setIsLoading(true);
-    setProductErrorByProduct(product, false);
-    const manifest = await manifestQuery.promise.catch(() => {
-      setProductErrorByProduct(product, true);
+    setProductErrorByProduct(product, null);
+    const manifest = await productManifestQuery.promise.catch(() => {
+      setProductErrorByProduct(product, 'fetch_error');
       return null;
     });
     if (!manifest) {
@@ -55,10 +71,10 @@ export function useWebGLHeatmapLayer({ map, layerId, product }: UseWebGLHeatmapL
       return;
     }
     await layer.setSource(manifest, tileBaseUrl, legendRange).catch(() => {
-      setProductErrorByProduct(product, true);
+      setProductErrorByProduct(product, 'fetch_error');
     });
     setIsLoading(false);
-  }, [manifestQuery.promise, layer, tileBaseUrl, legendRange, product]);
+  }, [productManifestQuery.promise, layer, tileBaseUrl, legendRange, product, isDateAvailable]);
 
   const setupLayer = useCallback(async () => {
     if (!map.current!.getLayer(layer.id)) {
