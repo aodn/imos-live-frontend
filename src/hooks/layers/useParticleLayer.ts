@@ -18,6 +18,21 @@ type UseParticleLayer = {
   product: WebGlLayerProduct;
 };
 
+// Error detection operates at two levels, each with a distinct typed reason:
+//
+// Level 1 — date availability ('date_unavailable'):
+//   useProductDateAvailability checks the cached metadata manifest to see if the selected
+//   date is listed in available_dates. isDateAvailable is optimistically true while the
+//   manifest is still loading so no downstream request is blocked. The useEffect below is
+//   the detector: it sets 'date_unavailable' as soon as the manifest confirms the date is
+//   missing, and clears it when the date becomes valid again (only when the existing reason
+//   is 'date_unavailable', so it never overwrites a 'fetch_error'). productManifestQuery is
+//   also gated on isDateAvailable to avoid a redundant manifest fetch for a known-bad date.
+//
+// Level 2 — tile/image loading ('fetch_error'):
+//   Even when a date is listed as available, the product manifest fetch or the tile image
+//   loads inside layer.setSource can still fail. These are caught inside setDataByDataset
+//   and reported as 'fetch_error', independent of date availability.
 export function useParticleLayer({ map, layerId, product }: UseParticleLayer) {
   const { date, nParticles, fadeOpacity, speedFactor, dropRate, pointSize, isError, enabled } =
     useMapUIStore(
