@@ -48,7 +48,7 @@ export const featuredDataset: LayersDataset[] = [
       ' The geostrophic velocities are derived from GSL.',
     layerId: GSLA_PARTICLE_LAYER_ID,
     visible: false,
-    isError: null,
+    isError: false,
     product: PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT,
     legend: (
       <LogColorScaleBar
@@ -74,7 +74,7 @@ export const featuredDataset: LayersDataset[] = [
       ' The geostrophic velocities are derived from GSL.',
     layerId: GSLA_ANOMALY_LAYER_ID,
     visible: false,
-    isError: null,
+    isError: false,
     product: PRODUCT.GSLA_ANOMALY_SEA_LEVELS,
     legend: (
       <LinearColorScaleBar
@@ -96,7 +96,7 @@ export const featuredDataset: LayersDataset[] = [
       'AusTemp is a specialised remote sensing application for the monitoring of SST conditions that lead to coral bleaching. The BOM legacy system was developed in consultation with Great Barrier Reef Marine Park Authority (GBRMPA) reef management and replaces the original CSIRO ReefTemp system (Maynard et al, 2008).',
     layerId: SST_ANOMALY_MOSAIC_LAYER_ID,
     visible: false,
-    isError: null,
+    isError: false,
     product: PRODUCT.SST_ANOMALY_MOSAIC,
     legend: (
       <LinearColorScaleBar className="w-full" {...PRODUCTLEGENDS[PRODUCT.SST_ANOMALY_MOSAIC]} />
@@ -116,7 +116,7 @@ export const featuredDataset: LayersDataset[] = [
       'Buoys provide integral wave parameters. Buoy data from the following organisations contribute to the National Wave Archive: Manly Hydraulics Laboratory, Bureau of Meteorology, DOT, DES, IMOS, Gippsland Ports, DPE, UWA, Deakin University, Pilbara Ports Authority and Flinders University and SARDI.',
     layerId: WAVE_BUOYS_LAYER_ID,
     visible: false,
-    isError: null,
+    isError: false,
     product: PRODUCT.WAVE_BUOYS,
     addToMap: setProductEnabledByProduct,
     portalLink: ' https://portal-beta.aodn.org.au/details/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc',

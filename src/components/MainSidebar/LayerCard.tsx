@@ -70,7 +70,7 @@ export function LayerCard({
       wrapperClassName="md:rounded-lg md:shadow-lg bg-white md:border border-b border-gray-300 md:p-4 pb-4"
       defaultOpen
       isWidthFiexed
-      overlayEnabled={isError !== null}
+      overlayEnabled={isError}
       trigger={({ toggle, open, direction, toggleIconHidden }: TriggerArgs) => (
         <CardTrigger
           icon={icon}
@@ -79,7 +79,7 @@ export function LayerCard({
           toggle={toggle}
           direction={direction}
           toggleIconHidden={toggleIconHidden}
-          isError={isError !== null}
+          isError={isError}
         />
       )}
     >
@@ -107,7 +107,7 @@ export function LayerCard({
               className={cn('text-btn-mobile md:text-btn', {
                 'text-imos-grey': !visible,
                 'text-white bg-imos-blue': visible,
-                'relative z-10': isError !== null && visible,
+                'relative z-10': isError && visible,
               })}
             >
               {visible ? 'Remove from map' : 'Add to map'}
@@ -175,7 +175,7 @@ function CardTrigger({
           variant="ghost"
           size="icon"
           className={cn('hover:bg-transparent focus:ring-2 focus:ring-imos-white/20', {
-            'relative z-10': isError !== null,
+            'relative z-10': isError,
           })}
           onClick={toggle}
           aria-expanded={open}

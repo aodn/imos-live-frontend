@@ -19,8 +19,7 @@ import type { StateStorage } from 'zustand/middleware';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { deserialize, serialize } from './serialization';
 
-export type ProductErrorReason = 'date_unavailable' | 'fetch_error' | null;
-type ProductError = Record<ProductType, ProductErrorReason>;
+type ProductError = Record<ProductType, boolean>;
 export type ProductEnabled = Record<ProductType, boolean>;
 
 export type JumpToDate = {
@@ -48,7 +47,7 @@ export type MapUIState = {
   setWorldBoundariesEnabled: (v: boolean) => void;
   setDate: (d: string) => void;
   refreshDates: () => void;
-  setProductErrorByProduct: (product: ProductType, error: ProductErrorReason) => void;
+  setProductErrorByProduct: (product: ProductType, error: boolean) => void;
   setProductEnabledByProduct: (product: ProductType, enabled: boolean) => void;
   setJumpToDate: (date: string) => void;
   clearJumpToDate: () => void;
@@ -123,10 +122,10 @@ export const useMapUIStore = create(
         [PRODUCT.WAVE_BUOYS]: true,
       },
       productError: {
-        [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: null,
-        [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: null,
-        [PRODUCT.SST_ANOMALY_MOSAIC]: null,
-        [PRODUCT.WAVE_BUOYS]: null,
+        [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: false,
+        [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: false,
+        [PRODUCT.SST_ANOMALY_MOSAIC]: false,
+        [PRODUCT.WAVE_BUOYS]: false,
       },
       jumpToDate: null,
       setCenter: center => set({ center }),

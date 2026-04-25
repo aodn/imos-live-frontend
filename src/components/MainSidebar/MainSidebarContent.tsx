@@ -10,7 +10,6 @@ import { useMemo, useState } from 'react';
 import { cn } from '@/utils';
 import { Button } from '../Button';
 import type { ProductType } from '@/constants';
-import type { ProductErrorReason } from '@/store';
 
 export type HeaderData = {
   image: ImageType;
@@ -24,7 +23,7 @@ export type LayersDataset = {
   addToMap?: (product: ProductType, enabled: boolean) => void;
   layerId: string;
   visible: boolean;
-  isError: ProductErrorReason;
+  isError: boolean;
   legend?: ReactNode;
   product: ProductType;
   portalLink?: string;

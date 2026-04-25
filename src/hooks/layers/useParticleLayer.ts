@@ -10,7 +10,7 @@ import { useShallow } from 'zustand/shallow';
 import { useDidMountEffect } from '../useDidMountEffect';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useCustomLayerVisibility } from './useCustomLayerVisibility';
-import { useProductDateAvailability } from './useProductDateAvailability';
+import { useProductDateAvailabilitySync } from './useProductDateAvailabilitySync';
 
 type UseParticleLayer = {
   map: React.RefObject<mapboxgl.Map | null>;
@@ -18,21 +18,17 @@ type UseParticleLayer = {
   product: WebGlLayerProduct;
 };
 
-// Error detection operates at two levels, each with a distinct typed reason:
+// Error detection operates at two levels:
 //
-// Level 1 — date availability ('date_unavailable'):
-//   useProductDateAvailability checks the cached metadata manifest to see if the selected
-//   date is listed in available_dates. isDateAvailable is optimistically true while the
-//   manifest is still loading so no downstream request is blocked. The useEffect below is
-//   the detector: it sets 'date_unavailable' as soon as the manifest confirms the date is
-//   missing, and clears it when the date becomes valid again (only when the existing reason
-//   is 'date_unavailable', so it never overwrites a 'fetch_error'). productManifestQuery is
-//   also gated on isDateAvailable to avoid a redundant manifest fetch for a known-bad date.
+// Level 1 — date availability:
+//   useProductDateAvailabilitySync queries the cached metadata manifest and syncs the error
+//   state automatically — sets it when the date is absent, clears it when valid. productManifestQuery
+//   is also gated on isDateAvailable to skip a redundant fetch for a known-bad date.
 //
-// Level 2 — tile/image loading ('fetch_error'):
+// Level 2 — tile/image loading:
 //   Even when a date is listed as available, the product manifest fetch or the tile image
-//   loads inside layer.setSource can still fail. These are caught inside setDataByDataset
-//   and reported as 'fetch_error', independent of date availability.
+//   loads inside layer.setSource can still fail. These are caught inside setDataByDataset,
+//   independent of date availability.
 export function useParticleLayer({ map, layerId, product }: UseParticleLayer) {
   const { date, nParticles, fadeOpacity, speedFactor, dropRate, pointSize, isError, enabled } =
     useMapUIStore(
@@ -51,7 +47,7 @@ export function useParticleLayer({ map, layerId, product }: UseParticleLayer) {
 
   const [isLoading, setIsLoading] = useState(false);
 
-  const { isDateAvailable, isMetaManifestLoaded } = useProductDateAvailability(product, date);
+  const { isDateAvailable } = useProductDateAvailabilitySync(product, date);
 
   const legendRange = PRODUCTLEGENDS[product].range as [number, number];
   const filePrefix = PRODUCTS[product].bucketPath;
@@ -68,24 +64,14 @@ export function useParticleLayer({ map, layerId, product }: UseParticleLayer) {
     enabled: !!date && enabled && isDateAvailable,
   });
 
-  useEffect(() => {
-    if (!isMetaManifestLoaded) return;
-    if (!isDateAvailable) {
-      setProductErrorByProduct(product, 'date_unavailable');
-    } else if (isError === 'date_unavailable') {
-      setProductErrorByProduct(product, null);
-    }
-  }, [isMetaManifestLoaded, isDateAvailable, product, isError]);
-
   const setDataByDataset = useCallback(async () => {
     if (!isDateAvailable) {
-      setProductErrorByProduct(product, 'date_unavailable');
+      setProductErrorByProduct(product, true);
       return;
     }
     setIsLoading(true);
-    setProductErrorByProduct(product, null);
     const manifest = await productManifestQuery.promise.catch(() => {
-      setProductErrorByProduct(product, 'fetch_error');
+      setProductErrorByProduct(product, true);
       return null;
     });
     if (!manifest) {
@@ -93,7 +79,7 @@ export function useParticleLayer({ map, layerId, product }: UseParticleLayer) {
       return;
     }
     await layer.setSource(manifest, tileBaseUrl, legendRange).catch(() => {
-      setProductErrorByProduct(product, 'fetch_error');
+      setProductErrorByProduct(product, true);
     });
     setIsLoading(false);
   }, [productManifestQuery.promise, layer, tileBaseUrl, legendRange, product, isDateAvailable]);
