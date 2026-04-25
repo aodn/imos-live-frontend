@@ -61,12 +61,11 @@ const hashStorage: StateStorage = {
       restoredState[key] = deserialize(value);
     }
 
-    // restore particleConfig with maxSpeed and colours from initial config
+    // restore particleConfig with maxSpeed from initial config (not persisted in URL)
     if (restoredState.particleConfig) {
       restoredState.particleConfig = {
         ...restoredState.particleConfig,
         maxSpeed: INITIAL_PARTICLE_CONFIG.maxSpeed,
-        colours: INITIAL_PARTICLE_CONFIG.colours,
       };
     }
 
@@ -95,8 +94,8 @@ const storageOptions = {
     //filter out dates, productError, and jumpToDate to sync in url
     const { dates, productError, jumpToDate, ...rest } = state;
 
-    // Filter out maxSpeed and colours from particleConfig
-    const { maxSpeed, colours, ...customizableConfig } = rest.particleConfig;
+    // Filter out maxSpeed from particleConfig (not intended for URL sync)
+    const { maxSpeed, ...customizableConfig } = rest.particleConfig;
 
     return {
       ...rest,

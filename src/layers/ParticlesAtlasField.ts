@@ -57,6 +57,7 @@ export type ParticlesAtlasFieldAPI = {
 export function createParticlesAtlasField(
   map: mapboxgl.Map,
   gl: WebGL2RenderingContext,
+  colorRampColors: Record<string, string>,
 ): ParticlesAtlasFieldAPI {
   // Required for RG32F ping-pong framebuffer (same as VectorField.js)
   gl.getExtension('EXT_color_buffer_float');
@@ -203,7 +204,7 @@ export function createParticlesAtlasField(
     ]);
 
     setParticles(nParticles);
-    setColorRamp(config.colours);
+    setColorRamp(colorRampColors);
     initScreenTextures();
     framebuffer = gl.createFramebuffer();
   }

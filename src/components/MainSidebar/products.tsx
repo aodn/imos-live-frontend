@@ -22,8 +22,6 @@ import {
 import type { LayersDataset } from './MainSidebarContent';
 import { LinearColorScaleBar, LogColorScaleBar } from '../ColorScaleBar';
 import { setProductEnabledByProduct } from '@/store';
-import { gslaUrl, sstaUrl } from '@/api/fileExist';
-import { colorTuplesToCss } from '@/utils/colorTuplesToCss';
 
 export const headerData = {
   title: 'IMOS Live',
@@ -53,10 +51,12 @@ export const featuredDataset: LayersDataset[] = [
     isError: false,
     product: PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT,
     legend: (
-      <LogColorScaleBar className="w-full" {...PRODUCTLEGENDS['gsla-ocean-geostrophic-current']} />
+      <LogColorScaleBar
+        className="w-full"
+        {...PRODUCTLEGENDS[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]}
+      />
     ),
     addToMap: setProductEnabledByProduct,
-    dateCheckUrl: gslaUrl,
     portalLink: 'https://portal-beta.aodn.org.au/details/0c9eb39c-9cbe-4c6a-8a10-5867087e703a',
   },
   {
@@ -79,14 +79,10 @@ export const featuredDataset: LayersDataset[] = [
     legend: (
       <LinearColorScaleBar
         className="w-full"
-        min={PRODUCTLEGENDS[PRODUCT.GSLA_ANOMALY_SEA_LEVELS].range[0]}
-        max={PRODUCTLEGENDS[PRODUCT.GSLA_ANOMALY_SEA_LEVELS].range[1]}
-        label={PRODUCTLEGENDS[PRODUCT.GSLA_ANOMALY_SEA_LEVELS].label}
-        colors={colorTuplesToCss(PRODUCTLEGENDS[PRODUCT.GSLA_ANOMALY_SEA_LEVELS].colors)}
+        {...PRODUCTLEGENDS[PRODUCT.GSLA_ANOMALY_SEA_LEVELS]}
       />
     ),
     addToMap: setProductEnabledByProduct,
-    dateCheckUrl: gslaUrl,
     portalLink: 'https://portal-beta.aodn.org.au/details/0c9eb39c-9cbe-4c6a-8a10-5867087e703a',
   },
   {
@@ -103,16 +99,9 @@ export const featuredDataset: LayersDataset[] = [
     isError: false,
     product: PRODUCT.SST_ANOMALY_MOSAIC,
     legend: (
-      <LinearColorScaleBar
-        className="w-full"
-        min={PRODUCTLEGENDS[PRODUCT.SST_ANOMALY_MOSAIC].range[0]}
-        max={PRODUCTLEGENDS[PRODUCT.SST_ANOMALY_MOSAIC].range[1]}
-        label={PRODUCTLEGENDS[PRODUCT.SST_ANOMALY_MOSAIC].label}
-        colors={colorTuplesToCss(PRODUCTLEGENDS[PRODUCT.SST_ANOMALY_MOSAIC].colors)}
-      />
+      <LinearColorScaleBar className="w-full" {...PRODUCTLEGENDS[PRODUCT.SST_ANOMALY_MOSAIC]} />
     ),
     addToMap: setProductEnabledByProduct,
-    dateCheckUrl: sstaUrl,
     portalLink:
       'https://catalogue-imos.aodn.org.au/geonetwork/srv/eng/catalog.search#/search?any=IMOS%20-%20AusTemp%20-%20Sea%20Surface%20Temperature',
   },

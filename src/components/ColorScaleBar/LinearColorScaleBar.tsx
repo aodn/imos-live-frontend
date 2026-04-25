@@ -1,4 +1,4 @@
-import { cn } from '@/utils';
+import { cn, rgbToHex } from '@/utils';
 import { useMemo } from 'react';
 import { formatTickValue } from './utils';
 
@@ -9,7 +9,8 @@ type ColorScaleBarProps = {
   min: number;
   max: number;
   label?: string;
-  colors: string[];
+  colors: readonly [number, number, number][];
+  scales?: readonly number[];
 };
 
 export function LinearColorScaleBar({
@@ -20,19 +21,29 @@ export function LinearColorScaleBar({
   max,
   label,
   colors,
+  scales,
 }: ColorScaleBarProps) {
   const gradient = useMemo(() => {
-    return `linear-gradient(to right, ${colors.join(', ')})`;
+    const cssColors = colors.map(([r, g, b]) => rgbToHex(r, g, b));
+    return `linear-gradient(to right, ${cssColors.join(', ')})`;
   }, [colors]);
 
   const tickPositions = useMemo(() => {
+    if (scales && scales.length > 0) {
+      return scales.map((value, i) => ({
+        index: i,
+        value,
+        position: ((value - min) / (max - min)) * 100,
+        isEdge: i === 0 || i === scales.length - 1,
+      }));
+    }
     return Array.from({ length: tickCount }, (_, i) => ({
       index: i,
       value: min + ((max - min) / (tickCount - 1)) * i,
       position: (i / (tickCount - 1)) * 100,
       isEdge: i === 0 || i === tickCount - 1,
     }));
-  }, [min, max, tickCount]);
+  }, [min, max, tickCount, scales]);
 
   const scaleLabels = useMemo(() => {
     return tickPositions.map(({ index, value, position }) => (

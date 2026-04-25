@@ -13,7 +13,6 @@ import { getMetaDataManifest, getWaveBuoyLatestDate } from '@/api';
 import { setJumpToDate } from '@/store';
 
 export type LayerCardProps = LayersDataset & {
-  dateCheckUrl?: (date: string) => string | string[];
   portalLink?: string;
 };
 

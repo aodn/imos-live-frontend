@@ -105,10 +105,9 @@ export const PRODUCTLEGENDS = {
     min: -4,
     max: 4,
     numStops: 256,
-    threshold: 0.1,
   },
   [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: {
-    scales: [-1.2, -0.5, -0.2, -0.1, 0, 0.1, 0.2, 0.5, 1.2],
+    scales: [-1.2, -0.6, 0, 0.6, 1.2],
     label: 'sea level anomaly (m)',
     range: [-1.2, 1.2],
     min: -1.2,

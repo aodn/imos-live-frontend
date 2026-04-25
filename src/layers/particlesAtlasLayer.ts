@@ -32,14 +32,21 @@ export type ParticlesAtlasLayerInterface = mapboxgl.CustomLayerInterface & {
   onResize: () => void;
 };
 
-export function particlesAtlasLayer(id: string): ParticlesAtlasLayerInterface {
+export function particlesAtlasLayer(
+  id: string,
+  colorRampColors: Record<string, string>,
+): ParticlesAtlasLayerInterface {
   return {
     id,
     type: 'custom' as const,
     visible: false,
 
     onAdd(map, gl) {
-      this.oceanCurrentAtlasField = createParticlesAtlasField(map, gl as WebGL2RenderingContext);
+      this.oceanCurrentAtlasField = createParticlesAtlasField(
+        map,
+        gl as WebGL2RenderingContext,
+        colorRampColors,
+      );
 
       map.on('movestart', () => this.onMoveStart());
       map.on('moveend', () => {

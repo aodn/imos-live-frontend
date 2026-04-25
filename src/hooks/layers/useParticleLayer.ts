@@ -1,5 +1,5 @@
 import type { WebGlLayerProduct } from '@/constants';
-import { PRODUCTLEGENDS, PRODUCTS } from '@/constants';
+import { PRODUCTCOLORPALETTES, PRODUCTLEGENDS, PRODUCTS } from '@/constants';
 import { S3_BASE_URL, getProductManifest } from '@/api';
 import { addLayerInOrder } from '@/helpers';
 import { particlesAtlasLayer } from '@/layers';
@@ -39,7 +39,10 @@ export function useParticleLayer({ map, layerId, product }: UseParticleLayer) {
   const filePrefix = PRODUCTS[product].bucketPath;
   const tileBaseUrl = `${S3_BASE_URL}/${filePrefix}/${date}`;
 
-  const layer = useMemo(() => particlesAtlasLayer(layerId), [layerId]);
+  const layer = useMemo(
+    () => particlesAtlasLayer(layerId, PRODUCTCOLORPALETTES[product].colors),
+    [layerId, product],
+  );
 
   const manifestQuery = useQuery({
     queryKey: [product, date],

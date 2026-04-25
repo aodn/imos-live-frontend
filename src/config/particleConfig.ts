@@ -1,8 +1,5 @@
-import { convertLogColorScaleToRamp } from '@/components/ColorScaleBar/utils';
 import { generateValueByPercentage } from '@/utils';
-import { MAX_VECTOR_SPEED, PRODUCTLEGENDS } from '@/constants';
-
-const colors = convertLogColorScaleToRamp(PRODUCTLEGENDS['gsla-ocean-geostrophic-current']);
+import { MAX_VECTOR_SPEED } from '@/constants';
 
 export type ParticleConfig = {
   maxSpeed: number;
@@ -12,10 +9,9 @@ export type ParticleConfig = {
   dropRate: number;
   dropRateBump: number;
   pointSize: number;
-  colours: Record<string, string>;
 };
 
-export type CustomizableParticleConfig = Omit<ParticleConfig, 'maxSpeed' | 'colours'>;
+export type CustomizableParticleConfig = Omit<ParticleConfig, 'maxSpeed'>;
 
 export const FADE_OPACITY_RANGE = {
   min: 0.9,
@@ -64,9 +60,6 @@ export const INITIAL_PARTICLE_CONFIG = {
   dropRateBump: 0.05,
 
   pointSize: generateValueByPercentage({ percentage: 0.1, range: POINT_SIZE_RANGE, decimals: 1 }),
-
-  // colour gradient, the colours object is a pair of normilised speed with values (0-1) and hex colour strings. Must be the same as the LogColorScaleBar component.
-  colours: colors,
 } as const;
 
 /**
