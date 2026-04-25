@@ -240,7 +240,33 @@ When a LOD2+ chunk is uploaded and no pool slot is free:
 2. Set `chunkSlots[victimVirtualIdx] = −1`.
 3. Return the freed physical slot for the new upload.
 
-Evicted chunks are removed from `has()` — `ChunkScheduler` will re-queue them if they re-enter the viewport. The heatmap atlas is sized so eviction does not occur in normal use (pool=151, max tiles=150).
+Evicted chunks are removed from `has()` — `ChunkScheduler` will re-queue them if they re-enter the viewport.
+
+> **Notice:** With the current atlas sizing, LRU eviction is intentionally dormant and will not trigger in normal use. The heatmap atlas (4096×2048) gives a pool of 151 slots, which is one more than the maximum possible LOD2+LOD3 tiles (30+120=150). If the atlas had been left at 2048×2048 (pool=71), eviction would fire frequently as the user pans. The eviction logic remains correct and will activate again if a new LOD level is added that pushes the tile count past the pool size.
+
+---
+
+## HeatmapAtlasField
+
+**File:** `src/layers/HeatmapAtlasField.ts`
+
+Orchestrates the atlas, schedulers, and LOD controller for scalar overlay products.
+
+### setSource — progressive LOD1 preload
+
+```ts
+setSource(manifest, tileBaseUrl, legendRange): Promise<void>
+```
+
+LOD1 tiles are fetched in parallel and uploaded incrementally:
+
+- Resolves as soon as **the first tile** is uploaded — the caller can make the layer visible immediately.
+- Remaining LOD1 tiles continue in the background; each upload calls `map.triggerRepaint()` so tiles appear as they arrive.
+- Rejects only if **every** LOD1 tile fails.
+
+This means the layer becomes usable with partial coverage rather than waiting for the full LOD1 grid, which matters when the grid is 3×3 (9 requests) and the network is slow.
+
+A `fetchGeneration` counter guards against races: if `setSource` is called again before the previous fetch finishes (e.g. the user changes date), in-flight callbacks check the counter and discard their results.
 
 ---
 

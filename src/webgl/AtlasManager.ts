@@ -1,13 +1,16 @@
 /**
  * AtlasManager
  *
- * Manages a single 2048×2048 WebGL texture that packs chunk PNGs into physical "slots".
+ * Manages a WebGL texture that packs chunk PNGs into physical "slots".
+ * Atlas dimensions are configurable per product via AtlasConfig (atlasW / atlasH);
+ * both default to ATLAS_SIZE (2048). Pass larger values (e.g. 4096×2048 for heatmap)
+ * to increase the slot pool and avoid LRU eviction under normal use.
  *
  * TWO GRIDS to keep straight:
  *   1. Chunk grid (cx, cy) — geographic subdivision from the manifest.
  *      Each chunk has a stable "virtual index": u_lod_offsets[lod] + cy*cols + cx.
- *   2. Atlas texture layout — physical slots packed in the 2048×2048 texture:
- *      atlasCols = floor(2048 / slotW),  atlasRows = floor(2048 / slotH).
+ *   2. Atlas texture layout — physical slots packed in the configured texture:
+ *      atlasCols = floor(atlasW / slotW),  atlasRows = floor(atlasH / slotH).
  *
  * SLOT STRATEGY:
  *   - LOD1 slots (0 … lod1Count−1): dedicated, always resident, never evicted.
@@ -26,8 +29,6 @@
  *
  * ChunkId convention: "{lod}_{cx}_{cy}"  e.g. "1_0_0", "2_3_2", "3_5_4"
  */
-
-//TODO: 1. LOD threshold is not good. 2. upload chunkings files to s3 bucket and fetch from there instead of local public/ folder. 3. investigate, if ssta data array is too large, better create a simple serverless lambda function as rest api to return each data point's value based on lat/lng query.
 
 export const ATLAS_SIZE = 2048;
 
@@ -90,9 +91,22 @@ export function createAtlasManager(
   const [slotW, slotH] = config.slotPx;
   const atlasW = config.atlasW ?? ATLAS_SIZE;
   const atlasH = config.atlasH ?? ATLAS_SIZE;
+  const maxTexSize = gl.getParameter(gl.MAX_TEXTURE_SIZE) as number;
+  if (atlasW > maxTexSize || atlasH > maxTexSize)
+    throw new Error(
+      `Atlas dimensions ${atlasW}×${atlasH} exceed device MAX_TEXTURE_SIZE of ${maxTexSize}`,
+    );
+
   const atlasCols = Math.floor(atlasW / slotW);
   const atlasRows = Math.floor(atlasH / slotH);
   const totalSlots = atlasCols * atlasRows;
+
+  const maxUniforms = gl.getParameter(gl.MAX_FRAGMENT_UNIFORM_COMPONENTS) as number;
+  const uniformsUsed = totalSlots * 4 + MAX_VIRTUAL_CHUNKS + 30;
+  if (uniformsUsed > maxUniforms)
+    throw new Error(
+      `Atlas too large: ${uniformsUsed} uniform components needed, device limit is ${maxUniforms}`,
+    );
 
   // ── Virtual index offsets ──────────────────────────────────────────────────
   // rawOffsets[i] = cumulative chunk count before lods[i].
