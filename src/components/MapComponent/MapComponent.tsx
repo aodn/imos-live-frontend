@@ -13,7 +13,6 @@ import {
 } from '@/hooks';
 import { useMapUIStore } from '@/store';
 import { cn } from '@/utils';
-import { MapLoadingOverlay } from './MapLoadingOverlay';
 import mapboxgl from 'mapbox-gl';
 import { lazy, memo, Suspense, useEffect } from 'react';
 import { useShallow } from 'zustand/shallow';
@@ -32,7 +31,6 @@ export const MapComponent = memo(function MapComponent() {
     oceanCurrentEnabled,
     gslaAnomalySeaLevelsEnabled,
     sstAnomMosaicEnabled,
-    isAnyProductLoading,
   } = useMapUIStore(
     useShallow(s => ({
       distanceMeasurementEnabled: s.distanceMeasurementEnabled,
@@ -40,10 +38,6 @@ export const MapComponent = memo(function MapComponent() {
       oceanCurrentEnabled: s.productEnabled[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT],
       gslaAnomalySeaLevelsEnabled: s.productEnabled[PRODUCT.GSLA_ANOMALY_SEA_LEVELS],
       sstAnomMosaicEnabled: s.productEnabled[PRODUCT.SST_ANOMALY_MOSAIC],
-      isAnyProductLoading: Object.entries(s.productLoading).some(
-        ([product, loading]) =>
-          loading && s.productEnabled[product as keyof typeof s.productEnabled],
-      ),
     })),
   );
 
@@ -121,8 +115,6 @@ export const MapComponent = memo(function MapComponent() {
       )}
 
       <MapControlPanel ref={map} className="absolute top-2 left-2 z-10 hidden md:flex" />
-
-      {isAnyProductLoading && <MapLoadingOverlay message="" />}
     </>
   );
 });

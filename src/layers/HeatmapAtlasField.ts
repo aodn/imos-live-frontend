@@ -11,7 +11,8 @@
  *   - The LODController animates the crossfade for the finest active LOD.
  *
  * Caller contract:
- *   1. Call setSource(manifest, tileBaseUrl, legendRange) when date changes — awaits LOD1 preload.
+ *   1. Call setSource(manifest, tileBaseUrl, legendRange) when date changes — resolves after the
+ *      first LOD1 tile is uploaded; remaining tiles continue in the background.
  *   2. Call onMapMove(bounds, zoom) on every moveend / zoom event.
  *   3. Call setVisible(true/false) to control rendering.
  *   4. Call draw() from the Mapbox custom layer render() callback.
@@ -83,6 +84,11 @@ export function createHeatmapAtlasField(
   // ── Visibility ───────────────────────────────────────────────────────────
   let visible = false;
 
+  // ── Fetch lifecycle ───────────────────────────────────────────────────────
+  // Incremented on every setSource call; stale tile callbacks check against
+  // this value and discard their result if a newer call has superseded them.
+  let fetchGeneration = 0;
+
   // ── Private helpers ───────────────────────────────────────────────────────
 
   function initializeShaders(totalSlots: number) {
@@ -133,7 +139,8 @@ export function createHeatmapAtlasField(
     tileBaseUrl: string,
     newLegendRange: [number, number],
   ): Promise<void> {
-    // The renderer uses exactly LODs '1' (preloaded) and '2' (on-demand).
+    const gen = ++fetchGeneration;
+
     const lodsSorted = Object.entries(manifest.lods)
       .sort(([a], [b]) => Number(a) - Number(b))
       .map(([, entry]) => entry);
@@ -142,7 +149,7 @@ export function createHeatmapAtlasField(
 
     const { lonMin, lonMax, latMin, latMax } = manifest.bounds;
     dataBounds = [lonMin, latMax, lonMax, latMin];
-    valueRange = manifest.valueRange;
+    valueRange = manifest.valueRange ?? null;
     legendRange = newLegendRange;
     uvScale = [lod1.chunkPx[0] / lod1.storedPx[0], lod1.chunkPx[1] / lod1.storedPx[1]];
     uvOffset = [lod1.padding / lod1.storedPx[0], lod1.padding / lod1.storedPx[1]];
@@ -167,19 +174,6 @@ export function createHeatmapAtlasField(
       atlasW: HEATMAP_ATLAS_W,
       atlasH: HEATMAP_ATLAS_H,
     });
-    // Preload all LOD1 chunks in parallel
-    const [lod1Cols, lod1Rows] = lod1.grid;
-    const lod1Ids: string[] = [];
-    for (let cy = 0; cy < lod1Rows; cy++)
-      for (let cx = 0; cx < lod1Cols; cx++) lod1Ids.push(`1_${cx}_${cy}`);
-
-    await Promise.all(
-      lod1Ids.map(async id => {
-        const blob = await fetch(`${tileBaseUrl}/${id}.png`).then(r => r.blob());
-        const img = await createImageBitmap(blob, { premultiplyAlpha: 'none' });
-        atlas!.upload(id, img);
-      }),
-    );
 
     const totalSlots =
       Math.floor(HEATMAP_ATLAS_W / lod1.storedPx[0]) *
@@ -200,6 +194,44 @@ export function createHeatmapAtlasField(
         ),
       );
     }
+
+    // Build the list of LOD1 tile IDs to fetch
+    const [lod1Cols, lod1Rows] = lod1.grid;
+    const lod1Ids: string[] = [];
+    for (let cy = 0; cy < lod1Rows; cy++)
+      for (let cx = 0; cx < lod1Cols; cx++) lod1Ids.push(`1_${cx}_${cy}`);
+
+    if (lod1Ids.length === 0) return;
+
+    // Fetch LOD1 tiles progressively. Resolve as soon as the first tile is
+    // uploaded so the caller can make the layer visible immediately. Remaining
+    // tiles continue in the background; each upload triggers a repaint so they
+    // appear incrementally. Reject only when every tile has failed.
+    await new Promise<void>((resolve, reject) => {
+      let firstResolved = false;
+      let failCount = 0;
+
+      for (const id of lod1Ids) {
+        (async () => {
+          try {
+            const blob = await fetch(`${tileBaseUrl}/${id}.png`).then(r => r.blob());
+            const img = await createImageBitmap(blob, { premultiplyAlpha: 'none' });
+            if (gen !== fetchGeneration) return; // superseded by a newer setSource call
+            atlas!.upload(id, img);
+            map.triggerRepaint();
+            if (!firstResolved) {
+              firstResolved = true;
+              resolve();
+            }
+          } catch {
+            if (gen !== fetchGeneration) return;
+            failCount++;
+            if (failCount === lod1Ids.length && !firstResolved)
+              reject(new Error('All LOD1 tile fetches failed'));
+          }
+        })();
+      }
+    });
   }
 
   function setVisible(isVisible: boolean) {
