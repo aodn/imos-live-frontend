@@ -3,8 +3,8 @@ import { PRODUCTCOLORPALETTES, PRODUCTLEGENDS, PRODUCTS } from '@/constants';
 import { S3_BASE_URL, getProductManifest } from '@/api';
 import { addLayerInOrder } from '@/helpers';
 import { particlesAtlasLayer } from '@/layers';
-import { useMapUIStore, setProductErrorByProduct } from '@/store';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMapUIStore, setProductErrorByProduct, setProductLoadingByProduct } from '@/store';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useShallow } from 'zustand/shallow';
 import { useDidMountEffect } from '../useDidMountEffect';
@@ -30,22 +30,30 @@ type UseParticleLayer = {
 //   loads inside layer.setSource can still fail. These are caught inside setDataByDataset,
 //   independent of date availability.
 export function useParticleLayer({ map, layerId, product }: UseParticleLayer) {
-  const { date, nParticles, fadeOpacity, speedFactor, dropRate, pointSize, isError, enabled } =
-    useMapUIStore(
-      useShallow(s => ({
-        date: s.date,
-        nParticles: s.particleConfig.nParticles,
-        fadeOpacity: s.particleConfig.fadeOpacity,
-        speedFactor: s.particleConfig.speedFactor,
-        dropRate: s.particleConfig.dropRate,
-        dropRateBump: s.particleConfig.dropRateBump,
-        pointSize: s.particleConfig.pointSize,
-        isError: s.productError[product],
-        enabled: s.productEnabled[product],
-      })),
-    );
-
-  const [isLoading, setIsLoading] = useState(false);
+  const {
+    date,
+    nParticles,
+    fadeOpacity,
+    speedFactor,
+    dropRate,
+    pointSize,
+    isError,
+    isLoading,
+    enabled,
+  } = useMapUIStore(
+    useShallow(s => ({
+      date: s.date,
+      nParticles: s.particleConfig.nParticles,
+      fadeOpacity: s.particleConfig.fadeOpacity,
+      speedFactor: s.particleConfig.speedFactor,
+      dropRate: s.particleConfig.dropRate,
+      dropRateBump: s.particleConfig.dropRateBump,
+      pointSize: s.particleConfig.pointSize,
+      isError: s.productError[product],
+      isLoading: s.productLoading[product],
+      enabled: s.productEnabled[product],
+    })),
+  );
 
   const { isDateAvailable } = useProductDateAvailabilitySync(product, date);
 
@@ -69,19 +77,19 @@ export function useParticleLayer({ map, layerId, product }: UseParticleLayer) {
       setProductErrorByProduct(product, true);
       return;
     }
-    setIsLoading(true);
+    setProductLoadingByProduct(product, true);
     const manifest = await productManifestQuery.promise.catch(() => {
       setProductErrorByProduct(product, true);
       return null;
     });
     if (!manifest) {
-      setIsLoading(false);
+      setProductLoadingByProduct(product, false);
       return;
     }
     await layer.setSource(manifest, tileBaseUrl, legendRange).catch(() => {
       setProductErrorByProduct(product, true);
     });
-    setIsLoading(false);
+    setProductLoadingByProduct(product, false);
   }, [productManifestQuery.promise, layer, tileBaseUrl, legendRange, product, isDateAvailable]);
 
   const setupLayer = useCallback(async () => {

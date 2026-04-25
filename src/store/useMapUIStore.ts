@@ -20,6 +20,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import { deserialize, serialize } from './serialization';
 
 type ProductError = Record<ProductType, boolean>;
+type ProductLoading = Record<ProductType, boolean>;
 export type ProductEnabled = Record<ProductType, boolean>;
 
 export type JumpToDate = {
@@ -38,6 +39,7 @@ export type MapUIState = {
   dates: string[];
   productEnabled: ProductEnabled;
   productError: ProductError;
+  productLoading: ProductLoading;
   jumpToDate: JumpToDate | null;
   setCenter: (center: LngLat) => void;
   setZoom: (zoom: number) => void;
@@ -48,6 +50,7 @@ export type MapUIState = {
   setDate: (d: string) => void;
   refreshDates: () => void;
   setProductErrorByProduct: (product: ProductType, error: boolean) => void;
+  setProductLoadingByProduct: (product: ProductType, loading: boolean) => void;
   setProductEnabledByProduct: (product: ProductType, enabled: boolean) => void;
   setJumpToDate: (date: string) => void;
   clearJumpToDate: () => void;
@@ -91,8 +94,8 @@ const storageOptions = {
   storage: createJSONStorage<MapUIState>(() => hashStorage),
   //select fields intended to sync in url
   partialize: (state: MapUIState) => {
-    //filter out dates, productError, and jumpToDate to sync in url
-    const { dates, productError, jumpToDate, ...rest } = state;
+    //filter out dates, productError, productLoading, and jumpToDate to sync in url
+    const { dates, productError, productLoading, jumpToDate, ...rest } = state;
 
     // Filter out maxSpeed from particleConfig (not intended for URL sync)
     const { maxSpeed, ...customizableConfig } = rest.particleConfig;
@@ -122,6 +125,12 @@ export const useMapUIStore = create(
         [PRODUCT.WAVE_BUOYS]: true,
       },
       productError: {
+        [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: false,
+        [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: false,
+        [PRODUCT.SST_ANOMALY_MOSAIC]: false,
+        [PRODUCT.WAVE_BUOYS]: false,
+      },
+      productLoading: {
         [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: false,
         [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: false,
         [PRODUCT.SST_ANOMALY_MOSAIC]: false,
@@ -172,6 +181,15 @@ export const useMapUIStore = create(
           },
         }));
       },
+      setProductLoadingByProduct: (product, loading) => {
+        set(prev => ({
+          ...prev,
+          productLoading: {
+            ...prev.productLoading,
+            [product]: loading,
+          },
+        }));
+      },
       setJumpToDate: date => set({ jumpToDate: { date, trigger: Date.now() } }),
       clearJumpToDate: () => set({ jumpToDate: null }),
     }),
@@ -191,6 +209,7 @@ export const {
   setZoom,
   refreshDates,
   setProductErrorByProduct,
+  setProductLoadingByProduct,
   setProductEnabledByProduct,
   setJumpToDate,
   clearJumpToDate,

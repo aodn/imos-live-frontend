@@ -3,8 +3,8 @@ import { PRODUCTCOLORPALETTES, PRODUCTLEGENDS, PRODUCTS } from '@/constants';
 import { S3_BASE_URL, getProductManifest } from '@/api';
 import { addLayerInOrder } from '@/helpers';
 import { heatmapAtlasLayer } from '@/layers';
-import { useMapUIStore, setProductErrorByProduct } from '@/store';
-import { useCallback, useMemo, useState } from 'react';
+import { useMapUIStore, setProductErrorByProduct, setProductLoadingByProduct } from '@/store';
+import { useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useShallow } from 'zustand/shallow';
 import { useDidMountEffect } from '../useDidMountEffect';
@@ -30,15 +30,14 @@ type UseWebGLHeatmapLayer = {
 //   loads inside layer.setSource can still fail. These are caught inside setDataByDataset,
 //   independent of date availability.
 export function useWebGLHeatmapLayer({ map, layerId, product }: UseWebGLHeatmapLayer) {
-  const { date, enabled, isError } = useMapUIStore(
+  const { date, enabled, isError, isLoading } = useMapUIStore(
     useShallow(s => ({
       date: s.date,
       enabled: s.productEnabled[product],
       isError: s.productError[product],
+      isLoading: s.productLoading[product],
     })),
   );
-
-  const [isLoading, setIsLoading] = useState(false);
 
   const { isDateAvailable } = useProductDateAvailabilitySync(product, date);
 
@@ -62,19 +61,19 @@ export function useWebGLHeatmapLayer({ map, layerId, product }: UseWebGLHeatmapL
       setProductErrorByProduct(product, true);
       return;
     }
-    setIsLoading(true);
+    setProductLoadingByProduct(product, true);
     const manifest = await productManifestQuery.promise.catch(() => {
       setProductErrorByProduct(product, true);
       return null;
     });
     if (!manifest) {
-      setIsLoading(false);
+      setProductLoadingByProduct(product, false);
       return;
     }
     await layer.setSource(manifest, tileBaseUrl, legendRange).catch(() => {
       setProductErrorByProduct(product, true);
     });
-    setIsLoading(false);
+    setProductLoadingByProduct(product, false);
   }, [productManifestQuery.promise, layer, tileBaseUrl, legendRange, product, isDateAvailable]);
 
   const setupLayer = useCallback(async () => {
