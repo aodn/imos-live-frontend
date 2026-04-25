@@ -45,7 +45,7 @@ export type ProductManifest = {
   /** Keyed by LOD level ('1', '2', ...). The renderer currently uses LODs '1' and '2'. */
   lods: Record<string, LodEntry>;
 };
-
+// This con be configured in vite.config.js, and point to cloudFront behaviour.
 export const S3_BASE_URL =
   'https://imos-live-test-leslie.s3.ap-southeast-2.amazonaws.com/imos-live-data';
 

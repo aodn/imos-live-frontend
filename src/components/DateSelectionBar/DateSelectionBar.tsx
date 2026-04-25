@@ -10,12 +10,10 @@ import {
   customDateLabelRenderer,
   customSelectionPanelRenderer,
 } from '../DateSlider';
-import { cn, getLatestFulfilledDate, toISODateString, toISOFromCompact } from '@/utils';
+import { cn, toISODateString } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
-import { fileExist, gslaUrl } from '@/api';
+import { getMetaDataManifest } from '@/api';
 import { useShallow } from 'zustand/shallow';
-import { QUERY_DATE_RANGE } from '@/config';
-import { PRODUCT } from '@/constants';
 
 type DateSelectionBarProps = { className?: string };
 
@@ -33,12 +31,11 @@ export const DateSelectionBar = memo(function DateSelectionBar({
   const imperativeHandlerRef = useRef<SliderExposedMethod>(null);
 
   const { data: latestDate } = useQuery({
-    queryKey: [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT, QUERY_DATE_RANGE],
-    queryFn: () => {
-      const candidates = QUERY_DATE_RANGE.map(d => fileExist(gslaUrl(d), d));
-      return Promise.allSettled(candidates);
+    queryKey: ['DateSelectionBar-getMetaDataManifest'],
+    queryFn: getMetaDataManifest,
+    select: data => {
+      return data.products['ocean_current_gsla_ucur_vcur'].latest_date;
     },
-    select: data => getLatestFulfilledDate(data),
     enabled: !isDateInQueryParams, //if date already selected, stop.
     retry: false,
   });
@@ -46,7 +43,7 @@ export const DateSelectionBar = memo(function DateSelectionBar({
   useEffect(() => {
     //set date to latest available date when user has not selected date. Initial visit website.
     if (!latestDate || isDateInQueryParams) return;
-    imperativeHandlerRef.current?.setDateTime(new Date(toISOFromCompact(latestDate)));
+    imperativeHandlerRef.current?.setDateTime(new Date(latestDate));
   }, [latestDate, isDateInQueryParams]);
 
   useEffect(() => {

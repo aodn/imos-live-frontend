@@ -1,28 +1,15 @@
-import type { ProductSourceId } from './product';
-import { PRODUCTS } from './product';
+import { PRODUCT, PRODUCTS } from './product';
 
 //product layer id and source id, keep single truth from: import { PRODUCTS } from "./product";
-export const GSLA_PARTICLE_LAYER_ID = PRODUCTS['gsla-ocean-geostrophic-current'].layerId;
-export const GSLA_ANOMALY_LAYER_ID = PRODUCTS['gsla-anomaly-sea-levels'].layerId;
-export const GSLA_ANOMALY_SOURCE_ID = PRODUCTS['gsla-anomaly-sea-levels'].sourceId;
+export const GSLA_PARTICLE_LAYER_ID = PRODUCTS[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT].layerId;
+export const GSLA_ANOMALY_LAYER_ID = PRODUCTS[PRODUCT.GSLA_ANOMALY_SEA_LEVELS].layerId;
+export const SST_ANOMALY_MOSAIC_LAYER_ID = PRODUCTS[PRODUCT.SST_ANOMALY_MOSAIC].layerId;
 
-export const SST_ANOMALY_MOSAIC_SOURCE_ID = PRODUCTS['sst-anom-mosaic'].sourceId;
-export const SST_ANOMALY_MOSAIC_LAYER_ID = PRODUCTS['sst-anom-mosaic'].layerId;
-
-export const WAVE_BUOYS_LAYER_ID = PRODUCTS['wave-buoys'].layerId;
-export const WAVE_BUOYS_SOURCE_ID = PRODUCTS['wave-buoys'].sourceId;
-
-export const ProductSourceIds = Object.values(PRODUCTS).map(p => p.sourceId) as ProductSourceId[];
-
-export type RasterSource = typeof GSLA_ANOMALY_SOURCE_ID | typeof SST_ANOMALY_MOSAIC_SOURCE_ID;
+export const WAVE_BUOYS_LAYER_ID = PRODUCTS[PRODUCT.WAVE_BUOYS].layerId;
+export const WAVE_BUOYS_SOURCE_ID = PRODUCTS[PRODUCT.WAVE_BUOYS].sourceId;
 
 export type BuoySource = typeof WAVE_BUOYS_SOURCE_ID;
 export type BuoyLayer = typeof WAVE_BUOYS_LAYER_ID;
-
-export type ParticleLayer = typeof GSLA_PARTICLE_LAYER_ID;
-
-export const isProductSourceId = (id: string): id is ProductSourceId =>
-  ProductSourceIds.includes(id as ProductSourceId);
 
 // these two are intermediate layer on fly
 export const WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID = 'wave-buoys-cluster-label-layer';

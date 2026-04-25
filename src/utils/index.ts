@@ -1,8 +1,6 @@
 export * from './buildDatasetUrl';
 export * from './extractDataFromImage';
 export * from './dateUtils';
-export * from './processMetaData';
-export * from '../webgl/shader';
 export * from './debounce';
 export * from './getScaledDimensions';
 export * from './clamp';
@@ -13,7 +11,7 @@ export * from './isScrollableElement';
 export * from './normalizeWaveBuouysData';
 export * from './getFirstAndLast';
 export * from './addIdToFeatures';
-export * from './processOceanCurrentDetails';
+export * from './processScalarDetails';
 export * from './isSmallScreen';
 export * from './appendCacheBuster';
 export * from './sleep';
