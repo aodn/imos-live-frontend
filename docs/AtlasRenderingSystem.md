@@ -9,6 +9,46 @@ Both share the same `AtlasManager`, `ChunkScheduler`, and `LODController` primit
 
 ---
 
+## What the atlas actually is
+
+The atlas is a **single WebGL texture** — a pre-allocated block of VRAM (memory on the graphics card). It is not a PNG, not a special data structure, not a browser API. It starts empty and gets filled incrementally: as each tile PNG is fetched and decoded, its pixels are written into a fixed slot region within the texture. At any point in time it holds whatever tiles have been loaded so far.
+
+### PNG → atlas: the full pipeline
+
+```
+network            CPU                          GPU (VRAM)
+──────────────────────────────────────────────────────────────
+tile.png  →  fetch()  →  createImageBitmap()  →  texSubImage2D()  →  atlas texture
+             download     decode PNG into          copy pixels          persists on GPU
+             bytes        raw RGBA pixels          into a specific      for lifetime
+                          (CPU work, off           slot region of       of the layer
+                           main thread)            the atlas texture
+```
+
+- `createImageBitmap()` is CPU work — it decompresses the PNG (zlib + filter pass) into raw RGBA pixels. The result is GPU-ready, meaning the browser stores it in a format that makes the GPU transfer efficient, but the decoding itself runs on the CPU off the main thread.
+- `texSubImage2D()` copies those pixels across the CPU→GPU boundary into the correct slot region of the atlas texture in VRAM.
+- After the upload the `ImageBitmap` is discarded — it was only needed as a staging object for the transfer.
+
+### What is a GPU texture?
+
+A GPU texture is a block of VRAM — memory that physically lives on the graphics card, not in your normal RAM. Think of it as a 2D array of pixels the GPU can read from at extremely high speed during rendering.
+
+```
+RAM  (CPU side)          VRAM (GPU side)
+─────────────────────────────────────────
+ImageBitmap pixels  →   WebGLTexture
+                         (4096×2048 RGBA,
+                          lives on the GPU)
+```
+
+Once in VRAM, the shader accesses it with `texture(u_atlas, uv)` — a dedicated hardware operation. The GPU has thousands of cores running in parallel, each sampling the texture simultaneously for different screen pixels in the same draw call.
+
+### Why one big texture instead of many
+
+That's exactly why keeping everything in one atlas matters — all those parallel cores share one texture bind rather than each needing a separate one. The GPU samples from whatever texture is currently "bound" for the draw call, and binding has overhead. One atlas = one bind per draw call. The shader reaches any tile via UV coordinates pointing to its slot position within the atlas.
+
+---
+
 ## Concepts
 
 ### Two grids to keep straight

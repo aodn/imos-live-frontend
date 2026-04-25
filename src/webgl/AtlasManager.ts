@@ -42,8 +42,6 @@ export const MAX_LODS = 4;
  */
 export const MAX_VIRTUAL_CHUNKS = 256;
 
-// ── Types ─────────────────────────────────────────────────────────────────────
-
 export type AtlasConfig = {
   /** Physical pixel size of each slot [width, height] — from manifest lods['1'].storedPx */
   slotPx: [number, number];
@@ -75,14 +73,10 @@ export type AtlasManagerAPI = {
   destroy: () => void;
 };
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
 export function parseChunkId(chunkId: string): { lod: number; cx: number; cy: number } {
   const [lod, cx, cy] = chunkId.split('_').map(Number);
   return { lod, cx, cy };
 }
-
-// ── Factory ───────────────────────────────────────────────────────────────────
 
 export function createAtlasManager(
   gl: WebGL2RenderingContext,
