@@ -124,6 +124,34 @@ The `u_chunk_slots[virtualIdx]` array bridges virtual index to physical slot:
 - `≥ 0` — chunk is resident; value is the physical slot index
 - `= −1` — chunk is not loaded (not yet fetched, or evicted)
 
+### Dynamic updates and eviction
+
+`u_chunk_slots` is a CPU-side `Int32Array` that is uploaded as a uniform at the start of every draw call. The GPU always sees a fresh snapshot — there is no partial update; the entire array is sent each frame.
+
+Three operations mutate it:
+
+| Event                                    | CPU action                               |
+| ---------------------------------------- | ---------------------------------------- |
+| New LOD2+ chunk uploaded, pool has space | `chunkSlots[newVirtIdx] = physSlot`      |
+| New LOD2+ chunk uploaded, pool is full   | Evict LRU first (see below), then assign |
+| Chunk evicted                            | `chunkSlots[evictedVirtIdx] = -1`        |
+
+**Eviction sequence** — when the pool is full and a new chunk arrives:
+
+```
+Before eviction                           After eviction
+───────────────────────────────────────────────────────────────────
+chunkSlots[victimVirtIdx] = 42   →   chunkSlots[victimVirtIdx] = -1
+chunkSlots[newVirtIdx]    = -1   →   chunkSlots[newVirtIdx]    = 42
+
+Atlas texture: slot 42 pixels   →   slot 42 pixels overwritten
+               = victim's data       = new chunk's data
+```
+
+The physical slot number (42) stays the same — only its contents and the two `chunkSlots` entries change. On the next draw call, the shader looks up `u_chunk_slots[victimVirtIdx]` → `-1` (skip), and `u_chunk_slots[newVirtIdx]` → `42` (sample).
+
+**LOD1 is immune** — its slots are dedicated and never enter the pool, so eviction never touches `chunkSlots[0 … lod1Count−1]`.
+
 ### ChunkId convention
 
 ```
