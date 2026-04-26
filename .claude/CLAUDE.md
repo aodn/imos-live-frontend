@@ -52,21 +52,27 @@ import { cn } from '@/utils';
 
 ## Products & Map Layers
 
-`src/constants/product.ts` is the single source of truth for all products and their `layerId`/`sourceId` — never hardcode layer or source IDs elsewhere.
+`src/constants/product.ts` is the single source of truth for all products — never hardcode any of the following elsewhere:
+
+| Constant               | What it owns                                                                                     |
+| ---------------------- | ------------------------------------------------------------------------------------------------ |
+| `PRODUCTS`             | `layerId`, `sourceId`, `bucketPath` per product                                                  |
+| `PRODUCTLEGENDS`       | Legend config (label, color scale, min/max) consumed by sidebar UI components                    |
+| `PRODUCTCOLORPALETTES` | Pre-converted `ColorPalette` for WebGL color ramp texture upload, consumed by layer constructors |
 
 Each product is visualized via its own dedicated hook in `src/hooks/`:
 
 - `useParticleLayer` — GSLA Ocean Geostrophic Current (WebGL particle animation)
-- `useRasterLayer` — GSLA Anomaly Sea Levels and SST Anomaly Mosaic (raster image overlay)
+- `useWebGLHeatmapLayer` — GSLA Anomaly Sea Levels and SST Anomaly Mosaic (WebGL atlas scalar overlay)
 - `useWaveBuoysLayer` — Wave Buoys (clustered circle layer)
 
 When adding a new product, touch these files in order:
 
-1. **`src/constants/product.ts`** — add to `PRODUCT`, `PRODUCTS` (with `layerId`/`sourceId`), and `PRODUCTLEGENDS`
-2. **`src/hooks/use<ProductName>Layer.ts`** — create a dedicated layer hook; reuse the shared layer hooks already used across existing products:
+1. **`src/constants/product.ts`** — add to `PRODUCT`, `PRODUCTS` (with `layerId`/`sourceId`), `PRODUCTLEGENDS`, and `PRODUCTCOLORPALETTES`
+2. **`src/hooks/layers/use<ProductName>Layer.ts`** — create a dedicated layer hook; reuse the shared layer hooks already used across existing products:
    - `useMapboxLayerSetup` — handles layer initialisation lifecycle
-   - `useMapboxLayerVisibility` — handles show/hide based on enabled/error state
    - `useDidMountEffect` — re-fetches data when date changes
+   - `useMapboxLayerVisibility` — handles show/hide based on enabled/error state (used by non-WebGL layers only, e.g. wave buoys)
 3. **`src/components/MapComponent/MapComponent.tsx`** — register the new hook
 4. **`src/components/MainSidebar/products.tsx`** — add an entry to `featuredDataset` (image, title, description, icon, legend, `dateCheckUrl`, `portalLink`)
 5. **`src/pages/Map.tsx`** — add the product icon entry
@@ -81,4 +87,4 @@ Layer paint/layout config belongs in `src/config/layerConfig.ts`. Always add lay
 
 ## WebGL Particle Engine
 
-`src/layers/VectorField.js` uses a ping-pong texture technique for GPU-side computations — be cautious modifying it. Particle settings (count, speed, fade, size) are configurable via `src/config/particleConfig.ts`.
+`src/layers/ParticlesAtlasField.ts` and `src/webgl/particlesShader.ts` implement the ping-pong texture particle system — be cautious modifying them. Particle settings (count, speed, fade, size) are configurable via `src/config/particleConfig.ts`.

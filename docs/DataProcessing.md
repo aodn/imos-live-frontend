@@ -1,243 +1,176 @@
-# Ocean Current Particle Image Generator — Documentation
+# Data Processing Pipeline
 
-This module processes oceanographic NetCDF data stored in AWS S3 to generate visualizations and metadata for use in WebGL-based ocean current particle simulations. It converts raw GSLA, UCR, and VCR values into:
+The `script/` directory contains two Python scripts that convert daily IMOS oceanographic data from AWS S3 into chunked PNG tiles and manifest files consumed by the WebGL Atlas renderer.
 
-- A PNG overlay visualizing sea level anomalies
-- A PNG vector field texture encoding ocean currents
-- A JSON metadata file with relevant bounds and ranges
+**Requirements:** Python 3.11, `visualization-venv`:
 
----
-
-## Dependencies
-
-- `s3fs`
-- `xarray`
-- `holoviews`, `hvplot`
-- `matplotlib`, `PIL`
-- `numpy`, `json`, `pathlib`, `datetime`
+```sh
+source visualization-venv/bin/activate
+# Dependencies: numpy, xarray, s3fs, Pillow
+```
 
 ---
 
-## Dataset
+## Common Concepts
 
-**Product**: Gridded Sea Level Anomaly - Australia Region
+### Chunking and LODs
 
-- Gridded (adjusted) sea level anomaly (GSLA), gridded sea level (GSL) and surface geostrophic velocity (UCUR, VCUR) for the Australasian region.
-- GSLA is mapped using optimal interpolation of detided, de-meaned, inverse-barometer-adjusted altimeter and tidegauge estimates of sea level.
-- GSL is GSLA plus an estimate of the departure of mean sea level from the geoid.
-- The geostrophic velocities are derived from GSL.
+Each script resamples the full data grid to a fixed resolution, then slices it into a `cols × rows` grid of **chunks** for each LOD. Every chunk is saved as a **242 × 194 px** PNG (240 × 192 data pixels + 1 px padding on each side).
 
-### Dimensions
+The 1 px padding lets adjacent chunks share border pixels so bilinear sampling in the shader does not bleed into neighbouring tiles. Edge chunks replicate their boundary pixel (`np.pad` `'edge'` mode) where no neighbour exists.
 
-- `TIME`, `LONGITUDE`, `LATITUDE`
+LOD1 always loads. LOD2+ activate when the map zoom exceeds their `zoomThreshold`.
 
-### Type
+### Normalisation
 
-- NetCDF
+Normalisation ranges are derived from the **full pre-resampled dataset** (entire region, ignoring NaNs) before the grid is sliced into chunks. Every chunk at a given LOD therefore shares the same scale. The frontend reads the range from `manifest.json` and applies it uniformly when decoding pixels.
 
-### Variables
+### manifest.json and data.json
 
-| Variable | Full Name                            | Description                                                                                                          | Unit                    |
-| -------- | ------------------------------------ | -------------------------------------------------------------------------------------------------------------------- | ----------------------- |
-| `UCUR`   | total eastward geostrophic velocity  | Eastward geostrophic velocity derived from GSLA + UCUR_MEAN                                                          | meters per second (m/s) |
-| `VCUR`   | total northward geostrophic velocity | Northward geostrophic velocity derived from GSLA + VCUR_MEAN                                                         | meters per second (m/s) |
-| `GSLA`   | gridded (adjusted) sea level anomaly | Altimeter and tidegauge estimates of adjusted sea level anomaly mapped onto a grid using optimal interpolation (OI). | meters (m)              |
+`manifest.json` format is documented in [AtlasRenderingSystem.md — Manifest Format](AtlasRenderingSystem.md#manifest-format). Ocean current manifests use `uRange`/`vRange` (m/s) instead of `valueRange`.
 
----
+`data.json`
 
-## Core Functionality
-
-### `get_dataset(date)`
-
-Fetches and returns a subset of **Gridded Sea Level Anomaly (GSLA)** data for a given date from the IMOS S3 archive.
-
-#### Parameters
-
-| Name   | Type                                   | Description                                           |
-| ------ | -------------------------------------- | ----------------------------------------------------- |
-| `date` | `datetime.date` or `datetime.datetime` | The target date for which GSLA data is to be fetched. |
-
-#### Returns
-
-| Type             | Description                                                                     |
-| ---------------- | ------------------------------------------------------------------------------- |
-| `xarray.Dataset` | A sliced dataset containing GSLA data over a defined region for the given date. |
-
-#### Data Source
-
-- **Provider**: IMOS (Integrated Marine Observing System)
-- **Location**: `s3://imos-data/IMOS/OceanCurrent/GSLA/NRT/{year}/...`
-- **Format**: NetCDF via S3 access using `s3fs`
-
-#### Sliced Geographic Region
-
-| Dimension   | Range          | Meaning                                 |
-| ----------- | -------------- | --------------------------------------- |
-| `LATITUDE`  | `-50` to `0`   | Southern Ocean to the Equator           |
-| `LONGITUDE` | `110` to `170` | Western Australia to Fiji/South Pacific |
-| `TIME`      | exact match    | Only the slice for the specified date   |
-
-- CRS is set to `PlateCarree()` (WGS84)
-- Region avoids longitude wrapping issues near 180°E
-
-#### Workflow
-
-1. Initialize S3 filesystem with `s3fs`
-2. Find the correct NetCDF file for the given date
-3. Load dataset with `xarray`
-4. Set CRS attribute for mapping
-5. Return sliced region for lat/lon/time
-
----
-
-### `to_png_overlay(dataset_in, filename)`
-
-Generates a high-resolution, transparent PNG image visualizing **Gridded Sea Level Anomaly (GSLA)** values using a geographic projection.
-
-#### Parameters
-
-| Name         | Type             | Description                                                                |
-| ------------ | ---------------- | -------------------------------------------------------------------------- |
-| `dataset_in` | `xarray.Dataset` | Dataset containing the `GSLA` variable and latitude/longitude coordinates. |
-| `filename`   | `str or Path`    | Output file path to save the resulting PNG image.                          |
-
-#### Output
-
-- Color-coded PNG using **Viridis** colormap
-- **Dark purple → yellow** (low to high anomalies)
-- Transparent background
-- 600 DPI high-resolution
-
-#### Projection: Web Mercator
-
-- Preserves shapes and angles for tiled web maps
-- Standard projection for Google Maps, Mapbox, etc.
-- Distorts area near poles, accurate in mid-latitudes
-- Converts geographic to flat 2D map projection
-
-#### Workflow
-
-1. Plot GSLA with `hvplot.quadmesh`
-2. Apply Web Mercator projection
-3. Render with `matplotlib`
-4. Save transparent image using `bbox_inches='tight'`
-
----
-
-### `to_png_input(dataset_in, filename)`
-
-Generates a **vector field texture** PNG image encoding U/V ocean current velocity components.
-
-#### Parameters
-
-| Name         | Type             | Description                 |
-| ------------ | ---------------- | --------------------------- |
-| `dataset_in` | `xarray.Dataset` | Dataset with `UCUR`, `VCUR` |
-| `filename`   | `str or Path`    | Output PNG path             |
-
-#### RGBA Encoding
-
-| Channel | Description                                |
-| ------- | ------------------------------------------ |
-| R       | `UCUR` scaled to [0–255]                   |
-| G       | `VCUR` scaled to [0–255]                   |
-| B       | Particle display flag (1 = valid, 0 = NaN) |
-| A       | 255 (fully opaque)                         |
-
-#### Workflow
-
-1. Create `ALPHA` mask for displayable grid points
-2. Fill NaNs and rescale `UCUR`/`VCUR`
-3. Squeeze time dimension
-4. Reverse latitude (top-left = NW)
-5. Stack lat/lon into 1D array
-6. Convert to bytes and save PNG with `PIL`
-
----
-
-### `to_json_meta(dataset_in, filename)`
-
-Outputs a JSON file describing data bounds and velocity ranges.
-
-#### Parameters
-
-| Name         | Type             | Description      |
-| ------------ | ---------------- | ---------------- |
-| `dataset_in` | `xarray.Dataset` | Input dataset    |
-| `filename`   | `str or Path`    | Output JSON path |
-
-#### Output Format
+Written once per product per date. Contains a flat 2D grid of decoded values used by the frontend for click-to-inspect.
 
 ```json
 {
-  "latRange": [lat_min, lat_max],
-  "lonRange": [lon_min, lon_max],
-  "uRange": [min_UCUR, max_UCUR],
-  "vRange": [min_VCUR, max_VCUR]
+  "width": …, "height": …,
+  "latRange": [min, max], "lonRange": [min, max],
+  "data": [[…], …]
 }
 ```
 
-- Adds half-cell padding to bounds
-- Used for pixel-to-coordinate mapping in WebGL shaders
-
 ---
 
-### `create_gsla_data_for_date(date, base_dir)`
+## `gsla_chunking.py` — GSLA Ocean Current & Sea Level Anomaly
 
-Runs all 3 generation steps for a single date.
+Processes GSLA (Gridded Sea Level Anomaly) NRT data. Produces two separate products from one dataset.
 
-#### Output
+**Source:** `s3://imos-data/IMOS/OceanCurrent/GSLA/NRT/{year}/`
 
-Saved in `yyyy-mm-dd/` format:
+**Dataset dimensions:** `TIME`, `LATITUDE`, `LONGITUDE`
 
-- `gsla_overlay.png`
-- `gsla_input.png`
-- `gsla_meta.json`
+**Dataset variables:**
 
-#### Directory Structure
+| Variable | Description                          | Unit |
+| -------- | ------------------------------------ | ---- |
+| `UCUR`   | Total eastward geostrophic velocity  | m/s  |
+| `VCUR`   | Total northward geostrophic velocity | m/s  |
+| `GSLA`   | Gridded (adjusted) sea level anomaly | m    |
+
+**Geographic region:** LATITUDE −60 to 10, LONGITUDE 90 to 180
+
+**LOD config:** LOD1 only — grid `(2 × 2)` = 4 chunks. No zoom thresholds.
+
+### Product: ocean current (`ocean_current_gsla_ucur_vcur`)
+
+PNG encoding (RGBA):
+
+| Channel | Content                                   |
+| ------- | ----------------------------------------- |
+| R       | UCUR normalised to [0, 255]               |
+| G       | VCUR normalised to [0, 255]               |
+| B       | Ocean mask: 255 = ocean, 0 = land/no-data |
+| A       | 255 (always opaque)                       |
+
+Manifest includes `uRange` and `vRange` so the shader can invert the normalisation back to m/s.
+
+`data.json` stores `[[speed_m/s, direction_deg], ...]` per grid cell (north→south).
+
+### Product: sea level anomaly (`ocean_current_gsla_gsla`)
+
+PNG encoding (RGBA):
+
+| Channel | Content                                                                  |
+| ------- | ------------------------------------------------------------------------ |
+| R       | High byte of 24-bit normalised GSLA                                      |
+| G       | Mid byte                                                                 |
+| B       | Low byte                                                                 |
+| A       | Ocean mask: 255 = ocean, 0 = land (premultiplied — RGB zeroed where A=0) |
+
+Manifest includes `valueRange` (physical min/max in metres).
+
+`data.json` stores `[[gsla_m], ...]` per grid cell.
+
+### Output layout
+
+```
+generated-images/
+  ocean_current_gsla_ucur_vcur/{yyyy-mm-dd}/
+    manifest.json
+    data.json
+    1_0_0.png  1_0_1.png  1_1_0.png  1_1_1.png   (4 LOD1 chunks)
+
+  ocean_current_gsla_gsla/{yyyy-mm-dd}/
+    manifest.json
+    data.json
+    1_0_0.png  1_0_1.png  1_1_0.png  1_1_1.png   (4 LOD1 chunks)
+```
+
+### Running
 
 ```sh
-imos-mapbox-app/public/
-├── 2024-04-05/
-│   ├── gsla_overlay.png
-│   ├── gsla_input.png
-│   └── gsla_meta.json
+python script/gsla_chunking.py
+# Processes today UTC minus 3 days (latest available NRT data).
 ```
 
 ---
 
-## Script Execution
+## `ssta_chunking.py` — SST Anomaly Mosaic
 
-Processes last 7 days ending 3 days ago:
+Processes AusTemp SST anomaly mosaic data.
 
-```python
-if __name__ == "__main__":
-    today = datetime.datetime.today()
-    end_date = today - datetime.timedelta(days=3)
+**Source:** `s3://imos-data/IMOS/SRS/AusTemp/ssta/{year}/`
 
-    for delta in range(7):
-        date = end_date - datetime.timedelta(days=6 - delta)
-        create_gsla_data_for_date(
-            date,
-            Path("../imos-mapbox-app/public/")
-        )
+**Dataset dimensions:** `time`, `lat`, `lon`
+
+**Dataset variable:**
+
+| Variable          | Description                     | Unit |
+| ----------------- | ------------------------------- | ---- |
+| `sst_anom_mosaic` | Sea surface temperature anomaly | °C   |
+
+**Geographic region:** lat −60 to 10, lon 90 to 180
+
+**LOD config:**
+
+| LOD | Grid    | Chunks | Zoom threshold    |
+| --- | ------- | ------ | ----------------- |
+| 1   | 3 × 3   | 9      | — (always loaded) |
+| 2   | 6 × 5   | 30     | 5                 |
+| 3   | 12 × 10 | 120    | 6                 |
+
+### Product: SSTA mosaic (`austemp_sst_anomaly_sst_anom_mosaic`)
+
+PNG encoding (RGBA):
+
+| Channel | Content                                                                  |
+| ------- | ------------------------------------------------------------------------ |
+| R       | High byte of 24-bit normalised SST anomaly                               |
+| G       | Mid byte                                                                 |
+| B       | Low byte                                                                 |
+| A       | Ocean mask: 255 = ocean, 0 = land (premultiplied — RGB zeroed where A=0) |
+
+Manifest includes `valueRange` (physical min/max in °C).
+
+`data.json` stores `[[sst_anom_°C], ...]` per grid cell.
+
+### Output layout
+
+```
+generated-images/
+  austemp_sst_anomaly_sst_anom_mosaic/{yyyy-mm-dd}/
+    manifest.json
+    data.json
+    1_0_0.png  …  1_2_2.png     (9 LOD1 chunks)
+    2_0_0.png  …  2_5_4.png     (30 LOD2 chunks)
+    3_0_0.png  …  3_11_9.png    (120 LOD3 chunks)
 ```
 
----
+### Running
 
-## Output Summary
-
-| File               | Description                                    |
-| ------------------ | ---------------------------------------------- |
-| `gsla_overlay.png` | Sea level anomaly color overlay                |
-| `gsla_input.png`   | U/V velocity encoded image for shader sampling |
-| `gsla_meta.json`   | Metadata for lat/lon bounds and vector ranges  |
-
----
-
-## Notes
-
-- 2D lightweight outputs optimized for GPU
-- Transparent background support
-- Handles CRS setup, missing data, and image reversal
-- Designed for integration with WebGL + Mapbox image layers
+```sh
+python script/ssta_chunking.py
+# Processes today UTC minus 3 days.
+```

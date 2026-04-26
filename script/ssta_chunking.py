@@ -2,17 +2,21 @@
 """
 SSTA Atlas chunk generator for IMOS sea-surface temperature anomaly data.
 
-Produces per-LOD PNG chunks consumed by the WebGL Atlas renderer.
+Produces per-LOD PNG chunks and a data JSON file consumed by the WebGL Atlas renderer.
 
 Output layout:
-  {base_dir}/ssta/manifest.json
-  {base_dir}/ssta/ssta_{lod}_{cx}_{cy}.png
+  {base_dir}/{SSTA}/manifest.json
+  {base_dir}/{SSTA}/{lod}_{cx}_{cy}.png
+  {base_dir}/{SSTA}/data.json
 
-PNG channel encoding (matches existing ssta.py to_overlay_input format):
+PNG channel encoding:
   R = bits 23-16 of 24-bit normalised value
   G = bits 15-8  of 24-bit normalised value
   B = bits  7-0  of 24-bit normalised value
   A = ocean mask (255 = valid ocean, 0 = land / no-data); RGB zeroed where A=0
+
+data.json encoding:
+  ssta — [[sst_anom], ...]  (°C anomaly values)
 
 Chunk coordinate system:
   cx = 0 is the westernmost column
@@ -22,7 +26,10 @@ Chunk coordinate system:
 
 import datetime
 import json
+import logging
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 import numpy as np
 import s3fs
@@ -30,9 +37,18 @@ import xarray as xr
 from PIL import Image
 
 # ── LOD grid definitions ─────────────────────────────────────────────────────
+SSTA = "austemp_sst_anomaly_sst_anom_mosaic"
+
 LOD_GRIDS: dict[int, tuple[int, int]] = {
-    1: (3, 3),   # 9 chunks   total resolution 720 × 576
-    2: (6, 5),   # 30 chunks  total resolution 1440 × 1152
+    1: (3, 3),    #   9 chunks  — 720  × 576   ~3.7× downsample
+    2: (6, 5),    #  30 chunks  — 1440 × 960   ~1.9× downsample
+    3: (12, 10),  # 120 chunks  — 2880 × 1920  ≈ native resolution (~0.02°/px)
+}
+# Minimum map zoom level at which each LOD should be loaded.
+# LOD1 is the default (no threshold); higher LODs activate when the user zooms in.
+LOD_ZOOM_THRESHOLDS: dict[int, int] = {
+    2: 5,
+    3: 6,
 }
 CHUNK_PX = (240, 192)   # (width, height) in data pixels
 PADDING  = 1            # pixels of overlap on each side → stored chunk is 242 × 194
@@ -113,9 +129,50 @@ def _extract_chunk(
     return chunk  # shape: (ch + 2*PADDING, cw + 2*PADDING)
 
 
+# ── JSON value export ─────────────────────────────────────────────────────────
+
+def to_ssta_data(dataset_in: xr.Dataset, base_dir: Path, date_str: str) -> None:
+    """
+    Write ssta/data.json consumed by the frontend.
+    """
+    out_path = base_dir / SSTA / date_str / "data.json"
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        lat_min, lat_max = float(dataset_in.lat.min().values), float(dataset_in.lat.max().values)
+        lat_offset = 0.5 * (lat_max - lat_min) / len(dataset_in.lat)
+        lon_min, lon_max = float(dataset_in.lon.min().values), float(dataset_in.lon.max().values)
+        lon_offset = 0.5 * (lon_max - lon_min) / len(dataset_in.lon)
+
+        ds = dataset_in.squeeze()
+        # Sort north→south so data[0] = northernmost row, matching PNG chunk orientation.
+        # sortby is used instead of reversed() because it produces a guaranteed order
+        # regardless of whether the source file's lat is ascending or descending.
+        ds = ds.sortby("lat", ascending=False)
+
+        values = ds.sst_anom_mosaic.fillna(0.).values
+        rounded = [[round(float(v), 2) for v in row] for row in values]
+
+        output = {
+            "width": ds.sizes["lon"],
+            "height": ds.sizes["lat"],
+            "latRange": [lat_min - lat_offset, lat_max + lat_offset],
+            "lonRange": [lon_min - lon_offset, lon_max + lon_offset],
+            "data": rounded,
+        }
+
+        with open(out_path, "w") as f:
+            json.dump(output, f, separators=(',', ':'))
+
+        logger.info("  json value: %s", out_path)
+
+    except Exception as e:
+        logger.error("Error creating data JSON %s: %s", out_path, e)
+        raise
+
+
 # ── Main generators ───────────────────────────────────────────────────────────
 
-def to_chunk_png(ds: xr.Dataset, base_dir: Path, lod: int) -> None:
+def to_chunk_png(ds: xr.Dataset, base_dir: Path, date_str: str, lod: int) -> None:
     """
     Slice the full-region sst_anom_mosaic grid into per-chunk PNGs for the given LOD.
 
@@ -162,16 +219,16 @@ def to_chunk_png(ds: xr.Dataset, base_dir: Path, lod: int) -> None:
             # Premultiplied alpha: zero RGB where land/no-data
             img_array[chunk_m == 0, :3] = 0
 
-            out_path = base_dir / "ssta" / f"ssta_{lod}_{cx}_{cy}.png"
+            out_path = base_dir / SSTA / date_str / f"{lod}_{cx}_{cy}.png"
             out_path.parent.mkdir(parents=True, exist_ok=True)
             # optimize=False: RGBA bytes must be written exactly as-is for shader decoding
             Image.fromarray(img_array, 'RGBA').save(out_path, optimize=False)
             saved += 1
 
-    print(f"  LOD{lod}: saved {saved} chunks ({grid_cols}×{grid_rows}) to {base_dir / 'ssta'}")
+    logger.info("  LOD%d: saved %d chunks (%d×%d) to %s", lod, saved, grid_cols, grid_rows, base_dir / SSTA / date_str)
 
 
-def to_manifest(ds: xr.Dataset, base_dir: Path) -> None:
+def to_manifest(ds: xr.Dataset, base_dir: Path, date_str: str) -> None:
     """
     Write manifest.json consumed by the frontend at startup.
 
@@ -196,39 +253,47 @@ def to_manifest(ds: xr.Dataset, base_dir: Path) -> None:
                 "chunkPx": list(CHUNK_PX),
                 "storedPx": [CHUNK_PX[0] + 2 * PADDING, CHUNK_PX[1] + 2 * PADDING],
                 "padding": PADDING,
+                **( {"zoomThreshold": LOD_ZOOM_THRESHOLDS[lod]} if lod in LOD_ZOOM_THRESHOLDS else {} ),
             }
             for lod in LOD_GRIDS
         },
     }
 
-    out_path = base_dir / "ssta" / "manifest.json"
+    out_path = base_dir / SSTA / date_str / "manifest.json"
     out_path.parent.mkdir(parents=True, exist_ok=True)
     with open(out_path, "w") as f:
         json.dump(manifest, f, indent=2)
 
-    print(f"  manifest: {out_path}")
+    logger.info("  manifest: %s", out_path)
 
 
 # ── Entry point ───────────────────────────────────────────────────────────────
 
 def create_ssta_chunks_for_date(date: datetime.datetime, base_dir: Path) -> None:
     """Generate all LOD chunk PNGs and manifest for a single date."""
-    print(f"Loading SSTA dataset for {date.strftime('%Y-%m-%d')} ...")
+    logger.info("Loading SSTA dataset for %s ...", date.strftime("%Y-%m-%d"))
     ds = get_dataset(date)
 
-    save_dir = base_dir / date.strftime("%y-%m-%d")
-    save_dir.mkdir(parents=True, exist_ok=True)
+    date_str = date.strftime("%Y-%m-%d")
 
-    print("Generating chunks ...")
-    to_chunk_png(ds, save_dir, lod=1)
-    to_chunk_png(ds, save_dir, lod=2)
-    to_manifest(ds, save_dir)
+    logger.info("Generating chunks ...")
+    to_chunk_png(ds, base_dir, date_str, lod=1)
+    to_chunk_png(ds, base_dir, date_str, lod=2)
+    to_chunk_png(ds, base_dir, date_str, lod=3)
+    to_manifest(ds, base_dir, date_str)
+    to_ssta_data(ds, base_dir, date_str)
 
-    print("Done.")
+    logger.info("Done.")
 
 
 if __name__ == "__main__":
+    # this basicConfig is to enable logging when directly running this script; 
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)-8s %(name)s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
     create_ssta_chunks_for_date(
-        date=datetime.datetime.strptime("26-01-01", "%y-%m-%d"),
+        date=datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=3),
         base_dir=Path("./generated-images"),
     )

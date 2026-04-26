@@ -1,20 +1,31 @@
 # python:3.11  source visualization-venv/bin/activate
 """
-Ocean current field Atlas chunk generator for GSLA ocean current data.
+Wind field Atlas chunk generator for GSLA ocean current data.
 
-Produces per-LOD PNG chunks consumed by the WebGL Atlas renderer.
+Produces per-LOD PNG chunks and data JSON files consumed by the WebGL Atlas renderer.
 
 Output layout:
-  {base_dir}/ocean_current/manifest.json
-  {base_dir}/sea_level_anomaly/manifest.json
-  {base_dir}/ocean_current/ocean_current_{lod}_{cx}_{cy}.png
-  {base_dir}/sea_level_anomaly/sea_level_anomaly_{lod}_{cx}_{cy}.png
+  {base_dir}/{OCEAN_CURRENT}/manifest.json
+  {base_dir}/{OCEAN_CURRENT}/{lod}_{cx}_{cy}.png
+  {base_dir}/{OCEAN_CURRENT}/data.json
 
-PNG channel encoding (matches existing gsla.py to_png_input format):
+  {base_dir}/{SEA_LEVEL_ANOMALY}/manifest.json
+  {base_dir}/{SEA_LEVEL_ANOMALY}/{lod}_{cx}_{cy}.png
+  {base_dir}/{SEA_LEVEL_ANOMALY}/data.json
+
+PNG channel encoding — ocean_current chunks:
   R = U current component (8-bit, normalised across full region)
   G = V current component (8-bit, normalised across full region)
   B = ocean mask (255 = valid ocean, 0 = land / no-data)
   A = 255 (always — keeps premultiplied-alpha a no-op)
+
+PNG channel encoding — sea_level_anomaly chunks:
+  R/G/B = 24-bit normalised GSLA value (high→mid→low byte)
+  A     = ocean mask (255 = valid ocean, 0 = land / no-data, premultiplied)
+
+data.json encoding:
+  ocean_current  — [[speed, direction], ...]  (speed m/s, direction degrees 0–360)
+  sea_level_anomaly — [[gsla], ...]           (metres)
 
 Chunk coordinate system:
   cx = 0 is the westernmost column  (lon ~ 89.9°E)
@@ -24,7 +35,10 @@ Chunk coordinate system:
 
 import datetime
 import json
+import logging
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 import numpy as np
 import s3fs
@@ -35,10 +49,15 @@ from PIL import Image
 # Each LOD is described as (grid_cols, grid_rows).
 # CHUNK_PX is the data-pixel count per chunk before padding.
 # PADDING adds 1 real-data pixel on each edge for seamless bilinear filtering.
+OCEAN_CURRENT = "ocean_current_gsla_ucur_vcur"
+SEA_LEVEL_ANOMALY = "ocean_current_gsla_gsla"
+
 LOD_GRIDS: dict[int, tuple[int, int]] = {
-    1: (3, 3),   # 9 chunks   total resolution 720 × 576
-    2: (6, 5),   # 30 chunks  total resolution 1440 × 1152
+    1: (2, 2),   # 4 chunks  — 480×384  ≈ original resolution (slight upsample)
 }
+# Minimum map zoom level at which each LOD should be loaded.
+# LOD1 is the default (no threshold).
+LOD_ZOOM_THRESHOLDS: dict[int, int] = {}
 CHUNK_PX = (240, 192)   # (width, height) in data pixels, divisible into every LOD
 PADDING  = 1            # pixels of overlap on each side → stored chunk is 242 × 194
 
@@ -121,9 +140,73 @@ def _extract_chunk(
     return chunk  # shape: (ch + 2*PADDING, cw + 2*PADDING)
 
 
+# ── JSON value export ─────────────────────────────────────────────────────────
+
+def to_gsla_data(dataset_in: xr.Dataset, base_dir: Path, date_str: str) -> None:
+    """
+    Write per-layer data JSON files consumed by the frontend.
+
+    ocean_current/gsla_data.json      — speed/direction per grid cell.
+    sea_level_anomaly/gsla_data.json  — gsla value per grid cell.
+    """
+    try:
+        lat_min, lat_max = dataset_in.LATITUDE.min().values.item(), dataset_in.LATITUDE.max().values.item()
+        lat_offset = 0.5 * (lat_max - lat_min) / len(dataset_in.LATITUDE)
+        lon_min, lon_max = dataset_in.LONGITUDE.min().values.item(), dataset_in.LONGITUDE.max().values.item()
+        lon_offset = 0.5 * (lon_max - lon_min) / len(dataset_in.LONGITUDE)
+
+        dataset_in["UCUR_NEW"] = dataset_in.UCUR.fillna(0.)
+        dataset_in["VCUR_NEW"] = dataset_in.VCUR.fillna(0.)
+        dataset_in["GSLA_NEW"] = dataset_in.GSLA.fillna(0.)
+        dataset_in = dataset_in.squeeze()
+
+        # Sort north→south so data[0] = northernmost row, matching PNG chunk orientation.
+        # sortby is used instead of reversed() because it produces a guaranteed order
+        # regardless of whether the source file's LATITUDE is ascending or descending.
+        dataset_in = dataset_in.sortby("LATITUDE", ascending=False)
+
+        u = dataset_in["UCUR_NEW"].values
+        v = dataset_in["VCUR_NEW"].values
+        gsla = dataset_in["GSLA_NEW"].values
+
+        speed = np.sqrt(u * u + v * v)
+        direction = np.arctan2(v, u) * 180 / np.pi
+        direction = np.where(direction < 0, direction + 360, direction)
+
+        meta = {
+            "width": dataset_in.sizes["LONGITUDE"],
+            "height": dataset_in.sizes["LATITUDE"],
+            "latRange": [lat_min - lat_offset, lat_max + lat_offset],
+            "lonRange": [lon_min - lon_offset, lon_max + lon_offset],
+        }
+
+        ocean_current_data = [
+            [[round(s, 2), round(d, 2)] for s, d in row]
+            for row in np.stack((speed, direction), axis=-1).tolist()
+        ]
+        sea_level_anomaly_data = [
+            [round(g, 2) for g in row]
+            for row in gsla.tolist()
+        ]
+
+        for folder, data in [
+            (OCEAN_CURRENT, ocean_current_data),
+            (SEA_LEVEL_ANOMALY, sea_level_anomaly_data),
+        ]:
+            out_path = base_dir / folder / date_str / "data.json"
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(out_path, "w") as f:
+                json.dump({**meta, "data": data}, f, separators=(',', ':'))
+            logger.info("  json value: %s", out_path)
+
+    except Exception as e:
+        logger.error("Error creating data JSON in %s: %s", base_dir, e)
+        raise
+
+
 # ── Main generators ───────────────────────────────────────────────────────────
 
-def to_ocean_current_chunk_png(ds: xr.Dataset, base_dir: Path, lod: int) -> None:
+def to_ocean_current_chunk_png(ds: xr.Dataset, base_dir: Path, date_str: str, lod: int) -> None:
     """
     Slice the full-region UCUR/VCUR grid into per-chunk PNGs for the given LOD.
 
@@ -178,17 +261,17 @@ def to_ocean_current_chunk_png(ds: xr.Dataset, base_dir: Path, lod: int) -> None
             img_array[:, :, 2] = chunk_m * 255  # B = ocean mask
             img_array[:, :, 3] = 255            # A = always opaque
 
-            out_path = base_dir / "ocean_current" / f"ocean_current_{lod}_{cx}_{cy}.png"
+            out_path = base_dir / OCEAN_CURRENT / date_str / f"{lod}_{cx}_{cy}.png"
             out_path.parent.mkdir(parents=True, exist_ok=True)
             # optimize=False: do not reorder channels or apply colour-space transforms;
             # the RGBA bytes must be written exactly as-is so the shader can decode them.
             Image.fromarray(img_array, 'RGBA').save(out_path, optimize=False)
             saved += 1
 
-    print(f"  LOD{lod}: saved {saved} chunks ({grid_cols}×{grid_rows}) to {base_dir / 'ocean_current'}")
+    logger.info("  LOD%d: saved %d chunks (%d×%d) to %s", lod, saved, grid_cols, grid_rows, base_dir / OCEAN_CURRENT / date_str)
 
 
-def to_sea_level_anomaly_chunk_png(ds: xr.Dataset, base_dir: Path, lod: int) -> None:
+def to_sea_level_anomaly_chunk_png(ds: xr.Dataset, base_dir: Path, date_str: str, lod: int) -> None:
     """
     Slice the full-region GSLA (sea-level anomaly) grid into per-chunk PNGs for the given LOD.
 
@@ -230,15 +313,15 @@ def to_sea_level_anomaly_chunk_png(ds: xr.Dataset, base_dir: Path, lod: int) -> 
             # Premultiplied alpha: zero RGB where land/no-data
             img_array[chunk_m == 0, :3] = 0
 
-            out_path = base_dir / "sea_level_anomaly" / f"sea_level_anomaly_{lod}_{cx}_{cy}.png"
+            out_path = base_dir / SEA_LEVEL_ANOMALY / date_str / f"{lod}_{cx}_{cy}.png"
             out_path.parent.mkdir(parents=True, exist_ok=True)
             Image.fromarray(img_array, 'RGBA').save(out_path, optimize=False)
             saved += 1
 
-    print(f"  LOD{lod}: saved {saved} overlay chunks ({grid_cols}×{grid_rows}) to {base_dir / 'sea_level_anomaly'}")
+    logger.info("  LOD%d: saved %d overlay chunks (%d×%d) to %s", lod, saved, grid_cols, grid_rows, base_dir / SEA_LEVEL_ANOMALY / date_str)
 
 
-def to_manifest(ds: xr.Dataset, base_dir: Path) -> None:
+def to_manifest(ds: xr.Dataset, base_dir: Path, date_str: str) -> None:
     """
     Write one manifest.json per layer, consumed by the frontend at startup.
 
@@ -258,6 +341,7 @@ def to_manifest(ds: xr.Dataset, base_dir: Path) -> None:
             "chunkPx": list(CHUNK_PX),
             "storedPx": [CHUNK_PX[0] + 2 * PADDING, CHUNK_PX[1] + 2 * PADDING],
             "padding": PADDING,
+            **( {"zoomThreshold": LOD_ZOOM_THRESHOLDS[lod]} if lod in LOD_ZOOM_THRESHOLDS else {} ),
         }
         for lod in LOD_GRIDS
     }
@@ -276,14 +360,14 @@ def to_manifest(ds: xr.Dataset, base_dir: Path) -> None:
     }
 
     for folder, manifest in [
-        ("ocean_current", ocean_current_manifest),
-        ("sea_level_anomaly", sea_level_anomaly_manifest),
+        (OCEAN_CURRENT, ocean_current_manifest),
+        (SEA_LEVEL_ANOMALY, sea_level_anomaly_manifest),
     ]:
-        out_path = base_dir / folder / "manifest.json"
+        out_path = base_dir / folder / date_str / "manifest.json"
         out_path.parent.mkdir(parents=True, exist_ok=True)
         with open(out_path, "w") as f:
             json.dump(manifest, f, indent=2)
-        print(f"  manifest: {out_path}")
+        logger.info("  manifest: %s", out_path)
 
 
 # ── Entry point ───────────────────────────────────────────────────────────────
@@ -291,28 +375,29 @@ def to_manifest(ds: xr.Dataset, base_dir: Path) -> None:
 def create_chunks_for_date(date: datetime.datetime, base_dir: Path) -> None:
     """
     Generate all LOD chunk PNGs and manifest for a single date.
-
-    Existing non-atlas outputs (gsla_input.png, gsla_meta.json, etc.) are
-    produced by gsla.py and are not touched here.
     """
-    print(f"Loading GSLA dataset for {date.strftime('%Y-%m-%d')} ...")
+    logger.info("Loading GSLA dataset for %s ...", date.strftime("%Y-%m-%d"))
     ds = get_dataset(date)
 
-    save_dir = base_dir / date.strftime("%y-%m-%d")
-    save_dir.mkdir(parents=True, exist_ok=True)
+    date_str = date.strftime("%Y-%m-%d")
 
-    print("Generating chunks ...")
-    to_ocean_current_chunk_png(ds, save_dir, lod=1)
-    to_ocean_current_chunk_png(ds, save_dir, lod=2)
-    to_sea_level_anomaly_chunk_png(ds, save_dir, lod=1)
-    to_sea_level_anomaly_chunk_png(ds, save_dir, lod=2)
-    to_manifest(ds, save_dir)
+    logger.info("Generating chunks ...")
+    to_ocean_current_chunk_png(ds, base_dir, date_str, lod=1)
+    to_sea_level_anomaly_chunk_png(ds, base_dir, date_str, lod=1)
+    to_manifest(ds, base_dir, date_str)
+    to_gsla_data(ds, base_dir, date_str)
 
-    print("Done.")
+    logger.info("Done.")
 
 
 if __name__ == "__main__":
+    # this basicConfig is to enable logging when directly running this script; 
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)-8s %(name)s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
     create_chunks_for_date(
-        date=datetime.datetime.strptime("26-01-01", "%y-%m-%d"),
+        date=datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=3),
         base_dir=Path("./generated-images"),
     )

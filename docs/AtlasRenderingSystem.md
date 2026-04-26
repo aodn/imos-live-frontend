@@ -7,6 +7,16 @@ The Atlas Rendering System is the shared GPU infrastructure that backs all chunk
 
 Both share the same `AtlasManager`, `ChunkScheduler`, and `LODController` primitives.
 
+### Tech stack
+
+| Component     | Technology            |
+| ------------- | --------------------- |
+| Map           | Mapbox GL JS          |
+| Rendering     | WebGL 2 (hand-rolled) |
+| Shaders       | GLSL ES 3.00          |
+| UI            | React + Zustand       |
+| Data fetching | React Query           |
+
 ---
 
 ## The Atlas Texture
@@ -475,6 +485,28 @@ draw(): void
 A `fetchGeneration` counter discards stale upload callbacks and aborts scheduler setup if superseded by a newer `setSource` call.
 
 **`setLodBlend(value)`** — called by the layer wrapper after an external LOD transition event. Snaps the `LODController` to 0 and starts a new blend-in if `value > 0`.
+
+### Particle engine
+
+The particle layer runs a second rendering loop on top of the atlas lookup. Six steps execute every animation frame:
+
+1. **Initialise** — a configurable number of particles start at random Mercator [0,1]×[0,1] positions, stored as float pairs in a `RG32F` GPU texture.
+2. **Sample velocity** — the position-update shader looks up the atlas chunk for each particle's (lon, lat), decodes UCUR/VCUR from the R/G channels using `u_vector_min`/`u_vector_max`, and applies a Mercator offset scaled by `speedFactor`.
+3. **Ping-pong** — updated positions are written to an off-screen texture; the previous frame's texture is read. Roles swap each frame so the GPU never reads and writes the same texture simultaneously.
+4. **Random drop** — particles whose `rand(seed) > 1 − dropRate − speed_t × dropRateBump` are respawned at a new random position, keeping the field dynamic.
+5. **Draw** — a point sprite is rendered at each particle position, coloured by speed via `u_color_ramp`.
+6. **Fade trail** — the screen framebuffer is composited at reduced opacity (`fadeOpacity`) each frame, leaving a decaying trail behind moving particles.
+
+Particle behaviour is configurable via `src/config/particleConfig.ts`:
+
+| Parameter      | Default | Effect                                         |
+| -------------- | ------- | ---------------------------------------------- |
+| `nParticles`   | 10 000  | Total particle count                           |
+| `fadeOpacity`  | 0.985   | Trail persistence (higher = longer trails)     |
+| `speedFactor`  | 5.0     | Velocity multiplier                            |
+| `dropRate`     | 0.003   | Base probability of respawning per frame       |
+| `dropRateBump` | 0.05    | Extra respawn chance for fast-moving particles |
+| `pointSize`    | 1.2     | Particle size in pixels                        |
 
 ---
 
