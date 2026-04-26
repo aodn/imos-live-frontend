@@ -202,7 +202,20 @@ vec4 sample  = texture(u_atlas, atlasUV);
 
 ### LOD blending
 
-The lookup runs for each active LOD. LOD1 is always the base; finer LODs blend in as their chunks arrive:
+Without blending, finer tiles would appear the moment they finish loading — switching an entire chunk from coarse to fine in a single frame. At zoom, this creates a visible "pop" as patches of the overlay jump to higher resolution all at once.
+
+`u_lod_blend` solves this: it crossfades the **finest active LOD** from 0 → 1 over 300 ms (ease-out, driven by `LODController`). Crucially, the blend does not start until every visible chunk for the finest active LOD is resident in the atlas. This prevents a patchwork where some regions are already crisp while adjacent ones are still coarse.
+
+**Pan/zoom cycle:**
+
+1. User pans or zooms → `LODController.reset()` snaps `u_lod_blend` to 0 immediately (LOD1 remains visible).
+2. `ChunkScheduler` fetches the required LOD2+ tiles for the new viewport.
+3. Once every visible chunk is loaded → `LODController.startBlendIn()` begins the 300 ms fade.
+4. `u_lod_blend` reaches 1.0 → full LOD2+ resolution locked in.
+
+**Intermediate LODs (3-LOD case):** LOD2 shows at full opacity once resident (`t = 1.0` in the loop below). Only the finest active LOD (LOD3) uses the animated crossfade. In practice the coarse→medium transition is instant because LOD2 tiles were already loaded before the user zoomed far enough to trigger LOD3 — only the final medium→fine step is smoothed.
+
+The fragment shader implements this as:
 
 ```glsl
 // LOD1 (lodIdx=0) is always resident — use as the base
@@ -218,9 +231,7 @@ for (int i = 1; i < u_lod_count; i++) {
 }
 ```
 
-`u_lod_blend` (0→1 over 300 ms, animated by `LODController`) crossfades the finest active LOD. Intermediate LODs show at full opacity when resident. With 1 LOD, the loop is dead code.
-
-The **particle position-update shader** samples LOD1 only (`worldToAtlasUV(lonlat, 0)`) and does not run this loop. See [ParticlesAtlasField — setSource](#particlesatlasfield) for why LOD1 must be fully resident before the particle layer starts.
+With 1 LOD active the loop is dead code. The **particle position-update shader** samples LOD1 only (`worldToAtlasUV(lonlat, 0)`) and skips this loop entirely. See [ParticlesAtlasField — setSource](#particlesatlasfield) for why LOD1 must be fully resident before the particle layer starts.
 
 ---
 
@@ -367,11 +378,11 @@ createAtlasManager(gl, config: AtlasConfig): AtlasManagerAPI
 
 **Constants**
 
-| Constant             | Value | Notes                                                                  |
-| -------------------- | ----- | ---------------------------------------------------------------------- |
-| `ATLAS_SIZE`         | 2048  | Safety-net fallback — both current products pass explicit dimensions   |
-| `MAX_LODS`           | 4     | GLSL array size for LOD uniforms                                       |
-| `MAX_VIRTUAL_CHUNKS` | 256   | Size of `u_chunk_slots`; covers current LOD1(9)+LOD2(30)+LOD3(120)=159 |
+| Constant              | Value | Notes                                                                  |
+| --------------------- | ----- | ---------------------------------------------------------------------- |
+| `FALLBACK_ATLAS_SIZE` | 2048  | Safety-net fallback — both current products pass explicit dimensions   |
+| `MAX_LODS`            | 4     | GLSL array size for LOD uniforms                                       |
+| `MAX_VIRTUAL_CHUNKS`  | 256   | Size of `u_chunk_slots`; covers current LOD1(9)+LOD2(30)+LOD3(120)=159 |
 
 **Methods**
 
