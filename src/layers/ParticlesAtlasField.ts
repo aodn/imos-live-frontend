@@ -23,7 +23,6 @@ import { getColorRamp } from '@/utils';
 import type { ProductManifest } from '@/api';
 import type { AtlasManagerAPI, ChunkSchedulerAPI, LODControllerAPI } from '@/webgl';
 import {
-  ATLAS_SIZE,
   createLODController,
   oceanCurrentAtlasVs,
   makeOceanCurrentAtlasFsParticle,
@@ -33,6 +32,9 @@ import {
   createAtlasManager,
   createChunkScheduler,
 } from '@/webgl';
+
+const PARTICLES_ATLAS_W = 2048;
+const PARTICLES_ATLAS_H = 2048;
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -194,10 +196,10 @@ export function createParticlesAtlasField(
     });
   }
 
-  function initializeShaders(totalSlots: number) {
+  function initializeShaders(totalSlots: number, atlasW: number, atlasH: number) {
     programInfo = twgl.createProgramInfo(gl, [
       oceanCurrentAtlasVs,
-      makeOceanCurrentAtlasFsParticle(totalSlots),
+      makeOceanCurrentAtlasFsParticle(totalSlots, atlasW, atlasH),
     ]);
     screenProgramInfo = twgl.createProgramInfo(gl, [
       oceanCurrentAtlasVsQuad,
@@ -205,7 +207,7 @@ export function createParticlesAtlasField(
     ]);
     updateProgramInfo = twgl.createProgramInfo(gl, [
       oceanCurrentAtlasVsQuad,
-      makeOceanCurrentAtlasFsUpdate(totalSlots),
+      makeOceanCurrentAtlasFsUpdate(totalSlots, atlasW, atlasH),
     ]);
 
     setParticles(nParticles);
@@ -456,6 +458,8 @@ export function createParticlesAtlasField(
     atlas = createAtlasManager(gl, {
       slotPx: lod1.storedPx,
       lods: lodsSorted.map(({ grid }) => ({ grid })),
+      atlasW: PARTICLES_ATLAS_W,
+      atlasH: PARTICLES_ATLAS_H,
     });
 
     // Preload all LOD1 chunks in parallel
@@ -477,8 +481,9 @@ export function createParticlesAtlasField(
 
     // Compile shaders and set up GPU resources on first call
     const totalSlots =
-      Math.floor(ATLAS_SIZE / lod1.storedPx[0]) * Math.floor(ATLAS_SIZE / lod1.storedPx[1]);
-    if (!programInfo) initializeShaders(totalSlots);
+      Math.floor(PARTICLES_ATLAS_W / lod1.storedPx[0]) *
+      Math.floor(PARTICLES_ATLAS_H / lod1.storedPx[1]);
+    if (!programInfo) initializeShaders(totalSlots, PARTICLES_ATLAS_W, PARTICLES_ATLAS_H);
 
     // Create one scheduler per on-demand LOD (LODs 2..N)
     for (let lodNum = 2; lodNum <= lodsSorted.length; lodNum++) {

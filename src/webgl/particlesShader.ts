@@ -69,8 +69,9 @@ void main() {
 
 // Shared GLSL helpers embedded as a template string prefix.
 // Duplicated across both shaders — GLSL has no #include system.
-// totalSlots is injected at compile time so the GLSL array size matches the atlas layout.
-function makeSharedGlsl(totalSlots: number): string {
+// totalSlots, atlasW, atlasH are injected at compile time so array sizes and
+// bilinear filter pixel size match the actual atlas layout.
+function makeSharedGlsl(totalSlots: number, atlasW: number, atlasH: number): string {
   return /* glsl */ `
 uniform vec4 u_bounds;          // [nwX, seY, seX, nwY]
 uniform vec4 u_data_bounds;     // [lonMin, latMax, lonMax, latMin]
@@ -134,11 +135,12 @@ vec2 worldToAtlasUV(vec2 lonlat, int lodIdx) {
 // ── Manual bilinear filter in atlas UV space ──────────────────────────────────
 // Matches the lookup_vector() approach in the original shaders for smooth
 // interpolation — avoids relying solely on hardware LINEAR filtering.
+// atlasW / atlasH are injected as compile-time constants by the factory function.
 vec2 sampleAtlasRG(vec2 uv) {
-    const float ATLAS_SIZE = 2048.0;
-    vec2 px = vec2(1.0 / ATLAS_SIZE);
-    vec2 vc = floor(uv * ATLAS_SIZE) / ATLAS_SIZE;
-    vec2 f  = fract(uv * ATLAS_SIZE);
+    vec2 dims = vec2(${atlasW}.0, ${atlasH}.0);
+    vec2 px   = 1.0 / dims;
+    vec2 vc   = floor(uv * dims) / dims;
+    vec2 f    = fract(uv * dims);
     vec2 tl = texture(u_atlas, vc).rg;
     vec2 tr = texture(u_atlas, vc + vec2(px.x, 0.0)).rg;
     vec2 bl = texture(u_atlas, vc + vec2(0.0, px.y)).rg;
@@ -151,7 +153,11 @@ vec2 sampleAtlasRG(vec2 uv) {
 // ── Draw shader ───────────────────────────────────────────────────────────────
 // Replaces vectorFs. Samples velocity from the atlas with LOD crossfade.
 
-export function makeOceanCurrentAtlasFsParticle(totalSlots: number): string {
+export function makeOceanCurrentAtlasFsParticle(
+  totalSlots: number,
+  atlasW: number,
+  atlasH: number,
+): string {
   return /* glsl */ `#version 300 es
 precision highp float;
 
@@ -166,7 +172,7 @@ uniform float     u_lod_blend;
 in  vec2 v_particle_pos;
 out vec4 fragColor;
 
-${makeSharedGlsl(totalSlots)}
+${makeSharedGlsl(totalSlots, atlasW, atlasH)}
 
 void main() {
     float x_domain = abs(u_bounds.x - u_bounds.z);
@@ -208,7 +214,11 @@ void main() {
 // Replaces vectorFsUpdate. Uses LOD1 only (lodIdx=0) — position updates don't
 // need LOD2+ precision, and this avoids the u_loaded guard in the hot update path.
 
-export function makeOceanCurrentAtlasFsUpdate(totalSlots: number): string {
+export function makeOceanCurrentAtlasFsUpdate(
+  totalSlots: number,
+  atlasW: number,
+  atlasH: number,
+): string {
   return /* glsl */ `#version 300 es
 precision highp float;
 
@@ -231,7 +241,7 @@ float rand(const vec2 co) {
     return fract(sin(t) * (rand_constants.z + t));
 }
 
-${makeSharedGlsl(totalSlots)}
+${makeSharedGlsl(totalSlots, atlasW, atlasH)}
 
 void main() {
     // Particle position stored as plain floats in RG (WebGL2 RG32F texture)

@@ -69,7 +69,7 @@ One atlas slot = one stored chunk PNG. `slotPx` is set to `lod1.storedPx` (e.g. 
 | Scalar heatmap | 4096 × 2048 | 16 × 10 = **160**        | 9    | 151  | 30 + 120 = 150 |
 | Particle       | 2048 × 2048 | 8 × 10 = **80**          | 9    | 71   | 30 (LOD2 only) |
 
-The heatmap atlas is wider (4096) so its pool of 151 comfortably holds all LOD2 (30) + LOD3 (120) = 150 tiles without LRU eviction. The particles atlas stays at 2048×2048 because the particle shader hardcodes `ATLAS_SIZE = 2048.0` as a compile-time constant for manual bilinear filtering.
+The heatmap atlas is wider (4096) so its pool of 151 comfortably holds all LOD2 (30) + LOD3 (120) = 150 tiles without LRU eviction. Both products pass their dimensions explicitly to `createAtlasManager` — `HEATMAP_ATLAS_W/H` in `HeatmapAtlasField.ts` and `PARTICLES_ATLAS_W/H` in `ParticlesAtlasField.ts`. The shader factories receive the same values at compile time.
 
 ---
 
@@ -358,18 +358,18 @@ createAtlasManager(gl, config: AtlasConfig): AtlasManagerAPI
 
 **`AtlasConfig`**
 
-| Field     | Type                                | Description                                       |
-| --------- | ----------------------------------- | ------------------------------------------------- |
-| `slotPx`  | `[number, number]`                  | Slot pixel size `[w, h]` — set to `lod1.storedPx` |
-| `lods`    | `Array<{ grid: [number, number] }>` | LOD configs, coarsest first                       |
-| `atlasW?` | `number`                            | Atlas width. Defaults to `ATLAS_SIZE` (2048)      |
-| `atlasH?` | `number`                            | Atlas height. Defaults to `ATLAS_SIZE` (2048)     |
+| Field     | Type                                | Description                                                               |
+| --------- | ----------------------------------- | ------------------------------------------------------------------------- |
+| `slotPx`  | `[number, number]`                  | Slot pixel size `[w, h]` — set to `lod1.storedPx`                         |
+| `lods`    | `Array<{ grid: [number, number] }>` | LOD configs, coarsest first                                               |
+| `atlasW?` | `number`                            | Atlas width. Defaults to `ATLAS_SIZE` (2048) — prefer passing explicitly  |
+| `atlasH?` | `number`                            | Atlas height. Defaults to `ATLAS_SIZE` (2048) — prefer passing explicitly |
 
 **Constants**
 
 | Constant             | Value | Notes                                                                  |
 | -------------------- | ----- | ---------------------------------------------------------------------- |
-| `ATLAS_SIZE`         | 2048  | Default atlas dimension; heatmap overrides to 4096×2048                |
+| `ATLAS_SIZE`         | 2048  | Safety-net fallback — both current products pass explicit dimensions   |
 | `MAX_LODS`           | 4     | GLSL array size for LOD uniforms                                       |
 | `MAX_VIRTUAL_CHUNKS` | 256   | Size of `u_chunk_slots`; covers current LOD1(9)+LOD2(30)+LOD3(120)=159 |
 
@@ -554,8 +554,7 @@ No changes to atlas, shader, or scheduler code are needed unless the new product
 
 ## Known Limitations
 
-| Issue                                                                                 | Status                                                    |
-| ------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| `MAX_VIRTUAL_CHUNKS = 256` — LOD4 alone needs 480 virtual chunks, exceeding the limit | Increase the constant and recompile shaders if needed     |
-| Heatmap pool (151) fits current LOD2+LOD3 (150) with exactly one slot to spare        | Adding LOD4 requires revisiting atlas dimensions          |
-| Particle shader hardcodes `ATLAS_SIZE = 2048.0` for manual bilinear filtering         | Changing the particle atlas size requires a shader change |
+| Issue                                                                                 | Status                                                |
+| ------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `MAX_VIRTUAL_CHUNKS = 256` — LOD4 alone needs 480 virtual chunks, exceeding the limit | Increase the constant and recompile shaders if needed |
+| Heatmap pool (151) fits current LOD2+LOD3 (150) with exactly one slot to spare        | Adding LOD4 requires revisiting atlas dimensions      |

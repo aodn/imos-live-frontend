@@ -2,9 +2,9 @@
  * AtlasManager
  *
  * Manages a WebGL texture that packs chunk PNGs into physical "slots".
- * Atlas dimensions are configurable per product via AtlasConfig (atlasW / atlasH);
- * both default to ATLAS_SIZE (2048). Pass larger values (e.g. 4096×2048 for heatmap)
- * to increase the slot pool and avoid LRU eviction under normal use.
+ * Atlas dimensions are configurable per product via AtlasConfig (atlasW / atlasH).
+ * Both current products pass explicit dimensions — heatmap (4096×2048) and particles
+ * (2048×2048) — so FALLBACK_ATLAS_SIZE is a safety-net fallback for future products only.
  *
  * TWO GRIDS to keep straight:
  *   1. Chunk grid (cx, cy) — geographic subdivision from the manifest.
@@ -30,7 +30,8 @@
  * ChunkId convention: "{lod}_{cx}_{cy}"  e.g. "1_0_0", "2_3_2", "3_5_4"
  */
 
-export const ATLAS_SIZE = 2048;
+/** Fallback atlas dimension when a product omits atlasW/atlasH. Current products pass explicit values. */
+export const FALLBACK_ATLAS_SIZE = 2048;
 
 /** Maximum number of LODs the shader supports. Drives the GLSL array sizes. */
 export const MAX_LODS = 4;
@@ -50,9 +51,9 @@ export type AtlasConfig = {
    * Index 0 = LOD '1', index 1 = LOD '2', etc. Up to MAX_LODS entries.
    */
   lods: Array<{ grid: [number, number] }>;
-  /** Atlas texture width in pixels. Defaults to ATLAS_SIZE. */
+  /** Atlas texture width in pixels. Defaults to FALLBACK_ATLAS_SIZE — prefer passing explicitly. */
   atlasW?: number;
-  /** Atlas texture height in pixels. Defaults to ATLAS_SIZE. */
+  /** Atlas texture height in pixels. Defaults to FALLBACK_ATLAS_SIZE — prefer passing explicitly. */
   atlasH?: number;
 };
 
@@ -83,8 +84,8 @@ export function createAtlasManager(
   config: AtlasConfig,
 ): AtlasManagerAPI {
   const [slotW, slotH] = config.slotPx;
-  const atlasW = config.atlasW ?? ATLAS_SIZE;
-  const atlasH = config.atlasH ?? ATLAS_SIZE;
+  const atlasW = config.atlasW ?? FALLBACK_ATLAS_SIZE;
+  const atlasH = config.atlasH ?? FALLBACK_ATLAS_SIZE;
   const maxTexSize = gl.getParameter(gl.MAX_TEXTURE_SIZE) as number;
   if (atlasW > maxTexSize || atlasH > maxTexSize)
     throw new Error(
