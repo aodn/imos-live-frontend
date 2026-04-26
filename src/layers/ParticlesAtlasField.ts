@@ -90,6 +90,11 @@ export function createParticlesAtlasField(
   /** One scheduler per on-demand LOD (LODs 2..N). Index 0 = LOD2, index 1 = LOD3, etc. */
   let schedulers: ChunkSchedulerAPI[] = [];
 
+  // ── Fetch lifecycle ───────────────────────────────────────────────────────
+  // Incremented on every setSource call; stale tile callbacks check against
+  // this value and discard their result if a newer call has superseded them.
+  let fetchGeneration = 0;
+
   // ── Data state ───────────────────────────────────────────────────────────
   // u_data_bounds format: [lonMin, latMax, lonMax, latMin]
   let dataBounds: [number, number, number, number] | null = null;
@@ -417,6 +422,7 @@ export function createParticlesAtlasField(
     tileBaseUrl: string,
     legendRange: [number, number],
   ): Promise<void> {
+    const gen = ++fetchGeneration;
     config.maxSpeed = legendRange[1];
     const lodsSorted = Object.entries(manifest.lods)
       .sort(([a], [b]) => Number(a) - Number(b))
@@ -462,9 +468,12 @@ export function createParticlesAtlasField(
       lod1Ids.map(async id => {
         const blob = await fetch(`${tileBaseUrl}/${id}.png`).then(r => r.blob());
         const img = await createImageBitmap(blob, { premultiplyAlpha: 'none' });
+        if (gen !== fetchGeneration) return;
         atlas!.upload(id, img);
       }),
     );
+
+    if (gen !== fetchGeneration) return;
 
     // Compile shaders and set up GPU resources on first call
     const totalSlots =

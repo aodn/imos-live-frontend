@@ -1,6 +1,6 @@
 # Atlas Rendering System
 
-The Atlas Rendering System is the shared GPU infrastructure that backs all chunked, LOD-aware map overlays in IMOS Live. It powers two distinct product types:
+The Atlas Rendering System is the shared GPU infrastructure that backs all chunked, LOD-aware map overlays in IMOS Live. It powers two product types:
 
 - **Scalar overlays** — full-viewport quad coloured by a decoded 24-bit scalar value (sea level anomaly, SST anomaly)
 - **Particle animations** — GPU ping-pong particles that sample velocity from the atlas (ocean current)
@@ -9,93 +9,120 @@ Both share the same `AtlasManager`, `ChunkScheduler`, and `LODController` primit
 
 ---
 
-## What the atlas actually is
+## The Atlas Texture
 
-The atlas is a **single WebGL texture** — a pre-allocated block of VRAM (memory on the graphics card). It is not a PNG, not a special data structure, not a browser API. It starts empty and gets filled incrementally: as each tile PNG is fetched and decoded, its pixels are written into a fixed slot region within the texture. At any point in time it holds whatever tiles have been loaded so far.
+The atlas is a **single WebGL texture** (a pre-allocated block of VRAM) that holds all loaded tile images at once. The GPU can only sample from one bound texture per draw call, so packing all tiles into one atlas means one bind per draw call — all of the GPU's parallel fragment cores sample from the same texture simultaneously without rebinding.
 
-### PNG → atlas: the full pipeline
+### Slot layout
 
-```
-network            CPU                          GPU (VRAM)
-──────────────────────────────────────────────────────────────
-tile.png  →  fetch()  →  createImageBitmap()  →  texSubImage2D()  →  atlas texture
-             download     decode PNG into          copy pixels          persists on GPU
-             bytes        raw RGBA pixels          into a specific      for lifetime
-                          (CPU work, off           slot region of       of the layer
-                           main thread)            the atlas texture
-```
-
-- `createImageBitmap()` is CPU work — it decompresses the PNG (zlib + filter pass) into raw RGBA pixels. The result is GPU-ready, meaning the browser stores it in a format that makes the GPU transfer efficient, but the decoding itself runs on the CPU off the main thread.
-- `texSubImage2D()` copies those pixels across the CPU→GPU boundary into the correct slot region of the atlas texture in VRAM.
-- After the upload the `ImageBitmap` is discarded — it was only needed as a staging object for the transfer.
-
-### What is a GPU texture?
-
-A GPU texture is a block of VRAM — memory that physically lives on the graphics card, not in your normal RAM. Think of it as a 2D array of pixels the GPU can read from at extremely high speed during rendering.
+The atlas is partitioned into a fixed grid of **slots**, each exactly one stored chunk PNG in size (`storedPx`, e.g. 242×194 px). Slots are numbered left-to-right, top-to-bottom:
 
 ```
-RAM  (CPU side)          VRAM (GPU side)
-─────────────────────────────────────────
-ImageBitmap pixels  →   WebGLTexture
-                         (4096×2048 RGBA,
-                          lives on the GPU)
+atlasCols  = floor(atlasW / slotW)
+atlasRows  = floor(atlasH / slotH)
+totalSlots = atlasCols × atlasRows
+
+Atlas texture (e.g. 4096×2048, slotW=242, slotH=194 → 16×10 = 160 slots)
+
+col:  0        1        2              15
+     ┌────────┬────────┬────────┬─────┬────────┐
+  0  │ slot 0 │ slot 1 │ slot 2 │ ... │slot 15 │
+     ├────────┼────────┼────────┤     ├────────┤
+  1  │slot 16 │slot 17 │slot 18 │ ... │slot 31 │
+     ├────────┼────────┼────────┤     ├────────┤
+ ...
+     ├────────┼────────┼────────┤     ├────────┤
+  9  │slot144 │slot145 │slot146 │ ... │slot159 │
+     └────────┴────────┴────────┴─────┴────────┘
 ```
 
-Once in VRAM, the shader accesses it with `texture(u_atlas, uv)` — a dedicated hardware operation. The GPU has thousands of cores running in parallel, each sampling the texture simultaneously for different screen pixels in the same draw call.
+Each slot's UV origin and scale are precomputed once at initialisation and stored in `u_slots[physSlot]`:
 
-### Why one big texture instead of many
+```
+u_slots[i] = vec4(
+  (col * slotW) / atlasW,   // UV x origin
+  (row * slotH) / atlasH,   // UV y origin
+   slotW / atlasW,           // UV x scale
+   slotH / atlasH            // UV y scale
+)
+```
 
-That's exactly why keeping everything in one atlas matters — all those parallel cores share one texture bind rather than each needing a separate one. The GPU samples from whatever texture is currently "bound" for the draw call, and binding has overhead. One atlas = one bind per draw call. The shader reaches any tile via UV coordinates pointing to its slot position within the atlas.
+### PNG → atlas upload
+
+```
+Network         CPU                            GPU (VRAM)
+────────────────────────────────────────────────────────────────
+tile.png  →  fetch()  →  createImageBitmap()  →  texSubImage2D()  →  atlas slot
+             download     decode PNG to            write pixels         persists for
+             bytes        raw RGBA pixels          at (col*slotW,       layer lifetime
+                          (off main thread)         row*slotH)
+```
+
+`createImageBitmap()` decompresses the PNG on the CPU (off main thread). `texSubImage2D()` copies the raw pixels into the slot's pixel region in VRAM. The `ImageBitmap` is then discarded — it was only needed as a staging buffer for the transfer.
+
+### Atlas dimensions per product
+
+One atlas slot = one stored chunk PNG. `slotPx` is set to `lod1.storedPx` (e.g. 242×194 px):
+
+| Product        | Atlas size  | Slots (slotPx = 242×194) | LOD1 | Pool | LOD2+3 tiles   |
+| -------------- | ----------- | ------------------------ | ---- | ---- | -------------- |
+| Scalar heatmap | 4096 × 2048 | 16 × 10 = **160**        | 9    | 151  | 30 + 120 = 150 |
+| Particle       | 2048 × 2048 | 8 × 10 = **80**          | 9    | 71   | 30 (LOD2 only) |
+
+The heatmap atlas is wider (4096) so its pool of 151 comfortably holds all LOD2 (30) + LOD3 (120) = 150 tiles without LRU eviction. The particles atlas stays at 2048×2048 because the particle shader hardcodes `ATLAS_SIZE = 2048.0` as a compile-time constant for manual bilinear filtering.
 
 ---
 
-## Concepts
+## Geographic Chunks → Atlas Slots
 
-### Two grids to keep straight
+### Two grids
 
-| Grid                     | What it is                                             | Who defines it                                                                                 |
-| ------------------------ | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
-| **Chunk grid** (cx, cy)  | Geographic subdivision — how the data region is tiled  | The manifest (`lods['1'].grid`, `lods['2'].grid`, …)                                           |
-| **Atlas texture layout** | How physical slots are packed in the atlas GPU texture | Derived from slot pixel size and atlas dimensions: `floor(atlasW/slotW) × floor(atlasH/slotH)` |
+| Grid                    | What it represents                      | Defined by                                  |
+| ----------------------- | --------------------------------------- | ------------------------------------------- |
+| **Chunk grid** (cx, cy) | How the geographic data region is tiled | Manifest: `lods['N'].grid`                  |
+| **Atlas slot grid**     | How physical slots are packed in VRAM   | `floor(atlasW/slotW) × floor(atlasH/slotH)` |
 
-The **virtual chunk index** bridges them:
+These are deliberately decoupled — the geographic tiling can be any shape without affecting how slots are packed in the texture.
+
+### Virtual index
+
+Every chunk has a **virtual index** — a stable integer that identifies its position across all LODs regardless of whether it is currently resident in the atlas:
 
 ```
 virtualIdx = u_lod_offsets[lodIdx] + cy × cols + cx
 ```
 
-The shader computes this, then reads `u_chunk_slots[virtualIdx]` to get the physical slot in the atlas, then reads `u_slots[physicalSlot]` for the UV coordinates.
+`u_lod_offsets` accumulates the total chunk count of all coarser LODs. With LOD1 (3×3=9 chunks) and LOD2 (6×5=30 chunks):
 
-### Atlas texture dimensions
-
-Atlas dimensions are **per-product**, sized to fit all LOD tiles without LRU eviction under normal use:
-
-| Product type   | Atlas size  | `totalSlots` (storedPx = 242×194) | LOD1 slots | Pool | LOD2+3 tiles   |
-| -------------- | ----------- | --------------------------------- | ---------- | ---- | -------------- |
-| Scalar heatmap | 4096 × 2048 | 16 × 10 = **160**                 | 9          | 151  | 30 + 120 = 150 |
-| Particle       | 2048 × 2048 | 8 × 10 = **80**                   | 9          | 71   | 30 (LOD2 only) |
-
-The heatmap atlas is wider (4096) so its pool of 151 comfortably holds all LOD2 (30) + LOD3 (120) = 150 tiles simultaneously, eliminating LRU eviction. The particles atlas stays at 2048×2048 because its GLSL shader has the size hardcoded as a compile-time constant.
-
-`AtlasConfig` accepts optional `atlasW` / `atlasH` fields (both default to `ATLAS_SIZE = 2048`). `slotPx` is set directly from `lod1.storedPx` — one atlas slot is exactly the size of one stored chunk PNG (242×194 px for current products):
-
-```ts
-createAtlasManager(gl, {
-  slotPx: lod1.storedPx, // [242, 194] — slotW=storedPx[0], slotH=storedPx[1]
-  lods: lodsSorted.map(({ grid }) => ({ grid })),
-  atlasW: 4096, // heatmap only; particles omit these to use the 2048 default
-  atlasH: 2048,
-});
+```
+u_lod_offsets = [ 0,  9, 39, ... ]
+                  ↑   ↑   ↑
+                LOD1 LOD2 LOD3
 ```
 
-### Physical slot strategy
+### Slot assignment
 
-| Slots                      | Owner                           | Evictable |
-| -------------------------- | ------------------------------- | --------- |
-| `0 … lod1Count−1`          | LOD1 — dedicated, formula-based | Never     |
-| `lod1Count … totalSlots−1` | LOD2+ shared pool               | Yes — LRU |
+LOD1 chunks occupy dedicated slots — their physical slot equals their virtual index directly (no indirection, never evicted). LOD2+ chunks compete for the shared pool, assigned dynamically at upload time with LRU eviction when the pool is full.
 
-LOD1 is always resident (preloaded eagerly at `setSource`). LOD2 and finer are loaded on demand by `ChunkScheduler`; when the pool is full, the least-recently-visible chunk is evicted to make room.
+```
+LOD1 3×3 chunk grid              Atlas slot assignment for LOD1
+(geographic space —              (dedicated slots 0–8, formula-based)
+ cx: west→east
+ cy: north→south)                 slot = virtualIdx = cy×cols + cx
+
+ ┌────────┬────────┬────────┐     cy=0: cx=0→slot 0  cx=1→slot 1  cx=2→slot 2
+ │(cx0,0) │(cx1,0) │(cx2,0) │     cy=1: cx=0→slot 3  cx=1→slot 4  cx=2→slot 5
+ ├────────┼────────┼────────┤     cy=2: cx=0→slot 6  cx=1→slot 7  cx=2→slot 8
+ │(cx0,1) │(cx1,1) │(cx2,1) │
+ ├────────┼────────┼────────┤     LOD2+ chunks → dynamically assigned
+ │(cx0,2) │(cx1,2) │(cx2,2) │     from pool (slots 9–159 for heatmap)
+ └────────┴────────┴────────┘
+```
+
+The `u_chunk_slots[virtualIdx]` array bridges virtual index to physical slot:
+
+- `≥ 0` — chunk is resident; value is the physical slot index
+- `= −1` — chunk is not loaded (not yet fetched, or evicted)
 
 ### ChunkId convention
 
@@ -103,17 +130,101 @@ LOD1 is always resident (preloaded eagerly at `setSource`). LOD2 and finer are l
 "{lod}_{cx}_{cy}"    e.g.  "1_0_0",  "2_3_2",  "3_5_4"
 ```
 
-File URL pattern:
-
-```
-{baseUrl}/{lod}_{cx}_{cy}.png
-```
+File URL: `{baseUrl}/{lod}_{cx}_{cy}.png`
 
 ---
 
-## Manifest format
+## Shader Coordinate Lookup
 
-Each product has a `manifest.json` that describes its chunking layout:
+For every fragment (screen pixel), the shader determines which geographic location it represents, finds the correct atlas chunk for that location, and samples the data. The full lookup has five steps.
+
+### Step 1 — Screen position → lon/lat
+
+The vertex shader passes `v_screen_pos` as a Mercator [0,1]×[0,1] position. The fragment shader reconstructs lon/lat using the viewport bounds (`u_bounds = [nwX, seY, seX, nwY]` in Mercator):
+
+```glsl
+float mercX = fract(u_bounds.x + pos.x * abs(u_bounds.x - u_bounds.z));
+float mercY = u_bounds.w     + pos.y * abs(u_bounds.y - u_bounds.w);
+float lon   = mercX * 360.0 - 180.0;
+float lat   = 360.0/PI * atan(exp((180.0 - mercY*360.0) * PI/180.0)) - 90.0;
+```
+
+Fragments outside `u_data_bounds` are discarded immediately.
+
+### Step 2 — lon/lat → chunk (cx, cy)
+
+The data region is divided into a `cols×rows` grid for each LOD. The chunk index for a given point:
+
+```glsl
+cx = clamp(floor((lon  − lonMin) / (lonRange / cols)), 0, cols−1)
+cy = clamp(floor((latMax − lat)  / (latRange / rows)), 0, rows−1)
+// cy=0 is the northernmost row, matching chunk generation convention
+```
+
+### Step 3 — (cx, cy) → virtual index → physical slot
+
+```glsl
+int virtualIdx = u_lod_offsets[lodIdx] + cy * int(grid.x) + cx;
+int physSlot   = u_chunk_slots[virtualIdx];   // −1 = not resident
+```
+
+If `physSlot < 0`, the chunk is absent — skip this LOD (or discard for LOD1).
+
+### Step 4 — Physical slot → atlas UV origin and scale
+
+`u_slots[physSlot]` encodes where the slot lives inside the atlas texture:
+
+```glsl
+vec4 slot = u_slots[physSlot];
+// slot.xy  = UV origin (top-left corner of the slot in the atlas)
+// slot.zw  = UV scale  (slot width/height in normalised UV space)
+```
+
+### Step 5 — Local UV within the chunk, with padding correction
+
+Each PNG has 1px of padding on each side to prevent bilinear bleed at tile edges. `u_uv_scale` and `u_uv_offset` crop the local [0,1] UV into the inner data region only:
+
+```glsl
+// Local [0,1] position of the point within its chunk
+float localU = (lon  − chunkLonOrigin)  / chunkLonSize;
+float localV = (chunkLatNorth − lat)    / chunkLatSize;
+
+// Shift into inner data region, skipping the 1px padding border
+// u_uv_scale  = chunkPx / storedPx   (e.g. [240/242, 192/194])
+// u_uv_offset = padding / storedPx   (e.g. [1/242,   1/194])
+localU = localU * u_uv_scale.x + u_uv_offset.x;
+localV = localV * u_uv_scale.y + u_uv_offset.y;
+
+// Final atlas UV: slot origin + scaled local position
+vec2 atlasUV = slot.xy + vec2(localU, localV) * slot.zw;
+vec4 sample  = texture(u_atlas, atlasUV);
+```
+
+### LOD blending
+
+The lookup runs for each active LOD. LOD1 is always the base; finer LODs blend in as their chunks arrive:
+
+```glsl
+// LOD1 (lodIdx=0) is always resident — use as the base
+vec4 result = texture(u_atlas, worldToAtlasUV(lonlat, 0));
+if (result.a < 0.01) discard;   // land / no-data mask (alpha=0 in unloaded slots too)
+
+for (int i = 1; i < u_lod_count; i++) {
+    if (physicalSlot(lonlat, i) >= 0) {
+        vec4 finer = texture(u_atlas, worldToAtlasUV(lonlat, i));
+        float t = (i == u_lod_count - 1) ? u_lod_blend : 1.0;
+        result  = mix(result, finer, t);
+    }
+}
+```
+
+`u_lod_blend` (0→1 over 300 ms, animated by `LODController`) crossfades the finest active LOD. Intermediate LODs show at full opacity when resident. With 1 LOD, the loop is dead code.
+
+The **particle position-update shader** samples LOD1 only (`worldToAtlasUV(lonlat, 0)`) and does not run this loop. See [ParticlesAtlasField — setSource](#particlesatlasfield) for why LOD1 must be fully resident before the particle layer starts.
+
+---
+
+## Manifest Format
 
 ```json
 {
@@ -139,48 +250,48 @@ Each product has a `manifest.json` that describes its chunking layout:
 }
 ```
 
-| Field                     | Meaning                                                                                                                    |
-| ------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `bounds`                  | Geographic extent of the dataset                                                                                           |
-| `valueRange`              | Raw min/max of the encoded scalar (used for RGB24 decoding)                                                                |
-| `lods['N'].grid`          | `[cols, rows]` — how many chunks tile this LOD level                                                                       |
-| `lods['N'].storedPx`      | `[width, height]` — pixel dimensions of each stored chunk PNG                                                              |
-| `lods['N'].chunkPx`       | Inner data pixels (excludes padding)                                                                                       |
-| `lods['N'].padding`       | Padding pixels on each side (total 2× per axis)                                                                            |
-| `lods['N'].zoomThreshold` | _(optional)_ Minimum map zoom to activate this LOD's scheduler. Defaults to `DEFAULT_ZOOM_THRESHOLD = 6`. LOD1 ignores it. |
+| Field                     | Meaning                                                                                                     |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `bounds`                  | Geographic extent of the dataset                                                                            |
+| `valueRange`              | `[rawMin, rawMax]` of the encoded scalar — used for RGB24 decoding                                          |
+| `lods['N'].grid`          | `[cols, rows]` — chunk count for this LOD                                                                   |
+| `lods['N'].storedPx`      | `[w, h]` — pixel dimensions of the stored chunk PNG (includes padding)                                      |
+| `lods['N'].chunkPx`       | Inner data pixels (excludes padding)                                                                        |
+| `lods['N'].padding`       | Padding pixels on each side (1 → 2px total per axis)                                                        |
+| `lods['N'].zoomThreshold` | _(LOD2+)_ Minimum map zoom to activate this LOD. Defaults to `DEFAULT_ZOOM_THRESHOLD = 6`. LOD1 ignores it. |
 
-The system supports any number of LODs (up to `MAX_LODS = 4`). LOD keys are sorted numerically at runtime — insertion order in the JSON does not matter.
+LOD keys are sorted numerically at runtime — insertion order in the JSON does not matter. Up to `MAX_LODS = 4` LODs are supported.
 
 ---
 
-## Module map
+## Module Map
 
 ```
 src/
   webgl/
-    AtlasManager.ts       — GPU texture + LRU slot pool
-    ChunkScheduler.ts     — on-demand fetch queue per LOD
-    LODController.ts      — crossfade blend animation
-    heatmapShader.ts      — vertex shader + makeScalarAtlasFs() factory
-    particlesShader.ts    — makeOceanCurrentAtlasFsParticle/Update() factories
+    AtlasManager.ts         — GPU texture + slot pool + LRU eviction
+    ChunkScheduler.ts       — on-demand fetch queue per LOD
+    LODController.ts        — crossfade blend animation
+    heatmapShader.ts        — scalarAtlasVs + makeScalarAtlasFs() factory
+    particlesShader.ts      — makeOceanCurrentAtlasFsParticle/Update() factories
 
   layers/
-    HeatmapAtlasField.ts  — orchestrates atlas for scalar products
-    HeatmapAtlasLayer.ts  — Mapbox CustomLayerInterface wrapper (scalar)
-    ParticlesAtlasField.ts — orchestrates atlas for particle products
-    ParticlesAtlasLayer.ts — Mapbox CustomLayerInterface wrapper (particles)
+    HeatmapAtlasField.ts    — orchestrates atlas for scalar products
+    HeatmapAtlasLayer.ts    — Mapbox CustomLayerInterface wrapper (scalar)
+    ParticlesAtlasField.ts  — orchestrates atlas for particle products
+    particlesAtlasLayer.ts  — Mapbox CustomLayerInterface wrapper (particles)
 
   hooks/layers/
     useWebGLHeatmapLayer.ts — React hook: fetches manifest, wires setSource
     useParticleLayer.ts     — React hook: fetches manifest, wires setSource
 
   api/
-    scalarAtlas.ts        — getProductManifest + ProductManifest type
+    scalarAtlas.ts          — getProductManifest + ProductManifest type
 ```
 
 ---
 
-## Data flow
+## Data Flow
 
 ```
 manifest.json
@@ -191,126 +302,144 @@ useWebGLHeatmapLayer / useParticleLayer
     │  calls layer.setSource(manifest, baseUrl, legendRange)
     ▼
 HeatmapAtlasField / ParticlesAtlasField  (setSource)
-    │  1. sorts manifest.lods by LOD number
-    │  2. computes totalSlots = floor(atlasW/storedW) × floor(atlasH/storedH)
-    │     (heatmap: atlasW=4096, atlasH=2048 → 160 slots;
-    │      particles: atlasW=atlasH=2048 → 80 slots)
-    │  3. compiles shaders via makeScalarAtlasFs(totalSlots) (u_slots size injected)
-    │  4. computes uvScale = chunkPx/storedPx, uvOffset = padding/storedPx
-    │  5. creates AtlasManager(gl, { slotPx, lods, atlasW?, atlasH? })
-    │  6. preloads all LOD1 PNGs → atlas.upload()
-    │  7. creates one ChunkScheduler per on-demand LOD (2..N),
-    │     passing lodEntry.zoomThreshold from manifest
+    │  1. sort manifest.lods numerically
+    │  2. compute uvScale = chunkPx/storedPx, uvOffset = padding/storedPx
+    │  3. create AtlasManager(gl, { slotPx: lod1.storedPx, lods, atlasW?, atlasH? })
+    │  4. compile shaders with totalSlots injected as compile-time constant (first call only)
+    │
+    │  Heatmap:
+    │  5. create ChunkSchedulers for LOD2..N
+    │  6. start progressive LOD1 preload — resolves on first tile uploaded,
+    │     remaining tiles continue in the background
+    │
+    │  Particles:
+    │  5. await full LOD1 preload (Promise.all) — all tiles must be resident
+    │     before resolving (update shader samples LOD1 without a residency guard)
+    │  6. create ChunkSchedulers for LOD2..N
     ▼
 Map interactions (pan / zoom)  →  onMapMove(bounds, zoom)
     │  ChunkScheduler.update(bounds, zoom)
     │      - no-ops if zoom ≤ zoomThreshold
-    │      - touches visible loaded chunks (LRU refresh)
-    │      - cancels in-flight requests that left the buffer zone
-    │      - fetches missing chunks in priority order
-    │      - uploads each ImageBitmap → atlas.upload()
+    │      - calls atlas.touch() for every visible loaded chunk (LRU refresh)
+    │      - aborts in-flight requests for chunks outside the buffer zone
+    │      - fetches missing chunks (viewport = priority 0, buffer ring = priority 1)
+    │      - uploads each decoded ImageBitmap → atlas.upload()
     │      - fires onChunkLoaded callback
     ▼
-onChunkLoaded  →  if all schedulers' visible chunks loaded
+onChunkLoaded  →  if all schedulers' visible chunks are loaded
     │                  LODController.startBlendIn()
-    │                  map.triggerRepaint()  ← drives the blend animation loop
+    │                  map.triggerRepaint()          ← heatmap only; starts blend animation
+    │                  (particles: rAF loop in tick() drives repaints continuously)
     ▼
-draw()  (called every frame from Mapbox render())
-    │  setUniforms(u_atlas, u_slots, u_chunk_slots, u_lod_grids,
-    │              u_lod_offsets, u_lod_count, u_lod_blend,
-    │              u_uv_scale, u_uv_offset, …)
-    │  if lodController.isAnimating() → map.triggerRepaint()  ← sustains animation
+draw()  — called every frame by Mapbox render()
+    │  uploads uniforms: u_atlas, u_slots, u_chunk_slots,
+    │                    u_lod_grids, u_lod_offsets, u_lod_count,
+    │                    u_lod_blend, u_uv_scale, u_uv_offset, …
+    │  if lodController.isAnimating() → map.triggerRepaint()  ← sustains blend loop
     ▼
-GPU fragment shader
-    │  virtualIdx = u_lod_offsets[lod] + cy*cols + cx
-    │  physSlot   = u_chunk_slots[virtualIdx]   // −1 = not resident
-    │  UV         = u_slots[physSlot].xy + localUV * u_slots[physSlot].zw
-    │  sample atlas texture → decode → colorise
+GPU fragment shader  (see Shader Coordinate Lookup)
     ▼
 Screen
 ```
 
 ---
 
-## AtlasManager
+## API Reference
+
+### AtlasManager
 
 **File:** `src/webgl/AtlasManager.ts`
 
 Manages the GPU texture and the virtual→physical slot mapping.
 
-### Key constants
-
-| Constant             | Value | Meaning                                                               |
-| -------------------- | ----- | --------------------------------------------------------------------- |
-| `ATLAS_SIZE`         | 2048  | Default atlas width and height (used by particles; heatmap overrides) |
-| `MAX_LODS`           | 4     | Maximum LOD levels the GLSL arrays are sized for                      |
-| `MAX_VIRTUAL_CHUNKS` | 256   | Size of `u_chunk_slots` — covers LOD1(9) + LOD2(30) + LOD3(120) = 159 |
-
-### API
-
 ```ts
 createAtlasManager(gl, config: AtlasConfig): AtlasManagerAPI
 ```
 
-`AtlasConfig`:
+**`AtlasConfig`**
 
-| Field     | Type                                | Description                                            |
-| --------- | ----------------------------------- | ------------------------------------------------------ |
-| `slotPx`  | `[number, number]`                  | Physical pixel size of each slot `[width, height]`     |
-| `lods`    | `Array<{ grid: [number, number] }>` | LOD configs ordered coarsest to finest                 |
-| `atlasW?` | `number`                            | Atlas texture width. Defaults to `ATLAS_SIZE` (2048).  |
-| `atlasH?` | `number`                            | Atlas texture height. Defaults to `ATLAS_SIZE` (2048). |
+| Field     | Type                                | Description                                       |
+| --------- | ----------------------------------- | ------------------------------------------------- |
+| `slotPx`  | `[number, number]`                  | Slot pixel size `[w, h]` — set to `lod1.storedPx` |
+| `lods`    | `Array<{ grid: [number, number] }>` | LOD configs, coarsest first                       |
+| `atlasW?` | `number`                            | Atlas width. Defaults to `ATLAS_SIZE` (2048)      |
+| `atlasH?` | `number`                            | Atlas height. Defaults to `ATLAS_SIZE` (2048)     |
 
-| Method                 | Description                                                                   |
-| ---------------------- | ----------------------------------------------------------------------------- |
-| `upload(chunkId, img)` | Upload an ImageBitmap into the atlas. LOD2+ triggers LRU if the pool is full. |
-| `has(chunkId)`         | True if the chunk is currently resident (not evicted).                        |
-| `touch(chunkId)`       | Refresh LRU timestamp. Call for every visible chunk each frame.               |
-| `getSlotsData()`       | `Float32Array` — static UV layout, passed to `u_slots`.                       |
-| `getChunkSlots()`      | `Int32Array` — virtual→physical mapping, passed to `u_chunk_slots`.           |
-| `getLodOffsets()`      | `Int32Array` — cumulative offsets per LOD, passed to `u_lod_offsets`.         |
-| `getLodCount()`        | Number of active LODs, passed to `u_lod_count`.                               |
-| `destroy()`            | Release GPU texture and reset all state.                                      |
+**Constants**
 
-### LRU eviction
+| Constant             | Value | Notes                                                                  |
+| -------------------- | ----- | ---------------------------------------------------------------------- |
+| `ATLAS_SIZE`         | 2048  | Default atlas dimension; heatmap overrides to 4096×2048                |
+| `MAX_LODS`           | 4     | GLSL array size for LOD uniforms                                       |
+| `MAX_VIRTUAL_CHUNKS` | 256   | Size of `u_chunk_slots`; covers current LOD1(9)+LOD2(30)+LOD3(120)=159 |
 
-When a LOD2+ chunk is uploaded and no pool slot is free:
+**Methods**
 
-1. Scan `lastUsed` for the chunk with the oldest timestamp.
-2. Set `chunkSlots[victimVirtualIdx] = −1`.
-3. Return the freed physical slot for the new upload.
+| Method                 | Description                                                                |
+| ---------------------- | -------------------------------------------------------------------------- |
+| `upload(chunkId, img)` | Upload ImageBitmap into the atlas. LOD2+ triggers LRU if the pool is full. |
+| `has(chunkId)`         | True if the chunk is currently resident.                                   |
+| `touch(chunkId)`       | Refresh LRU timestamp. Call for every visible chunk each frame.            |
+| `getSlotsData()`       | `Float32Array` — static UV layout per slot → `u_slots`                     |
+| `getChunkSlots()`      | `Int32Array` — virtual→physical mapping → `u_chunk_slots`                  |
+| `getLodOffsets()`      | `Int32Array` — cumulative LOD offsets → `u_lod_offsets`                    |
+| `getLodCount()`        | Number of active LODs → `u_lod_count`                                      |
+| `destroy()`            | Delete GPU texture and reset all state.                                    |
 
-Evicted chunks are removed from `has()` — `ChunkScheduler` will re-queue them if they re-enter the viewport.
+**LRU eviction**
 
-> **Notice:** With the current atlas sizing, LRU eviction is intentionally dormant and will not trigger in normal use. The heatmap atlas (4096×2048) gives a pool of 151 slots, which is one more than the maximum possible LOD2+LOD3 tiles (30+120=150). If the atlas had been left at 2048×2048 (pool=71), eviction would fire frequently as the user pans. The eviction logic remains correct and will activate again if a new LOD level is added that pushes the tile count past the pool size.
+When a LOD2+ chunk is uploaded and the pool is full, the chunk with the oldest `lastUsed` timestamp is evicted: its `u_chunk_slots` entry is set to `-1` and its physical slot is reused. `ChunkScheduler` re-queues evicted chunks when they re-enter the viewport.
+
+> With current atlas sizing, LRU eviction is dormant: the heatmap pool (151) exceeds the maximum simultaneous LOD2+LOD3 tiles (150) by one. The logic activates if a new LOD level pushes the tile count past the pool size.
 
 ---
 
-## HeatmapAtlasField
+### HeatmapAtlasField
 
 **File:** `src/layers/HeatmapAtlasField.ts`
 
 Orchestrates the atlas, schedulers, and LOD controller for scalar overlay products.
 
-### setSource — progressive LOD1 preload
-
 ```ts
 setSource(manifest, tileBaseUrl, legendRange): Promise<void>
+updateLegendRange(range: [number, number]): void
+onMapMove(bounds: LngLatBounds, zoom: number): void
+setVisible(visible: boolean): void
+draw(): void
 ```
 
-LOD1 tiles are fetched in parallel and uploaded incrementally:
+**Progressive LOD1 preload** — `setSource` resolves as soon as the first LOD1 tile is uploaded so the layer becomes visible immediately. Remaining tiles continue in the background; each upload triggers `map.triggerRepaint()` so coverage fills in progressively. Rejects only if every tile fails.
 
-- Resolves as soon as **the first tile** is uploaded — the caller can make the layer visible immediately.
-- Remaining LOD1 tiles continue in the background; each upload calls `map.triggerRepaint()` so tiles appear as they arrive.
-- Rejects only if **every** LOD1 tile fails.
-
-This means the layer becomes usable with partial coverage rather than waiting for the full LOD1 grid, which matters when the grid is 3×3 (9 requests) and the network is slow.
-
-A `fetchGeneration` counter guards against races: if `setSource` is called again before the previous fetch finishes (e.g. the user changes date), in-flight callbacks check the counter and discard their results.
+A `fetchGeneration` counter discards stale upload callbacks if `setSource` is called again (e.g. date change) before the previous fetch completes. Unloaded LOD1 tile regions safely discard in the fragment shader via the alpha mask (`a < 0.01`).
 
 ---
 
-## ChunkScheduler
+### ParticlesAtlasField
+
+**File:** `src/layers/ParticlesAtlasField.ts`
+
+Orchestrates the atlas, schedulers, and LOD controller for the ocean current particle product.
+
+```ts
+setSource(manifest, tileBaseUrl, legendRange): Promise<void>
+setLodBlend(value: number): void
+startAnimation(): void
+stopAnimation(): void
+resize(): void
+updateConfig(config: Partial<CustomizableParticleConfig>): void
+onMapMove(bounds: LngLatBounds, zoom: number): void
+draw(): void
+```
+
+**Blocking LOD1 preload** — `setSource` uses `Promise.all` and blocks until every LOD1 tile is resident before resolving. This is required because the particle position-update shader calls `worldToAtlasUV(lonlat, 0)` unconditionally — a missing LOD1 chunk produces an out-of-bounds `u_slots[-1]` access (undefined behaviour) rather than the graceful discard the heatmap alpha mask provides.
+
+A `fetchGeneration` counter discards stale upload callbacks and aborts scheduler setup if superseded by a newer `setSource` call.
+
+**`setLodBlend(value)`** — called by the layer wrapper after an external LOD transition event. Snaps the `LODController` to 0 and starts a new blend-in if `value > 0`.
+
+---
+
+### ChunkScheduler
 
 **File:** `src/webgl/ChunkScheduler.ts`
 
@@ -318,138 +447,115 @@ One instance per on-demand LOD. Manages the fetch queue for that LOD.
 
 ```ts
 createChunkScheduler(
-  atlas, baseUrl, onChunkLoaded, region,
+  atlas, tileBaseUrl, onChunkLoaded, region,
   lod, zoomThreshold?
 ): ChunkSchedulerAPI
 ```
 
-`zoomThreshold` defaults to `DEFAULT_ZOOM_THRESHOLD = 6` (exported constant). Pass `lodEntry.zoomThreshold` from the manifest to make it per-LOD.
+`zoomThreshold` defaults to `DEFAULT_ZOOM_THRESHOLD = 6`. Pass `lodEntry.zoomThreshold` from the manifest to make it per-LOD.
 
-| Behaviour             | Detail                                                                                                                                               |
-| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Viewport priority** | Chunks inside the viewport are queued at priority 0; the 1-chunk buffer ring at priority 1                                                           |
-| **Concurrency**       | At most 6 in-flight fetches at once                                                                                                                  |
-| **Zoom gate**         | Returns immediately (aborts all in-flight) if `zoom ≤ zoomThreshold`                                                                                 |
-| **Cancellation**      | Chunks that scroll out of the buffer zone are aborted via `AbortController` signal passed to `fetch()`, freeing concurrency slots for in-scope tiles |
-| **LRU refresh**       | Calls `atlas.touch(id)` for every visible loaded chunk on each `update()`                                                                            |
+| Behaviour             | Detail                                                                    |
+| --------------------- | ------------------------------------------------------------------------- |
+| **Viewport priority** | Viewport chunks at priority 0; 1-chunk buffer ring at priority 1          |
+| **Concurrency**       | Max 6 in-flight fetches                                                   |
+| **Zoom gate**         | Aborts all in-flight and no-ops if `zoom ≤ zoomThreshold`                 |
+| **Cancellation**      | Chunks scrolled outside the buffer zone are aborted via `AbortController` |
+| **LRU refresh**       | `atlas.touch(id)` for every visible loaded chunk per `update()` call      |
 
 ---
 
-## LODController
+### LODController
 
 **File:** `src/webgl/LODController.ts`
 
-Animates `u_lod_blend` (0 → 1) over 300 ms using an ease-out quadratic curve. Driven by the existing draw loop — no separate `requestAnimationFrame`.
+Animates `u_lod_blend` (0 → 1) over 300 ms with an ease-out quadratic curve. Driven by the draw loop — no separate `requestAnimationFrame`.
 
-| Method           | Effect                                                |
-| ---------------- | ----------------------------------------------------- |
-| `startBlendIn()` | Begin animating toward 1.0                            |
-| `reset()`        | Snap to 0 and cancel animation                        |
-| `getValue()`     | Read current value; advances animation if in progress |
-| `isAnimating()`  | True while a blend animation is in progress           |
+| Method           | Effect                                              |
+| ---------------- | --------------------------------------------------- |
+| `startBlendIn()` | Begin animating toward 1.0                          |
+| `reset()`        | Snap to 0 and cancel animation                      |
+| `getValue()`     | Read current value and advance animation if running |
+| `isAnimating()`  | True while animation is in progress                 |
+| `destroy()`      | Snap to 0 and release resources                     |
 
-**Blend semantics (N LODs):** Intermediate LODs (loaded but not the finest) are shown at 100%. Only the finest active LOD transition uses `u_lod_blend`. When panning into a new area at LOD2, the blend resets to 0, LOD1 shows through, and LOD2 fades in as chunks load.
+When the user pans into a new area, `reset()` snaps `u_lod_blend` back to 0 so LOD1 shows through again, then `startBlendIn()` is called once all visible LOD2+ chunks have loaded, fading them in over 300 ms. Intermediate LODs (loaded but not the finest) always show at 100%.
 
-**Animation loop:** `onChunkLoaded` calls `map.triggerRepaint()` to start the first frame. Each subsequent `draw()` call calls `triggerRepaint()` again while `isAnimating()` is true, sustaining the loop until the animation completes.
+**Animation loop (heatmap):** `onChunkLoaded` calls `map.triggerRepaint()` to start the first blend frame. Each `draw()` sustains the loop with another `triggerRepaint()` while `isAnimating()` is true. Particles drive repaints via their own rAF loop instead.
 
 ---
 
-## Shader uniforms
+## Shader Uniforms
 
-The fragment shader source is produced by factory functions — `makeScalarAtlasFs(totalSlots)` and `makeOceanCurrentAtlasFsParticle/Update(totalSlots)` — which inject `totalSlots` as a GLSL compile-time constant. `totalSlots` is computed in `setSource` from the manifest's `storedPx` and the product's atlas dimensions.
+Shader source is generated by factory functions (`makeScalarAtlasFs(totalSlots)`, `makeOceanCurrentAtlasFsParticle/Update(totalSlots)`) that inject `totalSlots` as a GLSL compile-time constant, sizing `u_slots` to match the atlas layout exactly.
 
-Both shader families share the same atlas uniform set via `makeSharedGlsl(totalSlots)`:
+### Shared (both shader families, via `makeSharedGlsl`)
 
-| Uniform         | Type       | Description                                                                                                       |
-| --------------- | ---------- | ----------------------------------------------------------------------------------------------------------------- |
-| `u_bounds`      | `vec4`     | Viewport in Mercator: `[nwX, seY, seX, nwY]`                                                                      |
-| `u_data_bounds` | `vec4`     | Data region in lon/lat: `[lonMin, latMax, lonMax, latMin]`                                                        |
-| `u_slots`       | `vec4[N]`  | Static UV layout per physical slot. N = totalSlots (160 for heatmap, 80 for particles), injected at compile time. |
-| `u_chunk_slots` | `int[256]` | Virtual chunk index → physical slot (−1 = not resident)                                                           |
-| `u_lod_grids`   | `vec2[4]`  | `[cols, rows]` per LOD, ordered coarse→fine                                                                       |
-| `u_lod_offsets` | `int[4]`   | Cumulative virtual offset per LOD                                                                                 |
-| `u_lod_count`   | `int`      | Number of active LODs                                                                                             |
-| `u_lod_blend`   | `float`    | 0→1 crossfade for the finest active LOD                                                                           |
-| `u_uv_scale`    | `vec2`     | `chunkPx / storedPx` — maps local [0,1] UV into the data region, excluding padding                                |
-| `u_uv_offset`   | `vec2`     | `padding / storedPx` — shifts UV past the padding border                                                          |
+| Uniform         | Type        | Description                                                                     |
+| --------------- | ----------- | ------------------------------------------------------------------------------- |
+| `u_atlas`       | `sampler2D` | The atlas texture                                                               |
+| `u_bounds`      | `vec4`      | Viewport in Mercator: `[nwX, seY, seX, nwY]`                                    |
+| `u_data_bounds` | `vec4`      | Data region: `[lonMin, latMax, lonMax, latMin]`                                 |
+| `u_slots`       | `vec4[N]`   | Static UV layout per physical slot. N = totalSlots (160 heatmap / 80 particles) |
+| `u_chunk_slots` | `int[256]`  | Virtual index → physical slot (−1 = not resident)                               |
+| `u_lod_grids`   | `vec2[4]`   | `[cols, rows]` per LOD, coarse→fine                                             |
+| `u_lod_offsets` | `int[4]`    | Cumulative virtual chunk offset per LOD                                         |
+| `u_lod_count`   | `int`       | Number of active LODs                                                           |
+| `u_lod_blend`   | `float`     | 0→1 crossfade for the finest active LOD                                         |
+| `u_uv_scale`    | `vec2`      | `chunkPx / storedPx` — crops local [0,1] UV to the inner data region            |
+| `u_uv_offset`   | `vec2`      | `padding / storedPx` — shifts past the padding border                           |
 
 ### Scalar-specific (heatmapShader)
 
-| Uniform          | Type        | Description                                                               |
-| ---------------- | ----------- | ------------------------------------------------------------------------- |
-| `u_value_range`  | `vec2`      | `[rawMin, rawMax]` from manifest — for RGB24 decoding                     |
-| `u_legend_range` | `vec2`      | `[legendMin, legendMax]` from `PRODUCTLEGENDS` — for colour ramp clamping |
-| `u_color_ramp`   | `sampler2D` | 256×1 colour ramp texture                                                 |
+| Uniform          | Type        | Description                                                              |
+| ---------------- | ----------- | ------------------------------------------------------------------------ |
+| `u_value_range`  | `vec2`      | `[rawMin, rawMax]` from manifest — decodes RGB24 to physical units       |
+| `u_legend_range` | `vec2`      | `[legendMin, legendMax]` from `PRODUCTLEGENDS` — colour ramp clamp range |
+| `u_color_ramp`   | `sampler2D` | 256×1 colour ramp texture                                                |
 
-### RGB24 scalar decoding
-
-Each chunk PNG stores a scalar value as a 24-bit integer spread across R, G, B:
+**RGB24 scalar decoding** — each chunk PNG stores a scalar as a 24-bit integer spread across R, G, B channels:
 
 ```glsl
-float decoded = (R * 65536.0 + G * 256.0 + B) / 16777215.0;  // [0, 1]
-float rawValue = decoded * (valueRange.y - valueRange.x) + valueRange.x;
-float t = clamp((rawValue - legendRange.x) / (legendRange.y - legendRange.x), 0.0, 1.0);
-// t → colour ramp lookup
+float decoded  = (R*65536.0 + G*256.0 + B) / 16777215.0;          // 24-bit → [0, 1]
+float rawValue = decoded * (u_value_range.y - u_value_range.x) + u_value_range.x;
+float t        = clamp(
+    (rawValue - u_legend_range.x) / (u_legend_range.y - u_legend_range.x),
+    0.0, 1.0
+);
+// t → texture lookup into u_color_ramp
 ```
 
-`u_value_range` decodes the stored integer back to physical units. `u_legend_range` then clamps and normalises to the colour ramp — these two ranges are intentionally separate so the legend can be narrower than the full data range.
+`u_value_range` and `u_legend_range` are intentionally separate — the colour ramp can be narrowed for visual emphasis without changing the stored data encoding.
 
-### Fragment shader LOD loop
+### Uniform component budget
 
-```glsl
-// LOD1 is always resident — use as base
-vec4 result = texture(u_atlas, worldToAtlasUV(lonlat, 0));
-if (result.a < 0.01) discard;  // land / null mask
-
-for (int i = 1; i < u_lod_count; i++) {
-    int physSlot = physicalSlot(lonlat, i);
-    if (physSlot >= 0) {
-        vec4 finer = texture(u_atlas, worldToAtlasUV(lonlat, i));
-        float t = (i == u_lod_count - 1) ? u_lod_blend : 1.0;
-        result = mix(result, finer, t);
-    }
-}
-```
-
-With 1 LOD the loop is dead code. With 2 LODs it runs once using `u_lod_blend`. With 3 LODs, LOD2 blends fully when loaded and LOD3 blends using `u_lod_blend`.
-
-The particle update shader (`makeOceanCurrentAtlasFsUpdate`) samples LOD1 only (`lodIdx=0`) for velocity — it does not run the LOD loop. Both the draw and update shaders must receive `u_chunk_slots` to correctly map virtual chunk indices to physical atlas slots.
-
-### WebGL2 uniform component budget
-
-WebGL2 guarantees `MAX_FRAGMENT_UNIFORM_COMPONENTS ≥ 1024`. The heatmap shader uses ~926 components (`u_slots[160]` = 640 + `u_chunk_slots[256]` = 256 + other uniforms ~30), leaving comfortable headroom. Increasing the atlas beyond 4096×2048 would push `u_slots` past the limit — verify the component count before changing atlas dimensions.
+WebGL2 guarantees `MAX_FRAGMENT_UNIFORM_COMPONENTS ≥ 1024`. The heatmap shader consumes ~926 components (`u_slots[160]`=640 + `u_chunk_slots[256]`=256 + ~30 others). Verify this count before increasing atlas dimensions beyond 4096×2048.
 
 ---
 
-## Adding a new atlas product
+## Adding a New Product
 
-1. **Generate chunks** — produce `manifest.json` + PNG files following the chunk naming convention (`{lod}_{cx}_{cy}.png`).
+1. **Generate tiles** — produce `manifest.json` + PNG files named `{lod}_{cx}_{cy}.png`.
 
-2. **Add to `src/constants/product.ts`** — entry in `PRODUCT`, `PRODUCTS`, `PRODUCTLEGENDS`, and `PRODUCTCOLORPALETTES`.
+2. **`src/constants/product.ts`** — add entries to `PRODUCT`, `PRODUCTS`, `PRODUCTLEGENDS`, and `PRODUCTCOLORPALETTES`.
 
-3. **Wire the hook in `MapComponent.tsx`**:
+3. **`MapComponent.tsx`** — wire the hook:
 
    ```tsx
-   useWebGLHeatmapLayer({
-     map,
-     layerId,
-     product: PRODUCT.MY_PRODUCT,
-     baseUrl: 'path/to/chunks',
-     queryKey: 'myProductManifest',
-   });
+   useWebGLHeatmapLayer({ map, layerId, product: PRODUCT.MY_PRODUCT });
    ```
 
-4. **Add the layer ID to `LAYERS_ORDER`** in `src/config/layerConfig.ts`.
+4. **`src/config/layerConfig.ts`** — add the layer ID to `LAYERS_ORDER`.
 
-5. **Add sidebar entry** in `src/components/MainSidebar/products.tsx`.
+5. **`src/components/MainSidebar/products.tsx`** — add the sidebar entry.
 
-No changes to the atlas, shader, or scheduler code are needed unless the new product introduces more than 4 LODs, a total virtual chunk count exceeding 256, or enough tiles to exhaust the pool (heatmap pool = 151).
+No changes to atlas, shader, or scheduler code are needed unless the new product exceeds 4 LODs, a total virtual chunk count > 256, or pushes the tile count past the pool (heatmap pool = 151).
 
 ---
 
-## Known limitations & TODOs
+## Known Limitations
 
-| Issue                                                   | Status                                             |
-| ------------------------------------------------------- | -------------------------------------------------- |
-| `MAX_VIRTUAL_CHUNKS = 256` limits LOD4 with large grids | Increase constant if needed                        |
-| Heatmap pool = 151 fits current LOD2+LOD3 = 150 exactly | Adding a LOD4 requires revisiting atlas dimensions |
+| Issue                                                                                 | Status                                                    |
+| ------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| `MAX_VIRTUAL_CHUNKS = 256` — LOD4 alone needs 480 virtual chunks, exceeding the limit | Increase the constant and recompile shaders if needed     |
+| Heatmap pool (151) fits current LOD2+LOD3 (150) with exactly one slot to spare        | Adding LOD4 requires revisiting atlas dimensions          |
+| Particle shader hardcodes `ATLAS_SIZE = 2048.0` for manual bilinear filtering         | Changing the particle atlas size requires a shader change |
