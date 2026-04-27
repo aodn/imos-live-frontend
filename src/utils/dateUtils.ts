@@ -1,4 +1,17 @@
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 import type { FixedLengthArray } from '@/types';
+
+dayjs.extend(utc);
+
+/** Convert a local date string (yyyy-mm-dd) or Date to the nanosecond UTC format expected by the wave buoy API
+ *
+ * In frontend, we display dates in local time to users, but the wave buoy API expects dates in UTC with nanosecond precision.
+ * We need to convert local dates to UTC and add the time component to ensure we are querying the correct date range.
+ */
+export function toWaveBuoyApiDate(date: string | Date): string {
+  return dayjs(date).utc().format('YYYY-MM-DDTHH:mm:ss.000000000[Z]');
+}
 
 export function getLastDates<const T extends number>(length: T) {
   return (format: string = 'yyyy-mm-dd'): FixedLengthArray<string, T> => {
@@ -7,7 +20,7 @@ export function getLastDates<const T extends number>(length: T) {
     const endDate = new Date(today);
     endDate.setDate(today.getDate());
 
-    for (let i = length; i > 0; i--) {
+    for (let i = length - 1; i >= 0; i--) {
       const date = new Date(endDate);
       date.setDate(endDate.getDate() - i);
 
@@ -105,6 +118,11 @@ export function toISODateString(date: Date): string {
   const day = String(date.getUTCDate()).padStart(2, '0');
 
   return `${year}-${month}-${day}`;
+}
+
+/** Convert a UTC date to a local date string (YYYY-MM-DD) — use this instead of toISODateString when you need the date in the user's timezone */
+export function toLocalDateString(date: string | Date): string {
+  return dayjs.utc(date).local().format('YYYY-MM-DD');
 }
 
 /** Convert compact date string (yyyymmdd) to ISO format (yyyy-mm-dd) */

@@ -27,13 +27,9 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
   const { dateString, buoy, geometry } = toWaveBuoyChartData(waveBuoysData);
 
   const { from, to } = useMemo(() => {
-    const end = dayjs(dateString).utc().startOf('day');
-    const start = end.subtract(6, 'day');
-
-    return {
-      from: start.format('YYYY-MM-DDTHH:mm:ss.000000000[Z]'),
-      to: end.format('YYYY-MM-DDTHH:mm:ss.000000000[Z]'),
-    };
+    const end = dayjs(dateString).add(1, 'day'); // include the full dateString day in local time
+    const start = end.subtract(7, 'day');
+    return { from: start.toDate(), to: end.toDate() };
   }, [dateString]);
 
   const {
@@ -41,7 +37,7 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
     isError,
     data: feature,
   } = useQuery({
-    queryKey: ['waveBuoyDetails', buoy, from, to],
+    queryKey: ['waveBuoyDetails', buoy, from.toISOString(), to.toISOString()],
     queryFn: () => {
       return getWaveBuoyDetails(from, to, buoy);
     },
