@@ -11,7 +11,7 @@ import {
   INITIAL_PARTICLE_CONFIG,
 } from '@/config';
 import type { ProductType } from '@/constants';
-import { PRODUCT } from '@/constants';
+import { PRODUCT, HEATMAP_GROUP } from '@/constants';
 import type { StyleTitle } from '@/styles';
 import { type LngLat } from 'mapbox-gl';
 import { create } from 'zustand';
@@ -123,18 +123,24 @@ export const useMapUIStore = create(
         [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: false,
         [PRODUCT.SST_ANOMALY_MOSAIC]: false,
         [PRODUCT.WAVE_BUOYS]: true,
+        [PRODUCT.MARINE_HEATWAVE_DHD_MOSAIC]: false,
+        [PRODUCT.MARINE_HEATWAVE_SSTA_MOSAIC]: false,
       },
       productError: {
         [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: false,
         [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: false,
         [PRODUCT.SST_ANOMALY_MOSAIC]: false,
         [PRODUCT.WAVE_BUOYS]: false,
+        [PRODUCT.MARINE_HEATWAVE_DHD_MOSAIC]: false,
+        [PRODUCT.MARINE_HEATWAVE_SSTA_MOSAIC]: false,
       },
       productLoading: {
         [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: false,
         [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: false,
         [PRODUCT.SST_ANOMALY_MOSAIC]: false,
         [PRODUCT.WAVE_BUOYS]: false,
+        [PRODUCT.MARINE_HEATWAVE_DHD_MOSAIC]: false,
+        [PRODUCT.MARINE_HEATWAVE_SSTA_MOSAIC]: false,
       },
       jumpToDate: null,
       setCenter: center => set({ center }),
@@ -155,21 +161,12 @@ export const useMapUIStore = create(
       setProductEnabledByProduct: (product, enabled) => {
         set(prev => {
           const next = { ...prev.productEnabled };
-          if (product === PRODUCT.GSLA_ANOMALY_SEA_LEVELS) {
-            next[PRODUCT.GSLA_ANOMALY_SEA_LEVELS] = enabled;
-            if (next[PRODUCT.SST_ANOMALY_MOSAIC]) next[PRODUCT.SST_ANOMALY_MOSAIC] = !enabled;
-          } else if (product === PRODUCT.SST_ANOMALY_MOSAIC) {
-            next[PRODUCT.SST_ANOMALY_MOSAIC] = enabled;
-            if (next[PRODUCT.GSLA_ANOMALY_SEA_LEVELS])
-              next[PRODUCT.GSLA_ANOMALY_SEA_LEVELS] = !enabled;
+          if ((HEATMAP_GROUP as readonly ProductType[]).includes(product)) {
+            for (const p of HEATMAP_GROUP) next[p] = p === product && enabled;
           } else {
             next[product] = enabled;
           }
-
-          return {
-            ...prev,
-            productEnabled: next,
-          };
+          return { ...prev, productEnabled: next };
         });
       },
       setProductErrorByProduct: (product, error) => {

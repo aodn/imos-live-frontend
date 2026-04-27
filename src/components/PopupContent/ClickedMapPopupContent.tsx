@@ -12,20 +12,30 @@ export type ClickedMapPopupContentProps = {
 };
 
 export function ClickedMapPopupContent({ onClose, lngLat }: ClickedMapPopupContentProps) {
-  const { oceanCurrentEnabled, gslaAnomalySeaLevelsEnabled, sstAnomMosaicEnabled, date } =
-    useMapUIStore(
-      useShallow(s => ({
-        oceanCurrentEnabled: s.productEnabled[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT],
-        gslaAnomalySeaLevelsEnabled: s.productEnabled[PRODUCT.GSLA_ANOMALY_SEA_LEVELS],
-        sstAnomMosaicEnabled: s.productEnabled[PRODUCT.SST_ANOMALY_MOSAIC],
-        date: s.date,
-      })),
-    );
+  const {
+    oceanCurrentEnabled,
+    gslaAnomalySeaLevelsEnabled,
+    sstAnomMosaicEnabled,
+    marineHeatwaveDhdEnabled,
+    marineHeatwaveSstaEnabled,
+    date,
+  } = useMapUIStore(
+    useShallow(s => ({
+      oceanCurrentEnabled: s.productEnabled[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT],
+      gslaAnomalySeaLevelsEnabled: s.productEnabled[PRODUCT.GSLA_ANOMALY_SEA_LEVELS],
+      sstAnomMosaicEnabled: s.productEnabled[PRODUCT.SST_ANOMALY_MOSAIC],
+      marineHeatwaveDhdEnabled: s.productEnabled[PRODUCT.MARINE_HEATWAVE_DHD_MOSAIC],
+      marineHeatwaveSstaEnabled: s.productEnabled[PRODUCT.MARINE_HEATWAVE_SSTA_MOSAIC],
+      date: s.date,
+    })),
+  );
 
   const { data, isLoading } = useClickedMapPopupContentData({
     oceanCurrentEnabled,
     gslaAnomalySeaLevelsEnabled,
     sstAnomMosaicEnabled,
+    marineHeatwaveDhdEnabled,
+    marineHeatwaveSstaEnabled,
     date,
     lngLat,
   });
@@ -99,6 +109,34 @@ export function ClickedMapPopupContent({ onClose, lngLat }: ClickedMapPopupConte
                 </span>
                 <span className="text-gray-900 text-left">
                   {data[PRODUCT.SST_ANOMALY_MOSAIC]?.toFixed(2)} °C
+                </span>
+              </div>
+            )}
+
+            {marineHeatwaveDhdEnabled && data[PRODUCT.MARINE_HEATWAVE_DHD_MOSAIC] !== null && (
+              <div
+                className="flex-col md:flex-row flex justify-between md:items-center"
+                aria-label="Marine heatwave DHD details"
+              >
+                <span className="text-gray-600 text-left">
+                  {PRODUCTLEGENDS[PRODUCT.MARINE_HEATWAVE_DHD_MOSAIC].label}:
+                </span>
+                <span className="text-gray-900 text-left">
+                  {data[PRODUCT.MARINE_HEATWAVE_DHD_MOSAIC]?.toFixed(2)} °C·days
+                </span>
+              </div>
+            )}
+
+            {marineHeatwaveSstaEnabled && data[PRODUCT.MARINE_HEATWAVE_SSTA_MOSAIC] !== null && (
+              <div
+                className="flex-col md:flex-row flex justify-between md:items-center"
+                aria-label="Marine heatwave SSTA details"
+              >
+                <span className="text-gray-600 text-left">
+                  {PRODUCTLEGENDS[PRODUCT.MARINE_HEATWAVE_SSTA_MOSAIC].label}:
+                </span>
+                <span className="text-gray-900 text-left">
+                  {data[PRODUCT.MARINE_HEATWAVE_SSTA_MOSAIC]?.toFixed(2)} °C
                 </span>
               </div>
             )}

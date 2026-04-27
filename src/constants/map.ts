@@ -1,8 +1,3 @@
-import type { WAVE_BUOYS_LAYER_ID, WAVE_BUOYS_SOURCE_ID } from './product';
-
-export type BuoySource = typeof WAVE_BUOYS_SOURCE_ID;
-export type BuoyLayer = typeof WAVE_BUOYS_LAYER_ID;
-
 // these two are intermediate layer on fly
 export const WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID = 'wave-buoys-cluster-label-layer';
 export const UNCLUSTERED_WAVE_BUOYS_LAYER_ID = 'unclustered_wave-buoys-layer';

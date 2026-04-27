@@ -10,6 +10,8 @@ import {
   PRODUCTLEGENDS,
   GSLA_ANOMALY_LAYER_ID,
   SST_ANOMALY_MOSAIC_LAYER_ID,
+  MARINE_HEATWAVE_DHD_MOSAIC_LAYER_ID,
+  MARINE_HEATWAVE_SSTA_MOSAIC_LAYER_ID,
 } from '@/constants';
 import {
   RadarIcon,
@@ -64,7 +66,7 @@ export const featuredDataset: LayersDataset[] = [
       src: anomalySeaLevelImage,
       alt: 'GSLA sea level anomaly WebGL',
     },
-    title: 'GSLA sea level anomaly (WebGL)',
+    title: 'GSLA sea level anomaly',
     icon: <WaterSurfaceIcon size="lg" />,
     description:
       'Gridded (adjusted) sea level anomaly (GSLA)' +
@@ -90,7 +92,7 @@ export const featuredDataset: LayersDataset[] = [
       src: sstImage,
       alt: 'AUS TEMP WebGL',
     },
-    title: 'Sea surface skin temperature anomaly (WebGL)',
+    title: 'Sea surface skin temperature anomaly',
     icon: <ThermometerIcon size="lg" />,
     description:
       'AusTemp is a specialised remote sensing application for the monitoring of SST conditions that lead to coral bleaching. The BOM legacy system was developed in consultation with Great Barrier Reef Marine Park Authority (GBRMPA) reef management and replaces the original CSIRO ReefTemp system (Maynard et al, 2008).',
@@ -104,6 +106,52 @@ export const featuredDataset: LayersDataset[] = [
     addToMap: setProductEnabledByProduct,
     portalLink:
       'https://catalogue-imos.aodn.org.au/geonetwork/srv/eng/catalog.search#/search?any=IMOS%20-%20AusTemp%20-%20Sea%20Surface%20Temperature',
+  },
+  {
+    image: {
+      src: sstImage,
+      alt: 'Marine heatwave DHD Mosaic',
+    },
+    title: 'Marine heatwave degree heating days',
+    icon: <ThermometerIcon size="lg" />,
+    description:
+      'Degree Heating Days (DHD) mosaic for the Australasian region, providing a cumulative measure of thermal stress above the bleaching threshold for coral reef monitoring.',
+    layerId: MARINE_HEATWAVE_DHD_MOSAIC_LAYER_ID,
+    visible: false,
+    isError: false,
+    product: PRODUCT.MARINE_HEATWAVE_DHD_MOSAIC,
+    legend: (
+      <LinearColorScaleBar
+        className="w-full"
+        {...PRODUCTLEGENDS[PRODUCT.MARINE_HEATWAVE_DHD_MOSAIC]}
+      />
+    ),
+    addToMap: setProductEnabledByProduct,
+    portalLink:
+      'https://catalogue-imos.aodn.org.au/geonetwork/srv/eng/catalog.search#/search?any=IMOS%20-%20AusTemp%20-%20Marine%20Heatwave',
+  },
+  {
+    image: {
+      src: sstImage,
+      alt: 'Marine heatwave SSTA Mosaic',
+    },
+    title: 'Marine heatwave sea surface temperature anomaly',
+    icon: <ThermometerIcon size="lg" />,
+    description:
+      'Sea Surface Temperature Anomaly (SSTA) mosaic for the Australasian region, showing deviations from the long-term mean to identify marine heatwave conditions.',
+    layerId: MARINE_HEATWAVE_SSTA_MOSAIC_LAYER_ID,
+    visible: false,
+    isError: false,
+    product: PRODUCT.MARINE_HEATWAVE_SSTA_MOSAIC,
+    legend: (
+      <LinearColorScaleBar
+        className="w-full"
+        {...PRODUCTLEGENDS[PRODUCT.MARINE_HEATWAVE_SSTA_MOSAIC]}
+      />
+    ),
+    addToMap: setProductEnabledByProduct,
+    portalLink:
+      'https://catalogue-imos.aodn.org.au/geonetwork/srv/eng/catalog.search#/search?any=IMOS%20-%20AusTemp%20-%20Marine%20Heatwave',
   },
   {
     image: {

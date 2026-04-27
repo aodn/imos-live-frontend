@@ -31,6 +31,8 @@ export const MapComponent = memo(function MapComponent() {
     oceanCurrentEnabled,
     gslaAnomalySeaLevelsEnabled,
     sstAnomMosaicEnabled,
+    marineHeatwaveDhdEnabled,
+    marineHeatwaveSstaEnabled,
   } = useMapUIStore(
     useShallow(s => ({
       distanceMeasurementEnabled: s.distanceMeasurementEnabled,
@@ -38,6 +40,8 @@ export const MapComponent = memo(function MapComponent() {
       oceanCurrentEnabled: s.productEnabled[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT],
       gslaAnomalySeaLevelsEnabled: s.productEnabled[PRODUCT.GSLA_ANOMALY_SEA_LEVELS],
       sstAnomMosaicEnabled: s.productEnabled[PRODUCT.SST_ANOMALY_MOSAIC],
+      marineHeatwaveDhdEnabled: s.productEnabled[PRODUCT.MARINE_HEATWAVE_DHD_MOSAIC],
+      marineHeatwaveSstaEnabled: s.productEnabled[PRODUCT.MARINE_HEATWAVE_SSTA_MOSAIC],
     })),
   );
 
@@ -56,6 +60,16 @@ export const MapComponent = memo(function MapComponent() {
     map,
     layerId: PRODUCTS[PRODUCT.SST_ANOMALY_MOSAIC].layerId,
     product: PRODUCT.SST_ANOMALY_MOSAIC,
+  });
+  useWebGLHeatmapLayer({
+    map,
+    layerId: PRODUCTS[PRODUCT.MARINE_HEATWAVE_DHD_MOSAIC].layerId,
+    product: PRODUCT.MARINE_HEATWAVE_DHD_MOSAIC,
+  });
+  useWebGLHeatmapLayer({
+    map,
+    layerId: PRODUCTS[PRODUCT.MARINE_HEATWAVE_SSTA_MOSAIC].layerId,
+    product: PRODUCT.MARINE_HEATWAVE_SSTA_MOSAIC,
   });
   useParticleLayer({
     map,
@@ -76,7 +90,11 @@ export const MapComponent = memo(function MapComponent() {
   useParticleRasterLayersEventHandlers({
     map,
     oceanCurrentEnabled,
-    heatmapEnabled: gslaAnomalySeaLevelsEnabled || sstAnomMosaicEnabled,
+    heatmapEnabled:
+      gslaAnomalySeaLevelsEnabled ||
+      sstAnomMosaicEnabled ||
+      marineHeatwaveDhdEnabled ||
+      marineHeatwaveSstaEnabled,
     distanceMeasurementEnabled,
   });
 

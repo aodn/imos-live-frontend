@@ -168,9 +168,22 @@ export const layerIdToProduct = (layerId: ProductLayerId) => {
   return Object.entries(PRODUCTS).find(([, v]) => v.layerId === layerId)?.[0] as ProductType;
 };
 
-// Layer IDs - single source of truth for product layer IDs
+export const HEATMAP_GROUP = [
+  PRODUCT.GSLA_ANOMALY_SEA_LEVELS,
+  PRODUCT.SST_ANOMALY_MOSAIC,
+  PRODUCT.MARINE_HEATWAVE_DHD_MOSAIC,
+  PRODUCT.MARINE_HEATWAVE_SSTA_MOSAIC,
+] as const satisfies ProductType[];
+
 export const GSLA_PARTICLE_LAYER_ID = PRODUCTS[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT].layerId;
 export const GSLA_ANOMALY_LAYER_ID = PRODUCTS[PRODUCT.GSLA_ANOMALY_SEA_LEVELS].layerId;
 export const SST_ANOMALY_MOSAIC_LAYER_ID = PRODUCTS[PRODUCT.SST_ANOMALY_MOSAIC].layerId;
+export const MARINE_HEATWAVE_DHD_MOSAIC_LAYER_ID =
+  PRODUCTS[PRODUCT.MARINE_HEATWAVE_DHD_MOSAIC].layerId;
+export const MARINE_HEATWAVE_SSTA_MOSAIC_LAYER_ID =
+  PRODUCTS[PRODUCT.MARINE_HEATWAVE_SSTA_MOSAIC].layerId;
 export const WAVE_BUOYS_LAYER_ID = PRODUCTS[PRODUCT.WAVE_BUOYS].layerId;
 export const WAVE_BUOYS_SOURCE_ID = PRODUCTS[PRODUCT.WAVE_BUOYS].sourceId;
+
+export type BuoySource = typeof WAVE_BUOYS_SOURCE_ID;
+export type BuoyLayer = typeof WAVE_BUOYS_LAYER_ID;
