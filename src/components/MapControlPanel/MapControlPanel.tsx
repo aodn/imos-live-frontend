@@ -13,7 +13,7 @@ import { useIsMapDragging, useIsMapZooming, useMapCanvasWidth } from '@/hooks';
 import { setSidebarOpen, useMapUIStore, useSidebarStore } from '@/store';
 import { exportMapImage } from '@/helpers';
 import { useShallow } from 'zustand/shallow';
-import { PRODUCT, PRODUCTLEGENDS, PRODUCTS } from '@/constants';
+import { HEATMAP_GROUP, PRODUCTLEGENDS, PRODUCTS } from '@/constants';
 import { colorTuplesToCss } from '@/utils';
 
 export function MapControlPanel({
@@ -27,19 +27,14 @@ export function MapControlPanel({
   const isZooming = useIsMapZooming(mapRef);
   const mapCanvasWidth = useMapCanvasWidth(mapRef);
 
-  const { date, gslaAnomalySeaLevelsEnabled, sstAnomMosaicEnabled } = useMapUIStore(
+  const { date, productEnabled } = useMapUIStore(
     useShallow(s => ({
       date: s.date,
-      gslaAnomalySeaLevelsEnabled: s.productEnabled[PRODUCT.GSLA_ANOMALY_SEA_LEVELS],
-      sstAnomMosaicEnabled: s.productEnabled[PRODUCT.SST_ANOMALY_MOSAIC],
+      productEnabled: s.productEnabled,
     })),
   );
 
-  const activeProduct = gslaAnomalySeaLevelsEnabled
-    ? PRODUCT.GSLA_ANOMALY_SEA_LEVELS
-    : sstAnomMosaicEnabled
-      ? PRODUCT.SST_ANOMALY_MOSAIC
-      : undefined;
+  const activeProduct = HEATMAP_GROUP.find(p => productEnabled[p]);
 
   const isMapOnOperation = isDragging || isZooming;
   const isMapTooNarrow = mapCanvasWidth > 0 && mapCanvasWidth < MIN_EXPORT_MAP_WIDTH;
