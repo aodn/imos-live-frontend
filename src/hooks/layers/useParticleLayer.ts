@@ -118,4 +118,8 @@ export function useParticleLayer({ map, layerId, product }: UseParticleLayer) {
     if (!map.current || !loadComplete || !enabled) return;
     setDataByDataset();
   }, [loadComplete, enabled, date]);
+
+  return {
+    updateLegendRange: (range: [number, number]) => layer?.updateLegendRange(range),
+  };
 }

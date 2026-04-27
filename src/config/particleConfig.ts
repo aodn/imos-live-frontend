@@ -1,8 +1,6 @@
 import { generateValueByPercentage } from '@/utils';
-import { MAX_VECTOR_SPEED } from '@/constants';
 
 export type ParticleConfig = {
-  maxSpeed: number;
   nParticles: number;
   fadeOpacity: number;
   speedFactor: number;
@@ -11,7 +9,7 @@ export type ParticleConfig = {
   pointSize: number;
 };
 
-export type CustomizableParticleConfig = Omit<ParticleConfig, 'maxSpeed'>;
+export type CustomizableParticleConfig = ParticleConfig;
 
 export const FADE_OPACITY_RANGE = {
   min: 0.9,
@@ -36,8 +34,6 @@ export const POINT_SIZE_RANGE = {
 } as const;
 
 export const INITIAL_PARTICLE_CONFIG = {
-  maxSpeed: MAX_VECTOR_SPEED,
-
   nParticles: 30000,
 
   // opacity of background screen, leading to fading of trails, related to trail length.

@@ -17,7 +17,7 @@
 import mapboxgl from 'mapbox-gl';
 import * as twgl from 'twgl.js';
 
-import type { CustomizableParticleConfig, ParticleConfig } from '@/config';
+import type { CustomizableParticleConfig } from '@/config';
 import { INITIAL_PARTICLE_CONFIG } from '@/config';
 import { getColorRamp } from '@/utils';
 import type { ProductManifest } from '@/api';
@@ -49,6 +49,7 @@ export type ParticlesAtlasFieldAPI = {
   draw: () => void;
   resize: () => void;
   updateConfig: (config: Partial<CustomizableParticleConfig>) => void;
+  updateLegendRange: (range: [number, number]) => void;
   onMapMove: (bounds: mapboxgl.LngLatBounds, zoom: number) => void;
   /** Set the LOD crossfade blend value (0 = LOD1, 1 = LOD2). Called by LODController. */
   setLodBlend: (value: number) => void;
@@ -66,7 +67,10 @@ export function createParticlesAtlasField(
 
   // Mutable config — updated in place by updateConfig so the draw loop
   // always reads current values without a closure update.
-  const config: ParticleConfig = { ...INITIAL_PARTICLE_CONFIG };
+  const config: CustomizableParticleConfig & { maxSpeed: number } = {
+    ...INITIAL_PARTICLE_CONFIG,
+    maxSpeed: 0, // As a safe initial value (overridden immediately by setSource before any draw)
+  };
 
   // ── Shader programs ──────────────────────────────────────────────────────
   let programInfo: twgl.ProgramInfo | null = null; // draw particles
@@ -540,6 +544,10 @@ export function createParticlesAtlasField(
     Object.assign(config, newConfig);
   }
 
+  function updateLegendRange(range: [number, number]) {
+    config.maxSpeed = range[1];
+  }
+
   function onMapMove(bounds: mapboxgl.LngLatBounds, zoom: number) {
     updateMapBounds(bounds);
 
@@ -572,6 +580,7 @@ export function createParticlesAtlasField(
     draw,
     resize,
     updateConfig,
+    updateLegendRange,
     onMapMove,
     setLodBlend,
   };

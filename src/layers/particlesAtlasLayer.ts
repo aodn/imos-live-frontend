@@ -27,6 +27,7 @@ export type ParticlesAtlasLayerInterface = mapboxgl.CustomLayerInterface & {
   ) => Promise<void>;
   setVisible: (visible: boolean) => void;
   updateConfig: (config: Partial<CustomizableParticleConfig>) => void;
+  updateLegendRange: (range: [number, number]) => void;
   onMoveStart: () => void;
   onMoveEnd: () => void;
   onResize: () => void;
@@ -85,6 +86,10 @@ export function particlesAtlasLayer(
 
     updateConfig(config: Partial<CustomizableParticleConfig>) {
       this.oceanCurrentAtlasField?.updateConfig(config);
+    },
+
+    updateLegendRange(range: [number, number]) {
+      this.oceanCurrentAtlasField?.updateLegendRange(range);
     },
 
     onMoveStart() {
