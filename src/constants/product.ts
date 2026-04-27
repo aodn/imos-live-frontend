@@ -3,7 +3,8 @@
  * the single truth of product's layerId, sourceId.
  */
 import { convertLinearColorScaleToRamp, convertLogColorScaleToRamp } from '@/components';
-import { rdBuR, particles, anomalySeaLevel } from '@/config/colorPalettes';
+import { anomalySeaLevel, COLOR_OPTIONS } from '@/config/colorPalettes';
+import type { ColorOptionKey } from '@/config/colorPalettes';
 import type { ColorPalette } from '@/layers';
 
 export const gslaOverlayImageColors = anomalySeaLevel.colors as [number, number, number][];
@@ -68,93 +69,64 @@ export const PRODUCTS = {
 
 export const MAX_VECTOR_SPEED = 3.0 as const;
 
-export type VectorLegendArgs = {
+export type LegendArgs = {
   label: string;
   numStops?: number;
-  colors?: [number, number, number][];
-  min?: number;
-  max?: number;
-  range?: [number, number];
+  colorKey: ColorOptionKey;
+  range: [number, number];
   threshold?: number;
-};
-export type RasterLegendArgs = {
   scales?: number[];
-  label: string;
-  range?: [number, number];
+  scale: 'log' | 'linear';
 };
 
 export const PRODUCTLEGENDS = {
   [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: {
     label: 'ocean current speed (m/s)',
-    numStops: 256,
-    colors: particles.colors as [number, number, number][],
-    min: 0.01,
-    max: MAX_VECTOR_SPEED,
+    colorKey: 'Particles' as ColorOptionKey,
     range: [0.01, MAX_VECTOR_SPEED],
+    scale: 'log',
   },
   [PRODUCT.SST_ANOMALY_MOSAIC]: {
     scales: [-4, -2, 0, 2, 4],
     label: 'degrees Celsius (°C)',
     range: [-4, 4],
-    colors: rdBuR.colors,
-    min: -4,
-    max: 4,
-    numStops: 256,
+    colorKey: 'RdBu_r' as ColorOptionKey,
+    scale: 'linear',
   },
   [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: {
     scales: [-1.2, -0.6, 0, 0.6, 1.2],
     label: 'sea level anomaly (m)',
     range: [-1.2, 1.2],
-    min: -1.2,
-    max: 1.2,
-    numStops: 256,
-    colors: anomalySeaLevel.colors as [number, number, number][],
+    colorKey: 'Anomaly Sea Level' as ColorOptionKey,
+    scale: 'linear',
   },
   [PRODUCT.MARINE_HEATWAVE_DHD_MOSAIC]: {
     scales: [0, 35, 70, 105, 140, 175, 200],
-    min: 0,
-    max: 200,
     range: [0, 200],
-    colors: rdBuR.colors,
+    colorKey: 'RdBu_r' as ColorOptionKey,
     label: 'degrees Celsius (°C)',
-    numStops: 256,
+    scale: 'linear',
   },
   [PRODUCT.MARINE_HEATWAVE_SSTA_MOSAIC]: {
     scales: [-4, -2, 0, 2, 4],
     label: 'degrees Celsius (°C)',
     range: [-4, 4],
-    colors: rdBuR.colors,
-    min: -4,
-    max: 4,
-    numStops: 256,
+    colorKey: 'RdBu_r' as ColorOptionKey,
+    scale: 'linear',
   },
-} as const satisfies Record<
-  Exclude<ProductType, 'wave-buoys'>,
-  VectorLegendArgs | RasterLegendArgs
->;
+} as const satisfies Record<Exclude<ProductType, 'wave-buoys'>, LegendArgs>;
 
-export const PRODUCTCOLORPALETTES = {
-  [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: {
-    name: 'linear Viridis Ocean Current',
-    colors: convertLogColorScaleToRamp(PRODUCTLEGENDS[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]),
-  },
-  [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: {
-    name: 'linear RdBu_r Sea Level Anomaly',
-    colors: convertLinearColorScaleToRamp(PRODUCTLEGENDS[PRODUCT.GSLA_ANOMALY_SEA_LEVELS]),
-  },
-  [PRODUCT.SST_ANOMALY_MOSAIC]: {
-    name: 'linear RdBu_r SST',
-    colors: convertLinearColorScaleToRamp(PRODUCTLEGENDS[PRODUCT.SST_ANOMALY_MOSAIC]),
-  },
-  [PRODUCT.MARINE_HEATWAVE_DHD_MOSAIC]: {
-    name: 'linear RdBu_r SST',
-    colors: convertLinearColorScaleToRamp(PRODUCTLEGENDS[PRODUCT.MARINE_HEATWAVE_DHD_MOSAIC]),
-  },
-  [PRODUCT.MARINE_HEATWAVE_SSTA_MOSAIC]: {
-    name: 'linear RdBu_r SST',
-    colors: convertLinearColorScaleToRamp(PRODUCTLEGENDS[PRODUCT.MARINE_HEATWAVE_SSTA_MOSAIC]),
-  },
-} as const satisfies Record<WebGlLayerProduct, ColorPalette>;
+export function buildProductPalette(legend: LegendArgs): ColorPalette {
+  const rawColors = COLOR_OPTIONS[legend.colorKey];
+  const colors =
+    legend.scale === 'log'
+      ? convertLogColorScaleToRamp({
+          minMaxRatio: legend.range[0] / legend.range[1],
+          colors: rawColors,
+        })
+      : convertLinearColorScaleToRamp({ colors: rawColors });
+  return { scale: legend.scale, rawColors, colors, legendRange: legend.range as [number, number] };
+}
 
 export type ProductLayerId = (typeof PRODUCTS)[ProductType]['layerId'];
 export type ProductSourceId = (typeof PRODUCTS)[ProductType]['sourceId'];

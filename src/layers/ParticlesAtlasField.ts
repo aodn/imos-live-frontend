@@ -20,7 +20,12 @@ import * as twgl from 'twgl.js';
 import type { CustomizableParticleConfig } from '@/config';
 import { INITIAL_PARTICLE_CONFIG } from '@/config';
 import { getColorRamp } from '@/utils';
+import {
+  convertLogColorScaleToRamp,
+  convertLinearColorScaleToRamp,
+} from '@/components/ColorScaleBar/utils';
 import type { ProductManifest } from '@/api';
+import type { ColorPalette } from './HeatmapAtlasField';
 import type { AtlasManagerAPI, ChunkSchedulerAPI, LODControllerAPI } from '@/webgl';
 import {
   createLODController,
@@ -50,6 +55,8 @@ export type ParticlesAtlasFieldAPI = {
   resize: () => void;
   updateConfig: (config: Partial<CustomizableParticleConfig>) => void;
   updateLegendRange: (range: [number, number]) => void;
+  updateLegendScale: (scale: 'log' | 'linear') => void;
+  updateColorPalette: (rawColors: [number, number, number][]) => void;
   onMapMove: (bounds: mapboxgl.LngLatBounds, zoom: number) => void;
   /** Set the LOD crossfade blend value (0 = LOD1, 1 = LOD2). Called by LODController. */
   setLodBlend: (value: number) => void;
@@ -60,7 +67,7 @@ export type ParticlesAtlasFieldAPI = {
 export function createParticlesAtlasField(
   map: mapboxgl.Map,
   gl: WebGL2RenderingContext,
-  colorRampColors: Record<string, string>,
+  palette: ColorPalette,
 ): ParticlesAtlasFieldAPI {
   // Required for RG32F ping-pong framebuffer (same as VectorField.js)
   gl.getExtension('EXT_color_buffer_float');
@@ -71,6 +78,7 @@ export function createParticlesAtlasField(
     ...INITIAL_PARTICLE_CONFIG,
     maxSpeed: 0, // As a safe initial value (overridden immediately by setSource before any draw)
   };
+  let currentPalette: ColorPalette = palette;
 
   // ── Shader programs ──────────────────────────────────────────────────────
   let programInfo: twgl.ProgramInfo | null = null; // draw particles
@@ -215,7 +223,7 @@ export function createParticlesAtlasField(
     ]);
 
     setParticles(nParticles);
-    setColorRamp(colorRampColors);
+    setColorRamp(currentPalette.colors);
     initScreenTextures();
     framebuffer = gl.createFramebuffer();
   }
@@ -545,7 +553,16 @@ export function createParticlesAtlasField(
   }
 
   function updateLegendRange(range: [number, number]) {
+    currentPalette = { ...currentPalette, legendRange: range };
     config.maxSpeed = range[1];
+    const ramp =
+      currentPalette.scale === 'log'
+        ? convertLogColorScaleToRamp({
+            minMaxRatio: range[0] / range[1],
+            colors: currentPalette.rawColors,
+          })
+        : convertLinearColorScaleToRamp({ colors: currentPalette.rawColors });
+    setColorRamp(ramp);
   }
 
   function onMapMove(bounds: mapboxgl.LngLatBounds, zoom: number) {
@@ -581,6 +598,28 @@ export function createParticlesAtlasField(
     resize,
     updateConfig,
     updateLegendRange,
+    updateLegendScale(scale: 'log' | 'linear') {
+      currentPalette = { ...currentPalette, scale };
+      const ramp =
+        scale === 'log'
+          ? convertLogColorScaleToRamp({
+              minMaxRatio: currentPalette.legendRange[0] / currentPalette.legendRange[1],
+              colors: currentPalette.rawColors,
+            })
+          : convertLinearColorScaleToRamp({ colors: currentPalette.rawColors });
+      setColorRamp(ramp);
+    },
+    updateColorPalette(rawColors: [number, number, number][]) {
+      currentPalette = { ...currentPalette, rawColors };
+      const ramp =
+        currentPalette.scale === 'log'
+          ? convertLogColorScaleToRamp({
+              minMaxRatio: currentPalette.legendRange[0] / currentPalette.legendRange[1],
+              colors: rawColors,
+            })
+          : convertLinearColorScaleToRamp({ colors: rawColors });
+      setColorRamp(ramp);
+    },
     onMapMove,
     setLodBlend,
   };

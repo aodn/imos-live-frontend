@@ -1,9 +1,15 @@
 import type { WebGlLayerProduct } from '@/constants';
-import { PRODUCTCOLORPALETTES, PRODUCTLEGENDS, PRODUCTS } from '@/constants';
+import { buildProductPalette, PRODUCTLEGENDS, PRODUCTS } from '@/constants';
+import { COLOR_OPTIONS } from '@/config';
 import { S3_BASE_URL, getProductManifest } from '@/api';
 import { addLayerInOrder } from '@/helpers';
 import { heatmapAtlasLayer } from '@/layers';
-import { useMapUIStore, setProductErrorByProduct, setProductLoadingByProduct } from '@/store';
+import {
+  useMapUIStore,
+  setProductErrorByProduct,
+  setProductLoadingByProduct,
+  getProductLegend,
+} from '@/store';
 import { useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useShallow } from 'zustand/shallow';
@@ -30,12 +36,14 @@ type UseWebGLHeatmapLayer = {
 //   loads inside layer.setSource can still fail. These are caught inside setDataByDataset,
 //   independent of date availability.
 export function useWebGLHeatmapLayer({ map, layerId, product }: UseWebGLHeatmapLayer) {
-  const { date, enabled, isError, isLoading } = useMapUIStore(
+  const { date, enabled, isError, isLoading, colorKey, legendScale } = useMapUIStore(
     useShallow(s => ({
       date: s.date,
       enabled: s.productEnabled[product],
       isError: s.productError[product],
       isLoading: s.productLoading[product],
+      colorKey: s.productLegends[product].colorKey,
+      legendScale: s.productLegends[product].scale,
     })),
   );
 
@@ -46,7 +54,7 @@ export function useWebGLHeatmapLayer({ map, layerId, product }: UseWebGLHeatmapL
   const tileBaseUrl = `${S3_BASE_URL}/${filePrefix}/${date}`;
 
   const layer = useMemo(
-    () => heatmapAtlasLayer(layerId, PRODUCTCOLORPALETTES[product]),
+    () => heatmapAtlasLayer(layerId, buildProductPalette(getProductLegend(product))),
     [layerId, product],
   );
 
@@ -92,7 +100,20 @@ export function useWebGLHeatmapLayer({ map, layerId, product }: UseWebGLHeatmapL
     setDataByDataset();
   }, [loadComplete, enabled, date]);
 
+  useDidMountEffect(() => {
+    if (!loadComplete) return;
+    layer.updateColorPalette(COLOR_OPTIONS[colorKey]);
+  }, [colorKey, loadComplete]);
+
+  useDidMountEffect(() => {
+    if (!loadComplete) return;
+    layer.updateLegendScale(legendScale);
+  }, [legendScale, loadComplete]);
+
   return {
     updateLegendRange: (range: [number, number]) => layer.updateLegendRange(range),
+    updateLegendScale: (scale: 'log' | 'linear') => layer.updateLegendScale(scale),
+    updateColorPalette: (rawColors: [number, number, number][]) =>
+      layer.updateColorPalette(rawColors),
   };
 }

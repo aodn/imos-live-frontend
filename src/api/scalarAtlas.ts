@@ -33,6 +33,14 @@ export type MetaDataManifest = {
       available_dates: string[];
       latest_date: string;
     };
+    ausTemp_marine_heatwave_aus_dhd_mosaic: {
+      available_dates: string[];
+      latest_date: string;
+    };
+    ausTemp_marine_heatwave_aus_ssta_mosaic: {
+      available_dates: string[];
+      latest_date: string;
+    };
   };
   updated_at: string;
 };

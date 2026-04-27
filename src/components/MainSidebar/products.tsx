@@ -7,7 +7,6 @@ import {
   GSLA_PARTICLE_LAYER_ID,
   WAVE_BUOYS_LAYER_ID,
   PRODUCT,
-  PRODUCTLEGENDS,
   GSLA_ANOMALY_LAYER_ID,
   SST_ANOMALY_MOSAIC_LAYER_ID,
   MARINE_HEATWAVE_DHD_MOSAIC_LAYER_ID,
@@ -22,7 +21,6 @@ import {
   WaveIcon,
 } from '../Icons';
 import type { LayersDataset } from './MainSidebarContent';
-import { LinearColorScaleBar, LogColorScaleBar } from '../ColorScaleBar';
 import { setProductEnabledByProduct } from '@/store';
 
 export const headerData = {
@@ -52,12 +50,6 @@ export const featuredDataset: LayersDataset[] = [
     visible: false,
     isError: false,
     product: PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT,
-    legend: (
-      <LogColorScaleBar
-        className="w-full"
-        {...PRODUCTLEGENDS[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]}
-      />
-    ),
     addToMap: setProductEnabledByProduct,
     portalLink: 'https://portal-beta.aodn.org.au/details/0c9eb39c-9cbe-4c6a-8a10-5867087e703a',
   },
@@ -78,12 +70,6 @@ export const featuredDataset: LayersDataset[] = [
     visible: false,
     isError: false,
     product: PRODUCT.GSLA_ANOMALY_SEA_LEVELS,
-    legend: (
-      <LinearColorScaleBar
-        className="w-full"
-        {...PRODUCTLEGENDS[PRODUCT.GSLA_ANOMALY_SEA_LEVELS]}
-      />
-    ),
     addToMap: setProductEnabledByProduct,
     portalLink: 'https://portal-beta.aodn.org.au/details/0c9eb39c-9cbe-4c6a-8a10-5867087e703a',
   },
@@ -100,9 +86,6 @@ export const featuredDataset: LayersDataset[] = [
     visible: false,
     isError: false,
     product: PRODUCT.SST_ANOMALY_MOSAIC,
-    legend: (
-      <LinearColorScaleBar className="w-full" {...PRODUCTLEGENDS[PRODUCT.SST_ANOMALY_MOSAIC]} />
-    ),
     addToMap: setProductEnabledByProduct,
     portalLink:
       'https://catalogue-imos.aodn.org.au/geonetwork/srv/eng/catalog.search#/search?any=IMOS%20-%20AusTemp%20-%20Sea%20Surface%20Temperature',
@@ -120,12 +103,6 @@ export const featuredDataset: LayersDataset[] = [
     visible: false,
     isError: false,
     product: PRODUCT.MARINE_HEATWAVE_DHD_MOSAIC,
-    legend: (
-      <LinearColorScaleBar
-        className="w-full"
-        {...PRODUCTLEGENDS[PRODUCT.MARINE_HEATWAVE_DHD_MOSAIC]}
-      />
-    ),
     addToMap: setProductEnabledByProduct,
     portalLink:
       'https://catalogue-imos.aodn.org.au/geonetwork/srv/eng/catalog.search#/search?any=IMOS%20-%20AusTemp%20-%20Marine%20Heatwave',
@@ -143,12 +120,6 @@ export const featuredDataset: LayersDataset[] = [
     visible: false,
     isError: false,
     product: PRODUCT.MARINE_HEATWAVE_SSTA_MOSAIC,
-    legend: (
-      <LinearColorScaleBar
-        className="w-full"
-        {...PRODUCTLEGENDS[PRODUCT.MARINE_HEATWAVE_SSTA_MOSAIC]}
-      />
-    ),
     addToMap: setProductEnabledByProduct,
     portalLink:
       'https://catalogue-imos.aodn.org.au/geonetwork/srv/eng/catalog.search#/search?any=IMOS%20-%20AusTemp%20-%20Marine%20Heatwave',

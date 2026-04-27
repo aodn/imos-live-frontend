@@ -1,9 +1,15 @@
 import type { WebGlLayerProduct } from '@/constants';
-import { PRODUCTCOLORPALETTES, PRODUCTLEGENDS, PRODUCTS } from '@/constants';
+import { buildProductPalette, PRODUCTLEGENDS, PRODUCTS } from '@/constants';
+import { COLOR_OPTIONS } from '@/config';
 import { S3_BASE_URL, getProductManifest } from '@/api';
 import { addLayerInOrder } from '@/helpers';
 import { particlesAtlasLayer } from '@/layers';
-import { useMapUIStore, setProductErrorByProduct, setProductLoadingByProduct } from '@/store';
+import {
+  useMapUIStore,
+  setProductErrorByProduct,
+  setProductLoadingByProduct,
+  getProductLegend,
+} from '@/store';
 import { useCallback, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useShallow } from 'zustand/shallow';
@@ -40,6 +46,8 @@ export function useParticleLayer({ map, layerId, product }: UseParticleLayer) {
     isError,
     isLoading,
     enabled,
+    colorKey,
+    legendScale,
   } = useMapUIStore(
     useShallow(s => ({
       date: s.date,
@@ -52,6 +60,8 @@ export function useParticleLayer({ map, layerId, product }: UseParticleLayer) {
       isError: s.productError[product],
       isLoading: s.productLoading[product],
       enabled: s.productEnabled[product],
+      colorKey: s.productLegends[product].colorKey,
+      legendScale: s.productLegends[product].scale,
     })),
   );
 
@@ -62,7 +72,7 @@ export function useParticleLayer({ map, layerId, product }: UseParticleLayer) {
   const tileBaseUrl = `${S3_BASE_URL}/${filePrefix}/${date}`;
 
   const layer = useMemo(
-    () => particlesAtlasLayer(layerId, PRODUCTCOLORPALETTES[product].colors),
+    () => particlesAtlasLayer(layerId, buildProductPalette(getProductLegend(product))),
     [layerId, product],
   );
 
@@ -119,7 +129,20 @@ export function useParticleLayer({ map, layerId, product }: UseParticleLayer) {
     setDataByDataset();
   }, [loadComplete, enabled, date]);
 
+  useDidMountEffect(() => {
+    if (!loadComplete) return;
+    layer.updateColorPalette(COLOR_OPTIONS[colorKey]);
+  }, [colorKey, loadComplete]);
+
+  useDidMountEffect(() => {
+    if (!loadComplete) return;
+    layer.updateLegendScale(legendScale);
+  }, [legendScale, loadComplete]);
+
   return {
     updateLegendRange: (range: [number, number]) => layer?.updateLegendRange(range),
+    updateLegendScale: (scale: 'log' | 'linear') => layer?.updateLegendScale(scale),
+    updateColorPalette: (rawColors: [number, number, number][]) =>
+      layer?.updateColorPalette(rawColors),
   };
 }

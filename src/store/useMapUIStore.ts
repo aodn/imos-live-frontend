@@ -10,8 +10,8 @@ import {
   INITIAL_ZOOM,
   INITIAL_PARTICLE_CONFIG,
 } from '@/config';
-import type { ProductType } from '@/constants';
-import { PRODUCT, HEATMAP_GROUP } from '@/constants';
+import type { LegendArgs, ProductType, WebGlLayerProduct } from '@/constants';
+import { PRODUCT, HEATMAP_GROUP, PRODUCTLEGENDS } from '@/constants';
 import type { StyleTitle } from '@/styles';
 import { type LngLat } from 'mapbox-gl';
 import { create } from 'zustand';
@@ -40,6 +40,7 @@ export type MapUIState = {
   productEnabled: ProductEnabled;
   productError: ProductError;
   productLoading: ProductLoading;
+  productLegends: Record<WebGlLayerProduct, LegendArgs>;
   jumpToDate: JumpToDate | null;
   setCenter: (center: LngLat) => void;
   setZoom: (zoom: number) => void;
@@ -52,6 +53,8 @@ export type MapUIState = {
   setProductErrorByProduct: (product: ProductType, error: boolean) => void;
   setProductLoadingByProduct: (product: ProductType, loading: boolean) => void;
   setProductEnabledByProduct: (product: ProductType, enabled: boolean) => void;
+  setProductLegend: (product: WebGlLayerProduct, legend: Partial<LegendArgs>) => void;
+  getProductLegend: (product: WebGlLayerProduct) => LegendArgs;
   setJumpToDate: (date: string) => void;
   clearJumpToDate: () => void;
 };
@@ -95,7 +98,7 @@ const storageOptions = {
 
 export const useMapUIStore = create(
   persist<MapUIState>(
-    set => ({
+    (set, get) => ({
       center: INITIAL_CENTER,
       zoom: INITIAL_ZOOM,
       style: INITIAL_STYLE,
@@ -128,6 +131,9 @@ export const useMapUIStore = create(
         [PRODUCT.MARINE_HEATWAVE_DHD_MOSAIC]: false,
         [PRODUCT.MARINE_HEATWAVE_SSTA_MOSAIC]: false,
       },
+      productLegends: Object.fromEntries(
+        Object.entries(PRODUCTLEGENDS).map(([k, v]) => [k, { ...v }]),
+      ) as Record<WebGlLayerProduct, LegendArgs>,
       jumpToDate: null,
       setCenter: center => set({ center }),
       setZoom: zoom => set({ zoom }),
@@ -173,6 +179,14 @@ export const useMapUIStore = create(
           },
         }));
       },
+      setProductLegend: (product, legend) =>
+        set(prev => ({
+          productLegends: {
+            ...prev.productLegends,
+            [product]: { ...prev.productLegends[product], ...legend },
+          },
+        })),
+      getProductLegend: product => get().productLegends[product],
       setJumpToDate: date => set({ jumpToDate: { date, trigger: Date.now() } }),
       clearJumpToDate: () => set({ jumpToDate: null }),
     }),
@@ -194,6 +208,8 @@ export const {
   setProductErrorByProduct,
   setProductLoadingByProduct,
   setProductEnabledByProduct,
+  setProductLegend,
+  getProductLegend,
   setJumpToDate,
   clearJumpToDate,
 } = useMapUIStore.getState();

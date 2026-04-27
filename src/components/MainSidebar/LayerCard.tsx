@@ -1,16 +1,19 @@
 import type { WebGlLayerProduct } from '@/constants';
 import { PRODUCTS, WAVE_BUOYS_LAYER_ID } from '@/constants';
+import { COLOR_OPTIONS } from '@/config';
 import { cn, toCompactDate, toISOFromCompact } from '@/utils';
 import type { ReactNode } from 'react';
 import { Button } from '../Button';
 import type { TriggerArgs } from '../Collapsible';
 import { CollapsibleComponent } from '../Collapsible';
+import { Dropdown } from '../Dropdown';
 import { AddCircleIcon, ArrowIcon, MinusCircleIcon, VectorIcon } from '../Icons';
 import { Image } from '../Image';
+import { LinearColorScaleBar, LogColorScaleBar } from '../ColorScaleBar';
 import type { LayersDataset } from './MainSidebarContent';
 import { useQuery } from '@tanstack/react-query';
 import { getMetaDataManifest, getWaveBuoyLatestDate } from '@/api';
-import { setJumpToDate } from '@/store';
+import { setJumpToDate, setProductLegend, useMapUIStore } from '@/store';
 
 export type LayerCardProps = LayersDataset & {
   portalLink?: string;
@@ -26,10 +29,16 @@ export function LayerCard({
   layerId,
   icon,
   product,
-  legend,
   portalLink,
 }: LayerCardProps) {
   const isWaveBuoyProduct = product === 'wave-buoys';
+
+  const productLegend = useMapUIStore(s =>
+    !isWaveBuoyProduct ? s.productLegends[product as WebGlLayerProduct] : null,
+  );
+  const colorKey = productLegend?.colorKey ?? 'RdBu_r';
+  const legendScale = productLegend?.scale ?? 'linear';
+
   const { data: webglProductData, isLoading: isWebglProductDateLoading } = useQuery({
     queryKey: ['webgl_product_latest_date'],
     queryFn: () => getMetaDataManifest(),
@@ -148,7 +157,60 @@ export function LayerCard({
           </Button>
         </div>
 
-        {!!legend && <div className="col-span-12">{legend}</div>}
+        {!isWaveBuoyProduct && (
+          <div className="col-span-12 flex gap-3">
+            <Dropdown
+              className="flex-1"
+              size="sm"
+              label="Color palette"
+              options={Object.keys(COLOR_OPTIONS).map(key => ({ label: key, value: key }))}
+              initialValue={colorKey}
+              onChange={v =>
+                setProductLegend(product as WebGlLayerProduct, {
+                  colorKey: v as keyof typeof COLOR_OPTIONS,
+                })
+              }
+              usePortal
+            />
+            <Dropdown
+              className="flex-1"
+              size="sm"
+              label="Scale"
+              options={[
+                { label: 'Linear', value: 'linear' },
+                { label: 'Log', value: 'log' },
+              ]}
+              initialValue={legendScale}
+              onChange={v =>
+                setProductLegend(product as WebGlLayerProduct, { scale: v as 'log' | 'linear' })
+              }
+              usePortal
+            />
+          </div>
+        )}
+
+        {!isWaveBuoyProduct && productLegend && (
+          <div className="col-span-12">
+            {legendScale === 'log' ? (
+              <LogColorScaleBar
+                className="w-full"
+                colors={COLOR_OPTIONS[colorKey]}
+                min={productLegend.range[0]}
+                max={productLegend.range[1]}
+                label={productLegend.label}
+              />
+            ) : (
+              <LinearColorScaleBar
+                className="w-full"
+                colors={COLOR_OPTIONS[colorKey]}
+                min={productLegend.range[0]}
+                max={productLegend.range[1]}
+                label={productLegend.label}
+                scales={productLegend.scales}
+              />
+            )}
+          </div>
+        )}
       </div>
     </CollapsibleComponent>
   );

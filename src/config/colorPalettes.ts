@@ -106,3 +106,11 @@ export const anomalySeaLevel = {
     [0.659, 0, 0],
   ],
 };
+
+export const COLOR_OPTIONS = {
+  RdBu_r: rdBuR.colors as [number, number, number][],
+  'Anomaly Sea Level': anomalySeaLevel.colors as [number, number, number][],
+  Particles: particles.colors as [number, number, number][],
+};
+
+export type ColorOptionKey = keyof typeof COLOR_OPTIONS;

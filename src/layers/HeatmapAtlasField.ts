@@ -34,9 +34,20 @@ import {
 const HEATMAP_ATLAS_W = 4096;
 const HEATMAP_ATLAS_H = 2048;
 import { getColorRamp } from '@/utils';
+import {
+  convertLogColorScaleToRamp,
+  convertLinearColorScaleToRamp,
+} from '@/components/ColorScaleBar/utils';
 import type { ProductManifest } from '@/api';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
+
+export type ColorPalette = {
+  colors: Record<string, string>;
+  legendRange: [number, number];
+  rawColors: [number, number, number][];
+  scale: 'log' | 'linear';
+};
 
 export type HeatmapAtlasFieldAPI = {
   setSource: (
@@ -45,6 +56,8 @@ export type HeatmapAtlasFieldAPI = {
     legendRange: [number, number],
   ) => Promise<void>;
   updateLegendRange: (range: [number, number]) => void;
+  updateLegendScale: (scale: 'log' | 'linear') => void;
+  updateColorPalette: (rawColors: [number, number, number][]) => void;
   setVisible: (visible: boolean) => void;
   draw: () => void;
   onMapMove: (bounds: mapboxgl.LngLatBounds, zoom: number) => void;
@@ -55,12 +68,13 @@ export type HeatmapAtlasFieldAPI = {
 export function createHeatmapAtlasField(
   map: mapboxgl.Map,
   gl: WebGL2RenderingContext,
-  colorRampColors: Record<string, string>,
+  palette: ColorPalette,
 ): HeatmapAtlasFieldAPI {
   // ── Shader program ───────────────────────────────────────────────────────
   let programInfo: twgl.ProgramInfo | null = null;
   let bufferInfo: twgl.BufferInfo | null = null;
   let colorRampTexture: WebGLTexture | null = null;
+  let currentPalette: ColorPalette = palette;
 
   // ── Atlas + chunk management ─────────────────────────────────────────────
   let atlas: AtlasManagerAPI | null = null;
@@ -103,7 +117,7 @@ export function createHeatmapAtlasField(
     });
 
     colorRampTexture = twgl.createTexture(gl, {
-      src: getColorRamp(colorRampColors),
+      src: getColorRamp(currentPalette.colors),
       width: 256,
       height: 1,
       min: gl.LINEAR,
@@ -131,7 +145,55 @@ export function createHeatmapAtlasField(
   // ── Public API ────────────────────────────────────────────────────────────
 
   function updateLegendRange(range: [number, number]) {
+    currentPalette = { ...currentPalette, legendRange: range };
     legendRange = range;
+    if (!colorRampTexture) return;
+    const ramp =
+      currentPalette.scale === 'log'
+        ? convertLogColorScaleToRamp({
+            minMaxRatio: range[0] / range[1],
+            colors: currentPalette.rawColors,
+          })
+        : convertLinearColorScaleToRamp({ colors: currentPalette.rawColors });
+    twgl.setTextureFromArray(gl, colorRampTexture, getColorRamp(ramp), {
+      width: 256,
+      height: 1,
+      format: gl.RGBA,
+    });
+  }
+
+  function updateLegendScale(scale: 'log' | 'linear') {
+    currentPalette = { ...currentPalette, scale };
+    if (!colorRampTexture) return;
+    const ramp =
+      scale === 'log'
+        ? convertLogColorScaleToRamp({
+            minMaxRatio: currentPalette.legendRange[0] / currentPalette.legendRange[1],
+            colors: currentPalette.rawColors,
+          })
+        : convertLinearColorScaleToRamp({ colors: currentPalette.rawColors });
+    twgl.setTextureFromArray(gl, colorRampTexture, getColorRamp(ramp), {
+      width: 256,
+      height: 1,
+      format: gl.RGBA,
+    });
+  }
+
+  function updateColorPalette(rawColors: [number, number, number][]) {
+    currentPalette = { ...currentPalette, rawColors };
+    if (!colorRampTexture) return;
+    const ramp =
+      currentPalette.scale === 'log'
+        ? convertLogColorScaleToRamp({
+            minMaxRatio: currentPalette.legendRange[0] / currentPalette.legendRange[1],
+            colors: rawColors,
+          })
+        : convertLinearColorScaleToRamp({ colors: rawColors });
+    twgl.setTextureFromArray(gl, colorRampTexture, getColorRamp(ramp), {
+      width: 256,
+      height: 1,
+      format: gl.RGBA,
+    });
   }
 
   async function setSource(
@@ -316,5 +378,13 @@ export function createHeatmapAtlasField(
     }
   }
 
-  return { setSource, updateLegendRange, setVisible, draw, onMapMove };
+  return {
+    setSource,
+    updateLegendRange,
+    updateLegendScale,
+    updateColorPalette,
+    setVisible,
+    draw,
+    onMapMove,
+  };
 }
