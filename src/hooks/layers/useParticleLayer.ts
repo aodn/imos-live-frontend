@@ -1,8 +1,8 @@
 import type { WebGlLayerProduct } from '@/constants';
-import { buildProductPalette, PRODUCTLEGENDS, PRODUCTS } from '@/constants';
+import { PRODUCTLEGENDS, PRODUCTS } from '@/constants';
 import { COLOR_OPTIONS } from '@/config';
 import { S3_BASE_URL, getProductManifest } from '@/api';
-import { addLayerInOrder } from '@/helpers';
+import { addLayerInOrder, buildProductPalette } from '@/helpers';
 import { particlesAtlasLayer } from '@/layers';
 import {
   useMapUIStore,

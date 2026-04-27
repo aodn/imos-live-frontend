@@ -2,10 +2,8 @@
  * this is the single truth of all the products in this project, and
  * the single truth of product's layerId, sourceId.
  */
-import { convertLinearColorScaleToRamp, convertLogColorScaleToRamp } from '@/components';
-import { anomalySeaLevel, COLOR_OPTIONS } from '@/config/colorPalettes';
+import { anomalySeaLevel } from '@/config/colorPalettes';
 import type { ColorOptionKey } from '@/config/colorPalettes';
-import type { ColorPalette } from '@/layers';
 
 export const gslaOverlayImageColors = anomalySeaLevel.colors as [number, number, number][];
 
@@ -115,18 +113,6 @@ export const PRODUCTLEGENDS = {
     scale: 'linear',
   },
 } as const satisfies Record<Exclude<ProductType, 'wave-buoys'>, LegendArgs>;
-
-export function buildProductPalette(legend: LegendArgs): ColorPalette {
-  const rawColors = COLOR_OPTIONS[legend.colorKey];
-  const colors =
-    legend.scale === 'log'
-      ? convertLogColorScaleToRamp({
-          minMaxRatio: legend.range[0] / legend.range[1],
-          colors: rawColors,
-        })
-      : convertLinearColorScaleToRamp({ colors: rawColors });
-  return { scale: legend.scale, rawColors, colors, legendRange: legend.range as [number, number] };
-}
 
 export type ProductLayerId = (typeof PRODUCTS)[ProductType]['layerId'];
 export type ProductSourceId = (typeof PRODUCTS)[ProductType]['sourceId'];

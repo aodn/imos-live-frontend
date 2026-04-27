@@ -6,3 +6,4 @@ export * from './removeZoomLimitTempPoints.ts';
 export * from './addOrUpdateVectorSource.ts';
 export * from './createEventPriority.ts';
 export * from './mapImageExport.ts';
+export * from './buildProductPalette.ts';
