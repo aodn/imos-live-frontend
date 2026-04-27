@@ -1,12 +1,4 @@
-import { PRODUCT, PRODUCTS } from './product';
-
-//product layer id and source id, keep single truth from: import { PRODUCTS } from "./product";
-export const GSLA_PARTICLE_LAYER_ID = PRODUCTS[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT].layerId;
-export const GSLA_ANOMALY_LAYER_ID = PRODUCTS[PRODUCT.GSLA_ANOMALY_SEA_LEVELS].layerId;
-export const SST_ANOMALY_MOSAIC_LAYER_ID = PRODUCTS[PRODUCT.SST_ANOMALY_MOSAIC].layerId;
-
-export const WAVE_BUOYS_LAYER_ID = PRODUCTS[PRODUCT.WAVE_BUOYS].layerId;
-export const WAVE_BUOYS_SOURCE_ID = PRODUCTS[PRODUCT.WAVE_BUOYS].sourceId;
+import type { WAVE_BUOYS_LAYER_ID, WAVE_BUOYS_SOURCE_ID } from './product';
 
 export type BuoySource = typeof WAVE_BUOYS_SOURCE_ID;
 export type BuoyLayer = typeof WAVE_BUOYS_LAYER_ID;

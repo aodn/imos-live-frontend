@@ -1,4 +1,3 @@
-export * from './shader';
 export * from './particlesShader';
 export * from './heatmapShader';
 export * from './AtlasManager';

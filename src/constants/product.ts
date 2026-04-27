@@ -2,36 +2,19 @@
  * this is the single truth of all the products in this project, and
  * the single truth of product's layerId, sourceId.
  */
-import speedColors from '../config/speed_colormap.json' with { type: 'json' };
 import { convertLinearColorScaleToRamp, convertLogColorScaleToRamp } from '@/components';
-import anomalySeaLevelColorMap from '@/config/anomaly_sea_level_colormap.json';
+import { rdBuR, particles, anomalySeaLevel } from '@/config/colorPalettes';
 import type { ColorPalette } from '@/layers';
 
-export const rdBuR: { colors: [number, number, number][] } = {
-  colors: [
-    [0.02, 0.188, 0.38], // dark blue
-    [0.094, 0.31, 0.635],
-    [0.22, 0.478, 0.745],
-    [0.396, 0.647, 0.82],
-    [0.62, 0.788, 0.882],
-    [0.82, 0.898, 0.941],
-    [0.969, 0.969, 0.969], // near white (centre)
-    [0.992, 0.859, 0.78],
-    [0.957, 0.694, 0.545],
-    [0.89, 0.49, 0.337],
-    [0.776, 0.275, 0.224],
-    [0.62, 0.102, 0.118],
-    [0.403, 0.0, 0.122], // dark red
-  ],
-};
-
-export const gslaOverlayImageColors = anomalySeaLevelColorMap as [number, number, number][];
+export const gslaOverlayImageColors = anomalySeaLevel.colors as [number, number, number][];
 
 export const PRODUCT = {
   GSLA_OCEAN_GEOSTROPHIC_CURRENT: 'gsla-ocean-geostrophic-current',
   GSLA_ANOMALY_SEA_LEVELS: 'gsla-anomaly-sea-levels',
   WAVE_BUOYS: 'wave-buoys',
   SST_ANOMALY_MOSAIC: 'sst-anom-mosaic',
+  MARINE_HEATWAVE_SSTA_MOSAIC: 'marine-heatwave-ssta-mosaic',
+  MARINE_HEATWAVE_DHD_MOSAIC: 'marine-heatwave-dhd-mosaic',
 } as const;
 
 export type ProductType = (typeof PRODUCT)[keyof typeof PRODUCT];
@@ -69,6 +52,18 @@ export const PRODUCTS = {
     sourceId: 'sst-anom-mosaic-source',
     bucketPath: 'austemp_sst_anomaly_sst_anom_mosaic',
   },
+  [PRODUCT.MARINE_HEATWAVE_DHD_MOSAIC]: {
+    name: 'Marine heatwave DHD Mosaic',
+    layerId: 'marine-heatwave-dhd-mosaic-layer',
+    sourceId: 'marine-heatwave-dhd-mosaic-source',
+    bucketPath: 'ausTemp_marine_heatwave_aus_dhd_mosaic',
+  },
+  [PRODUCT.MARINE_HEATWAVE_SSTA_MOSAIC]: {
+    name: 'Marine heatwave SSTA Mosaic',
+    layerId: 'marine-heatwave-ssta-mosaic-layer',
+    sourceId: 'marine-heatwave-ssta-mosaic-source',
+    bucketPath: 'ausTemp_marine_heatwave_aus_ssta_mosaic',
+  },
 } as const satisfies Record<ProductType, ProductValue>;
 
 export const MAX_VECTOR_SPEED = 3.0 as const;
@@ -92,7 +87,7 @@ export const PRODUCTLEGENDS = {
   [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: {
     label: 'ocean current speed (m/s)',
     numStops: 256,
-    colors: speedColors as [number, number, number][],
+    colors: particles.colors as [number, number, number][],
     min: 0.01,
     max: MAX_VECTOR_SPEED,
     range: [0.01, MAX_VECTOR_SPEED],
@@ -113,7 +108,25 @@ export const PRODUCTLEGENDS = {
     min: -1.2,
     max: 1.2,
     numStops: 256,
-    colors: anomalySeaLevelColorMap as [number, number, number][],
+    colors: anomalySeaLevel.colors as [number, number, number][],
+  },
+  [PRODUCT.MARINE_HEATWAVE_DHD_MOSAIC]: {
+    scales: [0, 35, 70, 105, 140, 175, 200],
+    min: 0,
+    max: 200,
+    range: [0, 200],
+    colors: rdBuR.colors,
+    label: 'degrees Celsius (°C)',
+    numStops: 256,
+  },
+  [PRODUCT.MARINE_HEATWAVE_SSTA_MOSAIC]: {
+    scales: [-4, -2, 0, 2, 4],
+    label: 'degrees Celsius (°C)',
+    range: [-4, 4],
+    colors: rdBuR.colors,
+    min: -4,
+    max: 4,
+    numStops: 256,
   },
 } as const satisfies Record<
   Exclude<ProductType, 'wave-buoys'>,
@@ -133,6 +146,14 @@ export const PRODUCTCOLORPALETTES = {
     name: 'linear RdBu_r SST',
     colors: convertLinearColorScaleToRamp(PRODUCTLEGENDS[PRODUCT.SST_ANOMALY_MOSAIC]),
   },
+  [PRODUCT.MARINE_HEATWAVE_DHD_MOSAIC]: {
+    name: 'linear RdBu_r SST',
+    colors: convertLinearColorScaleToRamp(PRODUCTLEGENDS[PRODUCT.MARINE_HEATWAVE_DHD_MOSAIC]),
+  },
+  [PRODUCT.MARINE_HEATWAVE_SSTA_MOSAIC]: {
+    name: 'linear RdBu_r SST',
+    colors: convertLinearColorScaleToRamp(PRODUCTLEGENDS[PRODUCT.MARINE_HEATWAVE_SSTA_MOSAIC]),
+  },
 } as const satisfies Record<WebGlLayerProduct, ColorPalette>;
 
 export type ProductLayerId = (typeof PRODUCTS)[ProductType]['layerId'];
@@ -146,3 +167,10 @@ export const sourceIdToProduct = (sourceId: ProductSourceId) => {
 export const layerIdToProduct = (layerId: ProductLayerId) => {
   return Object.entries(PRODUCTS).find(([, v]) => v.layerId === layerId)?.[0] as ProductType;
 };
+
+// Layer IDs - single source of truth for product layer IDs
+export const GSLA_PARTICLE_LAYER_ID = PRODUCTS[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT].layerId;
+export const GSLA_ANOMALY_LAYER_ID = PRODUCTS[PRODUCT.GSLA_ANOMALY_SEA_LEVELS].layerId;
+export const SST_ANOMALY_MOSAIC_LAYER_ID = PRODUCTS[PRODUCT.SST_ANOMALY_MOSAIC].layerId;
+export const WAVE_BUOYS_LAYER_ID = PRODUCTS[PRODUCT.WAVE_BUOYS].layerId;
+export const WAVE_BUOYS_SOURCE_ID = PRODUCTS[PRODUCT.WAVE_BUOYS].sourceId;

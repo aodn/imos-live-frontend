@@ -7,7 +7,7 @@ import {
   interpolateColor,
   getSymlogColorPosition,
 } from './utils';
-import anomalySeaLevelColorMap from '@/config/anomaly_sea_level_colormap.json';
+import { particles } from '@/config';
 import { cn } from '@/utils';
 
 type SymLogColorScaleBarProps = {
@@ -32,7 +32,7 @@ export function SymLogColorScaleBar({
   threshold = 0.1,
   compressedRange = 0.2,
   label,
-  colors = anomalySeaLevelColorMap as [number, number, number][],
+  colors = particles.colors as [number, number, number][],
   intermediateTicks = [2, 5],
 }: SymLogColorScaleBarProps) {
   const gradient = useMemo(() => {
