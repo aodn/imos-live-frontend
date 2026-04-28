@@ -25,7 +25,7 @@ import {
   convertLinearColorScaleToRamp,
 } from '@/components/ColorScaleBar/utils';
 import type { ProductManifest } from '@/api';
-import type { ColorPalette } from './HeatmapAtlasField';
+import type { ColorPalette, PalettePatch } from './HeatmapAtlasField';
 import type { AtlasManagerAPI, ChunkSchedulerAPI, LODControllerAPI } from '@/webgl';
 import {
   createLODController,
@@ -41,6 +41,16 @@ import {
 const PARTICLES_ATLAS_W = 2048;
 const PARTICLES_ATLAS_H = 2048;
 
+function computeRamp(palette: ColorPalette): Record<string, string> {
+  const { scale, legendRange, rawColors } = palette;
+  return scale === 'log'
+    ? convertLogColorScaleToRamp({
+        minMaxRatio: legendRange[0] / legendRange[1],
+        colors: rawColors,
+      })
+    : convertLinearColorScaleToRamp({ colors: rawColors });
+}
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export type ParticlesAtlasFieldAPI = {
@@ -54,9 +64,7 @@ export type ParticlesAtlasFieldAPI = {
   draw: () => void;
   resize: () => void;
   updateConfig: (config: Partial<CustomizableParticleConfig>) => void;
-  updateLegendRange: (range: [number, number]) => void;
-  updateLegendScale: (scale: 'log' | 'linear') => void;
-  updateColorPalette: (rawColors: [number, number, number][]) => void;
+  updatePalette: (patch: PalettePatch) => void;
   onMapMove: (bounds: mapboxgl.LngLatBounds, zoom: number) => void;
   /** Set the LOD crossfade blend value (0 = LOD1, 1 = LOD2). Called by LODController. */
   setLodBlend: (value: number) => void;
@@ -74,9 +82,8 @@ export function createParticlesAtlasField(
 
   // Mutable config — updated in place by updateConfig so the draw loop
   // always reads current values without a closure update.
-  const config: CustomizableParticleConfig & { maxSpeed: number } = {
+  const config: CustomizableParticleConfig = {
     ...INITIAL_PARTICLE_CONFIG,
-    maxSpeed: 0, // As a safe initial value (overridden immediately by setSource before any draw)
   };
   let currentPalette: ColorPalette = palette;
 
@@ -223,7 +230,7 @@ export function createParticlesAtlasField(
     ]);
 
     setParticles(nParticles);
-    setColorRamp(currentPalette.colors);
+    setColorRamp(computeRamp(currentPalette));
     initScreenTextures();
     framebuffer = gl.createFramebuffer();
   }
@@ -281,7 +288,7 @@ export function createParticlesAtlasField(
       u_bounds: mapBounds,
       u_data_bounds: dataBounds,
       u_point_size: config.pointSize,
-      u_max_speed: config.maxSpeed,
+      u_max_speed: currentPalette.legendRange[1],
     });
 
     twgl.drawBufferInfo(gl, bufferInfo, gl.POINTS);
@@ -437,7 +444,7 @@ export function createParticlesAtlasField(
     legendRange: [number, number],
   ): Promise<void> {
     const gen = ++fetchGeneration;
-    config.maxSpeed = legendRange[1];
+    currentPalette = { ...currentPalette, legendRange };
     const lodsSorted = Object.entries(manifest.lods)
       .sort(([a], [b]) => Number(a) - Number(b))
       .map(([, entry]) => entry);
@@ -552,19 +559,6 @@ export function createParticlesAtlasField(
     Object.assign(config, newConfig);
   }
 
-  function updateLegendRange(range: [number, number]) {
-    currentPalette = { ...currentPalette, legendRange: range };
-    config.maxSpeed = range[1];
-    const ramp =
-      currentPalette.scale === 'log'
-        ? convertLogColorScaleToRamp({
-            minMaxRatio: range[0] / range[1],
-            colors: currentPalette.rawColors,
-          })
-        : convertLinearColorScaleToRamp({ colors: currentPalette.rawColors });
-    setColorRamp(ramp);
-  }
-
   function onMapMove(bounds: mapboxgl.LngLatBounds, zoom: number) {
     updateMapBounds(bounds);
 
@@ -590,6 +584,11 @@ export function createParticlesAtlasField(
     if (value > 0) lodController.startBlendIn();
   }
 
+  function updatePalette(patch: PalettePatch) {
+    currentPalette = { ...currentPalette, ...patch };
+    setColorRamp(computeRamp(currentPalette));
+  }
+
   return {
     setSource,
     startAnimation,
@@ -597,29 +596,7 @@ export function createParticlesAtlasField(
     draw,
     resize,
     updateConfig,
-    updateLegendRange,
-    updateLegendScale(scale: 'log' | 'linear') {
-      currentPalette = { ...currentPalette, scale };
-      const ramp =
-        scale === 'log'
-          ? convertLogColorScaleToRamp({
-              minMaxRatio: currentPalette.legendRange[0] / currentPalette.legendRange[1],
-              colors: currentPalette.rawColors,
-            })
-          : convertLinearColorScaleToRamp({ colors: currentPalette.rawColors });
-      setColorRamp(ramp);
-    },
-    updateColorPalette(rawColors: [number, number, number][]) {
-      currentPalette = { ...currentPalette, rawColors };
-      const ramp =
-        currentPalette.scale === 'log'
-          ? convertLogColorScaleToRamp({
-              minMaxRatio: currentPalette.legendRange[0] / currentPalette.legendRange[1],
-              colors: rawColors,
-            })
-          : convertLinearColorScaleToRamp({ colors: rawColors });
-      setColorRamp(ramp);
-    },
+    updatePalette,
     onMapMove,
     setLodBlend,
   };

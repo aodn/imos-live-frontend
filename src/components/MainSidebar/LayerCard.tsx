@@ -172,7 +172,7 @@ export function LayerCard({
               }
               usePortal
             />
-            <Dropdown
+            {/* <Dropdown
               className="flex-1"
               size="sm"
               label="Scale"
@@ -185,7 +185,7 @@ export function LayerCard({
                 setProductLegend(product as WebGlLayerProduct, { scale: v as 'log' | 'linear' })
               }
               usePortal
-            />
+            /> */}
           </div>
         )}
 

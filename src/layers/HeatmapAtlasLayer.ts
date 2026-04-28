@@ -13,9 +13,9 @@
 
 import type { ProductManifest } from '@/api';
 import { createHeatmapAtlasField } from './HeatmapAtlasField';
-import type { HeatmapAtlasFieldAPI, ColorPalette } from './HeatmapAtlasField';
+import type { HeatmapAtlasFieldAPI, ColorPalette, PalettePatch } from './HeatmapAtlasField';
 
-export type { ColorPalette };
+export type { ColorPalette, PalettePatch };
 
 export type HeatmapAtlasLayerInterface = mapboxgl.CustomLayerInterface & {
   visible: boolean;
@@ -25,9 +25,7 @@ export type HeatmapAtlasLayerInterface = mapboxgl.CustomLayerInterface & {
     tileBaseUrl: string,
     legendRange: [number, number],
   ) => Promise<void>;
-  updateLegendRange: (range: [number, number]) => void;
-  updateLegendScale: (scale: 'log' | 'linear') => void;
-  updateColorPalette: (rawColors: [number, number, number][]) => void;
+  updatePalette: (patch: PalettePatch) => void;
   setVisible: (visible: boolean) => void;
 };
 
@@ -70,16 +68,8 @@ export function heatmapAtlasLayer(id: string, palette: ColorPalette): HeatmapAtl
       }
     },
 
-    updateLegendRange(range: [number, number]) {
-      this.field?.updateLegendRange(range);
-    },
-
-    updateLegendScale(scale: 'log' | 'linear') {
-      this.field?.updateLegendScale(scale);
-    },
-
-    updateColorPalette(rawColors: [number, number, number][]) {
-      this.field?.updateColorPalette(rawColors);
+    updatePalette(patch: PalettePatch) {
+      this.field?.updatePalette(patch);
     },
 
     setVisible(visible: boolean) {

@@ -16,7 +16,7 @@ import type { CustomizableParticleConfig } from '@/config';
 import type { ProductManifest } from '@/api';
 import { createParticlesAtlasField } from './ParticlesAtlasField';
 import type { ParticlesAtlasFieldAPI } from './ParticlesAtlasField';
-import type { ColorPalette } from './HeatmapAtlasField';
+import type { ColorPalette, PalettePatch } from './HeatmapAtlasField';
 
 export type ParticlesAtlasLayerInterface = mapboxgl.CustomLayerInterface & {
   visible: boolean;
@@ -28,9 +28,7 @@ export type ParticlesAtlasLayerInterface = mapboxgl.CustomLayerInterface & {
   ) => Promise<void>;
   setVisible: (visible: boolean) => void;
   updateConfig: (config: Partial<CustomizableParticleConfig>) => void;
-  updateLegendRange: (range: [number, number]) => void;
-  updateLegendScale: (scale: 'log' | 'linear') => void;
-  updateColorPalette: (rawColors: [number, number, number][]) => void;
+  updatePalette: (patch: PalettePatch) => void;
   onMoveStart: () => void;
   onMoveEnd: () => void;
   onResize: () => void;
@@ -91,16 +89,8 @@ export function particlesAtlasLayer(
       this.oceanCurrentAtlasField?.updateConfig(config);
     },
 
-    updateLegendRange(range: [number, number]) {
-      this.oceanCurrentAtlasField?.updateLegendRange(range);
-    },
-
-    updateLegendScale(scale: 'log' | 'linear') {
-      this.oceanCurrentAtlasField?.updateLegendScale(scale);
-    },
-
-    updateColorPalette(rawColors: [number, number, number][]) {
-      this.oceanCurrentAtlasField?.updateColorPalette(rawColors);
+    updatePalette(patch: PalettePatch) {
+      this.oceanCurrentAtlasField?.updatePalette(patch);
     },
 
     onMoveStart() {

@@ -113,6 +113,11 @@ export function useParticleLayer({ map, layerId, product }: UseParticleLayer) {
 
   useCustomLayerVisibility(map, loadComplete, layer, enabled && !isError && !isLoading);
 
+  useDidMountEffect(() => {
+    if (!map.current || !loadComplete || !enabled) return;
+    setDataByDataset();
+  }, [loadComplete, enabled, date]);
+  // Customize on visualisation configs
   useEffect(() => {
     if (!map.current || !loadComplete || !layer) return;
     layer.oceanCurrentAtlasField?.updateConfig({
@@ -125,24 +130,12 @@ export function useParticleLayer({ map, layerId, product }: UseParticleLayer) {
   }, [map, layer, loadComplete, fadeOpacity, speedFactor, dropRate, pointSize, nParticles]);
 
   useDidMountEffect(() => {
-    if (!map.current || !loadComplete || !enabled) return;
-    setDataByDataset();
-  }, [loadComplete, enabled, date]);
-
-  useDidMountEffect(() => {
     if (!loadComplete) return;
-    layer.updateColorPalette(COLOR_OPTIONS[colorKey]);
+    layer.updatePalette({ rawColors: COLOR_OPTIONS[colorKey] });
   }, [colorKey, loadComplete]);
 
   useDidMountEffect(() => {
     if (!loadComplete) return;
-    layer.updateLegendScale(legendScale);
+    layer.updatePalette({ scale: legendScale });
   }, [legendScale, loadComplete]);
-
-  return {
-    updateLegendRange: (range: [number, number]) => layer?.updateLegendRange(range),
-    updateLegendScale: (scale: 'log' | 'linear') => layer?.updateLegendScale(scale),
-    updateColorPalette: (rawColors: [number, number, number][]) =>
-      layer?.updateColorPalette(rawColors),
-  };
 }

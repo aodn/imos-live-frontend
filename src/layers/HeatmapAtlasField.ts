@@ -43,11 +43,12 @@ import type { ProductManifest } from '@/api';
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 export type ColorPalette = {
-  colors: Record<string, string>;
   legendRange: [number, number];
   rawColors: [number, number, number][];
   scale: 'log' | 'linear';
 };
+
+export type PalettePatch = Partial<ColorPalette>;
 
 export type HeatmapAtlasFieldAPI = {
   setSource: (
@@ -55,13 +56,21 @@ export type HeatmapAtlasFieldAPI = {
     tileBaseUrl: string,
     legendRange: [number, number],
   ) => Promise<void>;
-  updateLegendRange: (range: [number, number]) => void;
-  updateLegendScale: (scale: 'log' | 'linear') => void;
-  updateColorPalette: (rawColors: [number, number, number][]) => void;
+  updatePalette: (patch: PalettePatch) => void;
   setVisible: (visible: boolean) => void;
   draw: () => void;
   onMapMove: (bounds: mapboxgl.LngLatBounds, zoom: number) => void;
 };
+
+function computeRamp(palette: ColorPalette): Record<string, string> {
+  const { scale, legendRange, rawColors } = palette;
+  return scale === 'log'
+    ? convertLogColorScaleToRamp({
+        minMaxRatio: legendRange[0] / legendRange[1],
+        colors: rawColors,
+      })
+    : convertLinearColorScaleToRamp({ colors: rawColors });
+}
 
 // ── Factory ───────────────────────────────────────────────────────────────────
 
@@ -86,7 +95,6 @@ export function createHeatmapAtlasField(
   // u_data_bounds: [lonMin, latMax, lonMax, latMin]
   let dataBounds: [number, number, number, number] | null = null;
   let valueRange: [number, number] | null = null;
-  let legendRange: [number, number] | null = null;
   let mapBounds: [number, number, number, number] | null = null; // [nwX, seY, seX, nwY]
   /** Flat [cols0, rows0, cols1, rows1, ...] for u_lod_grids uniform, padded to 8 floats (4 LODs). */
   let lodGridsFlat: Float32Array | null = null;
@@ -117,7 +125,7 @@ export function createHeatmapAtlasField(
     });
 
     colorRampTexture = twgl.createTexture(gl, {
-      src: getColorRamp(currentPalette.colors),
+      src: getColorRamp(computeRamp(currentPalette)),
       width: 256,
       height: 1,
       min: gl.LINEAR,
@@ -144,52 +152,10 @@ export function createHeatmapAtlasField(
 
   // ── Public API ────────────────────────────────────────────────────────────
 
-  function updateLegendRange(range: [number, number]) {
-    currentPalette = { ...currentPalette, legendRange: range };
-    legendRange = range;
+  function updatePalette(patch: PalettePatch) {
+    currentPalette = { ...currentPalette, ...patch };
     if (!colorRampTexture) return;
-    const ramp =
-      currentPalette.scale === 'log'
-        ? convertLogColorScaleToRamp({
-            minMaxRatio: range[0] / range[1],
-            colors: currentPalette.rawColors,
-          })
-        : convertLinearColorScaleToRamp({ colors: currentPalette.rawColors });
-    twgl.setTextureFromArray(gl, colorRampTexture, getColorRamp(ramp), {
-      width: 256,
-      height: 1,
-      format: gl.RGBA,
-    });
-  }
-
-  function updateLegendScale(scale: 'log' | 'linear') {
-    currentPalette = { ...currentPalette, scale };
-    if (!colorRampTexture) return;
-    const ramp =
-      scale === 'log'
-        ? convertLogColorScaleToRamp({
-            minMaxRatio: currentPalette.legendRange[0] / currentPalette.legendRange[1],
-            colors: currentPalette.rawColors,
-          })
-        : convertLinearColorScaleToRamp({ colors: currentPalette.rawColors });
-    twgl.setTextureFromArray(gl, colorRampTexture, getColorRamp(ramp), {
-      width: 256,
-      height: 1,
-      format: gl.RGBA,
-    });
-  }
-
-  function updateColorPalette(rawColors: [number, number, number][]) {
-    currentPalette = { ...currentPalette, rawColors };
-    if (!colorRampTexture) return;
-    const ramp =
-      currentPalette.scale === 'log'
-        ? convertLogColorScaleToRamp({
-            minMaxRatio: currentPalette.legendRange[0] / currentPalette.legendRange[1],
-            colors: rawColors,
-          })
-        : convertLinearColorScaleToRamp({ colors: rawColors });
-    twgl.setTextureFromArray(gl, colorRampTexture, getColorRamp(ramp), {
+    twgl.setTextureFromArray(gl, colorRampTexture, getColorRamp(computeRamp(currentPalette)), {
       width: 256,
       height: 1,
       format: gl.RGBA,
@@ -212,7 +178,7 @@ export function createHeatmapAtlasField(
     const { lonMin, lonMax, latMin, latMax } = manifest.bounds;
     dataBounds = [lonMin, latMax, lonMax, latMin];
     valueRange = manifest.valueRange ?? null;
-    legendRange = newLegendRange;
+    currentPalette = { ...currentPalette, legendRange: newLegendRange };
     uvScale = [lod1.chunkPx[0] / lod1.storedPx[0], lod1.chunkPx[1] / lod1.storedPx[1]];
     uvOffset = [lod1.padding / lod1.storedPx[0], lod1.padding / lod1.storedPx[1]];
 
@@ -316,7 +282,6 @@ export function createHeatmapAtlasField(
       !colorRampTexture ||
       !dataBounds ||
       !valueRange ||
-      !legendRange ||
       !mapBounds ||
       !lodGridsFlat ||
       !uvScale ||
@@ -348,7 +313,7 @@ export function createHeatmapAtlasField(
       u_uv_scale: uvScale,
       u_uv_offset: uvOffset,
       u_value_range: valueRange,
-      u_legend_range: legendRange,
+      u_legend_range: currentPalette.legendRange,
       u_color_ramp: colorRampTexture,
     });
 
@@ -380,9 +345,7 @@ export function createHeatmapAtlasField(
 
   return {
     setSource,
-    updateLegendRange,
-    updateLegendScale,
-    updateColorPalette,
+    updatePalette,
     setVisible,
     draw,
     onMapMove,
