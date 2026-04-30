@@ -27,6 +27,9 @@ type UseWaveBuoysLayer = {
   product: ProductType;
 };
 
+//TODO: 1. create a new endpoint in data-access-service to return all unique wave buoys.
+// 2. always display all wave buoys on the map.
+// 3. wave buoys existing in selected date will be normal, those not existing will be in different look so that user can tell from. Hover still work for all waveb buoys and show information, but for the selected date non existing ones, click will be disallowed.
 export function useWaveBuoysLayer({ map, layerId, sourceId, product }: UseWaveBuoysLayer) {
   const { enabled, date, isError } = useMapUIStore(
     useShallow(s => ({
