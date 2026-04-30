@@ -146,3 +146,5 @@ export function toCompactDate(date: string) {
   }
   return date.replace(/-/g, '');
 }
+
+export const today = () => dayjs().format('YYYYMMDD');
