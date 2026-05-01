@@ -137,19 +137,19 @@ export function useWaveBuoysLayer({ map, layerId, sourceId, product }: UseWaveBu
 
   const setupLayer = useCallback(async () => {
     if (buoyLayers.some(layer => !layer)) return;
-    if (enabled) {
-      await setDataByDataset();
-    } else {
-      // add empty source to make sure layer can be added to map and show up when enabled is toggled on, this can fix the bug that wave buoy layer fail to appear when toggle on after toggle off.
-      addOrUpdateGeoJsonSource({
-        map: map.current!,
-        id: sourceId,
-        data: { type: 'FeatureCollection', features: [] },
-        enableCluser: true,
-        clusterRadius: 40,
-      });
-    }
+    // Always add layers immediately with an empty source so the layer is registered on the
+    // map without blocking on API responses. Data is filled in asynchronously by setDataByDataset.
+    addOrUpdateGeoJsonSource({
+      map: map.current!,
+      id: sourceId,
+      data: { type: 'FeatureCollection', features: [] },
+      enableCluser: true,
+      clusterRadius: 40,
+    });
     buoyLayers.forEach(layer => addLayerInOrder(map, layer));
+    if (enabled) {
+      setDataByDataset();
+    }
   }, [buoyLayers, enabled, map, setDataByDataset, sourceId]);
 
   const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [setupLayer]);
