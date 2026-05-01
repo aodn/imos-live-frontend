@@ -1,8 +1,14 @@
-import { getWaveBuoyDetails } from '@/api';
+import { getWaveBuoyDetails, getWaveBuoyLatestDate } from '@/api';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import type { WaveBuoyPositionFeature } from '@/types';
-import { formatLatLngToDirectional, toLocalDateTime, toWaveBuoyChartData } from '@/utils';
+import {
+  formatLatLngToDirectional,
+  toCompactDate,
+  toLocalDateTime,
+  toWaveBuoyChartData,
+  today,
+} from '@/utils';
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useMemo } from 'react';
 import { buoyDataDirectionVariant, noneDirectionVariants, VariantReadableName } from './config';
@@ -15,6 +21,7 @@ import {
   generateSeriesStyles,
   processDirectionData,
 } from './utils';
+import { useMapUIStore } from '@/store';
 
 dayjs.extend(utc);
 
@@ -24,13 +31,20 @@ type WaveBuoyChartProps = {
 };
 
 function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
-  const { dateString, buoy, geometry } = toWaveBuoyChartData(waveBuoysData);
+  const { buoy, geometry } = toWaveBuoyChartData(waveBuoysData);
+  const selectedDate = useMapUIStore(s => s.date);
+
+  const { data: latestWaveBuoyDate, isLoading: isLatestWaveBuoyDateLoading } = useQuery({
+    queryKey: ['wave_buoy_latest_date'],
+    queryFn: getWaveBuoyLatestDate,
+    select: data => toCompactDate(data),
+  });
 
   const { from, to } = useMemo(() => {
-    const end = dayjs(dateString).add(1, 'day'); // include the full dateString day in local time
-    const start = end.subtract(7, 'day');
+    const end = dayjs(latestWaveBuoyDate ?? today()).add(1, 'day'); // include the full selectedDate day in local time
+    const start = dayjs(selectedDate).subtract(30, 'day');
     return { from: start.toDate(), to: end.toDate() };
-  }, [dateString]);
+  }, [selectedDate, latestWaveBuoyDate]);
 
   const {
     isLoading,
@@ -168,7 +182,7 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
   }, [showDirection]);
 
   if (isError) return <div>error</div>;
-  if (isLoading) return <div>loading</div>;
+  if (isLoading || isLatestWaveBuoyDateLoading) return <div>loading</div>;
   if (isFeatureEmpty)
     return (
       <div>
@@ -234,6 +248,27 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
           type: 'datetime',
           labels: { format: '{value:%b %e %H:%M}' },
           offset: 0,
+          plotLines: [
+            {
+              value: dayjs(selectedDate).valueOf(),
+              color: '#3b6e8f',
+              width: 2,
+              dashStyle: 'Dash',
+              zIndex: 5,
+              label: {
+                text: dayjs(selectedDate).format('D MMM YYYY'),
+                rotation: 0,
+                align: 'center',
+                verticalAlign: 'top',
+                y: -6,
+                style: {
+                  color: '#3b6e8f',
+                  fontWeight: 'bold',
+                  fontSize: '12px',
+                },
+              },
+            },
+          ],
         }}
         yAxis={yAxisConfig}
         plotOptions={{

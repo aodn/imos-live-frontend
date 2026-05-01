@@ -1,4 +1,4 @@
-import { getWaveBuoyLocations } from '@/api';
+import { getAllWaveBuoySites, getWaveBuoySitesByDate } from '@/api';
 import {
   UNCLUSTERED_WAVE_BUOYS_LAYER_CONFIG,
   WAVE_BUOY_CLUSTER_LABEL_LAYER_CONFIG,
@@ -19,6 +19,9 @@ import { useShallow } from 'zustand/shallow';
 import { useDidMountEffect } from '../useDidMountEffect';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
+import allWaveBuoySitesBackup from '@/assets/wave_buoy_all_sites.json';
+import { normalizeWaveBuoyDates } from '@/utils';
+import type { WaveBuoyPositionFeatureCollection } from '@/types';
 
 type UseWaveBuoysLayer = {
   map: React.RefObject<mapboxgl.Map | null>;
@@ -36,10 +39,22 @@ export function useWaveBuoysLayer({ map, layerId, sourceId, product }: UseWaveBu
     })),
   );
 
-  const buoyQuery = useQuery({
-    queryKey: ['wave_buoy_locations', date],
-    queryFn: () => getWaveBuoyLocations(date),
+  const buoySiteQuery = useQuery({
+    queryKey: ['wave_buoy_sites_by_date', date],
+    queryFn: () => getWaveBuoySitesByDate(date),
     enabled: enabled && !!date,
+  });
+
+  const allWaveBuoySitesQuery = useQuery({
+    queryKey: ['wave_buoy_sites_all'],
+    queryFn: async (): Promise<WaveBuoyPositionFeatureCollection> => {
+      try {
+        return await getAllWaveBuoySites();
+      } catch {
+        return normalizeWaveBuoyDates(allWaveBuoySitesBackup as WaveBuoyPositionFeatureCollection);
+      }
+    },
+    enabled: enabled,
   });
 
   const waveBuoysLayer = useMemo(
@@ -85,40 +100,56 @@ export function useWaveBuoysLayer({ map, layerId, sourceId, product }: UseWaveBu
 
   const setDataByDataset = useCallback(async () => {
     setProductErrorByProduct(PRODUCT.WAVE_BUOYS, false);
-    // when error thrown no break code but set fallback to data.
-    // this can fix the bug that when sylte change, or switch from
-    // date no data to date owning data buouys displaying or hiding unexpectedly.
-    const data = await buoyQuery.promise.catch(() => {
+    // when error thrown no break code but set fallback to empty collection.
+    // this can fix the bug that when style changes, or switching from
+    // date no data to date owning data buoys displaying or hiding unexpectedly.
+    const buoySitesPromise = buoySiteQuery.promise.catch(() => {
       setProductErrorByProduct(PRODUCT.WAVE_BUOYS, true);
       return {
         type: 'FeatureCollection',
         features: [],
-      } as GeoJSON.FeatureCollection;
+      };
     });
+
+    const [allBuoySites, buoySites] = await Promise.all([
+      allWaveBuoySitesQuery.promise,
+      buoySitesPromise,
+    ]);
+
+    const activeBuoysByName = new Map(buoySites.features.map(f => [f.properties.buoy, f]));
+    // Active buoys in allBuoySites now get their feature replaced wholesale from buoySites (so date and other properties reflect the selected date)
+    const mergedFeatures = allBuoySites.features.map(f => {
+      const activeSite = activeBuoysByName.get(f.properties.buoy);
+      if (activeSite) {
+        return { ...activeSite, properties: { ...activeSite.properties, hasDataForDate: true } };
+      }
+      return { ...f, properties: { ...f.properties, hasDataForDate: false } };
+    });
+
     addOrUpdateGeoJsonSource({
       map: map.current!,
       id: sourceId,
-      data,
+      data: { ...allBuoySites, features: mergedFeatures },
       enableCluser: true,
       clusterRadius: 40,
     });
-  }, [buoyQuery.promise, map, sourceId]);
+  }, [allWaveBuoySitesQuery.promise, buoySiteQuery.promise, map, sourceId]);
 
   const setupLayer = useCallback(async () => {
     if (buoyLayers.some(layer => !layer)) return;
-    if (enabled) {
-      await setDataByDataset();
-    } else {
-      // add empty source to make sure layer can be added to map and show up when enabled is toggled on, this can fix the bug that wave buoy layer fail to appear when toggle on after toggle off.
-      addOrUpdateGeoJsonSource({
-        map: map.current!,
-        id: sourceId,
-        data: { type: 'FeatureCollection', features: [] },
-        enableCluser: true,
-        clusterRadius: 40,
-      });
-    }
+    // Always add layers immediately with an empty source so the layer is registered on the
+    // map without blocking on API responses. Data is filled in asynchronously by setDataByDataset.
+    addOrUpdateGeoJsonSource({
+      map: map.current!,
+      id: sourceId,
+      data: { type: 'FeatureCollection', features: [] },
+      enableCluser: true,
+      clusterRadius: 40,
+    });
     buoyLayers.forEach(layer => addLayerInOrder(map, layer));
+    if (enabled) {
+      setDataByDataset();
+    }
   }, [buoyLayers, enabled, map, setDataByDataset, sourceId]);
 
   const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [setupLayer]);

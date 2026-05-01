@@ -21,6 +21,7 @@ export function useWaveBuoysZoomLimitClick(
 
     const handleClick = (e: mapboxgl.MapMouseEvent) => {
       if (!e.features?.length) return;
+      if (e.features[0].properties?.hasDataForDate === false) return;
 
       setClickedPointData(normalizeWaveBuouysData(e.features));
     };

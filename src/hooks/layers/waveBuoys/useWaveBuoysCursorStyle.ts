@@ -23,8 +23,9 @@ export function useWaveBuoysCursorStyle(
     if (!map.current || !enabled) return;
     const mapInstance = map.current;
 
-    const handleMouseEnter = () => {
-      mapInstance.getCanvas().style.cursor = 'pointer';
+    const handleMouseEnter = (e: mapboxgl.MapLayerMouseEvent) => {
+      const inactive = e.features?.[0]?.properties?.hasDataForDate === false;
+      mapInstance.getCanvas().style.cursor = inactive ? 'not-allowed' : 'pointer';
     };
 
     const handleMouseLeave = () => {
@@ -38,7 +39,11 @@ export function useWaveBuoysCursorStyle(
 
     return () => {
       layers.forEach(layerId => {
-        mapInstance?.off('mouseenter', layerId, handleMouseEnter);
+        mapInstance?.off(
+          'mouseenter',
+          layerId,
+          handleMouseEnter as (e: mapboxgl.MapMouseEvent) => void,
+        );
         mapInstance?.off('mouseleave', layerId, handleMouseLeave);
       });
       if (mapInstance?.getCanvas()) {

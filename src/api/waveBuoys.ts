@@ -1,5 +1,5 @@
 import type { WaveBuoyDetailsFeature, WaveBuoyPositionFeatureCollection } from '@/types';
-import { toLocalDateString, toWaveBuoyApiDate } from '@/utils';
+import { normalizeWaveBuoyDates, toLocalDateString, toWaveBuoyApiDate } from '@/utils';
 import axios from 'axios';
 
 /**
@@ -34,20 +34,21 @@ export const getWaveBuoyDetails = async (
 };
 
 // date in request is converted to UTC string, but in response, it's converted back to local date string, which is what the app displays
-export const getWaveBuoyLocations = async (
+export const getWaveBuoySitesByDate = async (
   localDate: string,
 ): Promise<WaveBuoyPositionFeatureCollection> => {
-  const wavebuoysLocations = await axios.get<WaveBuoyPositionFeatureCollection>(
+  const wavebuoysSites = await axios.get<WaveBuoyPositionFeatureCollection>(
     `${WAVE_BUOY_COLLECTION_URL}/wave_buoy_first_data_available?datetime=${toWaveBuoyApiDate(localDate)}`,
   );
-  const data = wavebuoysLocations.data;
-  return {
-    ...data,
-    features: data.features.map(f => ({
-      ...f,
-      properties: { ...f.properties, date: toLocalDateString(f.properties.date) },
-    })),
-  };
+  return normalizeWaveBuoyDates(wavebuoysSites.data);
+};
+
+//TODO: After create wave_buoy_all endpint in ogc-api, it will work.
+export const getAllWaveBuoySites = async (): Promise<WaveBuoyPositionFeatureCollection> => {
+  const wavebuoysSites = await axios.get<WaveBuoyPositionFeatureCollection>(
+    `${WAVE_BUOY_COLLECTION_URL}/wave_buoy_all`,
+  );
+  return normalizeWaveBuoyDates(wavebuoysSites.data);
 };
 
 // date in this response is converted to local date string, which is what the app displays
