@@ -79,7 +79,7 @@ One atlas slot = one stored chunk PNG. `slotPx` is set to `lod1.storedPx` (e.g. 
 | Scalar heatmap | 4096 × 2048 | 16 × 10 = **160**        | 9    | 151  | 30 + 120 = 150 |
 | Particle       | 2048 × 2048 | 8 × 10 = **80**          | 9    | 71   | 30 (LOD2 only) |
 
-The heatmap atlas is wider (4096) so its pool of 151 comfortably holds all LOD2 (30) + LOD3 (120) = 150 tiles without LRU eviction. Both products pass their dimensions explicitly to `createAtlasManager` — `HEATMAP_ATLAS_W/H` in `HeatmapAtlasField.ts` and `PARTICLES_ATLAS_W/H` in `ParticlesAtlasField.ts`. The shader factories receive the same values at compile time.
+The heatmap atlas is wider (4096) so its pool of 151 comfortably holds all LOD2 (30) + LOD3 (120) = 150 tiles without LRU eviction. Both products pass their preferred dimensions explicitly to `createAtlasManager` — `HEATMAP_ATLAS_W/H` in `HeatmapAtlasField.ts` and `PARTICLES_ATLAS_W/H` in `ParticlesAtlasField.ts`. At runtime, `createAtlasManager` clamps both dimensions to `gl.MAX_TEXTURE_SIZE` — on older or mobile devices the atlas may be smaller, which reduces the pool size and increases LRU eviction frequency but does not break rendering. The shader factories receive the (post-clamp) `totalSlots` value at compile time.
 
 ---
 
@@ -313,6 +313,36 @@ LOD keys are sorted numerically at runtime — insertion order in the JSON does 
 
 ---
 
+## Configuration Reference
+
+### Configurable via `manifest.json` (per product, per LOD)
+
+| Value                                        | Manifest field            | Example                              |
+| -------------------------------------------- | ------------------------- | ------------------------------------ |
+| Chunk PNG dimensions (stored, incl. padding) | `lods['N'].storedPx`      | `[242, 194]`                         |
+| Inner data pixel dimensions (excl. padding)  | `lods['N'].chunkPx`       | `[240, 192]`                         |
+| Padding pixels per side                      | `lods['N'].padding`       | `1`                                  |
+| Geographic chunk grid                        | `lods['N'].grid`          | `[6, 5]`                             |
+| LOD zoom activation threshold                | `lods['N'].zoomThreshold` | `5` (default: `6`)                   |
+| Geographic bounds                            | `bounds`                  | `{ lonMin, lonMax, latMin, latMax }` |
+| Scalar encoding range                        | `valueRange`              | `[-4.98, 4.46]`                      |
+| Velocity encoding ranges (particles)         | `uRange`, `vRange`        | `[-3.0, 3.0]`                        |
+
+These values drive the UV math (`u_uv_scale`, `u_uv_offset`), chunk scheduling, LOD switching, and scalar decoding — changing them in the manifest is all that is needed.
+
+### Hardcoded constants
+
+| Value                         | Constant                          | Location                 | Notes                                           |
+| ----------------------------- | --------------------------------- | ------------------------ | ----------------------------------------------- |
+| Preferred heatmap atlas size  | `HEATMAP_ATLAS_W/H = 4096×2048`   | `HeatmapAtlasField.ts`   | Clamped to `gl.MAX_TEXTURE_SIZE` at runtime     |
+| Preferred particle atlas size | `PARTICLES_ATLAS_W/H = 2048×2048` | `ParticlesAtlasField.ts` | Clamped to `gl.MAX_TEXTURE_SIZE` at runtime     |
+| Max LOD count                 | `MAX_LODS = 4`                    | `AtlasManager.ts`        | Sizes GLSL uniform arrays                       |
+| Max virtual chunk indices     | `MAX_VIRTUAL_CHUNKS = 256`        | `AtlasManager.ts`        | Covers LOD1(9)+LOD2(30)+LOD3(120)+some headroom |
+| LOD blend duration            | `300 ms`                          | `LODController.ts`       | Ease-out quadratic crossfade                    |
+| Fallback atlas size           | `FALLBACK_ATLAS_SIZE = 2048`      | `AtlasManager.ts`        | Used only when `atlasW`/`atlasH` are omitted    |
+
+---
+
 ## Module Map
 
 ```
@@ -407,12 +437,12 @@ createAtlasManager(gl, config: AtlasConfig): AtlasManagerAPI
 
 **`AtlasConfig`**
 
-| Field     | Type                                | Description                                                               |
-| --------- | ----------------------------------- | ------------------------------------------------------------------------- |
-| `slotPx`  | `[number, number]`                  | Slot pixel size `[w, h]` — set to `lod1.storedPx`                         |
-| `lods`    | `Array<{ grid: [number, number] }>` | LOD configs, coarsest first                                               |
-| `atlasW?` | `number`                            | Atlas width. Defaults to `ATLAS_SIZE` (2048) — prefer passing explicitly  |
-| `atlasH?` | `number`                            | Atlas height. Defaults to `ATLAS_SIZE` (2048) — prefer passing explicitly |
+| Field     | Type                                | Description                                                                                                    |
+| --------- | ----------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `slotPx`  | `[number, number]`                  | Slot pixel size `[w, h]` — set to `lod1.storedPx`                                                              |
+| `lods`    | `Array<{ grid: [number, number] }>` | LOD configs, coarsest first                                                                                    |
+| `atlasW?` | `number`                            | Preferred atlas width. Defaults to `FALLBACK_ATLAS_SIZE` (2048). Clamped to `gl.MAX_TEXTURE_SIZE` at runtime.  |
+| `atlasH?` | `number`                            | Preferred atlas height. Defaults to `FALLBACK_ATLAS_SIZE` (2048). Clamped to `gl.MAX_TEXTURE_SIZE` at runtime. |
 
 **Constants**
 
@@ -599,7 +629,7 @@ float t        = clamp(
 
 ### Uniform component budget
 
-WebGL2 guarantees `MAX_FRAGMENT_UNIFORM_COMPONENTS ≥ 1024`. The heatmap shader consumes ~926 components (`u_slots[160]`=640 + `u_chunk_slots[256]`=256 + ~30 others). Verify this count before increasing atlas dimensions beyond 4096×2048.
+WebGL2 guarantees `MAX_FRAGMENT_UNIFORM_COMPONENTS ≥ 1024`. The heatmap shader consumes ~926 components (`u_slots[160]`=640 + `u_chunk_slots[256]`=256 + ~30 others). `createAtlasManager` checks this after clamping atlas dimensions to `MAX_TEXTURE_SIZE` and throws if the resulting `totalSlots` would still exceed the device's uniform budget.
 
 ---
 

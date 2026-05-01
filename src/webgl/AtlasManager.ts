@@ -87,13 +87,11 @@ export function createAtlasManager(
   const atlasW = config.atlasW ?? FALLBACK_ATLAS_SIZE;
   const atlasH = config.atlasH ?? FALLBACK_ATLAS_SIZE;
   const maxTexSize = gl.getParameter(gl.MAX_TEXTURE_SIZE) as number;
-  if (atlasW > maxTexSize || atlasH > maxTexSize)
-    throw new Error(
-      `Atlas dimensions ${atlasW}×${atlasH} exceed device MAX_TEXTURE_SIZE of ${maxTexSize}`,
-    );
+  const clampedAtlasW = Math.min(atlasW, maxTexSize);
+  const clampedAtlasH = Math.min(atlasH, maxTexSize);
 
-  const atlasCols = Math.floor(atlasW / slotW);
-  const atlasRows = Math.floor(atlasH / slotH);
+  const atlasCols = Math.floor(clampedAtlasW / slotW);
+  const atlasRows = Math.floor(clampedAtlasH / slotH);
   const totalSlots = atlasCols * atlasRows;
 
   const maxUniforms = gl.getParameter(gl.MAX_FRAGMENT_UNIFORM_COMPONENTS) as number;
@@ -133,10 +131,10 @@ export function createAtlasManager(
     const col = i % atlasCols;
     const row = Math.floor(i / atlasCols);
     const base = i * 4;
-    slotsData[base] = (col * slotW) / atlasW;
-    slotsData[base + 1] = (row * slotH) / atlasH;
-    slotsData[base + 2] = slotW / atlasW;
-    slotsData[base + 3] = slotH / atlasH;
+    slotsData[base] = (col * slotW) / clampedAtlasW;
+    slotsData[base + 1] = (row * slotH) / clampedAtlasH;
+    slotsData[base + 2] = slotW / clampedAtlasW;
+    slotsData[base + 3] = slotH / clampedAtlasH;
   }
 
   // ── Dynamic chunk→slot mapping (the LRU data structure) ───────────────────
@@ -157,7 +155,17 @@ export function createAtlasManager(
   // ── WebGL texture ──────────────────────────────────────────────────────────
   const texture = gl.createTexture()!;
   gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, atlasW, atlasH, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+  gl.texImage2D(
+    gl.TEXTURE_2D,
+    0,
+    gl.RGBA,
+    clampedAtlasW,
+    clampedAtlasH,
+    0,
+    gl.RGBA,
+    gl.UNSIGNED_BYTE,
+    null,
+  );
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
