@@ -109,8 +109,11 @@ export function createHeatmapAtlasField(
 
   // ── Private helpers ───────────────────────────────────────────────────────
 
-  function initializeShaders(totalSlots: number) {
-    programInfo = twgl.createProgramInfo(gl, [scalarAtlasVs, makeScalarAtlasFs(totalSlots)]);
+  function initializeShaders(totalSlots: number, totalVirtualChunks: number) {
+    programInfo = twgl.createProgramInfo(gl, [
+      scalarAtlasVs,
+      makeScalarAtlasFs(totalSlots, totalVirtualChunks),
+    ]);
 
     // Full-viewport quad: (0,0)=bottom-left, (1,1)=top-right
     bufferInfo = twgl.createBufferInfoFromArrays(gl, {
@@ -197,7 +200,7 @@ export function createHeatmapAtlasField(
       lods: lodsSorted.map(({ grid }) => ({ grid })),
     });
 
-    if (!programInfo) initializeShaders(atlas.getTotalSlots());
+    if (!programInfo) initializeShaders(atlas.getTotalSlots(), atlas.getTotalVirtualChunks());
 
     // Create one scheduler per on-demand LOD (LODs 2..N)
     for (let lodNum = 2; lodNum <= lodsSorted.length; lodNum++) {

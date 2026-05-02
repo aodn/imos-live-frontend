@@ -69,14 +69,19 @@ void main() {
 
 // Shared GLSL helpers embedded as a template string prefix.
 // Duplicated across both shaders — GLSL has no #include system.
-// totalSlots, atlasW, atlasH are injected at compile time so array sizes and
-// bilinear filter pixel size match the actual atlas layout.
-function makeSharedGlsl(totalSlots: number, atlasW: number, atlasH: number): string {
+// totalSlots, totalVirtualChunks, atlasW, atlasH are injected at compile time so array sizes
+// and bilinear filter pixel size match the actual atlas layout.
+function makeSharedGlsl(
+  totalSlots: number,
+  totalVirtualChunks: number,
+  atlasW: number,
+  atlasH: number,
+): string {
   return /* glsl */ `
 uniform vec4 u_bounds;          // [nwX, seY, seX, nwY]
 uniform vec4 u_data_bounds;     // [lonMin, latMax, lonMax, latMin]
-uniform vec4 u_slots[${totalSlots}];  // static UV layout per physical slot
-uniform int  u_chunk_slots[256]; // virtual chunk index → physical slot (−1 = not loaded)
+uniform vec4 u_slots[${totalSlots}];           // static UV layout per physical slot
+uniform int  u_chunk_slots[${totalVirtualChunks}]; // virtual chunk index → physical slot (−1 = not loaded)
 uniform vec2 u_lod_grids[4];
 uniform int  u_lod_offsets[4];
 uniform vec2 u_uv_scale;        // chunkPx / storedPx — maps local [0,1] into data region
@@ -155,6 +160,7 @@ vec2 sampleAtlasRG(vec2 uv) {
 
 export function makeOceanCurrentAtlasFsParticle(
   totalSlots: number,
+  totalVirtualChunks: number,
   atlasW: number,
   atlasH: number,
 ): string {
@@ -172,7 +178,7 @@ uniform float     u_lod_blend;
 in  vec2 v_particle_pos;
 out vec4 fragColor;
 
-${makeSharedGlsl(totalSlots, atlasW, atlasH)}
+${makeSharedGlsl(totalSlots, totalVirtualChunks, atlasW, atlasH)}
 
 void main() {
     float x_domain = abs(u_bounds.x - u_bounds.z);
@@ -216,6 +222,7 @@ void main() {
 
 export function makeOceanCurrentAtlasFsUpdate(
   totalSlots: number,
+  totalVirtualChunks: number,
   atlasW: number,
   atlasH: number,
 ): string {
@@ -241,7 +248,7 @@ float rand(const vec2 co) {
     return fract(sin(t) * (rand_constants.z + t));
 }
 
-${makeSharedGlsl(totalSlots, atlasW, atlasH)}
+${makeSharedGlsl(totalSlots, totalVirtualChunks, atlasW, atlasH)}
 
 void main() {
     // Particle position stored as plain floats in RG (WebGL2 RG32F texture)

@@ -39,13 +39,13 @@ void main() {
 `;
 
 // Shared GLSL helpers (duplicated from oceanCurrentAtlasShader — GLSL has no #include).
-// totalSlots is injected at compile time so the GLSL array size matches the atlas layout.
-function makeSharedGlsl(totalSlots: number): string {
+// totalSlots and totalVirtualChunks are injected at compile time so array sizes match the manifest.
+function makeSharedGlsl(totalSlots: number, totalVirtualChunks: number): string {
   return /* glsl */ `
 uniform vec4 u_bounds;          // [nwX, seY, seX, nwY]
 uniform vec4 u_data_bounds;     // [lonMin, latMax, lonMax, latMin]
-uniform vec4 u_slots[${totalSlots}];  // static UV layout per physical slot
-uniform int  u_chunk_slots[256]; // virtual chunk index → physical slot (−1 = not loaded)
+uniform vec4 u_slots[${totalSlots}];           // static UV layout per physical slot
+uniform int  u_chunk_slots[${totalVirtualChunks}]; // virtual chunk index → physical slot (−1 = not loaded)
 uniform vec2 u_lod_grids[4];
 uniform int  u_lod_offsets[4];
 uniform vec2 u_uv_scale;        // chunkPx / storedPx — maps local [0,1] into data region
@@ -102,7 +102,7 @@ vec2 worldToAtlasUV(vec2 lonlat, int lodIdx) {
 `;
 }
 
-export function makeScalarAtlasFs(totalSlots: number): string {
+export function makeScalarAtlasFs(totalSlots: number, totalVirtualChunks: number): string {
   return /* glsl */ `#version 300 es
 precision highp float;
 
@@ -116,7 +116,7 @@ uniform sampler2D u_color_ramp;
 in  vec2 v_screen_pos;
 out vec4 fragColor;
 
-${makeSharedGlsl(totalSlots)}
+${makeSharedGlsl(totalSlots, totalVirtualChunks)}
 
 // Decode 24-bit RGB scalar and normalise to [0, 1] for color ramp lookup.
 float decodeScalar(vec3 rgb) {

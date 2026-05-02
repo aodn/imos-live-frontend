@@ -212,10 +212,15 @@ export function createParticlesAtlasField(
     });
   }
 
-  function initializeShaders(totalSlots: number, atlasW: number, atlasH: number) {
+  function initializeShaders(
+    totalSlots: number,
+    totalVirtualChunks: number,
+    atlasW: number,
+    atlasH: number,
+  ) {
     programInfo = twgl.createProgramInfo(gl, [
       oceanCurrentAtlasVs,
-      makeOceanCurrentAtlasFsParticle(totalSlots, atlasW, atlasH),
+      makeOceanCurrentAtlasFsParticle(totalSlots, totalVirtualChunks, atlasW, atlasH),
     ]);
     screenProgramInfo = twgl.createProgramInfo(gl, [
       oceanCurrentAtlasVsQuad,
@@ -223,7 +228,7 @@ export function createParticlesAtlasField(
     ]);
     updateProgramInfo = twgl.createProgramInfo(gl, [
       oceanCurrentAtlasVsQuad,
-      makeOceanCurrentAtlasFsUpdate(totalSlots, atlasW, atlasH),
+      makeOceanCurrentAtlasFsUpdate(totalSlots, totalVirtualChunks, atlasW, atlasH),
     ]);
 
     setParticles(nParticles);
@@ -495,7 +500,12 @@ export function createParticlesAtlasField(
 
     // Compile shaders and set up GPU resources on first call
     if (!programInfo)
-      initializeShaders(atlas.getTotalSlots(), atlas.getAtlasW(), atlas.getAtlasH());
+      initializeShaders(
+        atlas.getTotalSlots(),
+        atlas.getTotalVirtualChunks(),
+        atlas.getAtlasW(),
+        atlas.getAtlasH(),
+      );
 
     // Create one scheduler per on-demand LOD (LODs 2..N)
     for (let lodNum = 2; lodNum <= lodsSorted.length; lodNum++) {

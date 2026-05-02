@@ -40,13 +40,6 @@ export const MAX_LODS = 4;
  */
 export const MAX_ATLAS_SIZE = 4096;
 
-/**
- * Maximum number of virtual chunk indices across all LODs.
- * Covers up to: LOD1 (9) + LOD2 (30) + LOD3 (120) + LOD4 (480) = 639.
- * Set conservatively high; unused entries stay −1.
- */
-export const MAX_VIRTUAL_CHUNKS = 256;
-
 export type AtlasConfig = {
   /** Physical pixel size of each slot [width, height] — from manifest lods['1'].storedPx */
   slotPx: [number, number];
@@ -73,6 +66,8 @@ export type AtlasManagerAPI = {
   getLodCount: () => number;
   /** Total physical slots in the atlas (atlasCols × atlasRows). Pass to shader factories. */
   getTotalSlots: () => number;
+  /** Total virtual chunk indices across all LODs. Pass to shader factories. */
+  getTotalVirtualChunks: () => number;
   /** Actual atlas width in pixels after auto-sizing and MAX_TEXTURE_SIZE clamping. */
   getAtlasW: () => number;
   /** Actual atlas height in pixels after auto-sizing and MAX_TEXTURE_SIZE clamping. */
@@ -144,8 +139,10 @@ export function createAtlasManager(
   const atlasRows = Math.floor(clampedAtlasH / slotH);
   const totalSlots = atlasCols * atlasRows;
 
+  const totalVirtualChunks = config.lods.reduce((sum, lod) => sum + lod.grid[0] * lod.grid[1], 0);
+
   const maxUniforms = gl.getParameter(gl.MAX_FRAGMENT_UNIFORM_COMPONENTS) as number;
-  const uniformsUsed = totalSlots * 4 + MAX_VIRTUAL_CHUNKS + 30;
+  const uniformsUsed = totalSlots * 4 + totalVirtualChunks + 30;
   if (uniformsUsed > maxUniforms)
     throw new Error(
       `Atlas too large: ${uniformsUsed} uniform components needed, device limit is ${maxUniforms}`,
@@ -186,7 +183,7 @@ export function createAtlasManager(
 
   // ── Dynamic chunk→slot mapping (the LRU data structure) ───────────────────
   // chunkSlots: virtualIdx → physicalSlot (−1 = not resident)
-  const chunkSlots = new Int32Array(MAX_VIRTUAL_CHUNKS).fill(-1);
+  const chunkSlots = new Int32Array(totalVirtualChunks).fill(-1);
 
   // chunkToSlot / slotToChunk: bidirectional map for O(1) eviction lookup
   const chunkToSlot = new Map<string, number>(); // chunkId → physicalSlot
@@ -315,6 +312,10 @@ export function createAtlasManager(
     return totalSlots;
   }
 
+  function getTotalVirtualChunks(): number {
+    return totalVirtualChunks;
+  }
+
   function getAtlasW(): number {
     return clampedAtlasW;
   }
@@ -342,6 +343,7 @@ export function createAtlasManager(
     getLodOffsets,
     getLodCount,
     getTotalSlots,
+    getTotalVirtualChunks,
     getAtlasW,
     getAtlasH,
     destroy,
