@@ -2,9 +2,8 @@
  * AtlasManager
  *
  * Manages a WebGL texture that packs chunk PNGs into physical "slots".
- * Atlas dimensions are configurable per product via AtlasConfig (atlasW / atlasH).
- * Both current products pass explicit dimensions — heatmap (4096×2048) and particles
- * (2048×2048) — so FALLBACK_ATLAS_SIZE is a safety-net fallback for future products only.
+ * Atlas dimensions are computed automatically from the manifest (slotPx × LOD grids):
+ * the smallest power-of-2 W×H that fits all tiles, clamped to gl.MAX_TEXTURE_SIZE.
  *
  * TWO GRIDS to keep straight:
  *   1. Chunk grid (cx, cy) — geographic subdivision from the manifest.
@@ -20,7 +19,7 @@
  *     When the pool is full, LRU eviction reclaims the least-recently-visible slot.
  *
  * SHADER INTERFACE:
- *   u_slots[totalSlots]       — static UV layout per physical slot (never changes)
+ *   u_slots[totalSlots]        — static UV layout per physical slot (never changes)
  *   u_chunk_slots[MAX_VIRTUAL] — virtual chunk index → physical slot index (−1 = not loaded)
  *
  * The shader computes: virtualIdx = u_lod_offsets[lodIdx] + cy*cols + cx
@@ -30,11 +29,16 @@
  * ChunkId convention: "{lod}_{cx}_{cy}"  e.g. "1_0_0", "2_3_2", "3_5_4"
  */
 
-/** Fallback atlas dimension when a product omits atlasW/atlasH. Current products pass explicit values. */
-export const FALLBACK_ATLAS_SIZE = 2048;
-
 /** Maximum number of LODs the shader supports. Drives the GLSL array sizes. */
 export const MAX_LODS = 4;
+
+/**
+ * Hard cap on atlas dimensions regardless of gl.MAX_TEXTURE_SIZE.
+ * Keeps VRAM bounded at 4096×4096 × 4 bytes = 64 MB per atlas.
+ * If totalRequired exceeds what this cap allows, the atlas is sized to the cap
+ * and LRU eviction absorbs the overflow — rendering remains correct.
+ */
+export const MAX_ATLAS_SIZE = 4096;
 
 /**
  * Maximum number of virtual chunk indices across all LODs.
@@ -51,10 +55,6 @@ export type AtlasConfig = {
    * Index 0 = LOD '1', index 1 = LOD '2', etc. Up to MAX_LODS entries.
    */
   lods: Array<{ grid: [number, number] }>;
-  /** Atlas texture width in pixels. Defaults to FALLBACK_ATLAS_SIZE — prefer passing explicitly. */
-  atlasW?: number;
-  /** Atlas texture height in pixels. Defaults to FALLBACK_ATLAS_SIZE — prefer passing explicitly. */
-  atlasH?: number;
 };
 
 export type AtlasManagerAPI = {
@@ -71,6 +71,12 @@ export type AtlasManagerAPI = {
   getLodOffsets: () => Int32Array;
   /** Number of active LODs, for u_lod_count shader uniform. */
   getLodCount: () => number;
+  /** Total physical slots in the atlas (atlasCols × atlasRows). Pass to shader factories. */
+  getTotalSlots: () => number;
+  /** Actual atlas width in pixels after auto-sizing and MAX_TEXTURE_SIZE clamping. */
+  getAtlasW: () => number;
+  /** Actual atlas height in pixels after auto-sizing and MAX_TEXTURE_SIZE clamping. */
+  getAtlasH: () => number;
   destroy: () => void;
 };
 
@@ -79,16 +85,60 @@ export function parseChunkId(chunkId: string): { lod: number; cx: number; cy: nu
   return { lod, cx, cy };
 }
 
+/**
+ * Find the smallest power-of-2 W×H atlas that fits `totalRequired` slots of size `slotPx`.
+ * Prefers landscape (W ≥ H) when multiple options have equal total pixels.
+ * Both dimensions are clamped to `maxTexSize`.
+ */
+function computeAtlasDimensions(
+  slotPx: [number, number],
+  totalRequired: number,
+  maxTexSize: number,
+): [number, number] {
+  const [slotW, slotH] = slotPx;
+  let best: [number, number] | null = null;
+
+  for (let w = 512; w <= maxTexSize; w *= 2) {
+    const cols = Math.floor(w / slotW);
+    if (cols === 0) continue;
+    const rowsNeeded = Math.ceil(totalRequired / cols);
+    let h = 512;
+    while (Math.floor(h / slotH) < rowsNeeded) {
+      h *= 2;
+      if (h > maxTexSize) break;
+    }
+    if (h > maxTexSize) continue;
+    if (cols * Math.floor(h / slotH) < totalRequired) continue;
+
+    if (
+      best === null ||
+      w * h < best[0] * best[1] ||
+      (w * h === best[0] * best[1] && w >= h && best[0] < best[1])
+    ) {
+      best = [w, h];
+    }
+  }
+
+  return best ?? [maxTexSize, maxTexSize];
+}
+
 export function createAtlasManager(
   gl: WebGL2RenderingContext,
   config: AtlasConfig,
 ): AtlasManagerAPI {
   const [slotW, slotH] = config.slotPx;
-  const atlasW = config.atlasW ?? FALLBACK_ATLAS_SIZE;
-  const atlasH = config.atlasH ?? FALLBACK_ATLAS_SIZE;
   const maxTexSize = gl.getParameter(gl.MAX_TEXTURE_SIZE) as number;
-  const clampedAtlasW = Math.min(atlasW, maxTexSize);
-  const clampedAtlasH = Math.min(atlasH, maxTexSize);
+
+  // Target: LOD1 (dedicated, never evicted) + largest single on-demand LOD (eviction-free at
+  // any one zoom level). If this doesn't fit within the cap, LRU handles the overflow.
+  const lod1Count = config.lods[0].grid[0] * config.lods[0].grid[1];
+  const maxOnDemandCount = config.lods
+    .slice(1)
+    .reduce((max, lod) => Math.max(max, lod.grid[0] * lod.grid[1]), 0);
+  const totalRequired = lod1Count + maxOnDemandCount;
+
+  const cap = Math.min(maxTexSize, MAX_ATLAS_SIZE);
+  const [clampedAtlasW, clampedAtlasH] = computeAtlasDimensions(config.slotPx, totalRequired, cap);
 
   const atlasCols = Math.floor(clampedAtlasW / slotW);
   const atlasRows = Math.floor(clampedAtlasH / slotH);
@@ -120,9 +170,6 @@ export function createAtlasManager(
   }
 
   // ── Physical slot layout ───────────────────────────────────────────────────
-  // LOD1: slots 0 … lod1Count−1 (dedicated, formula-based).
-  // Pool: slots lod1Count … totalSlots−1 (shared by LOD2+, LRU-managed).
-  const lod1Count = config.lods[0].grid[0] * config.lods[0].grid[1];
 
   // ── Static UV data (never changes) ────────────────────────────────────────
   // Every four floats: [uvOffsetX, uvOffsetY, uvScaleX, uvScaleY] for one slot.
@@ -264,6 +311,18 @@ export function createAtlasManager(
     return config.lods.length;
   }
 
+  function getTotalSlots(): number {
+    return totalSlots;
+  }
+
+  function getAtlasW(): number {
+    return clampedAtlasW;
+  }
+
+  function getAtlasH(): number {
+    return clampedAtlasH;
+  }
+
   function destroy(): void {
     gl.deleteTexture(texture);
     chunkSlots.fill(-1);
@@ -282,6 +341,9 @@ export function createAtlasManager(
     getChunkSlots,
     getLodOffsets,
     getLodCount,
+    getTotalSlots,
+    getAtlasW,
+    getAtlasH,
     destroy,
   };
 }

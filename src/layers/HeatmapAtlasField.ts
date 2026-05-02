@@ -2,7 +2,7 @@
  * HeatmapAtlasField (formerly ScalarAtlasField)
  *
  * GPU scalar overlay for atlas-based products (sea level anomaly, SST anomaly mosaic, etc.).
- * Renders a full-viewport quad each frame, sampling scalar values from the 2048² Atlas texture
+ * Renders a full-viewport quad each frame, sampling scalar values from the Atlas texture
  * and mapping them to a color ramp.
  *
  * Supports 1, 2, or 3 LODs — determined by the manifest at runtime.
@@ -29,10 +29,6 @@ import {
   scalarAtlasVs,
 } from '@/webgl';
 
-// 4096×2048 gives 16×10 = 160 slots. Pool = 151, fitting all LOD2 (30) + LOD3 (120) = 150 tiles
-// with no LRU eviction. Particles keep their own 2048×2048 atlas (hardcoded in particlesShader).
-const HEATMAP_ATLAS_W = 4096;
-const HEATMAP_ATLAS_H = 2048;
 import { getColorRamp } from '@/utils';
 import {
   convertLogColorScaleToRamp,
@@ -199,14 +195,9 @@ export function createHeatmapAtlasField(
     atlas = createAtlasManager(gl, {
       slotPx: lod1.storedPx,
       lods: lodsSorted.map(({ grid }) => ({ grid })),
-      atlasW: HEATMAP_ATLAS_W,
-      atlasH: HEATMAP_ATLAS_H,
     });
 
-    const totalSlots =
-      Math.floor(HEATMAP_ATLAS_W / lod1.storedPx[0]) *
-      Math.floor(HEATMAP_ATLAS_H / lod1.storedPx[1]);
-    if (!programInfo) initializeShaders(totalSlots);
+    if (!programInfo) initializeShaders(atlas.getTotalSlots());
 
     // Create one scheduler per on-demand LOD (LODs 2..N)
     for (let lodNum = 2; lodNum <= lodsSorted.length; lodNum++) {

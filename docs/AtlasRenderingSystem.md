@@ -72,14 +72,30 @@ tile.png  →  fetch()  →  createImageBitmap()  →  texSubImage2D()  →  atl
 
 ### Atlas dimensions per product
 
-One atlas slot = one stored chunk PNG. `slotPx` is set to `lod1.storedPx` (e.g. 242×194 px):
+One atlas slot = one stored chunk PNG. `slotPx` is set to `lod1.storedPx` (e.g. 242×194 px).
 
-| Product        | Atlas size  | Slots (slotPx = 242×194) | LOD1 | Pool | LOD2+3 tiles   |
-| -------------- | ----------- | ------------------------ | ---- | ---- | -------------- |
-| Scalar heatmap | 4096 × 2048 | 16 × 10 = **160**        | 9    | 151  | 30 + 120 = 150 |
-| Particle       | 2048 × 2048 | 8 × 10 = **80**          | 9    | 71   | 30 (LOD2 only) |
+Atlas dimensions are **computed automatically** by `createAtlasManager` — no per-product constants needed. The sizing target is:
 
-The heatmap atlas is wider (4096) so its pool of 151 comfortably holds all LOD2 (30) + LOD3 (120) = 150 tiles without LRU eviction. Both products pass their preferred dimensions explicitly to `createAtlasManager` — `HEATMAP_ATLAS_W/H` in `HeatmapAtlasField.ts` and `PARTICLES_ATLAS_W/H` in `ParticlesAtlasField.ts`. At runtime, `createAtlasManager` clamps both dimensions to `gl.MAX_TEXTURE_SIZE` — on older or mobile devices the atlas may be smaller, which reduces the pool size and increases LRU eviction frequency but does not break rendering. The shader factories receive the (post-clamp) `totalSlots` value at compile time.
+```
+totalRequired = LOD1 count + largest single on-demand LOD count
+```
+
+This guarantees that any one zoom level can be fully resident with no eviction. It does **not** try to fit every LOD simultaneously — LRU eviction handles that gracefully when tiles from multiple fine LODs need to coexist. The result is clamped to `min(gl.MAX_TEXTURE_SIZE, MAX_ATLAS_SIZE)`.
+
+**Priority order:**
+
+1. `computeAtlasDimensions` finds the smallest power-of-2 W×H ≥ `totalRequired`, preferring landscape (W ≥ H) on equal pixel counts.
+2. Both dimensions are capped at `MAX_ATLAS_SIZE = 4096` (64 MB VRAM ceiling per atlas).
+3. If `totalRequired` exceeds what the cap allows, the atlas is sized to the cap and LRU absorbs the overflow — rendering remains correct.
+
+With the current manifest (storedPx=242×194, LOD1 3×3, LOD2 6×5, LOD3 12×10):
+
+| Product        | `totalRequired`   | Auto-sized atlas | Slots           | Pool | Largest on-demand LOD |
+| -------------- | ----------------- | ---------------- | --------------- | ---- | --------------------- |
+| Scalar heatmap | 9 + 120 = **129** | 4096 × 2048      | 16×10 = **160** | 151  | LOD3 (120 tiles)      |
+| Particle       | 9 + 30 = **39**   | 2048 × 1024      | 8×5 = **40**    | 31   | LOD2 (30 tiles)       |
+
+Switching to 256×256 `chunkPx` (258×258 `storedPx`) with the same LOD grids auto-sizes to 4096×4096 — the system adapts without any code change.
 
 ---
 
@@ -309,6 +325,18 @@ With 1 LOD active the loop is dead code. The **particle position-update shader**
 | `lods['N'].padding`       | Padding pixels on each side (1 → 2px total per axis)                                                        |
 | `lods['N'].zoomThreshold` | _(LOD2+)_ Minimum map zoom to activate this LOD. Defaults to `DEFAULT_ZOOM_THRESHOLD = 6`. LOD1 ignores it. |
 
+**Choosing `chunkPx` and `padding`**
+
+`padding: 1` is the recommended value and should not need to change. GPU bilinear filtering samples a 2×2 texel neighbourhood — without at least 1px of padding the border texel of one tile bleeds into the adjacent atlas slot. The cost is negligible (1/242 ≈ 0.4% per side for current tiles). `padding: 2` would only be warranted for anisotropic or mip-mapped filtering, neither of which this system uses.
+
+`chunkPx` is the geographic resolution knob. It must satisfy `storedPx = chunkPx + [2×padding, 2×padding]`. When choosing a tile size:
+
+1. Pick `chunkPx` based on how much geography you want each tile to cover at each LOD.
+2. Derive `storedPx = chunkPx + [2, 2]` (with padding=1).
+3. Verify the slot count still covers your pool: `floor(atlasW / storedPx[0]) × floor(atlasH / storedPx[1]) ≥ LOD1 count + LOD2+ tile total`.
+
+The current **240×192** inner / **242×194** stored gives 160 slots in the 4096×2048 heatmap atlas, covering LOD1(9) + LOD2(30) + LOD3(120) = 159 tiles with one slot to spare.
+
 LOD keys are sorted numerically at runtime — insertion order in the JSON does not matter. Up to `MAX_LODS = 4` LODs are supported.
 
 ---
@@ -332,14 +360,12 @@ These values drive the UV math (`u_uv_scale`, `u_uv_offset`), chunk scheduling, 
 
 ### Hardcoded constants
 
-| Value                         | Constant                          | Location                 | Notes                                           |
-| ----------------------------- | --------------------------------- | ------------------------ | ----------------------------------------------- |
-| Preferred heatmap atlas size  | `HEATMAP_ATLAS_W/H = 4096×2048`   | `HeatmapAtlasField.ts`   | Clamped to `gl.MAX_TEXTURE_SIZE` at runtime     |
-| Preferred particle atlas size | `PARTICLES_ATLAS_W/H = 2048×2048` | `ParticlesAtlasField.ts` | Clamped to `gl.MAX_TEXTURE_SIZE` at runtime     |
-| Max LOD count                 | `MAX_LODS = 4`                    | `AtlasManager.ts`        | Sizes GLSL uniform arrays                       |
-| Max virtual chunk indices     | `MAX_VIRTUAL_CHUNKS = 256`        | `AtlasManager.ts`        | Covers LOD1(9)+LOD2(30)+LOD3(120)+some headroom |
-| LOD blend duration            | `300 ms`                          | `LODController.ts`       | Ease-out quadratic crossfade                    |
-| Fallback atlas size           | `FALLBACK_ATLAS_SIZE = 2048`      | `AtlasManager.ts`        | Used only when `atlasW`/`atlasH` are omitted    |
+| Value                     | Constant                   | Location           | Notes                                                            |
+| ------------------------- | -------------------------- | ------------------ | ---------------------------------------------------------------- |
+| Atlas VRAM cap            | `MAX_ATLAS_SIZE = 4096`    | `AtlasManager.ts`  | Caps auto-sized atlas at 4096² = 64 MB; LRU absorbs any overflow |
+| Max LOD count             | `MAX_LODS = 4`             | `AtlasManager.ts`  | Sizes GLSL uniform arrays                                        |
+| Max virtual chunk indices | `MAX_VIRTUAL_CHUNKS = 256` | `AtlasManager.ts`  | Covers LOD1(9)+LOD2(30)+LOD3(120)+some headroom                  |
+| LOD blend duration        | `300 ms`                   | `LODController.ts` | Ease-out quadratic crossfade                                     |
 
 ---
 
@@ -437,20 +463,19 @@ createAtlasManager(gl, config: AtlasConfig): AtlasManagerAPI
 
 **`AtlasConfig`**
 
-| Field     | Type                                | Description                                                                                                    |
-| --------- | ----------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `slotPx`  | `[number, number]`                  | Slot pixel size `[w, h]` — set to `lod1.storedPx`                                                              |
-| `lods`    | `Array<{ grid: [number, number] }>` | LOD configs, coarsest first                                                                                    |
-| `atlasW?` | `number`                            | Preferred atlas width. Defaults to `FALLBACK_ATLAS_SIZE` (2048). Clamped to `gl.MAX_TEXTURE_SIZE` at runtime.  |
-| `atlasH?` | `number`                            | Preferred atlas height. Defaults to `FALLBACK_ATLAS_SIZE` (2048). Clamped to `gl.MAX_TEXTURE_SIZE` at runtime. |
+| Field    | Type                                | Description                                       |
+| -------- | ----------------------------------- | ------------------------------------------------- |
+| `slotPx` | `[number, number]`                  | Slot pixel size `[w, h]` — set to `lod1.storedPx` |
+| `lods`   | `Array<{ grid: [number, number] }>` | LOD configs, coarsest first                       |
+
+Atlas dimensions are auto-computed from `slotPx` and the total tile count across all LODs (see [Atlas dimensions per product](#atlas-dimensions-per-product)).
 
 **Constants**
 
-| Constant              | Value | Notes                                                                  |
-| --------------------- | ----- | ---------------------------------------------------------------------- |
-| `FALLBACK_ATLAS_SIZE` | 2048  | Safety-net fallback — both current products pass explicit dimensions   |
-| `MAX_LODS`            | 4     | GLSL array size for LOD uniforms                                       |
-| `MAX_VIRTUAL_CHUNKS`  | 256   | Size of `u_chunk_slots`; covers current LOD1(9)+LOD2(30)+LOD3(120)=159 |
+| Constant             | Value | Notes                                                                  |
+| -------------------- | ----- | ---------------------------------------------------------------------- |
+| `MAX_LODS`           | 4     | GLSL array size for LOD uniforms                                       |
+| `MAX_VIRTUAL_CHUNKS` | 256   | Size of `u_chunk_slots`; covers current LOD1(9)+LOD2(30)+LOD3(120)=159 |
 
 **Methods**
 
@@ -596,7 +621,7 @@ Shader source is generated by factory functions (`makeScalarAtlasFs(totalSlots)`
 | `u_atlas`       | `sampler2D` | The atlas texture                                                               |
 | `u_bounds`      | `vec4`      | Viewport in Mercator: `[nwX, seY, seX, nwY]`                                    |
 | `u_data_bounds` | `vec4`      | Data region: `[lonMin, latMax, lonMax, latMin]`                                 |
-| `u_slots`       | `vec4[N]`   | Static UV layout per physical slot. N = totalSlots (160 heatmap / 80 particles) |
+| `u_slots`       | `vec4[N]`   | Static UV layout per physical slot. N = totalSlots (auto-computed per manifest) |
 | `u_chunk_slots` | `int[256]`  | Virtual index → physical slot (−1 = not resident)                               |
 | `u_lod_grids`   | `vec2[4]`   | `[cols, rows]` per LOD, coarse→fine                                             |
 | `u_lod_offsets` | `int[4]`    | Cumulative virtual chunk offset per LOD                                         |
@@ -649,13 +674,13 @@ WebGL2 guarantees `MAX_FRAGMENT_UNIFORM_COMPONENTS ≥ 1024`. The heatmap shader
 
 5. **`src/components/MainSidebar/products.tsx`** — add the sidebar entry.
 
-No changes to atlas, shader, or scheduler code are needed unless the new product exceeds 4 LODs, a total virtual chunk count > 256, or pushes the tile count past the pool (heatmap pool = 151).
+No changes to atlas, shader, or scheduler code are needed unless the new product exceeds 4 LODs or a total virtual chunk count > 256. Atlas sizing is automatic — if the largest on-demand LOD doesn't fit within `MAX_ATLAS_SIZE`, LRU eviction handles the overflow.
 
 ---
 
 ## Known Limitations
 
-| Issue                                                                                 | Status                                                |
-| ------------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| `MAX_VIRTUAL_CHUNKS = 256` — LOD4 alone needs 480 virtual chunks, exceeding the limit | Increase the constant and recompile shaders if needed |
-| Heatmap pool (151) fits current LOD2+LOD3 (150) with exactly one slot to spare        | Adding LOD4 requires revisiting atlas dimensions      |
+| Issue                                                                                 | Status                                                               |
+| ------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `MAX_VIRTUAL_CHUNKS = 256` — LOD4 alone needs 480 virtual chunks, exceeding the limit | Increase the constant and recompile shaders if needed                |
+| LOD4 (480 tiles) exceeds `MAX_ATLAS_SIZE` pool at any tile size                       | Atlas sizes to cap; LRU handles overflow — or raise `MAX_ATLAS_SIZE` |

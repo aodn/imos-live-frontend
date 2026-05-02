@@ -3,7 +3,7 @@
  *
  * GPU particle engine for the ocean-current-field Atlas renderer.
  * Replaces VectorField.js — same ping-pong simulation loop, same Mapbox
- * coordinate conventions, but samples velocity from the 2048² Atlas texture
+ * coordinate conventions, but samples velocity from the Atlas texture
  * instead of a single flat PNG.
  *
  * Caller contract:
@@ -37,9 +37,6 @@ import {
   createAtlasManager,
   createChunkScheduler,
 } from '@/webgl';
-
-const PARTICLES_ATLAS_W = 2048;
-const PARTICLES_ATLAS_H = 2048;
 
 function computeRamp(palette: ColorPalette): Record<string, string> {
   const { scale, legendRange, rawColors } = palette;
@@ -477,8 +474,6 @@ export function createParticlesAtlasField(
     atlas = createAtlasManager(gl, {
       slotPx: lod1.storedPx,
       lods: lodsSorted.map(({ grid }) => ({ grid })),
-      atlasW: PARTICLES_ATLAS_W,
-      atlasH: PARTICLES_ATLAS_H,
     });
 
     // Preload all LOD1 chunks in parallel
@@ -499,10 +494,8 @@ export function createParticlesAtlasField(
     if (gen !== fetchGeneration) return;
 
     // Compile shaders and set up GPU resources on first call
-    const totalSlots =
-      Math.floor(PARTICLES_ATLAS_W / lod1.storedPx[0]) *
-      Math.floor(PARTICLES_ATLAS_H / lod1.storedPx[1]);
-    if (!programInfo) initializeShaders(totalSlots, PARTICLES_ATLAS_W, PARTICLES_ATLAS_H);
+    if (!programInfo)
+      initializeShaders(atlas.getTotalSlots(), atlas.getAtlasW(), atlas.getAtlasH());
 
     // Create one scheduler per on-demand LOD (LODs 2..N)
     for (let lodNum = 2; lodNum <= lodsSorted.length; lodNum++) {
