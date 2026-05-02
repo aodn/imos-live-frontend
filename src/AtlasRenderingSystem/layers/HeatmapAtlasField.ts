@@ -20,31 +20,21 @@
 
 import mapboxgl from 'mapbox-gl';
 import * as twgl from 'twgl.js';
-import type { AtlasManagerAPI, ChunkSchedulerAPI, LODControllerAPI } from '@/webgl';
+import type { AtlasManagerAPI, ChunkSchedulerAPI, LODControllerAPI } from '../webgl';
 import {
   createAtlasManager,
   createChunkScheduler,
   createLODController,
   makeScalarAtlasFs,
   scalarAtlasVs,
-} from '@/webgl';
+} from '../webgl';
 
-import { getColorRamp } from '@/utils';
-import {
-  convertLogColorScaleToRamp,
-  convertLinearColorScaleToRamp,
-} from '@/components/ColorScaleBar/utils';
-import type { ProductManifest } from '@/api';
+import { getColorRamp, convertLogColorScaleToRamp, convertLinearColorScaleToRamp } from '../utils';
+import type { ProductManifest, ColorPalette, PalettePatch } from '../types';
+
+export type { ColorPalette, PalettePatch };
 
 // ── Types ─────────────────────────────────────────────────────────────────────
-
-export type ColorPalette = {
-  legendRange: [number, number];
-  rawColors: [number, number, number][];
-  scale: 'log' | 'linear';
-};
-
-export type PalettePatch = Partial<ColorPalette>;
 
 export type HeatmapAtlasFieldAPI = {
   setSource: (

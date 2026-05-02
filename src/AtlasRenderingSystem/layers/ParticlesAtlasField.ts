@@ -17,16 +17,15 @@
 import mapboxgl from 'mapbox-gl';
 import * as twgl from 'twgl.js';
 
-import type { CustomizableParticleConfig } from '@/config';
-import { INITIAL_PARTICLE_CONFIG } from '@/config';
-import { getColorRamp } from '@/utils';
-import {
-  convertLogColorScaleToRamp,
-  convertLinearColorScaleToRamp,
-} from '@/components/ColorScaleBar/utils';
-import type { ProductManifest } from '@/api';
-import type { ColorPalette, PalettePatch } from './HeatmapAtlasField';
-import type { AtlasManagerAPI, ChunkSchedulerAPI, LODControllerAPI } from '@/webgl';
+import type {
+  CustomizableParticleConfig,
+  ProductManifest,
+  ColorPalette,
+  PalettePatch,
+} from '../types';
+import { INITIAL_PARTICLE_CONFIG } from '../types';
+import { getColorRamp, convertLogColorScaleToRamp, convertLinearColorScaleToRamp } from '../utils';
+import type { AtlasManagerAPI, ChunkSchedulerAPI, LODControllerAPI } from '../webgl';
 import {
   createLODController,
   oceanCurrentAtlasVs,
@@ -36,7 +35,7 @@ import {
   makeOceanCurrentAtlasFsUpdate,
   createAtlasManager,
   createChunkScheduler,
-} from '@/webgl';
+} from '../webgl';
 
 function computeRamp(palette: ColorPalette): Record<string, string> {
   const { scale, legendRange, rawColors } = palette;

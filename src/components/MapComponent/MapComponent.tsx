@@ -4,12 +4,12 @@ import {
   useMapInitialization,
   useMapResize,
   useMapStyle,
-  useParticleLayer,
+  useParticleAtlasLayer,
   useParticleRasterLayersEventHandlers,
+  useScalarAtlasLayer,
   useWaveBuoysLayer,
   useWaveBuoysLayerEventHandler,
   useWorldLandLayer,
-  useWebGLHeatmapLayer,
 } from '@/hooks';
 import { useMapUIStore } from '@/store';
 import { cn } from '@/utils';
@@ -51,27 +51,27 @@ export const MapComponent = memo(function MapComponent() {
   //2. create layer, set data to layer and add layer to map.
   const { measurePointsGeojson, setMeasurePointsGeojson } = useDistanceMeasurementLayers(map);
   useWorldLandLayer(map);
-  useWebGLHeatmapLayer({
+  useScalarAtlasLayer({
     map,
     layerId: PRODUCTS[PRODUCT.GSLA_ANOMALY_SEA_LEVELS].layerId,
     product: PRODUCT.GSLA_ANOMALY_SEA_LEVELS,
   });
-  useWebGLHeatmapLayer({
+  useScalarAtlasLayer({
     map,
     layerId: PRODUCTS[PRODUCT.SST_ANOMALY_MOSAIC].layerId,
     product: PRODUCT.SST_ANOMALY_MOSAIC,
   });
-  useWebGLHeatmapLayer({
+  useScalarAtlasLayer({
     map,
     layerId: PRODUCTS[PRODUCT.MARINE_HEATWAVE_DHD_MOSAIC].layerId,
     product: PRODUCT.MARINE_HEATWAVE_DHD_MOSAIC,
   });
-  useWebGLHeatmapLayer({
+  useScalarAtlasLayer({
     map,
     layerId: PRODUCTS[PRODUCT.MARINE_HEATWAVE_SSTA_MOSAIC].layerId,
     product: PRODUCT.MARINE_HEATWAVE_SSTA_MOSAIC,
   });
-  useParticleLayer({
+  useParticleAtlasLayer({
     map,
     layerId: PRODUCTS[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT].layerId,
     product: PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT,

@@ -1,6 +1,5 @@
 export * from './useMapboxLayerSetup';
 export * from './useMapboxLayerVisibility';
-export * from './useParticleLayer';
 export * from './useCustomLayerVisibility';
 export * from './useParticleRasterLayersEventHandlers';
 export * from './useWaveBuoysLayer';
@@ -8,5 +7,6 @@ export * from './useWaveBuoysLayerEventHandler';
 export * from './useWorldLandLayer';
 export * from './useDistanceMeasurementLayers';
 export * from './useDistanceMeasurementLayersEventHandler';
-export * from './useWebGLHeatmapLayer';
 export * from './useProductDateAvailabilitySync';
+export * from './useScalarAtlasLayer';
+export * from './useParticleAtlasLayer';

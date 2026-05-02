@@ -1,5 +1,8 @@
 import { LAYERS_ORDER } from '@/config';
-import type { ParticlesAtlasLayerInterface, HeatmapAtlasLayerInterface } from '@/layers';
+import type {
+  ParticlesAtlasLayerInterface,
+  HeatmapAtlasLayerInterface,
+} from '@/AtlasRenderingSystem';
 import type { Layer } from 'mapbox-gl';
 
 export function addLayerInOrder(

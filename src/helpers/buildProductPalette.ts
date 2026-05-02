@@ -1,6 +1,6 @@
 import { COLOR_OPTIONS } from '@/config';
 import type { LegendArgs } from '@/constants';
-import type { ColorPalette } from '@/layers';
+import type { ColorPalette } from '@/AtlasRenderingSystem';
 
 export function buildProductPalette(legend: LegendArgs): ColorPalette {
   return {

@@ -5,15 +5,15 @@
  * Used by all scalar-overlay atlas products (sea level anomaly, SST anomaly mosaic, etc.).
  *
  * Usage:
- *   const layer = scalarAtlasLayer('gsla-anomaly-sea-levels-webgl-layer', palette);
+ *   const layer = heatmapAtlasLayer('gsla-anomaly-sea-levels-webgl-layer', palette);
  *   map.addLayer(layer);
  *   await layer.setSource(manifest, '/26-01-01/sea_level_anomaly', legendRange);
  *   layer.setVisible(true);
  */
 
-import type { ProductManifest } from '@/api';
 import { createHeatmapAtlasField } from './HeatmapAtlasField';
-import type { HeatmapAtlasFieldAPI, ColorPalette, PalettePatch } from './HeatmapAtlasField';
+import type { HeatmapAtlasFieldAPI } from './HeatmapAtlasField';
+import type { ProductManifest, ColorPalette, PalettePatch } from '../types';
 
 export type { ColorPalette, PalettePatch };
 

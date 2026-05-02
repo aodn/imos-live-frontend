@@ -6,17 +6,20 @@
  * visibility / config API — but drives oceanCurrentAtlasField instead of VectorField.
  *
  * Usage:
- *   const layer = windAtlasLayer('gsla-wind-atlas');
+ *   const layer = particlesAtlasLayer('gsla-wind-atlas', palette);
  *   map.addLayer(layer);
  *   await layer.setSource(manifest, '/26-01-01/ocean_current', legendRange);
  *   layer.setVisible(true);
  */
 
-import type { CustomizableParticleConfig } from '@/config';
-import type { ProductManifest } from '@/api';
 import { createParticlesAtlasField } from './ParticlesAtlasField';
 import type { ParticlesAtlasFieldAPI } from './ParticlesAtlasField';
-import type { ColorPalette, PalettePatch } from './HeatmapAtlasField';
+import type {
+  CustomizableParticleConfig,
+  ProductManifest,
+  ColorPalette,
+  PalettePatch,
+} from '../types';
 
 export type ParticlesAtlasLayerInterface = mapboxgl.CustomLayerInterface & {
   visible: boolean;
