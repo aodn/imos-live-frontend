@@ -28,7 +28,19 @@ Both share the same `AtlasManager`, `ChunkScheduler`, and `LODController` primit
 3. **`MapComponent.tsx`** — wire the hook:
 
    ```tsx
-   useWebGLHeatmapLayer({ map, layerId, product: PRODUCT.MY_PRODUCT });
+   // scalar overlay (heatmap)
+   useScalarAtlasLayer({
+     map,
+     layerId: PRODUCTS[PRODUCT.MY_PRODUCT].layerId,
+     product: PRODUCT.MY_PRODUCT,
+   });
+
+   // particle animation
+   useParticleAtlasLayer({
+     map,
+     layerId: PRODUCTS[PRODUCT.MY_PRODUCT].layerId,
+     product: PRODUCT.MY_PRODUCT,
+   });
    ```
 
 4. **`src/config/layerConfig.ts`** — add the layer ID to `LAYERS_ORDER`.
@@ -131,17 +143,17 @@ Applies only to the ocean current particle layer.
 
 ---
 
-### System limits (`src/webgl/AtlasManager.ts`)
+### System limits (`src/AtlasRenderingSystem/webgl/AtlasManager.ts`)
 
 These are code constants. Change them only if your product genuinely exceeds the current bounds.
 
-| Constant               | Value | Where to change     | When to raise it                                               |
-| ---------------------- | ----- | ------------------- | -------------------------------------------------------------- |
-| `MAX_ATLAS_SIZE`       | 4096  | `AtlasManager.ts`   | Product needs more slots than 4096² can provide                |
-| `MAX_LODS`             | 4     | `AtlasManager.ts`   | Product has more than 4 LOD levels                             |
-| LOD blend duration     | 300ms | `LODController.ts`  | Crossfade feels too fast or too slow                           |
-| Fetch concurrency      | 6     | `ChunkScheduler.ts` | Too many/few parallel tile requests                            |
-| Default zoom threshold | 6     | `ChunkScheduler.ts` | LOD2 should activate earlier or later when not set in manifest |
+| Constant               | Value | Where to change           | When to raise it                                               |
+| ---------------------- | ----- | ------------------------- | -------------------------------------------------------------- |
+| `MAX_ATLAS_SIZE`       | 4096  | `webgl/AtlasManager.ts`   | Product needs more slots than 4096² can provide                |
+| `MAX_LODS`             | 4     | `webgl/AtlasManager.ts`   | Product has more than 4 LOD levels                             |
+| LOD blend duration     | 300ms | `webgl/LODController.ts`  | Crossfade feels too fast or too slow                           |
+| Fetch concurrency      | 6     | `webgl/ChunkScheduler.ts` | Too many/few parallel tile requests                            |
+| Default zoom threshold | 6     | `webgl/ChunkScheduler.ts` | LOD2 should activate earlier or later when not set in manifest |
 
 The virtual chunk array size (`u_chunk_slots[N]`) and atlas slot array size (`u_slots[N]`) are both computed dynamically from the manifest and injected into the shader at compile time — no constant to update. The only hard limit is the device's uniform budget, validated at runtime: `totalSlots × 4 + totalVirtualChunks + 30 ≤ gl.MAX_FRAGMENT_UNIFORM_COMPONENTS`. If this throws, the product has too many tiles for the device.
 
@@ -405,9 +417,9 @@ The particle layer runs a second rendering loop on top of the atlas lookup. Six 
 manifest.json
     │
     ▼
-useWebGLHeatmapLayer / useParticleLayer
-    │  fetches manifest via React Query
-    │  calls layer.setSource(manifest, baseUrl, legendRange)
+useScalarAtlasLayer / useParticleAtlasLayer
+    │  fetches manifest, calls handle.setSource(date)
+    │  → factory resolves manifest then calls layer.setSource(manifest, baseUrl, legendRange)
     ▼
 HeatmapAtlasField / ParticlesAtlasField  (setSource)
     │  1. sort manifest.lods numerically
@@ -457,7 +469,7 @@ Screen
 
 ### AtlasManager
 
-**File:** `src/webgl/AtlasManager.ts`
+**File:** `src/AtlasRenderingSystem/webgl/AtlasManager.ts`
 
 Manages the GPU texture and the virtual→physical slot mapping.
 
@@ -498,7 +510,7 @@ When a LOD2+ chunk is uploaded and the pool is full, the chunk with the oldest `
 
 ### HeatmapAtlasField
 
-**File:** `src/layers/HeatmapAtlasField.ts`
+**File:** `src/AtlasRenderingSystem/layers/HeatmapAtlasField.ts`
 
 Orchestrates the atlas, schedulers, and LOD controller for scalar overlay products.
 
@@ -518,7 +530,7 @@ A `fetchGeneration` counter discards stale upload callbacks if `setSource` is ca
 
 ### ParticlesAtlasField
 
-**File:** `src/layers/ParticlesAtlasField.ts`
+**File:** `src/AtlasRenderingSystem/layers/ParticlesAtlasField.ts`
 
 Orchestrates the atlas, schedulers, and LOD controller for the ocean current particle product.
 
@@ -541,7 +553,7 @@ A `fetchGeneration` counter discards stale upload callbacks and aborts scheduler
 
 ### ChunkScheduler
 
-**File:** `src/webgl/ChunkScheduler.ts`
+**File:** `src/AtlasRenderingSystem/webgl/ChunkScheduler.ts`
 
 One instance per on-demand LOD. Manages the fetch queue for that LOD.
 
@@ -566,7 +578,7 @@ createChunkScheduler(
 
 ### LODController
 
-**File:** `src/webgl/LODController.ts`
+**File:** `src/AtlasRenderingSystem/webgl/LODController.ts`
 
 Animates `u_lod_blend` (0 → 1) over 300 ms with an ease-out quadratic curve. Driven by the draw loop — no separate `requestAnimationFrame`.
 
@@ -622,22 +634,28 @@ WebGL2 guarantees `MAX_FRAGMENT_UNIFORM_COMPONENTS ≥ 1024`. The heatmap shader
 
 ```
 src/
-  webgl/
-    AtlasManager.ts         — GPU texture + slot pool + LRU eviction
-    ChunkScheduler.ts       — on-demand fetch queue per LOD
-    LODController.ts        — crossfade blend animation
-    heatmapShader.ts        — scalarAtlasVs + makeScalarAtlasFs() factory
-    particlesShader.ts      — makeOceanCurrentAtlasFsParticle/Update() factories
-
-  layers/
-    HeatmapAtlasField.ts    — orchestrates atlas for scalar products
-    HeatmapAtlasLayer.ts    — Mapbox CustomLayerInterface wrapper (scalar)
-    ParticlesAtlasField.ts  — orchestrates atlas for particle products
-    particlesAtlasLayer.ts  — Mapbox CustomLayerInterface wrapper (particles)
+  AtlasRenderingSystem/
+    index.ts                — public API: createScalarAtlasLayer, createParticleAtlasLayer, types
+    types.ts                — shared types (ProductManifest, AtlasLayerHandle, ColorPalette, …)
+    webgl/
+      AtlasManager.ts       — GPU texture + slot pool + LRU eviction
+      ChunkScheduler.ts     — on-demand fetch queue per LOD
+      LODController.ts      — crossfade blend animation
+      heatmapShader.ts      — scalarAtlasVs + makeScalarAtlasFs() factory
+      particlesShader.ts    — makeOceanCurrentAtlasFsParticle/Update() factories
+    layers/
+      HeatmapAtlasField.ts  — orchestrates atlas for scalar products
+      HeatmapAtlasLayer.ts  — Mapbox CustomLayerInterface wrapper (scalar)
+      ParticlesAtlasField.ts — orchestrates atlas for particle products
+      particlesAtlasLayer.ts — Mapbox CustomLayerInterface wrapper (particles)
+    utils/
+      colorScaleUtils.ts    — colour ramp conversion (linear/log)
+      getColorRamp.ts       — colour ramp builder
+      rgbToHex.ts           — hex conversion helper
 
   hooks/layers/
-    useWebGLHeatmapLayer.ts — React hook: fetches manifest, wires setSource
-    useParticleLayer.ts     — React hook: fetches manifest, wires setSource
+    useScalarAtlasLayer.ts  — React hook: wires createScalarAtlasLayer to Zustand store
+    useParticleAtlasLayer.ts — React hook: wires createParticleAtlasLayer to Zustand store
 
   api/
     scalarAtlas.ts          — getProductManifest + ProductManifest type
