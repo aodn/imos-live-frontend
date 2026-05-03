@@ -26,7 +26,7 @@
  *   then: physSlot = u_chunk_slots[virtualIdx]
  *   then: physSlot >= 0 → loaded; use u_slots[physSlot] for atlas UV.
  *
- * ChunkId convention: "{lod}_{cx}_{cy}"  e.g. "1_0_0", "2_3_2", "3_5_4"
+ * ChunkId convention: "{lod}/{cx}/{cy}"  e.g. "1/0/0", "2/3/2", "3/5/4"
  */
 
 /** Maximum number of LODs the shader supports. Drives the GLSL array sizes. */
@@ -76,7 +76,7 @@ export type AtlasManagerAPI = {
 };
 
 export function parseChunkId(chunkId: string): { lod: number; cx: number; cy: number } {
-  const [lod, cx, cy] = chunkId.split('_').map(Number);
+  const [lod, cx, cy] = chunkId.split('/').map(Number);
   return { lod, cx, cy };
 }
 
@@ -251,7 +251,6 @@ export function createAtlasManager(
 
   function upload(chunkId: string, img: ImageBitmap): void {
     if (chunkToSlot.has(chunkId)) return; // already resident
-
     const { lod, cx, cy } = parseChunkId(chunkId);
     const virtIdx = virtualIndex(lod, cx, cy);
     let physSlot: number;

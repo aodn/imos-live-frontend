@@ -211,7 +211,7 @@ export function createHeatmapAtlasField(
     const [lod1Cols, lod1Rows] = lod1.grid;
     const lod1Ids: string[] = [];
     for (let cy = 0; cy < lod1Rows; cy++)
-      for (let cx = 0; cx < lod1Cols; cx++) lod1Ids.push(`1_${cx}_${cy}`);
+      for (let cx = 0; cx < lod1Cols; cx++) lod1Ids.push(`1/${cx}/${cy}`);
 
     if (lod1Ids.length === 0) return;
 

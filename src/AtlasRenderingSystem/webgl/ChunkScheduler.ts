@@ -14,8 +14,8 @@
  *  - Upload each decoded ImageBitmap to the AtlasManager
  *  - Fire onChunkLoaded so the LODController can trigger crossfade
  *
- * ChunkId convention: "{lod}_{cx}_{cy}"  e.g. "2_3_2", "3_5_4"
- * File URL:           "{tileBaseUrl}/{lod}_{cx}_{cy}.png"
+ * ChunkId convention: "{lod}/{cx}/{cy}"  e.g. "2/3/2", "3/5/4"
+ * File URL:           "{tileBaseUrl}/{lod}/{cx}/{cy}.png"
  */
 
 import type { AtlasManagerAPI } from './AtlasManager';
@@ -116,9 +116,9 @@ export function createChunkScheduler(
   const aborts = new Map<string, AbortController>();
   let visibleIds: string[] = [];
 
-  // chunkId format: "${lod}_${cx}_${cy}"
+  // chunkId format: "${lod}/${cx}/${cy}"
   function makeChunkId(cx: number, cy: number): string {
-    return `${lod}_${cx}_${cy}`;
+    return `${lod}/${cx}/${cy}`;
   }
 
   function chunkUrl(id: string): string {

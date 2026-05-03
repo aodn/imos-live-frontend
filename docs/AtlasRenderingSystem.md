@@ -21,7 +21,7 @@ Both share the same `AtlasManager`, `ChunkScheduler`, and `LODController` primit
 
 ## Adding a New Product
 
-1. **Generate tiles** — produce `manifest.json` + PNG files named `{lod}_{cx}_{cy}.png`. See [Tile & LOD configuration](#tile--lod-configuration-manifestjson) for all manifest fields.
+1. **Generate tiles** — produce `manifest.json` + PNG files named `{lod}/{cx}/{cy}.png`. See [Tile & LOD configuration](#tile--lod-configuration-manifestjson) for all manifest fields.
 
 2. **`src/constants/product.ts`** — add entries to `PRODUCT`, `PRODUCTS`, `PRODUCTLEGENDS`, and `PRODUCTCOLORPALETTES`. See [Visual appearance](#visual-appearance-srcconstantsproductts) for what each controls.
 
@@ -294,10 +294,10 @@ The physical slot number (42) stays the same — only its contents and the two `
 **ChunkId convention**
 
 ```
-"{lod}_{cx}_{cy}"    e.g.  "1_0_0",  "2_3_2",  "3_5_4"
+"{lod}/{cx}/{cy}"    e.g.  "1/0/0",  "2/3/2",  "3/5/4"
 ```
 
-File URL: `{baseUrl}/{lod}_{cx}_{cy}.png`
+File URL: `{baseUrl}/{lod}/{cx}/{cy}.png`
 
 ---
 
