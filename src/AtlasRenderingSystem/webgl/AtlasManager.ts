@@ -93,6 +93,8 @@ function computeAtlasDimensions(
   const [slotW, slotH] = slotPx;
   let best: [number, number] | null = null;
 
+  // Start at 512: minimum practical power-of-two atlas width. Smaller sizes
+  // can't usefully fit even one chunk column, and the cols===0 guard skips them anyway.
   for (let w = 512; w <= maxTexSize; w *= 2) {
     const cols = Math.floor(w / slotW);
     if (cols === 0) continue;
