@@ -31,6 +31,7 @@ export function useMapInitialization() {
       touchPitch: false,
       pitchWithRotate: false,
       attributionControl: false,
+      logoPosition: 'bottom-right',
       dragRotate: false,
       maxBounds,
       bounds: maxBounds,
