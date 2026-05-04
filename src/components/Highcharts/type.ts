@@ -49,6 +49,7 @@ type ExportConfig = {
   filename?: string;
   formats?: ('png' | 'jpeg' | 'pdf' | 'svg')[];
   buttons?: Highcharts.ExportingButtonsOptions;
+  watermarkUrl?: string;
 };
 
 // NEW: Range Selector Type Interfaces

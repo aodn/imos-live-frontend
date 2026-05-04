@@ -1,3 +1,4 @@
+import logoUrl from '@/assets/imos_logo_with_title.png';
 import { getWaveBuoyDetails, getWaveBuoyLatestDate } from '@/api';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -240,7 +241,7 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
           margin: 10,
         }}
         chart={{
-          marginTop: 80,
+          marginTop: 40,
           marginBottom: 80,
           spacing: [10, 10, 15, 10],
         }}
@@ -279,7 +280,8 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
             cropThreshold: 0,
           },
         }}
-        exporting={{ enabled: false }}
+        legend={{ enabled: false }}
+        exporting={{ enabled: true, watermarkUrl: logoUrl }}
         tooltip={{
           shared: true,
           split: false,

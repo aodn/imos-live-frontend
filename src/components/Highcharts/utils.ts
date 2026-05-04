@@ -385,29 +385,90 @@ export const buildExportingConfig = (exportingConfig: any) => {
 
   const defaultMenuItems = [
     'downloadPNG',
-    'downloadJPEG',
-    'downloadPDF',
-    'downloadSVG',
-    'separator',
+    // 'downloadJPEG',
+    // 'downloadPDF',
+    // 'downloadSVG',
+    // 'separator',
     'downloadCSV',
     'downloadXLS',
   ];
 
+  const filename = exportingConfig.filename || 'chart';
+  const watermarkUrl: string | undefined = exportingConfig.watermarkUrl;
+
+  const makeDownloadHandler = (mimeType: string, ext: string) =>
+    function (this: any) {
+      const width = this.chartWidth;
+      const height = this.chartHeight;
+      const scale = 2;
+
+      const svg = this.getSVG({ chart: { width, height } });
+      const canvas = document.createElement('canvas');
+      canvas.width = width * scale;
+      canvas.height = height * scale;
+      const ctx = canvas.getContext('2d')!;
+      ctx.scale(scale, scale);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, width, height);
+
+      const triggerDownload = () => {
+        canvas.toBlob(blob => {
+          if (!blob) return;
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${filename}.${ext}`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }, mimeType);
+      };
+
+      const drawWatermark = (onDone: () => void) => {
+        if (!watermarkUrl) return onDone();
+        const logo = new Image();
+        logo.onload = () => {
+          const logoH = 56;
+          const logoW = (logo.naturalWidth / logo.naturalHeight) * logoH;
+          const padding = 12;
+          ctx.globalAlpha = 0.85;
+          ctx.drawImage(logo, padding, height - logoH - padding, logoW, logoH);
+          ctx.globalAlpha = 1;
+          onDone();
+        };
+        logo.onerror = onDone;
+        logo.src = watermarkUrl;
+      };
+
+      const svgBlob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+      const svgUrl = URL.createObjectURL(svgBlob);
+      const chartImg = new Image();
+      chartImg.onload = () => {
+        ctx.drawImage(chartImg, 0, 0);
+        URL.revokeObjectURL(svgUrl);
+        drawWatermark(triggerDownload);
+      };
+      chartImg.src = svgUrl;
+    };
+
   return {
     enabled: true,
-    filename: exportingConfig.filename || 'chart',
+    filename,
     fallbackToExportServer: false,
-    sourceWidth: 800,
-    sourceHeight: 600,
-    scale: 1,
+    scale: 2,
     chartOptions: {
       plotOptions: {
         series: {
           dataLabels: {
-            enabled: true,
+            enabled: false,
           },
         },
       },
+    },
+    menuItemDefinitions: {
+      downloadPNG: { textKey: 'downloadPNG', onclick: makeDownloadHandler('image/png', 'png') },
+      downloadJPEG: { textKey: 'downloadJPEG', onclick: makeDownloadHandler('image/jpeg', 'jpg') },
     },
     buttons: exportingConfig.buttons || {
       contextButton: {
