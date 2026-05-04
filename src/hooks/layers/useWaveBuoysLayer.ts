@@ -1,4 +1,4 @@
-import { getAllWaveBuoySites, getWaveBuoySitesByDate } from '@/api';
+import { getLatestWaveBuoySites, getWaveBuoySitesByDate } from '@/api';
 import {
   UNCLUSTERED_WAVE_BUOYS_LAYER_CONFIG,
   WAVE_BUOY_CLUSTER_LABEL_LAYER_CONFIG,
@@ -20,8 +20,9 @@ import { useDidMountEffect } from '../useDidMountEffect';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
 import allWaveBuoySitesBackup from '@/assets/wave_buoy_all_sites.json';
-import { normalizeWaveBuoyDates } from '@/utils';
+import { isBeforeDays, normalizeWaveBuoyDates } from '@/utils';
 import type { WaveBuoyPositionFeatureCollection } from '@/types';
+import { WAVE_BUOY_MIN_DATE } from '@/components/Highcharts/WaveBuoyChart';
 
 type UseWaveBuoysLayer = {
   map: React.RefObject<mapboxgl.Map | null>;
@@ -49,7 +50,7 @@ export function useWaveBuoysLayer({ map, layerId, sourceId, product }: UseWaveBu
     queryKey: ['wave_buoy_sites_all'],
     queryFn: async (): Promise<WaveBuoyPositionFeatureCollection> => {
       try {
-        return await getAllWaveBuoySites();
+        return await getLatestWaveBuoySites();
       } catch {
         return normalizeWaveBuoyDates(allWaveBuoySitesBackup as WaveBuoyPositionFeatureCollection);
       }
@@ -118,13 +119,15 @@ export function useWaveBuoysLayer({ map, layerId, sourceId, product }: UseWaveBu
 
     const activeBuoysByName = new Map(buoySites.features.map(f => [f.properties.buoy, f]));
     // Active buoys in allBuoySites now get their feature replaced wholesale from buoySites (so date and other properties reflect the selected date)
-    const mergedFeatures = allBuoySites.features.map(f => {
-      const activeSite = activeBuoysByName.get(f.properties.buoy);
-      if (activeSite) {
-        return { ...activeSite, properties: { ...activeSite.properties, hasDataForDate: true } };
-      }
-      return { ...f, properties: { ...f.properties, hasDataForDate: false } };
-    });
+    const mergedFeatures = allBuoySites.features
+      .map(f => {
+        const activeSite = activeBuoysByName.get(f.properties.buoy);
+        if (activeSite) {
+          return { ...activeSite, properties: { ...activeSite.properties, hasDataForDate: true } };
+        }
+        return { ...f, properties: { ...f.properties, hasDataForDate: false } };
+      })
+      .filter(b => isBeforeDays(b.properties.date, date, WAVE_BUOY_MIN_DATE)); // Only display the wave buoys less than 30 days before and not after selected date
 
     addOrUpdateGeoJsonSource({
       map: map.current!,
@@ -133,7 +136,7 @@ export function useWaveBuoysLayer({ map, layerId, sourceId, product }: UseWaveBu
       enableCluser: true,
       clusterRadius: 40,
     });
-  }, [allWaveBuoySitesQuery.promise, buoySiteQuery.promise, map, sourceId]);
+  }, [allWaveBuoySitesQuery.promise, buoySiteQuery.promise, date, map, sourceId]);
 
   const setupLayer = useCallback(async () => {
     if (buoyLayers.some(layer => !layer)) return;

@@ -148,3 +148,31 @@ export function toCompactDate(date: string) {
 }
 
 export const today = () => dayjs().format('YYYYMMDD');
+
+const FORMATS = [
+  'YYYY-MM-DD',
+  'YYYY/MM/DD',
+  'DD-MM-YYYY',
+  'DD/MM/YYYY',
+  'YYYY-MM-DDTHH:mm:ssZ',
+  'YYYY-MM-DDTHH:mm:ss',
+];
+
+// dayjs(input) always convert input to local datetime, no matter what input is, even 'Z' existing in input will also be ignored.
+function normalizeToLocalStarting(date: string | Date) {
+  if (!date) {
+    return dayjs().startOf('day');
+  }
+  if (date instanceof Date) {
+    return dayjs(date).startOf('day');
+  }
+  return dayjs(date, FORMATS).startOf('day');
+}
+
+/**
+ * Checks if a is more than N days before b (default 30)
+ */
+export function isBeforeDays(a: string | Date, b: string | Date, days = 30): boolean {
+  const diff = normalizeToLocalStarting(b).diff(normalizeToLocalStarting(a), 'day');
+  return diff >= 0 && diff <= days;
+}

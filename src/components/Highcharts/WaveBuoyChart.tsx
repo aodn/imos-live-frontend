@@ -25,6 +25,8 @@ import { useMapUIStore } from '@/store';
 
 dayjs.extend(utc);
 
+export const WAVE_BUOY_MIN_DATE = 30;
+
 type WaveBuoyChartProps = {
   waveBuoysData: Omit<WaveBuoyPositionFeature, 'type'>[];
   showDirection?: boolean;
@@ -41,8 +43,8 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
   });
 
   const { from, to } = useMemo(() => {
-    const end = dayjs(latestWaveBuoyDate ?? today()).add(1, 'day'); // include the full selectedDate day in local time
-    const start = dayjs(selectedDate).subtract(30, 'day');
+    const end = dayjs(latestWaveBuoyDate ?? today()).add(1, 'day'); // Include the full selectedDate day in local time
+    const start = dayjs(selectedDate).subtract(WAVE_BUOY_MIN_DATE, 'day'); // Start from 30 days before the selected date
     return { from: start.toDate(), to: end.toDate() };
   }, [selectedDate, latestWaveBuoyDate]);
 
