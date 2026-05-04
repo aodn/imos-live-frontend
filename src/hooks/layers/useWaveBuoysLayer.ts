@@ -10,7 +10,7 @@ import {
   UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
   WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID,
 } from '@/constants';
-import { addLayerInOrder, addOrUpdateGeoJsonSource } from '@/helpers';
+import { addLayerInOrder, addOrUpdateGeoJsonSource, mergeAndFilterBuoyFeatures } from '@/helpers';
 import { circleLayer, symbolLayer } from '@/layers';
 import { useMapUIStore, setProductErrorByProduct } from '@/store';
 import { useQuery } from '@tanstack/react-query';
@@ -20,9 +20,8 @@ import { useDidMountEffect } from '../useDidMountEffect';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
 import allWaveBuoySitesBackup from '@/assets/wave_buoy_all_sites.json';
-import { isBeforeDays, normalizeWaveBuoyDates } from '@/utils';
+import { normalizeWaveBuoyDates } from '@/utils';
 import type { WaveBuoyPositionFeatureCollection } from '@/types';
-import { WAVE_BUOY_MIN_DATE } from '@/components/Highcharts/WaveBuoyChart';
 
 type UseWaveBuoysLayer = {
   map: React.RefObject<mapboxgl.Map | null>;
@@ -107,7 +106,7 @@ export function useWaveBuoysLayer({ map, layerId, sourceId, product }: UseWaveBu
     const buoySitesPromise = buoySiteQuery.promise.catch(() => {
       setProductErrorByProduct(PRODUCT.WAVE_BUOYS, true);
       return {
-        type: 'FeatureCollection',
+        type: 'FeatureCollection' as const,
         features: [],
       };
     });
@@ -117,22 +116,13 @@ export function useWaveBuoysLayer({ map, layerId, sourceId, product }: UseWaveBu
       buoySitesPromise,
     ]);
 
-    const activeBuoysByName = new Map(buoySites.features.map(f => [f.properties.buoy, f]));
-    // Active buoys in allBuoySites now get their feature replaced wholesale from buoySites (so date and other properties reflect the selected date)
-    const mergedFeatures = allBuoySites.features
-      .map(f => {
-        const activeSite = activeBuoysByName.get(f.properties.buoy);
-        if (activeSite) {
-          return { ...activeSite, properties: { ...activeSite.properties, hasDataForDate: true } };
-        }
-        return { ...f, properties: { ...f.properties, hasDataForDate: false } };
-      })
-      .filter(b => isBeforeDays(b.properties.date, date, WAVE_BUOY_MIN_DATE)); // Only display the wave buoys less than 30 days before and not after selected date
-
     addOrUpdateGeoJsonSource({
       map: map.current!,
       id: sourceId,
-      data: { ...allBuoySites, features: mergedFeatures },
+      data: {
+        ...allBuoySites,
+        features: mergeAndFilterBuoyFeatures(allBuoySites, buoySites, date),
+      },
       enableCluser: true,
       clusterRadius: 40,
     });
