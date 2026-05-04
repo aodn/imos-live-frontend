@@ -27,6 +27,9 @@ type DrawerStore = {
 };
 
 const isScreenSmall = isSmallScreen();
+const defaultSnapPoints: DrawerProps['snapPoints'] = isScreenSmall
+  ? (['85%', '100%'] as const)
+  : (['50%'] as const);
 
 export const useDrawerStore = create<DrawerStore>(set => ({
   bottomDrawer: {
@@ -34,7 +37,7 @@ export const useDrawerStore = create<DrawerStore>(set => ({
     content: null,
     direction: 'bottom',
     snapMode: 'snap',
-    snapPoints: isScreenSmall ? ['85%', '100%'] : ['60%', '90%'],
+    snapPoints: defaultSnapPoints,
   },
 
   leftDrawer: {
@@ -44,11 +47,7 @@ export const useDrawerStore = create<DrawerStore>(set => ({
     snapPoints: ['100%'],
   },
 
-  openBottomDrawer: (
-    content,
-    snapPoints = isScreenSmall ? ['85%', '100%'] : ['60%', '90%'],
-    snapMode = 'snap',
-  ) =>
+  openBottomDrawer: (content, snapPoints = defaultSnapPoints, snapMode = 'snap') =>
     set(state => ({
       bottomDrawer: {
         ...state.bottomDrawer,

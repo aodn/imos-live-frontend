@@ -281,6 +281,7 @@ export const buildTitleConfig = (
 ) => ({
   title: {
     text: title,
+    useHTML: true,
     style: {
       color: theme?.textColor || DEFAULT_THEME.textColor,
     },
@@ -433,7 +434,7 @@ export const buildExportingConfig = (exportingConfig: any) => {
           const logoW = (logo.naturalWidth / logo.naturalHeight) * logoH;
           const padding = 12;
           ctx.globalAlpha = 0.85;
-          ctx.drawImage(logo, padding, height - logoH - padding, logoW, logoH);
+          ctx.drawImage(logo, padding, logoH + padding, logoW, logoH);
           ctx.globalAlpha = 1;
           onDone();
         };

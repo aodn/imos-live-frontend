@@ -106,11 +106,10 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
   }, [dynamicButtons]);
 
   const title = useMemo(() => {
-    return (
-      buoy +
-      ' ' +
-      `(${formatLatLngToDirectional(geometry.coordinates[1], geometry.coordinates[0])})`
-    );
+    return `<span style="font-size: 18px; font-weight: 600;">${buoy}</span> <span style="font-size: 14px;">(${formatLatLngToDirectional(
+      geometry.coordinates[1],
+      geometry.coordinates[0],
+    )})</span>`;
   }, [buoy, geometry.coordinates]);
 
   const tooltipFormatter = useCallback(
