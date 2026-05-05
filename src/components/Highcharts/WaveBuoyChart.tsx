@@ -1,3 +1,4 @@
+import logoUrl from '@/assets/imos_logo_with_title.png';
 import { getWaveBuoyDetails, getWaveBuoyLatestDate } from '@/api';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -25,6 +26,8 @@ import { useMapUIStore } from '@/store';
 
 dayjs.extend(utc);
 
+export const WAVE_BUOY_MIN_DATE = 30;
+
 type WaveBuoyChartProps = {
   waveBuoysData: Omit<WaveBuoyPositionFeature, 'type'>[];
   showDirection?: boolean;
@@ -41,8 +44,8 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
   });
 
   const { from, to } = useMemo(() => {
-    const end = dayjs(latestWaveBuoyDate ?? today()).add(1, 'day'); // include the full selectedDate day in local time
-    const start = dayjs(selectedDate).subtract(30, 'day');
+    const end = dayjs(latestWaveBuoyDate ?? today()).add(1, 'day'); // Include the full selectedDate day in local time
+    const start = dayjs(selectedDate).subtract(WAVE_BUOY_MIN_DATE, 'day'); // Start from 30 days before the selected date
     return { from: start.toDate(), to: end.toDate() };
   }, [selectedDate, latestWaveBuoyDate]);
 
@@ -103,11 +106,10 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
   }, [dynamicButtons]);
 
   const title = useMemo(() => {
-    return (
-      buoy +
-      ' ' +
-      `(${formatLatLngToDirectional(geometry.coordinates[1], geometry.coordinates[0])})`
-    );
+    return `<span style="font-size: 18px; font-weight: 600;">${buoy}</span> <span style="font-size: 14px;">(${formatLatLngToDirectional(
+      geometry.coordinates[1],
+      geometry.coordinates[0],
+    )})</span>`;
   }, [buoy, geometry.coordinates]);
 
   const tooltipFormatter = useCallback(
@@ -200,7 +202,7 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
         title={title}
         turboThreshold={4000}
         rangeSelector={{
-          enabled: false,
+          enabled: true,
           selected: defaultSelected,
           buttonPosition: {
             align: 'left',
@@ -229,7 +231,7 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
           inputDateFormat: '%Y-%m-%d',
           inputEditDateFormat: '%Y-%m-%d',
           floating: false,
-          y: -50,
+          y: -20,
           buttons: dynamicButtons,
         }}
         navigator={{
@@ -238,9 +240,9 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
           margin: 10,
         }}
         chart={{
-          marginTop: 80,
-          marginBottom: 80,
-          spacing: [10, 10, 15, 10],
+          marginTop: 30,
+          marginBottom: 60,
+          spacing: [10, 10, 25, 10],
         }}
         scrollbar={{ enabled: true, height: 20 }}
         responsive={true}
@@ -248,6 +250,10 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
           type: 'datetime',
           labels: { format: '{value:%b %e %H:%M}' },
           offset: 0,
+          // When no xAxis.minRange is set, Highcharts Stock auto-computes it as roughly 5× the data point interval for the loaded series.
+          // For buoys that report every 3–6 hours, this gives a minRange of ~15–30 hours — larger than 6H or 12H, so Highcharts silently
+          // rejects those zoom levels. Buoys with hourly or sub-hourly data land below 24H, so all buttons work. Therefore, we set this as 1 hour.
+          minRange: 3600 * 1000,
           plotLines: [
             {
               value: dayjs(selectedDate).valueOf(),
@@ -277,7 +283,8 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
             cropThreshold: 0,
           },
         }}
-        exporting={{ enabled: false }}
+        legend={{ enabled: false }}
+        exporting={{ enabled: true, watermarkUrl: logoUrl, formats: ['png', 'csv', 'xls'] }}
         tooltip={{
           shared: true,
           split: false,

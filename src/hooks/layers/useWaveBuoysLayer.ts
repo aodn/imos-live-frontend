@@ -1,4 +1,4 @@
-import { getAllWaveBuoySites, getWaveBuoySitesByDate } from '@/api';
+import { getLatestWaveBuoySites, getWaveBuoySitesByDate } from '@/api';
 import {
   UNCLUSTERED_WAVE_BUOYS_LAYER_CONFIG,
   WAVE_BUOY_CLUSTER_LABEL_LAYER_CONFIG,
@@ -10,7 +10,7 @@ import {
   UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
   WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID,
 } from '@/constants';
-import { addLayerInOrder, addOrUpdateGeoJsonSource } from '@/helpers';
+import { addLayerInOrder, addOrUpdateGeoJsonSource, mergeAndFilterBuoyFeatures } from '@/helpers';
 import { circleLayer, symbolLayer } from '@/layers';
 import { useMapUIStore, setProductErrorByProduct } from '@/store';
 import { useQuery } from '@tanstack/react-query';
@@ -49,7 +49,7 @@ export function useWaveBuoysLayer({ map, layerId, sourceId, product }: UseWaveBu
     queryKey: ['wave_buoy_sites_all'],
     queryFn: async (): Promise<WaveBuoyPositionFeatureCollection> => {
       try {
-        return await getAllWaveBuoySites();
+        return await getLatestWaveBuoySites();
       } catch {
         return normalizeWaveBuoyDates(allWaveBuoySitesBackup as WaveBuoyPositionFeatureCollection);
       }
@@ -106,7 +106,7 @@ export function useWaveBuoysLayer({ map, layerId, sourceId, product }: UseWaveBu
     const buoySitesPromise = buoySiteQuery.promise.catch(() => {
       setProductErrorByProduct(PRODUCT.WAVE_BUOYS, true);
       return {
-        type: 'FeatureCollection',
+        type: 'FeatureCollection' as const,
         features: [],
       };
     });
@@ -116,24 +116,17 @@ export function useWaveBuoysLayer({ map, layerId, sourceId, product }: UseWaveBu
       buoySitesPromise,
     ]);
 
-    const activeBuoysByName = new Map(buoySites.features.map(f => [f.properties.buoy, f]));
-    // Active buoys in allBuoySites now get their feature replaced wholesale from buoySites (so date and other properties reflect the selected date)
-    const mergedFeatures = allBuoySites.features.map(f => {
-      const activeSite = activeBuoysByName.get(f.properties.buoy);
-      if (activeSite) {
-        return { ...activeSite, properties: { ...activeSite.properties, hasDataForDate: true } };
-      }
-      return { ...f, properties: { ...f.properties, hasDataForDate: false } };
-    });
-
     addOrUpdateGeoJsonSource({
       map: map.current!,
       id: sourceId,
-      data: { ...allBuoySites, features: mergedFeatures },
+      data: {
+        ...allBuoySites,
+        features: mergeAndFilterBuoyFeatures(allBuoySites, buoySites, date),
+      },
       enableCluser: true,
       clusterRadius: 40,
     });
-  }, [allWaveBuoySitesQuery.promise, buoySiteQuery.promise, map, sourceId]);
+  }, [allWaveBuoySitesQuery.promise, buoySiteQuery.promise, date, map, sourceId]);
 
   const setupLayer = useCallback(async () => {
     if (buoyLayers.some(layer => !layer)) return;

@@ -43,8 +43,8 @@ export const getWaveBuoySitesByDate = async (
   return normalizeWaveBuoyDates(wavebuoysSites.data);
 };
 
-//TODO: After create wave_buoy_all endpint in ogc-api, it will work.
-export const getAllWaveBuoySites = async (): Promise<WaveBuoyPositionFeatureCollection> => {
+//This is to get all buoy sites with their latest available observation
+export const getLatestWaveBuoySites = async (): Promise<WaveBuoyPositionFeatureCollection> => {
   const wavebuoysSites = await axios.get<WaveBuoyPositionFeatureCollection>(
     `${WAVE_BUOY_COLLECTION_URL}/wave_buoy_all`,
   );

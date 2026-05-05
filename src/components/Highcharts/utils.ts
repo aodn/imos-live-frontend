@@ -281,6 +281,7 @@ export const buildTitleConfig = (
 ) => ({
   title: {
     text: title,
+    useHTML: true,
     style: {
       color: theme?.textColor || DEFAULT_THEME.textColor,
     },
@@ -385,193 +386,111 @@ export const buildExportingConfig = (exportingConfig: any) => {
 
   const defaultMenuItems = [
     'downloadPNG',
+    'downloadCSV',
+    'downloadXLS',
     'downloadJPEG',
     'downloadPDF',
     'downloadSVG',
     'separator',
-    'downloadCSV',
-    'downloadXLS',
   ];
+
+  // Maps ExportConfig.formats values to Highcharts menu item keys
+  const formatToMenuItem: Record<string, string> = {
+    png: 'downloadPNG',
+    jpeg: 'downloadJPEG',
+    pdf: 'downloadPDF',
+    svg: 'downloadSVG',
+    csv: 'downloadCSV',
+    xls: 'downloadXLS',
+  };
+
+  const filename = exportingConfig.filename || 'chart';
+  const watermarkUrl: string | undefined = exportingConfig.watermarkUrl;
+
+  const makeDownloadHandler = (mimeType: string, ext: string) =>
+    function (this: any) {
+      const width = this.chartWidth;
+      const height = this.chartHeight;
+      const scale = 2;
+
+      const svg = this.getSVG({ chart: { width, height } });
+      const canvas = document.createElement('canvas');
+      canvas.width = width * scale;
+      canvas.height = height * scale;
+      const ctx = canvas.getContext('2d')!;
+      ctx.scale(scale, scale);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, width, height);
+
+      const triggerDownload = () => {
+        canvas.toBlob(blob => {
+          if (!blob) return;
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${filename}.${ext}`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }, mimeType);
+      };
+
+      const drawWatermark = (onDone: () => void) => {
+        if (!watermarkUrl) return onDone();
+        const logo = new Image();
+        logo.onload = () => {
+          const logoH = 32;
+          const logoW = (logo.naturalWidth / logo.naturalHeight) * logoH;
+          const padding = 12;
+          ctx.globalAlpha = 0.85;
+          ctx.drawImage(logo, padding / 2, padding / 2, logoW, logoH);
+          ctx.globalAlpha = 1;
+          onDone();
+        };
+        logo.onerror = onDone;
+        logo.src = watermarkUrl;
+      };
+
+      const svgBlob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+      const svgUrl = URL.createObjectURL(svgBlob);
+      const chartImg = new Image();
+      chartImg.onload = () => {
+        ctx.drawImage(chartImg, 0, 0);
+        URL.revokeObjectURL(svgUrl);
+        drawWatermark(triggerDownload);
+      };
+      chartImg.src = svgUrl;
+    };
 
   return {
     enabled: true,
-    filename: exportingConfig.filename || 'chart',
+    filename,
     fallbackToExportServer: false,
-    sourceWidth: 800,
-    sourceHeight: 600,
-    scale: 1,
+    scale: 2,
     chartOptions: {
       plotOptions: {
         series: {
           dataLabels: {
-            enabled: true,
+            enabled: false,
           },
         },
       },
+    },
+    // text overrides the Highcharts default language string (e.g. 'Download PNG image')
+    menuItemDefinitions: {
+      downloadPNG: { text: 'Download Image', onclick: makeDownloadHandler('image/png', 'png') },
     },
     buttons: exportingConfig.buttons || {
       contextButton: {
         menuItems: exportingConfig.formats
           ? exportingConfig.formats.map(
-              (format: string) =>
-                defaultMenuItems.find(item => item.toLowerCase().includes(format)) || 'downloadPNG',
+              (format: string) => formatToMenuItem[format] ?? 'downloadPNG',
             )
           : defaultMenuItems,
       },
     },
   };
-};
-
-// Export utilities
-export const exportFallbacks = {
-  svg: (chart: Highcharts.Chart, filename: string) => {
-    try {
-      const svg = (chart as any).getSVG({ chart: { backgroundColor: '#ffffff' } });
-      const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
-      downloadBlob(blob, `${filename}.svg`);
-    } catch (error) {
-      console.error('SVG export fallback failed:', error);
-    }
-  },
-
-  png: (chart: Highcharts.Chart, filename: string) => {
-    try {
-      const svg = (chart as any).getSVG({ chart: { backgroundColor: '#ffffff' } });
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const img = new Image();
-
-      img.onload = () => {
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx?.drawImage(img, 0, 0);
-
-        canvas.toBlob(blob => {
-          if (blob) downloadBlob(blob, `${filename}.png`);
-        }, 'image/png');
-      };
-
-      const svgBlob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
-      img.src = URL.createObjectURL(svgBlob);
-    } catch (error) {
-      console.error('PNG export fallback failed:', error);
-    }
-  },
-
-  jpeg: (chart: Highcharts.Chart, filename: string) => {
-    return new Promise<void>((resolve, reject) => {
-      try {
-        const svg = (chart as any).getSVG({
-          chart: { backgroundColor: '#ffffff' },
-          exporting: { sourceWidth: 800, sourceHeight: 600 },
-        });
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-
-        if (!ctx) {
-          throw new Error('Canvas context not available');
-        }
-
-        const img = new Image();
-
-        img.onload = () => {
-          try {
-            canvas.width = img.naturalWidth || 800;
-            canvas.height = img.naturalHeight || 600;
-
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            ctx.drawImage(img, 0, 0);
-
-            canvas.toBlob(
-              blob => {
-                if (blob) {
-                  downloadBlob(blob, `${filename}.jpg`);
-                  resolve();
-                } else {
-                  reject(new Error('Failed to create JPEG blob'));
-                }
-              },
-              'image/jpeg',
-              0.9,
-            );
-          } catch (error) {
-            reject(error);
-          }
-        };
-
-        img.onerror = () => reject(new Error('Failed to load SVG as image'));
-
-        const svgBlob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
-        img.src = URL.createObjectURL(svgBlob);
-      } catch (error) {
-        reject(error);
-      }
-    });
-  },
-
-  pdf: (chart: Highcharts.Chart, filename: string) => {
-    return new Promise<void>((resolve, reject) => {
-      try {
-        const svg = (chart as any).getSVG({
-          chart: { backgroundColor: '#ffffff' },
-          exporting: { sourceWidth: 1200, sourceHeight: 800 },
-        });
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-
-        if (!ctx) {
-          throw new Error('Canvas context not available');
-        }
-
-        const img = new Image();
-
-        img.onload = () => {
-          try {
-            canvas.width = img.naturalWidth || 1200;
-            canvas.height = img.naturalHeight || 800;
-
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            ctx.drawImage(img, 0, 0);
-
-            canvas.toBlob(blob => {
-              if (blob) {
-                downloadBlob(blob, `${filename}.png`);
-                console.warn('PDF saved as PNG. Install jsPDF for proper PDF export.');
-                resolve();
-              } else {
-                reject(new Error('Failed to create PDF blob'));
-              }
-            }, 'image/png');
-          } catch (error) {
-            reject(error);
-          }
-        };
-
-        img.onerror = () => reject(new Error('Failed to load SVG as image'));
-
-        const svgBlob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
-        img.src = URL.createObjectURL(svgBlob);
-      } catch (error) {
-        reject(error);
-      }
-    });
-  },
-};
-
-export const downloadBlob = (blob: Blob, filename: string) => {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  link.style.display = 'none';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
 };
 
 export const calculateDateRange = (seriesData: any[]) => {

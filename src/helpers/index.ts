@@ -10,3 +10,4 @@ export * from './getRasterData.ts';
 export * from './threddsUrl.ts';
 export * from './createEventPriority.ts';
 export * from './mapImageExport.ts';
+export * from './mergeAndFilterBuoyFeatures.ts';

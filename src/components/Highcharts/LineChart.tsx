@@ -17,6 +17,11 @@ Highcharts.setOptions({
   exporting: {
     fallbackToExportServer: false,
   },
+  // Override built-in menu item labels (downloadCSV/downloadXLS are rendered via lang, not menuItemDefinitions)
+  lang: {
+    downloadCSV: 'Download CSV',
+    downloadXLS: 'Download Excel',
+  },
 });
 
 export const LineChart = memo(function LineChart({ ref, ...props }: LineChartProps) {

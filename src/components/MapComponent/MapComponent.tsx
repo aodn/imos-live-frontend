@@ -12,7 +12,7 @@ import {
   useWorldLandLayer,
 } from '@/hooks';
 import { useMapUIStore } from '@/store';
-import { cn } from '@/utils';
+import { cn, isSmallScreen } from '@/utils';
 import mapboxgl from 'mapbox-gl';
 import { lazy, memo, Suspense, useEffect } from 'react';
 import { useShallow } from 'zustand/shallow';
@@ -31,10 +31,15 @@ import {
   AUSTEMP_DHD_MOSAIC_RASTER_SOURCE_ID,
   AUSTEMP_DHD_MOSAIC_RASTER_LAYER_ID,
 } from '@/constants';
+import type { DrawerProps } from '../Drawer';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_KEY;
 
 const WaveBuoyChart = lazy(() => import('../Highcharts/WaveBuoyChart'));
+// LineChart (500px) + LatestObservation (~88px) + drawer py-4 padding (32px).
+const WAVE_BUOY_SNAP_POINTS = (
+  isSmallScreen() ? ['70%', '90%'] : [620, 700]
+) as DrawerProps['snapPoints'];
 
 export const MapComponent = memo(function MapComponent() {
   const {
@@ -116,6 +121,7 @@ export const MapComponent = memo(function MapComponent() {
         <Suspense fallback={<div>Loading...</div>}>
           <WaveBuoyChart waveBuoysData={waveBuoysLayerClickedPointData} showDirection />
         </Suspense>,
+        WAVE_BUOY_SNAP_POINTS,
       );
     }
   }, [waveBuoysLayerClickedPointData, openDrawer]);
