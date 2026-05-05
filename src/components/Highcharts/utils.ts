@@ -440,11 +440,11 @@ export const buildExportingConfig = (exportingConfig: any) => {
         if (!watermarkUrl) return onDone();
         const logo = new Image();
         logo.onload = () => {
-          const logoH = 56;
+          const logoH = 32;
           const logoW = (logo.naturalWidth / logo.naturalHeight) * logoH;
           const padding = 12;
           ctx.globalAlpha = 0.85;
-          ctx.drawImage(logo, 0, padding / 2, logoW, logoH);
+          ctx.drawImage(logo, padding / 2, padding / 2, logoW, logoH);
           ctx.globalAlpha = 1;
           onDone();
         };
@@ -491,18 +491,6 @@ export const buildExportingConfig = (exportingConfig: any) => {
       },
     },
   };
-};
-
-export const downloadBlob = (blob: Blob, filename: string) => {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  link.style.display = 'none';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
 };
 
 export const calculateDateRange = (seriesData: any[]) => {

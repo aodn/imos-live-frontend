@@ -240,7 +240,7 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
           margin: 10,
         }}
         chart={{
-          marginTop: 50,
+          marginTop: 30,
           marginBottom: 60,
           spacing: [10, 10, 25, 10],
         }}
