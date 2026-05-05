@@ -306,6 +306,7 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
         exporting={{
           enabled: true,
           watermarkUrl: logoUrl,
+          selectedDate,
           filename: () => {
             const { min, max } = visibleRangeRef.current ?? {};
             return min && max ? `${buoy}-waves_${min}_${max}` : `${buoy}-waves`;

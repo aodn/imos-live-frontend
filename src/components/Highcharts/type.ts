@@ -50,6 +50,7 @@ type ExportConfig = {
   formats?: ('png' | 'jpeg' | 'pdf' | 'svg' | 'csv' | 'xls')[];
   buttons?: Highcharts.ExportingButtonsOptions;
   watermarkUrl?: string;
+  selectedDate?: string;
 };
 
 // NEW: Range Selector Type Interfaces
