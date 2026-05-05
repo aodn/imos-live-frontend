@@ -202,7 +202,7 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
         title={title}
         turboThreshold={4000}
         rangeSelector={{
-          enabled: false,
+          enabled: true,
           selected: defaultSelected,
           buttonPosition: {
             align: 'left',
@@ -231,7 +231,7 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
           inputDateFormat: '%Y-%m-%d',
           inputEditDateFormat: '%Y-%m-%d',
           floating: false,
-          y: -50,
+          y: -30,
           buttons: dynamicButtons,
         }}
         navigator={{
@@ -250,6 +250,10 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
           type: 'datetime',
           labels: { format: '{value:%b %e %H:%M}' },
           offset: 0,
+          // When no xAxis.minRange is set, Highcharts Stock auto-computes it as roughly 5× the data point interval for the loaded series.
+          // For buoys that report every 3–6 hours, this gives a minRange of ~15–30 hours — larger than 6H or 12H, so Highcharts silently
+          // rejects those zoom levels. Buoys with hourly or sub-hourly data land below 24H, so all buttons work. Therefore, we set this as 1 hour.
+          minRange: 3600 * 1000,
           plotLines: [
             {
               value: dayjs(selectedDate).valueOf(),
