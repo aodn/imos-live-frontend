@@ -1,14 +1,14 @@
 import type { WaveBuoyDetailsFeature, WaveBuoyPositionFeatureCollection } from '@/types';
-import { normalizeWaveBuoyDates, toLocalDateString, toWaveBuoyApiDate } from '@/utils';
+import { normalizeWaveBuoyDates, utcToLocalDateTime, localToUTC } from '@/utils';
 import axios from 'axios';
 
 /**
  * Date convention for all wave buoy APIs:
  *
- * Outbound — dates are always sent in UTC nanosecond format (via toWaveBuoyApiDate).
+ * Outbound — dates are always sent in UTC nanosecond format (via utcToLocalDateTime).
  *   The app stores and displays dates in local time; callers convert to UTC before calling these functions.
  *
- * Inbound — UTC date strings in responses are converted to local date strings (via toLocalDateString)
+ * Inbound — UTC date strings in responses are converted to local date strings (via toLocalDateTime)
  *   at the call site (React Query select). getWaveBuoyDetails is the exception: it returns
  *   [ms-timestamp, value][] pairs, which Highcharts and toLocalDateTime handle directly.
  *
@@ -25,7 +25,7 @@ export const getWaveBuoyDetails = async (
   buoy: string,
 ): Promise<WaveBuoyDetailsFeature> => {
   const searchParams = new URLSearchParams();
-  searchParams.append('datetime', `${toWaveBuoyApiDate(from)}/${toWaveBuoyApiDate(to)}`);
+  searchParams.append('datetime', `${localToUTC(from)}/${localToUTC(to)}`);
   searchParams.append('waveBuoy', buoy);
   const waveDetails = await axios.get<WaveBuoyDetailsFeature>(
     `${WAVE_BUOY_COLLECTION_URL}/wave_buoy_timeseries?${searchParams.toString()}`,
@@ -38,7 +38,7 @@ export const getWaveBuoySitesByDate = async (
   localDate: string,
 ): Promise<WaveBuoyPositionFeatureCollection> => {
   const wavebuoysSites = await axios.get<WaveBuoyPositionFeatureCollection>(
-    `${WAVE_BUOY_COLLECTION_URL}/wave_buoy_first_data_available?datetime=${toWaveBuoyApiDate(localDate)}`,
+    `${WAVE_BUOY_COLLECTION_URL}/wave_buoy_first_data_available?datetime=${localToUTC(localDate)}`,
   );
   return normalizeWaveBuoyDates(wavebuoysSites.data);
 };
@@ -54,5 +54,5 @@ export const getLatestWaveBuoySites = async (): Promise<WaveBuoyPositionFeatureC
 // date in this response is converted to local date string, which is what the app displays
 export const getWaveBuoyLatestDate = async (): Promise<string> => {
   const latestDate = await axios.get(`${WAVE_BUOY_COLLECTION_URL}/wave_buoy_latest_date`);
-  return toLocalDateString(latestDate.data);
+  return utcToLocalDateTime(latestDate.data, 'YYYY-MM-DD');
 };

@@ -404,7 +404,11 @@ export const buildExportingConfig = (exportingConfig: any) => {
     xls: 'downloadXLS',
   };
 
-  const filename = exportingConfig.filename || 'chart';
+  // Support a function so callers can compute the filename lazily at download time (e.g. from a ref)
+  const getFilename: () => string =
+    typeof exportingConfig.filename === 'function'
+      ? exportingConfig.filename
+      : () => exportingConfig.filename || 'chart';
   const watermarkUrl: string | undefined = exportingConfig.watermarkUrl;
 
   const makeDownloadHandler = (mimeType: string, ext: string) =>
@@ -428,7 +432,7 @@ export const buildExportingConfig = (exportingConfig: any) => {
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url;
-          a.download = `${filename}.${ext}`;
+          a.download = `${getFilename()}.${ext}`;
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
@@ -465,7 +469,7 @@ export const buildExportingConfig = (exportingConfig: any) => {
 
   return {
     enabled: true,
-    filename,
+    filename: getFilename(),
     fallbackToExportServer: false,
     scale: 2,
     chartOptions: {
@@ -478,8 +482,25 @@ export const buildExportingConfig = (exportingConfig: any) => {
       },
     },
     // text overrides the Highcharts default language string (e.g. 'Download PNG image')
+    // CSV/XLS handlers update chart.options.exporting.filename just before download so the
+    // filename reflects the current visible range (read from a ref) rather than the stale
+    // value baked into chart options at render time.
     menuItemDefinitions: {
       downloadPNG: { text: 'Download Image', onclick: makeDownloadHandler('image/png', 'png') },
+      downloadCSV: {
+        text: 'Download CSV',
+        onclick: function (this: any) {
+          this.options.exporting.filename = getFilename();
+          this.downloadCSV();
+        },
+      },
+      downloadXLS: {
+        text: 'Download Excel',
+        onclick: function (this: any) {
+          this.options.exporting.filename = getFilename();
+          this.downloadXLS();
+        },
+      },
     },
     buttons: exportingConfig.buttons || {
       contextButton: {
@@ -638,11 +659,32 @@ type RangeSelectorButtonType =
   | 'minute'
   | 'week';
 
-export function generateDynamicButtons(dataRange: ReturnType<typeof calculateDataRange>) {
+const RangeSelectionType = [
+  '6H',
+  '12H',
+  '1D',
+  '3D',
+  '1W',
+  '2W',
+  '1M',
+  '3M',
+  '6M',
+  '1Y',
+  'All',
+] as const;
+
+export function generateDynamicButtons(
+  dataRange: ReturnType<typeof calculateDataRange>,
+  minRange: (typeof RangeSelectionType)[number] = '12H',
+) {
   if (!dataRange) return [{ type: 'all' as RangeSelectorButtonType, text: 'All' }];
 
   const { rangeDays, rangeHours } = dataRange;
-  const buttons: { type: RangeSelectorButtonType; count?: number; text: string }[] = [];
+  const buttons: {
+    type: RangeSelectorButtonType;
+    count?: number;
+    text: typeof minRange;
+  }[] = [];
 
   // Add hour-based buttons for short ranges
   if (rangeHours >= 6) {
@@ -652,7 +694,7 @@ export function generateDynamicButtons(dataRange: ReturnType<typeof calculateDat
     buttons.push({ type: 'hour', count: 12, text: '12H' });
   }
   if (rangeHours >= 24) {
-    buttons.push({ type: 'day', count: 1, text: '24H' });
+    buttons.push({ type: 'day', count: 1, text: '1D' });
   }
 
   // Add day-based buttons
@@ -683,5 +725,7 @@ export function generateDynamicButtons(dataRange: ReturnType<typeof calculateDat
   // Always add "All" button
   buttons.push({ type: 'all', text: 'All' });
 
-  return buttons;
+  return buttons.filter(
+    b => RangeSelectionType.indexOf(b.text) > RangeSelectionType.indexOf(minRange),
+  );
 }

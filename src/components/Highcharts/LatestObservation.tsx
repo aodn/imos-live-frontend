@@ -1,5 +1,5 @@
 import type { WaveBuoyDetailsFeature } from '@/types';
-import { cn, toLocalDateTime, prioritizeKey } from '@/utils';
+import { cn, utcToLocalDateTime, prioritizeKey } from '@/utils';
 import { useMemo } from 'react';
 import { obseravtionVariants } from './config';
 
@@ -90,7 +90,7 @@ export function LatestObservation({ feature }: { feature: WaveBuoyDetailsFeature
             <span>Latest Observations</span>
             {observationData[0]?.timeStamp && (
               <span className="text-xs font-light ml-2" data-testid="latest-observation-timestamp">
-                {toLocalDateTime(observationData[0].timeStamp)}
+                {utcToLocalDateTime(observationData[0].timeStamp)}
               </span>
             )}
           </h2>

@@ -9,8 +9,11 @@ dayjs.extend(utc);
  * In frontend, we display dates in local time to users, but the wave buoy API expects dates in UTC with nanosecond precision.
  * We need to convert local dates to UTC and add the time component to ensure we are querying the correct date range.
  */
-export function toWaveBuoyApiDate(date: string | Date): string {
-  return dayjs(date).utc().format('YYYY-MM-DDTHH:mm:ss.000000000[Z]');
+export function localToUTC(
+  date: string | Date,
+  format = 'YYYY-MM-DDTHH:mm:ss.000000000[Z]',
+): string {
+  return dayjs(date).utc().format(format);
 }
 
 export function getLastDates<const T extends number>(length: T) {
@@ -62,23 +65,21 @@ export const getLast10Dates = getLastDates(10);
 
 export const getLast31Dates = getLastDates(31);
 
-/**
- * Converts a UTC date string to local time string
- * @param input
- * @param locales
- * @param options
- * @returns LocaleDateString
- */
-export function toLocalDateTime(
+// Convert UTC to local date time
+// dayjs(date).utc() vs dayjs.utc(date)
+// dayjs(date).utc() convernt localdatetime to utc.
+// dayjs.utc(date) convert utc to utc, becasue it expected date is utc.
+export function utcToLocalDateTime(
   input: number | string | Date,
-  locales?: Intl.LocalesArgument,
-  options?: Intl.DateTimeFormatOptions,
+  format = 'YYYY-MM-DD HH:mm:ss',
 ): string {
-  const date = new Date(input);
-  if (isNaN(date.getTime())) {
+  const date = dayjs.utc(input);
+
+  if (!date.isValid()) {
     throw new Error(`Invalid UTC date: ${input}`);
   }
-  return date.toLocaleString(locales, options);
+
+  return date.local().format(format);
 }
 
 export function getDate3DaysAgo() {
@@ -97,32 +98,6 @@ export function isSameDay(date1: Date, date2: Date) {
     d1.getMonth() === d2.getMonth() &&
     d1.getDate() === d2.getDate()
   );
-}
-
-/**
- * Convert UTC date to ISO date string (YYYY-MM-DD)
- *
- * Useful for API calls and storage that expect date strings.
- * Uses UTC date components to avoid timezone issues.
- *
- * @param date - UTC date
- * @returns ISO date string
- *
- * @example
- * toISODateString(new Date("2024-01-15T14:30:00Z"))
- * // → "2024-01-15"
- */
-export function toISODateString(date: Date): string {
-  const year = date.getUTCFullYear();
-  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-  const day = String(date.getUTCDate()).padStart(2, '0');
-
-  return `${year}-${month}-${day}`;
-}
-
-/** Convert a UTC date to a local date string (YYYY-MM-DD) — use this instead of toISODateString when you need the date in the user's timezone */
-export function toLocalDateString(date: string | Date): string {
-  return dayjs.utc(date).local().format('YYYY-MM-DD');
 }
 
 /** Convert compact date string (yyyymmdd) to ISO format (yyyy-mm-dd) */
@@ -148,7 +123,6 @@ export function toCompactDate(date: string) {
 }
 
 export const today = () => dayjs().format('YYYYMMDD');
-
 const FORMATS = [
   'YYYY-MM-DD',
   'YYYY/MM/DD',
