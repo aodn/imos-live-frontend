@@ -410,6 +410,7 @@ export const buildExportingConfig = (exportingConfig: any) => {
       ? exportingConfig.filename
       : () => exportingConfig.filename || 'chart';
   const watermarkUrl: string | undefined = exportingConfig.watermarkUrl;
+  const selectedDate = exportingConfig.selectedDate;
 
   const makeDownloadHandler = (mimeType: string, ext: string) =>
     function (this: any) {
@@ -457,7 +458,7 @@ export const buildExportingConfig = (exportingConfig: any) => {
           const titleFontSize = 9,
             subFontSize = 8;
           const logoW = (logo.naturalWidth / logo.naturalHeight) * logoH;
-          const date = new Date().toISOString().slice(0, 10);
+          const date = selectedDate;
           const siteUrl = window.location.origin;
 
           ctx.save();
