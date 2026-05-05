@@ -434,7 +434,7 @@ export const buildExportingConfig = (exportingConfig: any) => {
           const logoW = (logo.naturalWidth / logo.naturalHeight) * logoH;
           const padding = 12;
           ctx.globalAlpha = 0.85;
-          ctx.drawImage(logo, padding, logoH + padding, logoW, logoH);
+          ctx.drawImage(logo, 0, padding / 2, logoW, logoH);
           ctx.globalAlpha = 1;
           onDone();
         };
