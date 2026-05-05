@@ -417,7 +417,12 @@ export const buildExportingConfig = (exportingConfig: any) => {
       const height = this.chartHeight;
       const scale = 2;
 
-      const svg = this.getSVG({ chart: { width, height } });
+      const svg = this.getSVG({
+        chart: { width, height },
+        rangeSelector: { enabled: true, inputEnabled: true, buttons: [] },
+        navigator: { enabled: true },
+        scrollbar: { enabled: true },
+      });
       const canvas = document.createElement('canvas');
       canvas.width = width * scale;
       canvas.height = height * scale;
@@ -444,12 +449,61 @@ export const buildExportingConfig = (exportingConfig: any) => {
         if (!watermarkUrl) return onDone();
         const logo = new Image();
         logo.onload = () => {
-          const logoH = 32;
+          const px = 6,
+            py = 12;
+          const logoH = 28,
+            panelPad = 8,
+            gap = 7;
+          const titleFontSize = 9,
+            subFontSize = 8;
           const logoW = (logo.naturalWidth / logo.naturalHeight) * logoH;
-          const padding = 12;
-          ctx.globalAlpha = 0.85;
-          ctx.drawImage(logo, padding / 2, padding / 2, logoW, logoH);
+          const date = new Date().toISOString().slice(0, 10);
+          const siteUrl = window.location.origin;
+
+          ctx.save();
+          ctx.font = `bold ${titleFontSize}px sans-serif`;
+          const titleW = ctx.measureText('IMOS Live').width;
+          ctx.font = `${subFontSize}px sans-serif`;
+          const textColW = Math.max(
+            titleW,
+            ctx.measureText(date).width,
+            ctx.measureText(siteUrl).width,
+          );
+          const panelW = panelPad + logoW + gap + textColW + panelPad;
+          const panelH = panelPad + logoH + panelPad;
+
+          ctx.fillStyle = 'rgba(240, 245, 250, 0.96)';
+          ctx.strokeStyle = 'rgba(59, 80, 104, 0.25)';
+          ctx.lineWidth = 0.75;
+          ctx.beginPath();
+          ctx.roundRect(px, py, panelW, panelH, 5);
+          ctx.fill();
+          ctx.stroke();
+          ctx.restore();
+
+          ctx.save();
+          ctx.globalAlpha = 0.9;
+          ctx.drawImage(logo, px + panelPad, py + panelPad, logoW, logoH);
           ctx.globalAlpha = 1;
+
+          const textX = px + panelPad + logoW + gap;
+          const titleLineH = titleFontSize + 2;
+          const subLineH = subFontSize + 2;
+          const textBlockH = titleLineH + subLineH + subFontSize;
+          const vertOffset = Math.max(0, Math.floor((logoH - textBlockH) / 2));
+          const lineY = py + panelPad + vertOffset;
+
+          ctx.textBaseline = 'top';
+          ctx.font = `bold ${titleFontSize}px sans-serif`;
+          ctx.fillStyle = '#1a2a3a';
+          ctx.fillText('IMOS Live', textX, lineY);
+          ctx.font = `${subFontSize}px sans-serif`;
+          ctx.fillStyle = '#3b5068';
+          ctx.fillText(date, textX, lineY + titleLineH);
+          ctx.fillStyle = '#6b8a9e';
+          ctx.fillText(siteUrl, textX, lineY + titleLineH + subLineH);
+          ctx.restore();
+
           onDone();
         };
         logo.onerror = onDone;
@@ -460,9 +514,12 @@ export const buildExportingConfig = (exportingConfig: any) => {
       const svgUrl = URL.createObjectURL(svgBlob);
       const chartImg = new Image();
       chartImg.onload = () => {
-        ctx.drawImage(chartImg, 0, 0);
-        URL.revokeObjectURL(svgUrl);
-        drawWatermark(triggerDownload);
+        // Draw watermark first so chart renders on top of it
+        drawWatermark(() => {
+          ctx.drawImage(chartImg, 0, 0);
+          URL.revokeObjectURL(svgUrl);
+          triggerDownload();
+        });
       };
       chartImg.src = svgUrl;
     };
@@ -473,6 +530,9 @@ export const buildExportingConfig = (exportingConfig: any) => {
     fallbackToExportServer: false,
     scale: 2,
     chartOptions: {
+      rangeSelector: { enabled: false },
+      navigator: { enabled: true },
+      scrollbar: { enabled: true },
       plotOptions: {
         series: {
           dataLabels: {

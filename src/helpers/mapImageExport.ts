@@ -15,11 +15,6 @@ export type MapBounds = {
   north: number;
 };
 
-const IMOS_LIVE_URLS: Record<string, string> = {
-  edge: 'https://imoslive.edge.aodn.org.au',
-  production: 'https://imoslive-beta.aodn.org.au',
-};
-
 /** Below this CSS width the compact theme is applied for a better fit. */
 const COMPACT_BREAKPOINT_PX = 800;
 
@@ -204,6 +199,8 @@ const EARTH_RADIUS_KM = 6371;
 const MAX_TICKS_PER_AXIS = 5;
 const MAX_GRATICULE_TICKS = 1000;
 
+const siteUrl = window.location.origin;
+
 // Utilities
 /** Loads an image from a URL, rejecting if it fails. */
 const loadImage = (src: string): Promise<HTMLImageElement> =>
@@ -319,11 +316,7 @@ const drawInfoColumn = (
 
   ctx.font = `${t.urlFontSize}px sans-serif`;
   ctx.fillStyle = t.urlColor;
-  ctx.fillText(
-    IMOS_LIVE_URLS[import.meta.env.MODE] || 'https://imoslive.aodn.org.au',
-    x,
-    y + t.titleLineH + t.subLineH * 2 - 4,
-  );
+  ctx.fillText(siteUrl, x, y + t.titleLineH + t.subLineH * 2 - 4);
 };
 
 /** Draws the product name, legend image, scale values, and label in the info panel. */
@@ -562,9 +555,7 @@ const calculateInfoPanelLayout = ({
   ctx.font = `${t.subFontSize}px sans-serif`;
   const dateWidth = ctx.measureText('9999-99-99').width;
   ctx.font = `${t.urlFontSize}px sans-serif`;
-  const urlWidth = ctx.measureText(
-    IMOS_LIVE_URLS[import.meta.env.MODE] || 'https://imoslive.aodn.org.au',
-  ).width;
+  const urlWidth = ctx.measureText(siteUrl).width;
   const leftColWidth = Math.max(titleWidth, dateWidth, urlWidth);
 
   ctx.font = `bold ${t.productNameFontSize}px sans-serif`;
