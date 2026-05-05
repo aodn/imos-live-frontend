@@ -284,7 +284,7 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
           },
         }}
         legend={{ enabled: false }}
-        exporting={{ enabled: true, watermarkUrl: logoUrl }}
+        exporting={{ enabled: true, watermarkUrl: logoUrl, formats: ['png', 'csv', 'xls'] }}
         tooltip={{
           shared: true,
           split: false,

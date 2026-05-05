@@ -386,13 +386,23 @@ export const buildExportingConfig = (exportingConfig: any) => {
 
   const defaultMenuItems = [
     'downloadPNG',
-    // 'downloadJPEG',
-    // 'downloadPDF',
-    // 'downloadSVG',
-    // 'separator',
     'downloadCSV',
     'downloadXLS',
+    'downloadJPEG',
+    'downloadPDF',
+    'downloadSVG',
+    'separator',
   ];
+
+  // Maps ExportConfig.formats values to Highcharts menu item keys
+  const formatToMenuItem: Record<string, string> = {
+    png: 'downloadPNG',
+    jpeg: 'downloadJPEG',
+    pdf: 'downloadPDF',
+    svg: 'downloadSVG',
+    csv: 'downloadCSV',
+    xls: 'downloadXLS',
+  };
 
   const filename = exportingConfig.filename || 'chart';
   const watermarkUrl: string | undefined = exportingConfig.watermarkUrl;
@@ -467,16 +477,15 @@ export const buildExportingConfig = (exportingConfig: any) => {
         },
       },
     },
+    // text overrides the Highcharts default language string (e.g. 'Download PNG image')
     menuItemDefinitions: {
-      downloadPNG: { textKey: 'downloadPNG', onclick: makeDownloadHandler('image/png', 'png') },
-      downloadJPEG: { textKey: 'downloadJPEG', onclick: makeDownloadHandler('image/jpeg', 'jpg') },
+      downloadPNG: { text: 'Download Image', onclick: makeDownloadHandler('image/png', 'png') },
     },
     buttons: exportingConfig.buttons || {
       contextButton: {
         menuItems: exportingConfig.formats
           ? exportingConfig.formats.map(
-              (format: string) =>
-                defaultMenuItems.find(item => item.toLowerCase().includes(format)) || 'downloadPNG',
+              (format: string) => formatToMenuItem[format] ?? 'downloadPNG',
             )
           : defaultMenuItems,
       },
@@ -484,7 +493,8 @@ export const buildExportingConfig = (exportingConfig: any) => {
   };
 };
 
-// Export utilities
+// Export utilities — used only by LineChart's exportChart ref method, which is exercised in Storybook.
+// Production charts use Highcharts' built-in exporting button (exporting.enabled: true) instead.
 export const exportFallbacks = {
   svg: (chart: Highcharts.Chart, filename: string) => {
     try {
