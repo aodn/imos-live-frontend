@@ -46,7 +46,7 @@ export type TooltipConfig = Highcharts.TooltipOptions & {
 
 type ExportConfig = {
   enabled?: boolean;
-  filename?: string;
+  filename?: string | (() => string);
   formats?: ('png' | 'jpeg' | 'pdf' | 'svg' | 'csv' | 'xls')[];
   buttons?: Highcharts.ExportingButtonsOptions;
   watermarkUrl?: string;

@@ -404,7 +404,11 @@ export const buildExportingConfig = (exportingConfig: any) => {
     xls: 'downloadXLS',
   };
 
-  const filename = exportingConfig.filename || 'chart';
+  // Support a function so callers can compute the filename lazily at download time (e.g. from a ref)
+  const getFilename: () => string =
+    typeof exportingConfig.filename === 'function'
+      ? exportingConfig.filename
+      : () => exportingConfig.filename || 'chart';
   const watermarkUrl: string | undefined = exportingConfig.watermarkUrl;
 
   const makeDownloadHandler = (mimeType: string, ext: string) =>
@@ -413,7 +417,12 @@ export const buildExportingConfig = (exportingConfig: any) => {
       const height = this.chartHeight;
       const scale = 2;
 
-      const svg = this.getSVG({ chart: { width, height } });
+      const svg = this.getSVG({
+        chart: { width, height },
+        rangeSelector: { enabled: true, inputEnabled: true, buttons: [] },
+        navigator: { enabled: true },
+        scrollbar: { enabled: true },
+      });
       const canvas = document.createElement('canvas');
       canvas.width = width * scale;
       canvas.height = height * scale;
@@ -428,7 +437,7 @@ export const buildExportingConfig = (exportingConfig: any) => {
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url;
-          a.download = `${filename}.${ext}`;
+          a.download = `${getFilename()}.${ext}`;
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
@@ -440,12 +449,61 @@ export const buildExportingConfig = (exportingConfig: any) => {
         if (!watermarkUrl) return onDone();
         const logo = new Image();
         logo.onload = () => {
-          const logoH = 32;
+          const px = 6,
+            py = 12;
+          const logoH = 28,
+            panelPad = 8,
+            gap = 7;
+          const titleFontSize = 9,
+            subFontSize = 8;
           const logoW = (logo.naturalWidth / logo.naturalHeight) * logoH;
-          const padding = 12;
-          ctx.globalAlpha = 0.85;
-          ctx.drawImage(logo, padding / 2, padding / 2, logoW, logoH);
+          const date = new Date().toISOString().slice(0, 10);
+          const siteUrl = window.location.origin;
+
+          ctx.save();
+          ctx.font = `bold ${titleFontSize}px sans-serif`;
+          const titleW = ctx.measureText('IMOS Live').width;
+          ctx.font = `${subFontSize}px sans-serif`;
+          const textColW = Math.max(
+            titleW,
+            ctx.measureText(date).width,
+            ctx.measureText(siteUrl).width,
+          );
+          const panelW = panelPad + logoW + gap + textColW + panelPad;
+          const panelH = panelPad + logoH + panelPad;
+
+          ctx.fillStyle = 'rgba(240, 245, 250, 0.96)';
+          ctx.strokeStyle = 'rgba(59, 80, 104, 0.25)';
+          ctx.lineWidth = 0.75;
+          ctx.beginPath();
+          ctx.roundRect(px, py, panelW, panelH, 5);
+          ctx.fill();
+          ctx.stroke();
+          ctx.restore();
+
+          ctx.save();
+          ctx.globalAlpha = 0.9;
+          ctx.drawImage(logo, px + panelPad, py + panelPad, logoW, logoH);
           ctx.globalAlpha = 1;
+
+          const textX = px + panelPad + logoW + gap;
+          const titleLineH = titleFontSize + 2;
+          const subLineH = subFontSize + 2;
+          const textBlockH = titleLineH + subLineH + subFontSize;
+          const vertOffset = Math.max(0, Math.floor((logoH - textBlockH) / 2));
+          const lineY = py + panelPad + vertOffset;
+
+          ctx.textBaseline = 'top';
+          ctx.font = `bold ${titleFontSize}px sans-serif`;
+          ctx.fillStyle = '#1a2a3a';
+          ctx.fillText('IMOS Live', textX, lineY);
+          ctx.font = `${subFontSize}px sans-serif`;
+          ctx.fillStyle = '#3b5068';
+          ctx.fillText(date, textX, lineY + titleLineH);
+          ctx.fillStyle = '#6b8a9e';
+          ctx.fillText(siteUrl, textX, lineY + titleLineH + subLineH);
+          ctx.restore();
+
           onDone();
         };
         logo.onerror = onDone;
@@ -456,19 +514,25 @@ export const buildExportingConfig = (exportingConfig: any) => {
       const svgUrl = URL.createObjectURL(svgBlob);
       const chartImg = new Image();
       chartImg.onload = () => {
-        ctx.drawImage(chartImg, 0, 0);
-        URL.revokeObjectURL(svgUrl);
-        drawWatermark(triggerDownload);
+        // Draw watermark first so chart renders on top of it
+        drawWatermark(() => {
+          ctx.drawImage(chartImg, 0, 0);
+          URL.revokeObjectURL(svgUrl);
+          triggerDownload();
+        });
       };
       chartImg.src = svgUrl;
     };
 
   return {
     enabled: true,
-    filename,
+    filename: getFilename(),
     fallbackToExportServer: false,
     scale: 2,
     chartOptions: {
+      rangeSelector: { enabled: false },
+      navigator: { enabled: true },
+      scrollbar: { enabled: true },
       plotOptions: {
         series: {
           dataLabels: {
@@ -478,8 +542,25 @@ export const buildExportingConfig = (exportingConfig: any) => {
       },
     },
     // text overrides the Highcharts default language string (e.g. 'Download PNG image')
+    // CSV/XLS handlers update chart.options.exporting.filename just before download so the
+    // filename reflects the current visible range (read from a ref) rather than the stale
+    // value baked into chart options at render time.
     menuItemDefinitions: {
       downloadPNG: { text: 'Download Image', onclick: makeDownloadHandler('image/png', 'png') },
+      downloadCSV: {
+        text: 'Download CSV',
+        onclick: function (this: any) {
+          this.options.exporting.filename = getFilename();
+          this.downloadCSV();
+        },
+      },
+      downloadXLS: {
+        text: 'Download Excel',
+        onclick: function (this: any) {
+          this.options.exporting.filename = getFilename();
+          this.downloadXLS();
+        },
+      },
     },
     buttons: exportingConfig.buttons || {
       contextButton: {
@@ -638,11 +719,32 @@ type RangeSelectorButtonType =
   | 'minute'
   | 'week';
 
-export function generateDynamicButtons(dataRange: ReturnType<typeof calculateDataRange>) {
+const RangeSelectionType = [
+  '6H',
+  '12H',
+  '1D',
+  '3D',
+  '1W',
+  '2W',
+  '1M',
+  '3M',
+  '6M',
+  '1Y',
+  'All',
+] as const;
+
+export function generateDynamicButtons(
+  dataRange: ReturnType<typeof calculateDataRange>,
+  minRange: (typeof RangeSelectionType)[number] = '12H',
+) {
   if (!dataRange) return [{ type: 'all' as RangeSelectorButtonType, text: 'All' }];
 
   const { rangeDays, rangeHours } = dataRange;
-  const buttons: { type: RangeSelectorButtonType; count?: number; text: string }[] = [];
+  const buttons: {
+    type: RangeSelectorButtonType;
+    count?: number;
+    text: typeof minRange;
+  }[] = [];
 
   // Add hour-based buttons for short ranges
   if (rangeHours >= 6) {
@@ -652,7 +754,7 @@ export function generateDynamicButtons(dataRange: ReturnType<typeof calculateDat
     buttons.push({ type: 'hour', count: 12, text: '12H' });
   }
   if (rangeHours >= 24) {
-    buttons.push({ type: 'day', count: 1, text: '24H' });
+    buttons.push({ type: 'day', count: 1, text: '1D' });
   }
 
   // Add day-based buttons
@@ -683,5 +785,7 @@ export function generateDynamicButtons(dataRange: ReturnType<typeof calculateDat
   // Always add "All" button
   buttons.push({ type: 'all', text: 'All' });
 
-  return buttons;
+  return buttons.filter(
+    b => RangeSelectionType.indexOf(b.text) > RangeSelectionType.indexOf(minRange),
+  );
 }

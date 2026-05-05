@@ -10,12 +10,13 @@ import {
   customDateLabelRenderer,
   customSelectionPanelRenderer,
 } from '../DateSlider';
-import { cn, getLatestFulfilledDate, toISODateString, toISOFromCompact } from '@/utils';
+import { cn, getLatestFulfilledDate, toISOFromCompact } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
 import { fileExist, gslaUrl } from '@/api';
 import { useShallow } from 'zustand/shallow';
 import { QUERY_DATE_RANGE } from '@/config';
 import { PRODUCT } from '@/constants';
+import { toISODateString } from '../DateSlider/utils';
 
 type DateSelectionBarProps = { className?: string };
 

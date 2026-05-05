@@ -6,12 +6,12 @@ import type { WaveBuoyPositionFeature } from '@/types';
 import {
   formatLatLngToDirectional,
   toCompactDate,
-  toLocalDateTime,
+  utcToLocalDateTime,
   toWaveBuoyChartData,
   today,
 } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { buoyDataDirectionVariant, noneDirectionVariants, VariantReadableName } from './config';
 import { LatestObservation } from './LatestObservation';
 import { LineChart } from './LineChart';
@@ -23,6 +23,7 @@ import {
   processDirectionData,
 } from './utils';
 import { useMapUIStore } from '@/store';
+import type { Chart } from 'highcharts/highstock';
 
 dayjs.extend(utc);
 
@@ -36,6 +37,7 @@ type WaveBuoyChartProps = {
 function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
   const { buoy, geometry } = toWaveBuoyChartData(waveBuoysData);
   const selectedDate = useMapUIStore(s => s.date);
+  const visibleRangeRef = useRef<{ min: string; max: string } | null>(null);
 
   const { data: latestWaveBuoyDate, isLoading: isLatestWaveBuoyDateLoading } = useQuery({
     queryKey: ['wave_buoy_latest_date'],
@@ -95,7 +97,7 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
 
   const dynamicButtons = useMemo(() => {
     const dataRange = calculateDataRange(seriseData);
-    return generateDynamicButtons(dataRange);
+    return generateDynamicButtons(dataRange, '12H');
   }, [seriseData]);
 
   //select middle button.
@@ -115,7 +117,7 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
   const tooltipFormatter = useCallback(
     (context: any) => {
       const point = context.point;
-      const datetime = toLocalDateTime(point.x);
+      const datetime = utcToLocalDateTime(point.x);
 
       let tooltipHTML = `<div style="font-size: 12px;"><b>Time:</b> ${datetime}<br/>`;
 
@@ -183,6 +185,21 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
     ];
   }, [showDirection]);
 
+  const handleRangeChange = useCallback((min: number, max: number) => {
+    visibleRangeRef.current = {
+      min: utcToLocalDateTime(min, 'YYYYMMDD'),
+      max: utcToLocalDateTime(max, 'YYYYMMDD'),
+    };
+  }, []);
+
+  const handleChartLoad = useCallback(
+    (chart: Chart) => {
+      const { min, max } = chart.xAxis[0].getExtremes();
+      handleRangeChange(min, max);
+    },
+    [handleRangeChange],
+  );
+
   if (isError) return <div>error</div>;
   if (isLoading || isLatestWaveBuoyDateLoading) return <div>loading</div>;
   if (isFeatureEmpty)
@@ -201,6 +218,8 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
         series={seriseData!}
         title={title}
         turboThreshold={4000}
+        onChartLoad={handleChartLoad}
+        onRangeSelect={handleRangeChange}
         rangeSelector={{
           enabled: true,
           selected: defaultSelected,
@@ -231,7 +250,7 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
           inputDateFormat: '%Y-%m-%d',
           inputEditDateFormat: '%Y-%m-%d',
           floating: false,
-          y: -20,
+          y: -32,
           buttons: dynamicButtons,
         }}
         navigator={{
@@ -240,9 +259,9 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
           margin: 10,
         }}
         chart={{
-          marginTop: 30,
-          marginBottom: 60,
-          spacing: [10, 10, 25, 10],
+          marginTop: 28,
+          marginBottom: 40,
+          spacing: [10, 10, 10, 10],
         }}
         scrollbar={{ enabled: true, height: 20 }}
         responsive={true}
@@ -284,7 +303,15 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
           },
         }}
         legend={{ enabled: false }}
-        exporting={{ enabled: true, watermarkUrl: logoUrl, formats: ['png', 'csv', 'xls'] }}
+        exporting={{
+          enabled: true,
+          watermarkUrl: logoUrl,
+          filename: () => {
+            const { min, max } = visibleRangeRef.current ?? {};
+            return min && max ? `${buoy}-waves_${min}_${max}` : `${buoy}-waves`;
+          },
+          formats: ['png', 'csv', 'xls'],
+        }}
         tooltip={{
           shared: true,
           split: false,
