@@ -151,7 +151,6 @@ type LineChartExposedMethods = {
   resetZoom: () => void;
 
   // Chart utilities
-  exportChart: (format: 'png' | 'jpeg' | 'pdf' | 'svg', filename?: string) => void;
   updateSize: (width?: number, height?: number) => void;
   getChartInstance: () => Highcharts.Chart | null;
   getChartOptions: () => Highcharts.Options;
