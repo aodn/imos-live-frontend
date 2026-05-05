@@ -250,7 +250,7 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
           inputDateFormat: '%Y-%m-%d',
           inputEditDateFormat: '%Y-%m-%d',
           floating: false,
-          y: -20,
+          y: -32,
           buttons: dynamicButtons,
         }}
         navigator={{
@@ -259,9 +259,9 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
           margin: 10,
         }}
         chart={{
-          marginTop: 30,
-          marginBottom: 60,
-          spacing: [10, 10, 25, 10],
+          marginTop: 36,
+          marginBottom: 40,
+          spacing: [10, 10, 10, 10],
         }}
         scrollbar={{ enabled: true, height: 20 }}
         responsive={true}
