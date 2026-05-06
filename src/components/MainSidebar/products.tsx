@@ -208,7 +208,7 @@ export const featuredDataset: LayersDataset[] = (function (
   ].filter(p => enabledpPoducts.includes(p.product));
 })([
   // PRODUCT.AUSTEMP_DHD_MOSAIC,
-  PRODUCT.AUSTEMP_MHW_CATEGORY_MOSAIC,
+  // PRODUCT.AUSTEMP_MHW_CATEGORY_MOSAIC,
   PRODUCT.AUSTEMP_SSTA_MOSAIC,
   PRODUCT.AUSTEMP_SST_MOSAIC,
   PRODUCT.GSLA_ANOMALY_SEA_LEVELS,
