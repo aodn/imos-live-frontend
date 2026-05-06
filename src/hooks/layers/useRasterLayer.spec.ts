@@ -55,6 +55,13 @@ vi.mock('zustand/shallow', () => ({
 }));
 
 vi.mock('@/constants', () => ({
+  PRODUCTS: {
+    gsla: {
+      layerId: 'gsla-raster-layer',
+      sourceId: 'gsla-raster-source',
+      dataType: 'continous',
+    },
+  },
   RasterLayer: {
     GSLA: 'gsla-raster-layer',
   },
@@ -156,7 +163,7 @@ describe('useRasterLayer', () => {
       await setupLayerFn();
     });
 
-    expect(rasterUrl).toHaveBeenCalledWith('gsla-raster-source', expect.any(Date));
+    expect(rasterUrl).toHaveBeenCalledWith('gsla-raster-source', expect.any(Date), 'continous');
 
     expect(addOrUpdateWMSSource).toHaveBeenCalledWith({
       map: mockMap.current,
@@ -205,7 +212,7 @@ describe('useRasterLayer', () => {
     });
 
     // rasterUrl should be called with the new date
-    expect(rasterUrl).toHaveBeenCalledWith('gsla-raster-source', expect.any(Date));
+    expect(rasterUrl).toHaveBeenCalledWith('gsla-raster-source', expect.any(Date), 'continous');
   });
 
   it('should toggle raster layer visibility correctly', () => {
