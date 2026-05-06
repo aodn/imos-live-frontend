@@ -14,19 +14,31 @@ import { setSidebarOpen, useMapUIStore, useSidebarStore } from '@/store';
 import { exportMapImage, rasterLegendUrl } from '@/helpers';
 import { useShallow } from 'zustand/shallow';
 import type { RasterSource } from '@/constants';
-import { PRODUCT, PRODUCTLEGENDS, PRODUCTS, type ProductType } from '@/constants';
+import {
+  HW_CATEGORY_LEGEND_LABELS,
+  MHW_CATEGORY_LEGEND_COLORS,
+  PRODUCT,
+  PRODUCTLEGENDS,
+  PRODUCTS,
+  type ProductType,
+  type RasterLegendArgs,
+} from '@/constants';
 import { useQuery } from '@tanstack/react-query';
 
-const getRasterProduct = (
+const getProductInImpageExport = (
   gslaAnomalySeaLevelsEnabled: boolean,
   sstAnomMosaicEnabled: boolean,
   dhdAnomMosaicEnabled: boolean,
+  sstMosaicEnabled: boolean,
+  mhwCategoryMosaicEnabled: boolean,
 ):
   | Exclude<ProductType, typeof PRODUCT.WAVE_BUOYS | typeof PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT>
   | undefined => {
   if (gslaAnomalySeaLevelsEnabled) return PRODUCT.GSLA_ANOMALY_SEA_LEVELS;
   if (sstAnomMosaicEnabled) return PRODUCT.AUSTEMP_SSTA_MOSAIC;
   if (dhdAnomMosaicEnabled) return PRODUCT.AUSTEMP_DHD_MOSAIC;
+  if (sstMosaicEnabled) return PRODUCT.AUSTEMP_SST_MOSAIC;
+  if (mhwCategoryMosaicEnabled) return PRODUCT.AUSTEMP_MHW_CATEGORY_MOSAIC;
 };
 
 export function MapControlPanel({
@@ -40,26 +52,38 @@ export function MapControlPanel({
   const isZooming = useIsMapZooming(mapRef);
   const mapCanvasWidth = useMapCanvasWidth(mapRef);
 
-  const { date, gslaAnomalySeaLevelsEnabled, sstAnomMosaicEnabled, dhdAnomMosaicEnabled } =
-    useMapUIStore(
-      useShallow(s => ({
-        date: s.date,
-        gslaAnomalySeaLevelsEnabled: s.productEnabled[PRODUCT.GSLA_ANOMALY_SEA_LEVELS],
-        sstAnomMosaicEnabled: s.productEnabled[PRODUCT.AUSTEMP_SSTA_MOSAIC],
-        dhdAnomMosaicEnabled: s.productEnabled[PRODUCT.AUSTEMP_DHD_MOSAIC],
-      })),
-    );
-
-  const product = getRasterProduct(
+  const {
+    date,
     gslaAnomalySeaLevelsEnabled,
     sstAnomMosaicEnabled,
     dhdAnomMosaicEnabled,
+    mhwCategoryMosaicEnabled,
+    sstMosaicEnabled,
+  } = useMapUIStore(
+    useShallow(s => ({
+      date: s.date,
+      gslaAnomalySeaLevelsEnabled: s.productEnabled[PRODUCT.GSLA_ANOMALY_SEA_LEVELS],
+      sstAnomMosaicEnabled: s.productEnabled[PRODUCT.AUSTEMP_SSTA_MOSAIC],
+      dhdAnomMosaicEnabled: s.productEnabled[PRODUCT.AUSTEMP_DHD_MOSAIC],
+      mhwCategoryMosaicEnabled: s.productEnabled[PRODUCT.AUSTEMP_MHW_CATEGORY_MOSAIC],
+      sstMosaicEnabled: s.productEnabled[PRODUCT.AUSTEMP_SST_MOSAIC],
+    })),
   );
+
+  const product = getProductInImpageExport(
+    gslaAnomalySeaLevelsEnabled,
+    sstAnomMosaicEnabled,
+    dhdAnomMosaicEnabled,
+    sstMosaicEnabled,
+    mhwCategoryMosaicEnabled,
+  );
+
+  const isCategoricalProduct = product === PRODUCT.AUSTEMP_MHW_CATEGORY_MOSAIC;
 
   const { data: legendUrl } = useQuery({
     queryKey: ['rasterLegendUrl', PRODUCTS[product!]?.sourceId, date],
     queryFn: () => rasterLegendUrl(PRODUCTS[product!]?.sourceId as RasterSource, new Date(date)),
-    enabled: !!date && !!product,
+    enabled: !!date && !!product && !isCategoricalProduct,
   });
 
   const isMapOnOperation = isDragging || isZooming;
@@ -89,12 +113,20 @@ export function MapControlPanel({
     if (!mapRef.current) return;
 
     const productArg = product
-      ? {
-          name: PRODUCTS[product].name,
-          legendUrl,
-          scales: PRODUCTLEGENDS[product].scales,
-          label: PRODUCTLEGENDS[product].label,
-        }
+      ? isCategoricalProduct
+        ? {
+            name: PRODUCTS[product].name,
+            categoricalLegend: {
+              colors: MHW_CATEGORY_LEGEND_COLORS,
+              labels: HW_CATEGORY_LEGEND_LABELS,
+            },
+          }
+        : {
+            name: PRODUCTS[product].name,
+            legendUrl,
+            scales: (PRODUCTLEGENDS[product] as RasterLegendArgs).scales,
+            label: (PRODUCTLEGENDS[product] as RasterLegendArgs).label,
+          }
       : undefined;
 
     const rawBounds = mapRef.current.getBounds();

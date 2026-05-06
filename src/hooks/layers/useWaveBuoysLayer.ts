@@ -7,6 +7,7 @@ import {
 import type { BuoyLayer, BuoySource, ProductType } from '@/constants';
 import {
   PRODUCT,
+  PRODUCTS,
   UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
   WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID,
 } from '@/constants';
@@ -25,12 +26,14 @@ import type { WaveBuoyPositionFeatureCollection } from '@/types';
 
 type UseWaveBuoysLayer = {
   map: React.RefObject<mapboxgl.Map | null>;
-  layerId: BuoyLayer;
-  sourceId: BuoySource;
   product: ProductType;
 };
 
-export function useWaveBuoysLayer({ map, layerId, sourceId, product }: UseWaveBuoysLayer) {
+export function useWaveBuoysLayer({ map, product }: UseWaveBuoysLayer) {
+  const { layerId, sourceId } = PRODUCTS[product] as {
+    layerId: BuoyLayer;
+    sourceId: BuoySource;
+  };
   const { enabled, date, isError } = useMapUIStore(
     useShallow(s => ({
       enabled: s.productEnabled[product],

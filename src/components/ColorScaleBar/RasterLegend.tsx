@@ -20,6 +20,7 @@ type RasterLegendProps = {
  */
 export function RasterLegend({ rasterSource, scales, label }: RasterLegendProps) {
   const date = useMapUIStore(s => s.date);
+
   const { data: legendUrl } = useQuery({
     queryKey: ['rasterLegendUrl', rasterSource, date],
     queryFn: () => rasterLegendUrl(rasterSource, new Date(date)),

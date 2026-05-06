@@ -121,6 +121,8 @@ export const useMapUIStore = create(
         [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: true,
         [PRODUCT.AUSTEMP_SSTA_MOSAIC]: false,
         [PRODUCT.AUSTEMP_DHD_MOSAIC]: false,
+        [PRODUCT.AUSTEMP_SST_MOSAIC]: false,
+        [PRODUCT.AUSTEMP_MHW_CATEGORY_MOSAIC]: false,
         [PRODUCT.WAVE_BUOYS]: true,
       },
       productError: {
@@ -128,6 +130,8 @@ export const useMapUIStore = create(
         [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: false,
         [PRODUCT.AUSTEMP_SSTA_MOSAIC]: false,
         [PRODUCT.AUSTEMP_DHD_MOSAIC]: false,
+        [PRODUCT.AUSTEMP_SST_MOSAIC]: false,
+        [PRODUCT.AUSTEMP_MHW_CATEGORY_MOSAIC]: false,
         [PRODUCT.WAVE_BUOYS]: false,
       },
       jumpToDate: null,

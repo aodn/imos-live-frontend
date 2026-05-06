@@ -16,6 +16,23 @@ export function localToUTC(
   return dayjs(date).utc().format(format);
 }
 
+// Convert UTC to local date time
+// dayjs(date).utc() vs dayjs.utc(date)
+// dayjs(date).utc() convernt localdatetime to utc.
+// dayjs.utc(date) convert utc to utc, becasue it expected date is utc.
+export function utcToLocalDateTime(
+  input: number | string | Date,
+  format = 'YYYY-MM-DD HH:mm:ss',
+): string {
+  const date = dayjs.utc(input);
+
+  if (!date.isValid()) {
+    throw new Error(`Invalid UTC date: ${input}`);
+  }
+
+  return date.local().format(format);
+}
+
 export function getLastDates<const T extends number>(length: T) {
   return (format: string = 'yyyy-mm-dd'): FixedLengthArray<string, T> => {
     const dates: string[] = [];
@@ -65,23 +82,6 @@ export const getLast10Dates = getLastDates(10);
 
 export const getLast31Dates = getLastDates(31);
 
-// Convert UTC to local date time
-// dayjs(date).utc() vs dayjs.utc(date)
-// dayjs(date).utc() convernt localdatetime to utc.
-// dayjs.utc(date) convert utc to utc, becasue it expected date is utc.
-export function utcToLocalDateTime(
-  input: number | string | Date,
-  format = 'YYYY-MM-DD HH:mm:ss',
-): string {
-  const date = dayjs.utc(input);
-
-  if (!date.isValid()) {
-    throw new Error(`Invalid UTC date: ${input}`);
-  }
-
-  return date.local().format(format);
-}
-
 export function getDate3DaysAgo() {
   const today = new Date();
   const resultDate = new Date(today);
@@ -105,6 +105,14 @@ export function toISOFromCompact(date: string): string {
   return `${date.slice(0, 4)}-${date.slice(4, 6)}-${date.slice(6, 8)}`;
 }
 
+/** Convert ISO format (yyyy-mm-dd) to compact date string (yyyymmdd)*/
+export function toCompactDate(date: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return;
+  }
+  return date.replace(/-/g, '');
+}
+
 /** Extract the latest fulfilled date from Promise.allSettled results */
 export function getLatestFulfilledDate(results: PromiseSettledResult<string | null>[]) {
   return results
@@ -112,14 +120,6 @@ export function getLatestFulfilledDate(results: PromiseSettledResult<string | nu
     .map(r => r.value)
     .sort()
     .at(-1);
-}
-
-/** Convert ISO format (yyyy-mm-dd) to compact date string (yyyymmdd)*/
-export function toCompactDate(date: string) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    return;
-  }
-  return date.replace(/-/g, '');
 }
 
 export const today = () => dayjs().format('YYYYMMDD');

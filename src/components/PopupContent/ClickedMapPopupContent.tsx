@@ -3,7 +3,7 @@ import { useMapUIStore } from '@/store';
 import { useShallow } from 'zustand/shallow';
 import { LoaderIcon } from '../Icons';
 import type { LngLat, Point } from 'mapbox-gl';
-import type { ClosePopupFn } from '@/helpers';
+import { type ClosePopupFn } from '@/helpers';
 import { PRODUCT } from '@/constants';
 
 export type ClickedMapPopupContentProps = {
@@ -29,6 +29,8 @@ export function ClickedMapPopupContent({
     sstAnomMosaicEnabled,
     dhdAnomalMosaicEnabled,
     oceanCurrentEnabled,
+    mhwCategoryMosaicEnabled,
+    sstMosaicEnabled,
     date,
   } = useMapUIStore(
     useShallow(s => ({
@@ -36,6 +38,8 @@ export function ClickedMapPopupContent({
       sstAnomMosaicEnabled: s.productEnabled[PRODUCT.AUSTEMP_SSTA_MOSAIC],
       dhdAnomalMosaicEnabled: s.productEnabled[PRODUCT.AUSTEMP_DHD_MOSAIC],
       oceanCurrentEnabled: s.productEnabled[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT],
+      mhwCategoryMosaicEnabled: s.productEnabled[PRODUCT.AUSTEMP_MHW_CATEGORY_MOSAIC],
+      sstMosaicEnabled: s.productEnabled[PRODUCT.AUSTEMP_SST_MOSAIC],
       date: s.date,
     })),
   );
@@ -47,6 +51,8 @@ export function ClickedMapPopupContent({
     gslaAnomalySeaLevelsEnabled,
     sstAnomMosaicEnabled,
     dhdAnomalMosaicEnabled,
+    mhwCategoryMosaicEnabled,
+    sstMosaicEnabled,
     date,
     lngLat,
     point,
@@ -131,6 +137,30 @@ export function ClickedMapPopupContent({
                 <span className="text-gray-600 ">DHD mosaic:</span>
                 <span className="text-gray-900 ">
                   {data[PRODUCT.AUSTEMP_DHD_MOSAIC]?.dhdAnom?.toFixed(2)} °C
+                </span>
+              </div>
+            )}
+
+            {mhwCategoryMosaicEnabled && data[PRODUCT.AUSTEMP_MHW_CATEGORY_MOSAIC] && (
+              <div
+                className="flex-col md:flex-row flex justify-between md:items-center"
+                aria-label="Sea level anomaly details"
+              >
+                <span className="text-gray-600 ">MHW category mosaic:</span>
+                <span className="text-gray-900 ">
+                  {data[PRODUCT.AUSTEMP_MHW_CATEGORY_MOSAIC]?.mhwCategory}
+                </span>
+              </div>
+            )}
+
+            {sstMosaicEnabled && data[PRODUCT.AUSTEMP_SST_MOSAIC] && (
+              <div
+                className="flex-col md:flex-row flex justify-between md:items-center"
+                aria-label="Sea level anomaly details"
+              >
+                <span className="text-gray-600 ">SST mosaic:</span>
+                <span className="text-gray-900 ">
+                  {data[PRODUCT.AUSTEMP_SST_MOSAIC]?.sstMosaic?.toFixed(2)} °C
                 </span>
               </div>
             )}

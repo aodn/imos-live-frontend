@@ -28,3 +28,4 @@ export * from './coordinateToLngLat';
 export * from './minusOneUTCDay';
 export * from './throttle';
 export * from './formatLatLngToDirectional';
+export * from './isNumeric';

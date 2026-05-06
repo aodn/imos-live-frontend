@@ -1,6 +1,6 @@
 import { getMetaData } from '@/api';
 import type { ParticleLayer, ParticleSource, ProductType } from '@/constants';
-import { GSLA_META_NAME, GSLA_PARTICLE_NAME, PRODUCT } from '@/constants';
+import { GSLA_META_NAME, GSLA_PARTICLE_NAME, PRODUCT, PRODUCTS } from '@/constants';
 import { addLayerInOrder, addOrUpdateImageSource } from '@/helpers';
 import { vectorLayer } from '@/layers';
 import { useMapUIStore, setProductErrorByProduct } from '@/store';
@@ -12,14 +12,16 @@ import { useDidMountEffect } from '../useDidMountEffect';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useParticleLayerVisibility } from './useParticleLayerVisibility';
 
-type UseOParticleLayer = {
+type UseParticleLayer = {
   map: React.RefObject<mapboxgl.Map | null>;
-  layerId: ParticleLayer;
-  sourceId: ParticleSource;
   product: ProductType;
 };
 
-export function useParticleLayer({ map, layerId, sourceId, product }: UseOParticleLayer) {
+export function useParticleLayer({ map, product }: UseParticleLayer) {
+  const { layerId, sourceId } = PRODUCTS[product] as {
+    layerId: ParticleLayer;
+    sourceId: ParticleSource;
+  };
   const { date, nParticles, fadeOpacity, speedFactor, dropRate, pointSize, isError, enabled } =
     useMapUIStore(
       useShallow(s => ({

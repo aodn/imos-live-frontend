@@ -2,6 +2,7 @@
  * this is the single truth of all the products in this project, and
  * the single truth of product's layerId, sourceId.
  */
+import type { RasterDataType } from '@/helpers';
 import speedColors from '../config/speed_colormap.json' with { type: 'json' };
 
 export const PRODUCT = {
@@ -10,6 +11,8 @@ export const PRODUCT = {
   WAVE_BUOYS: 'wave-buoys',
   AUSTEMP_SSTA_MOSAIC: 'austemp-ssta-mosaic',
   AUSTEMP_DHD_MOSAIC: 'austemp-dhd-mosaic',
+  AUSTEMP_SST_MOSAIC: 'austemp-sst-mosaic',
+  AUSTEMP_MHW_CATEGORY_MOSAIC: 'austemp-mhw-category-mosaic',
 } as const;
 
 export type ProductType = (typeof PRODUCT)[keyof typeof PRODUCT];
@@ -18,6 +21,10 @@ type ProductValue = {
   name: string;
   layerId: string;
   sourceId: string;
+  dataType?: RasterDataType;
+  // categorical means the data in the grid dataset is in category. Each data point value can only be like 0,1,2,3,4. We cannot have COLORSCALERANGE and configed styles passed to the WMS service, which is not supported. It only has the default-categorical style.
+  // https://reading-escience-centre.gitbooks.io/ncwms-user-guide/content/05-data_formats.html#categorical
+  // continous is the normal one, each data point can be any number
 };
 
 export const PRODUCTS = {
@@ -30,6 +37,7 @@ export const PRODUCTS = {
     name: 'GSLA Anomaly Sea Levels',
     layerId: 'gsla-raster-layer',
     sourceId: 'gsla-raster-source',
+    dataType: 'continous',
   },
   [PRODUCT.WAVE_BUOYS]: {
     name: 'Wave Buoys',
@@ -40,11 +48,25 @@ export const PRODUCTS = {
     name: 'AusTemp SSTA Mosaic',
     layerId: 'austemp-ssta-mosaic-layer',
     sourceId: 'austemp-ssta-mosaic-source',
+    dataType: 'continous',
   },
   [PRODUCT.AUSTEMP_DHD_MOSAIC]: {
     name: 'AusTemp DHD Mosaic',
     layerId: 'austemp-dhd-mosaic-layer',
     sourceId: 'austemp-dhd-mosaic-source',
+    dataType: 'continous',
+  },
+  [PRODUCT.AUSTEMP_SST_MOSAIC]: {
+    name: 'AusTemp SST Mosaic',
+    layerId: 'austemp-sst-mosaic-layer',
+    sourceId: 'austemp-sst-mosaic-source',
+    dataType: 'continous',
+  },
+  [PRODUCT.AUSTEMP_MHW_CATEGORY_MOSAIC]: {
+    name: 'AusTemp MHW category mosaic',
+    layerId: 'austemp-mhw-category-mosaic-layer',
+    sourceId: 'austemp-mhw-category-mosaic-source',
+    dataType: 'categorical',
   },
 } as const satisfies Record<ProductType, ProductValue>;
 
@@ -63,6 +85,28 @@ export type RasterLegendArgs = {
   min: number;
   max: number;
 };
+export type CategoryLegendArgs = {
+  colors: string[];
+  labels: string[];
+};
+
+export const MHW_CATEGORY_LEGEND_COLORS = [
+  '#2b97b0', // invalid
+  '#8c0000', // none
+  '#ff9701', // moderate
+  '#67ff96', // strong
+  '#007bff', // severe
+  '#00078f', // extreme
+];
+
+export const HW_CATEGORY_LEGEND_LABELS = [
+  'invalid',
+  'none',
+  'moderate',
+  'strong',
+  'severe',
+  'extreme',
+];
 
 export const PRODUCTLEGENDS = {
   [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: {
@@ -93,9 +137,21 @@ export const PRODUCTLEGENDS = {
     colors: 'div-RdBu-inv',
     label: 'degrees Celsius (°C)',
   },
+  [PRODUCT.AUSTEMP_SST_MOSAIC]: {
+    scales: [-50, -25, 0, 25, 50],
+    min: -50,
+    max: 50,
+    colors: 'div-RdBu-inv',
+    label: 'degrees Celsius (°C)',
+  },
+  [PRODUCT.AUSTEMP_MHW_CATEGORY_MOSAIC]: {
+    colors: MHW_CATEGORY_LEGEND_COLORS,
+    labels: HW_CATEGORY_LEGEND_LABELS,
+    label: '',
+  },
 } as const satisfies Record<
   Exclude<ProductType, 'wave-buoys'>,
-  VectorLegendArgs | RasterLegendArgs
+  VectorLegendArgs | RasterLegendArgs | CategoryLegendArgs
 >;
 
 export type ProductLayerId = (typeof PRODUCTS)[ProductType]['layerId'];

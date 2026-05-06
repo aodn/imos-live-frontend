@@ -6,6 +6,10 @@ type ExportProduct = {
   legendUrl?: string;
   scales?: number[];
   label?: string;
+  categoricalLegend?: {
+    colors: readonly string[];
+    labels: readonly string[];
+  };
 };
 
 export type MapBounds = {
@@ -319,13 +323,45 @@ const drawInfoColumn = (
   ctx.fillText(siteUrl, x, y + t.titleLineH + t.subLineH * 2 - 4);
 };
 
+/** Renders categorical color segments onto an offscreen canvas (bar only — no labels).
+ *  Canvas width expands beyond minWidth if labels would otherwise overflow when drawn externally. */
+const renderCategoricalLegendToCanvas = (
+  colors: readonly string[],
+  labels: readonly string[],
+  minWidth: number,
+  barHeight: number,
+  fontSize: number,
+): HTMLCanvasElement => {
+  const font = `${fontSize}px sans-serif`;
+
+  // Expand canvas width so each segment is wide enough to fit its label when drawn below.
+  const probe = document.createElement('canvas').getContext('2d')!;
+  probe.font = font;
+  const maxLabelPx = Math.max(...labels.map(l => probe.measureText(l).width));
+  const minSegW = maxLabelPx + 8;
+  const width = Math.max(minWidth, Math.ceil(minSegW * colors.length));
+
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = barHeight;
+  const ctx = canvas.getContext('2d')!;
+  const segW = width / colors.length;
+
+  colors.forEach((color, i) => {
+    ctx.fillStyle = color;
+    ctx.fillRect(i * segW, 0, segW, barHeight);
+  });
+
+  return canvas;
+};
+
 /** Draws the product name, legend image, scale values, and label in the info panel. */
 const drawProductColumn = (
   ctx: CanvasRenderingContext2D,
   x: number,
   y: number,
   product: ExportProduct,
-  legend: HTMLImageElement | null,
+  legend: HTMLImageElement | HTMLCanvasElement | null,
   legendWidth: number,
   legendHeight: number,
   t: ExportTheme,
@@ -349,6 +385,23 @@ const drawProductColumn = (
     product.scales.forEach((scale, i) => {
       const scaleX = count === 1 ? x + legendWidth / 2 : x + (i / (count - 1)) * legendWidth;
       ctx.fillText(String(scale), scaleX, cursorY + t.scalesH - 2);
+    });
+    ctx.textAlign = 'start';
+    cursorY += t.scalesH;
+  }
+
+  if (product.categoricalLegend?.labels && product.categoricalLegend.labels.length > 0) {
+    cursorY += 4;
+    ctx.font = `${t.scalesLabelFontSize}px sans-serif`;
+    ctx.fillStyle = t.scalesColor;
+    ctx.textAlign = 'center';
+    const { labels } = product.categoricalLegend;
+    labels.forEach((catLabel, i) => {
+      ctx.fillText(
+        catLabel,
+        x + ((i + 0.5) / labels.length) * legendWidth,
+        cursorY + t.scalesH - 2,
+      );
     });
     ctx.textAlign = 'start';
     cursorY += t.scalesH;
@@ -543,7 +596,7 @@ const calculateInfoPanelLayout = ({
   mapAreaH: number;
   logoAspect: number;
   product: ExportProduct | undefined;
-  legend: HTMLImageElement | null;
+  legend: HTMLImageElement | HTMLCanvasElement | null;
   t: ExportTheme;
 }) => {
   const leftColHeight = t.titleLineH + t.subLineH * 2;
@@ -560,13 +613,27 @@ const calculateInfoPanelLayout = ({
 
   ctx.font = `bold ${t.productNameFontSize}px sans-serif`;
   const productNameWidth = product ? ctx.measureText(product.name).width : 0;
-  const legendWidth = legend ? Math.min(t.legendMaxW, legend.width) : 0;
-  const legendHeight = legend ? legend.height * (legendWidth / legend.width) : 0;
+  // Canvas legends (categorical) are pre-rendered at the correct size — use as-is.
+  // Image legends (raster) are scaled to fit within legendMaxW.
+  const legendWidth = legend
+    ? legend instanceof HTMLCanvasElement
+      ? legend.width
+      : Math.min(t.legendMaxW, legend.width)
+    : 0;
+  const legendHeight = legend
+    ? legend instanceof HTMLCanvasElement
+      ? legend.height
+      : legend.height * (legendWidth / legend.width)
+    : 0;
   const productColContentWidth = Math.max(productNameWidth, legendWidth);
   const productColWidth = product ? t.panelGap + productColContentWidth : 0;
 
   const legendExtra = legend
-    ? 8 + legendHeight + (product?.scales ? 4 + t.scalesH : 0) + (product?.label ? 4 + t.labelH : 0)
+    ? 8 +
+      legendHeight +
+      (product?.scales ? 4 + t.scalesH : 0) +
+      (product?.categoricalLegend?.labels.length ? 4 + t.scalesH : 0) +
+      (product?.label ? 4 + t.labelH : 0)
     : 0;
   const productColHeight = product ? t.subLineH + legendExtra : 0;
   const contentHeight = Math.max(leftColHeight, productColHeight);
@@ -618,13 +685,24 @@ export const exportMapImage = async (
     ctx.fillRect(0, 0, offscreen.width, offscreen.height);
   }
 
-  let legend: HTMLImageElement | null = null;
+  let legend: HTMLImageElement | HTMLCanvasElement | null = null;
   if (product?.legendUrl) {
     try {
       legend = await loadImage(product.legendUrl);
     } catch {
       product = undefined; // hide the product column entirely if the legend image fails to load
     }
+  } else if (product?.categoricalLegend) {
+    // Bar height approximates the displayed height of a raster legend image
+    // (WMS source is 443×12; scaled to legendMaxW gives ~legendMaxW/443*12 px).
+    const catBarH = Math.round((t.legendMaxW / 443) * 12);
+    legend = renderCategoricalLegendToCanvas(
+      product.categoricalLegend.colors,
+      product.categoricalLegend.labels,
+      t.legendMaxW,
+      catBarH,
+      t.scalesLabelFontSize,
+    );
   }
   const logo = await loadImage(imosLogo);
   const layout = calculateInfoPanelLayout({

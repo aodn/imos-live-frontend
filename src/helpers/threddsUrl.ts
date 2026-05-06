@@ -5,6 +5,8 @@ import {
   AUSTEMP_DHD_MOSAIC_RASTER_SOURCE_ID,
   PRODUCT,
   PRODUCTLEGENDS,
+  AUSTEMP_SST_MOSAIC_RASTER_SOURCE_ID,
+  AUSTEMP_MHW_CATEGORY_MOSAIC_RASTER_SOURCE_ID,
 } from '@/constants';
 import { getThreddsCatalog } from '@/api';
 import { addYears } from '@/utils';
@@ -13,12 +15,16 @@ const THREDDS_PATHS = {
   GSLA: 'IMOS/OceanCurrent/GSLA/NRT',
   AUSTEMP_SSTA: 'IMOS/SRS/AusTemp/Marine-Heatwave',
   AUSTEMP_DHD: 'IMOS/SRS/AusTemp/Marine-Heatwave',
+  AUSTEMP_SST: 'IMOS/SRS/AusTemp/Marine-Heatwave',
+  AUSTEMP_MHW: 'IMOS/SRS/AusTemp/Marine-Heatwave',
 } as const;
 
 const FILE_PATTERNS = {
   GSLA: (dateString: string) => `IMOS_OceanCurrent_HV_${dateString}T`,
   AUSTEMP_SSTA: (dateString: string) => `${dateString}_IMOS_AusTemp-marine-heatwave_AUS_fv02.nc`,
   AUSTEMP_DHD: (dateString: string) => `${dateString}_IMOS_AusTemp-marine-heatwave_AUS_fv02.nc`,
+  AUSTEMP_SST: (dateString: string) => `${dateString}_IMOS_AusTemp-marine-heatwave_AUS_fv02.nc`,
+  AUSTEMP_MHW: (dateString: string) => `${dateString}_IMOS_AusTemp-marine-heatwave_AUS_fv02.nc`,
 } as const;
 
 const WMS_CONFIG = {
@@ -39,6 +45,18 @@ const WMS_CONFIG = {
     colorScaleRange: `${PRODUCTLEGENDS[PRODUCT.AUSTEMP_DHD_MOSAIC].min},${PRODUCTLEGENDS[PRODUCT.AUSTEMP_DHD_MOSAIC].max}`,
     styles: `raster/${PRODUCTLEGENDS[PRODUCT.AUSTEMP_DHD_MOSAIC].colors}`,
     legendPalette: PRODUCTLEGENDS[PRODUCT.AUSTEMP_DHD_MOSAIC].colors,
+  },
+  [AUSTEMP_SST_MOSAIC_RASTER_SOURCE_ID]: {
+    layers: 'sst_mosaic',
+    colorScaleRange: `${PRODUCTLEGENDS[PRODUCT.AUSTEMP_SST_MOSAIC].min},${PRODUCTLEGENDS[PRODUCT.AUSTEMP_SST_MOSAIC].max}`,
+    styles: `raster/${PRODUCTLEGENDS[PRODUCT.AUSTEMP_SST_MOSAIC].colors}`,
+    legendPalette: PRODUCTLEGENDS[PRODUCT.AUSTEMP_SST_MOSAIC].colors,
+  },
+  [AUSTEMP_MHW_CATEGORY_MOSAIC_RASTER_SOURCE_ID]: {
+    layers: 'MHW_category_mosaic',
+    colorScaleRange: '',
+    styles: ``,
+    legendPalette: '',
   },
 } as const;
 
@@ -84,8 +102,8 @@ const getGslaUrlFromCatalog = async (date: Date): Promise<string> => {
   return `/thredds/wms/invalid_dataset`; //do not throw error here to avoid image loading failure test for legend url
 };
 
-// SST file name pattern example: 20240615_IMOS_AusTemp-sst-anomaly_AUS_fv02.nc, but the file may be in next year folder.
-const getAusTempSstaUrlFromCatalog = async (date: Date): Promise<string> => {
+// Austemp product file name pattern example: 20240615_IMOS_AusTemp-sst-anomaly_AUS_fv02.nc, but the file may be in next year folder.
+const getAusTempUrlFromCatalog = async (date: Date): Promise<string> => {
   const dateString = generateFileDateString(date);
   const pattern = FILE_PATTERNS.AUSTEMP_SSTA(dateString);
   const dates = [date, addYears(date, 1)];
@@ -109,33 +127,52 @@ const getAusTempSstaUrlFromCatalog = async (date: Date): Promise<string> => {
   return `/thredds/wms/invalid_dataset`; //do not throw error here to avoid image loading failure test for legend url
 };
 
-const getAusTempDhdUrlFromCatalog = getAusTempSstaUrlFromCatalog;
-
 const baseUrl = async (id: RasterSource, date: Date): Promise<string> => {
   switch (id) {
     case GSLA_RASTER_SOURCE_ID:
       return await getGslaUrlFromCatalog(date);
     case AUSTEMP_SSTA_MOSAIC_RASTER_SOURCE_ID:
-      return await getAusTempSstaUrlFromCatalog(date);
+      return await getAusTempUrlFromCatalog(date);
     case AUSTEMP_DHD_MOSAIC_RASTER_SOURCE_ID:
-      return await getAusTempDhdUrlFromCatalog(date);
+      return await getAusTempUrlFromCatalog(date);
+    case AUSTEMP_SST_MOSAIC_RASTER_SOURCE_ID:
+      return await getAusTempUrlFromCatalog(date);
+    case AUSTEMP_MHW_CATEGORY_MOSAIC_RASTER_SOURCE_ID:
+      return await getAusTempUrlFromCatalog(date);
     default:
       throw new Error(`Unknown raster source: ${id}`);
   }
 };
 
-export const rasterUrl = async (id: RasterSource, date: Date): Promise<string> => {
+export type RasterDataType = 'categorical' | 'continous';
+/**
+ *
+ * @param id
+ * @param date
+ * @param type - 'categorical' | 'continous'
+ * @returns
+ *
+ * categorical means the data in the grid dataset is in category. Each data point value can only be like 0,1,2,3,4. We cannot have COLORSCALERANGE and configed styles passed to the WMS service, which is not supported. It only has the default-categorical style.
+ * https://reading-escience-centre.gitbooks.io/ncwms-user-guide/content/05-data_formats.html#categorical
+ * continous is the normal one, each data point can be any number.
+ */
+export const rasterUrl = async (
+  id: RasterSource,
+  date: Date,
+  type: RasterDataType = 'continous',
+): Promise<string> => {
   const base = await baseUrl(id, date);
   const config = WMS_CONFIG[id];
   // Use /tiles/{z}/{x}/{y} path for CloudFront cache-friendly URLs
   // The proxy will convert z/x/y to bbox before forwarding to THREDDS
-  return `/tiles/{z}/{x}/{y}${base}?COLORSCALERANGE=${config.colorScaleRange}&version=1.3.0&REQUEST=GetMap&LAYERS=${config.layers}&styles=${config.styles}&crs=EPSG:3857&format=image/png&transparent=true&width=256&height=256`;
+  if (type === 'continous')
+    return `/tiles/{z}/{x}/{y}${base}?COLORSCALERANGE=${config.colorScaleRange}&version=1.3.0&REQUEST=GetMap&LAYERS=${config.layers}&styles=${config.styles}&crs=EPSG:3857&format=image/png&transparent=true&width=256&height=256`;
+  return `/tiles/{z}/{x}/{y}${base}?version=1.3.0&REQUEST=GetMap&LAYERS=${config.layers}&styles=default-categorical&crs=EPSG:3857&format=image/png&transparent=true&width=256&height=256`;
 };
 
 export const rasterLegendUrl = async (id: RasterSource, date: Date): Promise<string> => {
   const base = await baseUrl(id, date);
   const config = WMS_CONFIG[id];
-
   return `/legends${base}?version=1.3.0&COLORSCALERANGE=${config.colorScaleRange}&REQUEST=GetLegendGraphic&palette=${config.legendPalette}&COLORBARONLY=true&VERTICAL=false&WIDTH=443&HEIGHT=12`;
 };
 

@@ -18,19 +18,7 @@ import { lazy, memo, Suspense, useEffect } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { DistanceMeasurement } from '../DistanceMeasurement';
 import { MapControlPanel } from '../MapControlPanel';
-import {
-  GSLA_RASTER_LAYER_ID,
-  GSLA_RASTER_SOURCE_ID,
-  GSLA_PARTICLE_LAYER_ID,
-  GSLA_PARTICLE_SOURCE_ID,
-  PRODUCT,
-  AUSTEMP_SSTA_MOSAIC_RASTER_LAYER_ID,
-  AUSTEMP_SSTA_MOSAIC_RASTER_SOURCE_ID,
-  WAVE_BUOYS_LAYER_ID,
-  WAVE_BUOYS_SOURCE_ID,
-  AUSTEMP_DHD_MOSAIC_RASTER_SOURCE_ID,
-  AUSTEMP_DHD_MOSAIC_RASTER_LAYER_ID,
-} from '@/constants';
+import { PRODUCT } from '@/constants';
 import type { DrawerProps } from '../Drawer';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_KEY;
@@ -49,6 +37,8 @@ export const MapComponent = memo(function MapComponent() {
     dhdAnomalMosaicEnabled,
     waveBuoysEnabled,
     oceanCurrentEnabled,
+    mhwCategoryMosaicEnabled,
+    sstMosaicEnabled,
   } = useMapUIStore(
     useShallow(s => ({
       distanceMeasurementEnabled: s.distanceMeasurementEnabled,
@@ -57,6 +47,8 @@ export const MapComponent = memo(function MapComponent() {
       dhdAnomalMosaicEnabled: s.productEnabled[PRODUCT.AUSTEMP_DHD_MOSAIC],
       waveBuoysEnabled: s.productEnabled[PRODUCT.WAVE_BUOYS],
       oceanCurrentEnabled: s.productEnabled[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT],
+      mhwCategoryMosaicEnabled: s.productEnabled[PRODUCT.AUSTEMP_MHW_CATEGORY_MOSAIC],
+      sstMosaicEnabled: s.productEnabled[PRODUCT.AUSTEMP_SST_MOSAIC],
     })),
   );
 
@@ -68,32 +60,30 @@ export const MapComponent = memo(function MapComponent() {
   useWorldLandLayer(map);
   useRasterLayer({
     map,
-    layerId: GSLA_RASTER_LAYER_ID,
-    sourceId: GSLA_RASTER_SOURCE_ID,
     product: PRODUCT.GSLA_ANOMALY_SEA_LEVELS,
   });
   useRasterLayer({
     map,
-    layerId: AUSTEMP_SSTA_MOSAIC_RASTER_LAYER_ID,
-    sourceId: AUSTEMP_SSTA_MOSAIC_RASTER_SOURCE_ID,
     product: PRODUCT.AUSTEMP_SSTA_MOSAIC,
   });
   useRasterLayer({
     map,
-    layerId: AUSTEMP_DHD_MOSAIC_RASTER_LAYER_ID,
-    sourceId: AUSTEMP_DHD_MOSAIC_RASTER_SOURCE_ID,
     product: PRODUCT.AUSTEMP_DHD_MOSAIC,
+  });
+  useRasterLayer({
+    map,
+    product: PRODUCT.AUSTEMP_SST_MOSAIC,
+  });
+  useRasterLayer({
+    map,
+    product: PRODUCT.AUSTEMP_MHW_CATEGORY_MOSAIC,
   });
   useParticleLayer({
     map,
-    layerId: GSLA_PARTICLE_LAYER_ID,
-    sourceId: GSLA_PARTICLE_SOURCE_ID,
     product: PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT,
   });
   useWaveBuoysLayer({
     map,
-    layerId: WAVE_BUOYS_LAYER_ID,
-    sourceId: WAVE_BUOYS_SOURCE_ID,
     product: PRODUCT.WAVE_BUOYS,
   });
 
@@ -103,7 +93,12 @@ export const MapComponent = memo(function MapComponent() {
 
   useParticleRasterLayersEventHandlers({
     map,
-    raster: gslaAnomalySeaLevelsEnabled || sstAnomMosaicEnabled || dhdAnomalMosaicEnabled,
+    raster:
+      gslaAnomalySeaLevelsEnabled ||
+      sstAnomMosaicEnabled ||
+      dhdAnomalMosaicEnabled ||
+      mhwCategoryMosaicEnabled ||
+      sstMosaicEnabled,
     oceanCurrentEnabled,
     distanceMeasurementEnabled,
   });
