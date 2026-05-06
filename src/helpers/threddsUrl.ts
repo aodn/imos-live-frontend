@@ -54,9 +54,9 @@ const WMS_CONFIG = {
   },
   [AUSTEMP_MHW_CATEGORY_MOSAIC_RASTER_SOURCE_ID]: {
     layers: 'MHW_category_mosaic',
-    colorScaleRange: `${PRODUCTLEGENDS[PRODUCT.AUSTEMP_MHW_CATEGORY_MOSAIC].min},${PRODUCTLEGENDS[PRODUCT.AUSTEMP_MHW_CATEGORY_MOSAIC].max}`,
-    styles: `raster/${PRODUCTLEGENDS[PRODUCT.AUSTEMP_MHW_CATEGORY_MOSAIC].colors}`,
-    legendPalette: PRODUCTLEGENDS[PRODUCT.AUSTEMP_MHW_CATEGORY_MOSAIC].colors,
+    colorScaleRange: '',
+    styles: ``,
+    legendPalette: '',
   },
 } as const;
 
@@ -173,7 +173,6 @@ export const rasterUrl = async (
 export const rasterLegendUrl = async (id: RasterSource, date: Date): Promise<string> => {
   const base = await baseUrl(id, date);
   const config = WMS_CONFIG[id];
-
   return `/legends${base}?version=1.3.0&COLORSCALERANGE=${config.colorScaleRange}&REQUEST=GetLegendGraphic&palette=${config.legendPalette}&COLORBARONLY=true&VERTICAL=false&WIDTH=443&HEIGHT=12`;
 };
 

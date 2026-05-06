@@ -85,6 +85,28 @@ export type RasterLegendArgs = {
   min: number;
   max: number;
 };
+export type CategoryLegendArgs = {
+  colors: string[];
+  labels: string[];
+};
+
+export const MHW_CATEGORY_LEGEND_COLORS = [
+  '#2b97b0', // invalid
+  '#8c0000', // none
+  '#ff9701', // moderate
+  '#67ff96', // strong
+  '#007bff', // severe
+  '#00078f', // extreme
+];
+
+export const HW_CATEGORY_LEGEND_LABELS = [
+  'invalid',
+  'none',
+  'moderate',
+  'strong',
+  'severe',
+  'extreme',
+];
 
 export const PRODUCTLEGENDS = {
   [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: {
@@ -123,15 +145,13 @@ export const PRODUCTLEGENDS = {
     label: 'degrees Celsius (°C)',
   },
   [PRODUCT.AUSTEMP_MHW_CATEGORY_MOSAIC]: {
-    scales: [0, 1, 2, 3, 4],
-    min: 0,
-    max: 4,
-    colors: 'div-RdBu-inv',
-    label: 'degrees Celsius (°C)',
+    colors: MHW_CATEGORY_LEGEND_COLORS,
+    labels: HW_CATEGORY_LEGEND_LABELS,
+    label: '',
   },
 } as const satisfies Record<
   Exclude<ProductType, 'wave-buoys'>,
-  VectorLegendArgs | RasterLegendArgs
+  VectorLegendArgs | RasterLegendArgs | CategoryLegendArgs
 >;
 
 export type ProductLayerId = (typeof PRODUCTS)[ProductType]['layerId'];
