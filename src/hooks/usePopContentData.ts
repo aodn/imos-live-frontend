@@ -5,11 +5,15 @@ import {
   GSLA_RASTER_SOURCE_ID,
   AUSTEMP_SSTA_MOSAIC_RASTER_SOURCE_ID,
   AUSTEMP_DHD_MOSAIC_RASTER_SOURCE_ID,
+  AUSTEMP_MHW_CATEGORY_MOSAIC_RASTER_SOURCE_ID,
+  AUSTEMP_SST_MOSAIC_RASTER_SOURCE_ID,
 } from '@/constants';
 import {
   fetchDhdAnomalyMosaic,
   fetchGslaAnomalySeaLevelsData,
+  fetchMHWCategoryMosaic,
   fetchSstAnomalyMosaic,
+  fetchSstMosaic,
 } from '@/helpers';
 import { processOceanCurrentDetails } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
@@ -20,6 +24,8 @@ type UseClickedMapPopupContentData = {
   sstAnomMosaicEnabled: boolean;
   dhdAnomalMosaicEnabled: boolean;
   gslaAnomalySeaLevelsEnabled: boolean;
+  mhwCategoryMosaicEnabled: boolean;
+  sstMosaicEnabled: boolean;
   date: string;
   lngLat: LngLat;
   point: Point;
@@ -37,6 +43,8 @@ export function useClickedMapPopupContentData({
   gslaAnomalySeaLevelsEnabled,
   sstAnomMosaicEnabled,
   dhdAnomalMosaicEnabled,
+  mhwCategoryMosaicEnabled,
+  sstMosaicEnabled,
   date,
   lngLat,
   point,
@@ -75,12 +83,26 @@ export function useClickedMapPopupContentData({
     enabled: !!date && dhdAnomalMosaicEnabled,
   });
 
+  const { data: mhwCategoryMosaic, isLoading: isMhwCategoryMosaicLoading } = useQuery({
+    queryKey: [AUSTEMP_MHW_CATEGORY_MOSAIC_RASTER_SOURCE_ID, date, mapBounds, mapSize, point],
+    queryFn: () => fetchMHWCategoryMosaic(date, mapBounds, mapSize, point),
+    enabled: !!date && mhwCategoryMosaicEnabled,
+  });
+
+  const { data: sstMosaic, isLoading: isSstMosaicLoading } = useQuery({
+    queryKey: [AUSTEMP_SST_MOSAIC_RASTER_SOURCE_ID, date, mapBounds, mapSize, point],
+    queryFn: () => fetchSstMosaic(date, mapBounds, mapSize, point),
+    enabled: !!date && sstMosaicEnabled,
+  });
+
   const data = {
     [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]:
       gslaOceanCurrent?.[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT],
     [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: gslaAnomalySeaLevels?.[PRODUCT.GSLA_ANOMALY_SEA_LEVELS],
     [PRODUCT.AUSTEMP_SSTA_MOSAIC]: sstAnomalyMosatic?.[PRODUCT.AUSTEMP_SSTA_MOSAIC],
     [PRODUCT.AUSTEMP_DHD_MOSAIC]: dhdAnomalyMosaic?.[PRODUCT.AUSTEMP_DHD_MOSAIC],
+    [PRODUCT.AUSTEMP_MHW_CATEGORY_MOSAIC]: mhwCategoryMosaic?.[PRODUCT.AUSTEMP_MHW_CATEGORY_MOSAIC],
+    [PRODUCT.AUSTEMP_SST_MOSAIC]: sstMosaic?.[PRODUCT.AUSTEMP_SST_MOSAIC],
   };
 
   return {
@@ -89,6 +111,8 @@ export function useClickedMapPopupContentData({
       isGslaAnomalySeaLevelsLoading ||
       isGslaOceanCurrentLoading ||
       isSstAnomalyMosaticLoading ||
-      isDhdAnomalyMosaicLoading,
+      isDhdAnomalyMosaicLoading ||
+      isMhwCategoryMosaicLoading ||
+      isSstMosaicLoading,
   };
 }

@@ -14,6 +14,10 @@ import {
   PRODUCTLEGENDS,
   AUSTEMP_DHD_MOSAIC_RASTER_LAYER_ID,
   AUSTEMP_DHD_MOSAIC_RASTER_SOURCE_ID,
+  AUSTEMP_SST_MOSAIC_RASTER_SOURCE_ID,
+  AUSTEMP_SST_MOSAIC_RASTER_LAYER_ID,
+  AUSTEMP_MHW_CATEGORY_MOSAIC_RASTER_LAYER_ID,
+  AUSTEMP_MHW_CATEGORY_MOSAIC_RASTER_SOURCE_ID,
 } from '@/constants';
 import {
   RadarIcon,
@@ -133,6 +137,54 @@ export const featuredDataset: LayersDataset[] = [
       <RasterLegend
         rasterSource={AUSTEMP_DHD_MOSAIC_RASTER_SOURCE_ID}
         {...PRODUCTLEGENDS[PRODUCT.AUSTEMP_DHD_MOSAIC]}
+      />
+    ),
+    addToMap: setProductEnabledByProduct,
+    dateCheckUrl: ausTempUrl,
+    portalLink:
+      'https://catalogue-imos.aodn.org.au/geonetwork/srv/eng/catalog.search#/search?any=IMOS%20-%20AusTemp%20-%20Sea%20Surface%20Temperature',
+  },
+  {
+    image: {
+      src: sstImage,
+      alt: 'AUS DHD TEMP',
+    },
+    title: 'AusTemp SST mosaic',
+    icon: <ThermometerIcon size="lg" />,
+    description:
+      'AusTemp is a specialised remote sensing application for the monitoring of SST conditions that lead to coral bleaching. The BOM legacy system was developed in consultation with Great Barrier Reef Marine Park Authority (GBRMPA) reef management and replaces the original CSIRO ReefTemp system (Maynard et al, 2008).',
+    layerId: AUSTEMP_SST_MOSAIC_RASTER_LAYER_ID,
+    visible: false,
+    isError: false,
+    product: PRODUCT.AUSTEMP_SST_MOSAIC,
+    legend: (
+      <RasterLegend
+        rasterSource={AUSTEMP_SST_MOSAIC_RASTER_SOURCE_ID}
+        {...PRODUCTLEGENDS[PRODUCT.AUSTEMP_SST_MOSAIC]}
+      />
+    ),
+    addToMap: setProductEnabledByProduct,
+    dateCheckUrl: ausTempUrl,
+    portalLink:
+      'https://catalogue-imos.aodn.org.au/geonetwork/srv/eng/catalog.search#/search?any=IMOS%20-%20AusTemp%20-%20Sea%20Surface%20Temperature',
+  },
+  {
+    image: {
+      src: sstImage,
+      alt: 'AUS DHD TEMP',
+    },
+    title: 'AusTemp MHW category mosaic',
+    icon: <ThermometerIcon size="lg" />,
+    description:
+      'AusTemp is a specialised remote sensing application for the monitoring of SST conditions that lead to coral bleaching. The BOM legacy system was developed in consultation with Great Barrier Reef Marine Park Authority (GBRMPA) reef management and replaces the original CSIRO ReefTemp system (Maynard et al, 2008).',
+    layerId: AUSTEMP_MHW_CATEGORY_MOSAIC_RASTER_LAYER_ID,
+    visible: false,
+    isError: false,
+    product: PRODUCT.AUSTEMP_MHW_CATEGORY_MOSAIC,
+    legend: (
+      <RasterLegend
+        rasterSource={AUSTEMP_MHW_CATEGORY_MOSAIC_RASTER_SOURCE_ID}
+        {...PRODUCTLEGENDS[PRODUCT.AUSTEMP_MHW_CATEGORY_MOSAIC]}
       />
     ),
     addToMap: setProductEnabledByProduct,

@@ -2,18 +2,23 @@ import type { MapMouseEvent } from 'mapbox-gl';
 import { getFeatureInfoUrl } from './threddsUrl';
 import type { RasterSource } from '@/constants';
 import {
+  AUSTEMP_MHW_CATEGORY_MOSAIC_RASTER_SOURCE_ID,
+  AUSTEMP_SST_MOSAIC_RASTER_SOURCE_ID,
+} from '@/constants';
+import {
   GSLA_RASTER_SOURCE_ID,
   AUSTEMP_SSTA_MOSAIC_RASTER_SOURCE_ID,
   AUSTEMP_DHD_MOSAIC_RASTER_SOURCE_ID,
   PRODUCT,
 } from '@/constants';
+import { isNumeric } from '@/utils';
 
 /**
  * Parses XML response from WMS GetFeatureInfo request
  * @param xmlString - The XML response string
  * @returns The numeric value from the first FeatureInfo element, or null if not found
  */
-function parseFeatureInfoXML(xmlString: string): number | null {
+function parseFeatureInfoXML(xmlString: string): string | number | null {
   try {
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(xmlString, 'text/xml');
@@ -29,9 +34,9 @@ function parseFeatureInfoXML(xmlString: string): number | null {
     if (!valueElement?.textContent) {
       return null;
     }
-
-    const value = Number(valueElement.textContent);
-    return isNaN(value) ? null : value;
+    return isNumeric(valueElement.textContent)
+      ? Number(valueElement.textContent)
+      : valueElement.textContent;
   } catch (error) {
     console.error('Error parsing feature info XML:', error);
     return null;
@@ -48,6 +53,12 @@ type RasterSourceData = {
   [AUSTEMP_DHD_MOSAIC_RASTER_SOURCE_ID]: {
     [PRODUCT.AUSTEMP_DHD_MOSAIC]: { dhdAnom: number };
   };
+  [AUSTEMP_MHW_CATEGORY_MOSAIC_RASTER_SOURCE_ID]: {
+    [PRODUCT.AUSTEMP_MHW_CATEGORY_MOSAIC]: { mhwCategory: string };
+  };
+  [AUSTEMP_SST_MOSAIC_RASTER_SOURCE_ID]: {
+    [PRODUCT.AUSTEMP_SST_MOSAIC]: { sstMosaic: number };
+  };
 };
 
 /**
@@ -63,7 +74,6 @@ const fetchRasterData =
   ): Promise<Partial<RasterSourceData[T]>> => {
     try {
       const url = await getFeatureInfoUrl(rasterSource, new Date(date), mapBounds, mapSize, point);
-
       const response = await fetch(url);
 
       const xmlString = await response.text();
@@ -86,8 +96,15 @@ const fetchRasterData =
         return {
           [PRODUCT.AUSTEMP_DHD_MOSAIC]: { dhdAnom: value },
         } as RasterSourceData[T];
+      } else if (rasterSource === AUSTEMP_MHW_CATEGORY_MOSAIC_RASTER_SOURCE_ID) {
+        return {
+          [PRODUCT.AUSTEMP_MHW_CATEGORY_MOSAIC]: { mhwCategory: value },
+        } as RasterSourceData[T];
+      } else if (rasterSource === AUSTEMP_SST_MOSAIC_RASTER_SOURCE_ID) {
+        return {
+          [PRODUCT.AUSTEMP_SST_MOSAIC]: { sstMosaic: value },
+        } as RasterSourceData[T];
       }
-
       return {};
     } catch (error) {
       console.error('Error fetching raster data:', error);
@@ -98,6 +115,8 @@ const fetchRasterData =
 export const fetchGslaAnomalySeaLevelsData = fetchRasterData(GSLA_RASTER_SOURCE_ID);
 export const fetchSstAnomalyMosaic = fetchRasterData(AUSTEMP_SSTA_MOSAIC_RASTER_SOURCE_ID);
 export const fetchDhdAnomalyMosaic = fetchRasterData(AUSTEMP_DHD_MOSAIC_RASTER_SOURCE_ID);
+export const fetchMHWCategoryMosaic = fetchRasterData(AUSTEMP_MHW_CATEGORY_MOSAIC_RASTER_SOURCE_ID);
+export const fetchSstMosaic = fetchRasterData(AUSTEMP_SST_MOSAIC_RASTER_SOURCE_ID);
 
 export function getMapMetaData(map: React.RefObject<mapboxgl.Map | null>) {
   if (!map.current) return {};
