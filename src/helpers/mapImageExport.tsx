@@ -125,6 +125,14 @@ const niceScaleKm = (maxKm: number): number => {
   return result;
 };
 
+export const canvasRootGenerator = () => {
+  const container = document.createElement('div');
+  container.style.cssText =
+    'position:fixed;left:-9999px;top:-9999px;z-index:-1;pointer-events:none;';
+  document.body.appendChild(container);
+  return { root: createRoot(container), container };
+};
+
 // Drawing functions
 
 const renderScaleIndicator = async (
@@ -151,11 +159,8 @@ const renderScaleIndicator = async (
 
   const barWidthCss = (scaleKm * pixelsPerKm) / dpr;
 
-  const container = document.createElement('div');
-  container.style.cssText =
-    'position:fixed;left:-9999px;top:-9999px;z-index:-1;pointer-events:none;';
-  document.body.appendChild(container);
-  const root = createRoot(container);
+  const { root, container } = canvasRootGenerator();
+
   root.render(createElement(MapScaleBar, { scaleKm, barWidthCss, compact }));
   await doubleRAF();
 
@@ -178,14 +183,6 @@ const renderScaleIndicator = async (
 
   root.unmount();
   container.remove();
-};
-
-/** Pins every img to its computed pixel size so snapdom doesn't misresolve `w-auto`. */
-const pinImgDimensions = (el: HTMLElement) => {
-  el.querySelectorAll('img').forEach(img => {
-    if (img.offsetWidth > 0) img.style.width = `${img.offsetWidth}px`;
-    if (img.offsetHeight > 0) img.style.height = `${img.offsetHeight}px`;
-  });
 };
 
 /**
@@ -224,11 +221,7 @@ const renderInfoPanel = async (
   compact: boolean,
   panelPadding: number,
 ) => {
-  const container = document.createElement('div');
-  container.style.cssText =
-    'position:fixed;left:-9999px;top:-9999px;z-index:-1;pointer-events:none;';
-  document.body.appendChild(container);
-  const root = createRoot(container);
+  const { root, container } = canvasRootGenerator();
 
   const panelProps = {
     date,
@@ -276,7 +269,9 @@ const renderInfoPanel = async (
     await doubleRAF();
     await doubleRAF();
 
-    pinImgDimensions(el);
+    // Pin only the logo img — it has `w-auto` which snapdom misresolves
+    const logoImg = el.querySelector<HTMLImageElement>('[data-export-logo]');
+    if (logoImg && logoImg.offsetWidth > 0) logoImg.style.width = `${logoImg.offsetWidth}px`;
     const snap = await snapdom(el, { embedFonts: false });
     const panelCanvas = await snap.toCanvas({ scale: dpr });
 

@@ -42,6 +42,7 @@ export function ExportPanel({ date, product, compact = false, frostedBgSrc }: Ex
         className={cn('relative z-10 flex items-center', compact ? 'gap-2 px-2 py-1' : 'gap-3 p-3')}
       >
         <img
+          data-export-logo
           src={imosLogo}
           alt="IMOS"
           className={cn('w-auto shrink-0 self-center', compact ? 'h-[30px]' : 'h-[60px]')}

@@ -1,5 +1,4 @@
 import { createElement } from 'react';
-import { createRoot } from 'react-dom/client';
 import { snapdom } from '@zumer/snapdom';
 import type { BuoyItemContent } from '@/types';
 import type Highcharts from 'highcharts/highstock'; // Use highstock
@@ -20,6 +19,7 @@ import type {
   SeriesData,
   ThemeConfig,
 } from './type';
+import { canvasRootGenerator } from '@/helpers';
 
 export const DEFAULT_THEME = {
   colors: [
@@ -453,11 +453,7 @@ export const buildExportingConfig = (exportingConfig: any) => {
       if (selectedDate) {
         const px = 6,
           py = 12;
-        const container = document.createElement('div');
-        container.style.cssText =
-          'position:fixed;left:-9999px;top:-9999px;z-index:-1;pointer-events:none;';
-        document.body.appendChild(container);
-        const root = createRoot(container);
+        const { root, container } = canvasRootGenerator();
 
         // First render to measure dimensions
         root.render(createElement(ExportPanel, { date: selectedDate, compact: true }));
@@ -492,10 +488,8 @@ export const buildExportingConfig = (exportingConfig: any) => {
         );
         await doubleRAF();
 
-        el.querySelectorAll('img').forEach(img => {
-          if (img.offsetWidth > 0) img.style.width = `${img.offsetWidth}px`;
-          if (img.offsetHeight > 0) img.style.height = `${img.offsetHeight}px`;
-        });
+        const logoImg = el.querySelector<HTMLImageElement>('[data-export-logo]');
+        if (logoImg && logoImg.offsetWidth > 0) logoImg.style.width = `${logoImg.offsetWidth}px`;
         const snap = await snapdom(el, { embedFonts: false });
         const panelCanvas = await snap.toCanvas({ scale });
 
