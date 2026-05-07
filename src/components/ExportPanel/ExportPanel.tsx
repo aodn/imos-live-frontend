@@ -21,7 +21,7 @@ export function ExportPanel({ date, product, compact = false, frostedBgSrc }: Ex
   return (
     <div
       className={cn(
-        'relative inline-block overflow-hidden border border-white/50',
+        'relative inline-block overflow-hidden border border-[#3b5068]/25',
         compact ? 'rounded-lg' : 'rounded-[10px]',
       )}
     >
@@ -37,39 +37,43 @@ export function ExportPanel({ date, product, compact = false, frostedBgSrc }: Ex
           }}
         />
       )}
-      <div aria-hidden className="absolute inset-0 z-0 bg-white/70" />
+      <div aria-hidden className="absolute inset-0 z-0 bg-[rgb(240,245,250)]/95" />
       <div
-        className={cn('relative z-10 flex items-start', compact ? 'gap-2.5 p-2.5' : 'gap-4 p-5')}
+        className={cn('relative z-10 flex items-center', compact ? 'gap-2 px-2 py-1' : 'gap-3 p-3')}
       >
         <img
           src={imosLogo}
           alt="IMOS"
-          className={cn('w-auto shrink-0 self-center', compact ? 'h-[45px]' : 'h-[60px]')}
+          className={cn('w-auto shrink-0 self-center', compact ? 'h-[30px]' : 'h-[60px]')}
         />
 
-        <div className={cn('flex flex-col justify-center', compact ? 'gap-0.5' : 'gap-[3px]')}>
+        <div className="flex flex-col justify-between gap-y-1">
           <p
-            className={cn(
-              'font-bold leading-none text-[#1a2a3a]',
-              compact ? 'text-[13px]' : 'text-[18px]',
-            )}
+            style={{ lineHeight: 1 }}
+            className={cn('font-bold text-[#1a2a3a]', compact ? 'text-[11px]' : 'text-[18px]')}
           >
             IMOS Live
           </p>
-          <p className={cn('leading-none text-[#3b5068]', compact ? 'text-[10px]' : 'text-[13px]')}>
+          <p
+            style={{ lineHeight: 1 }}
+            className={cn('text-[#3b5068]', compact ? 'text-[9px]' : 'text-[13px]')}
+          >
             {date}
           </p>
-          <p className={cn('leading-none text-[#6b8a9e]', compact ? 'text-[10px]' : 'text-[12px]')}>
+          <p
+            style={{ lineHeight: 1 }}
+            className={cn('text-[#6b8a9e]', compact ? 'text-[9px]' : 'text-[12px]')}
+          >
             {window.location.origin}
           </p>
         </div>
 
         {product && (
-          <div className={cn('flex flex-col', compact ? 'gap-1 pl-2.5' : 'gap-1.5 pl-4')}>
+          <div className={cn('flex flex-col', compact ? 'gap-1 pl-2' : 'gap-1.5 pl-4')}>
             <p
               className={cn(
                 'font-bold leading-none text-[#1a2a3a]',
-                compact ? 'text-[11px]' : 'text-[14px]',
+                compact ? 'text-[10px]' : 'text-[14px]',
               )}
             >
               {product.name}

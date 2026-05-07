@@ -6,6 +6,7 @@ import { snapdom } from '@zumer/snapdom';
 import { type ProductName } from '@/constants';
 import { queryClient } from '@/config/reactQueryConfig';
 import { ExportPanel, MapScaleBar } from '@/components';
+import { doubleRAF } from '@/utils';
 
 export type ExportProduct = {
   name: ProductName;
@@ -254,8 +255,13 @@ const drawCoordinateFrame = (
 
 // Info panel rendering via React + snapdom
 
-const doubleRAF = () =>
-  new Promise<void>(r => requestAnimationFrame(() => requestAnimationFrame(() => r())));
+/** Pins every img to its computed pixel size so snapdom doesn't misresolve `w-auto`. */
+const pinImgDimensions = (el: HTMLElement) => {
+  el.querySelectorAll('img').forEach(img => {
+    if (img.offsetWidth > 0) img.style.width = `${img.offsetWidth}px`;
+    if (img.offsetHeight > 0) img.style.height = `${img.offsetHeight}px`;
+  });
+};
 
 /**
  * Pre-loads all cached raster legend URLs as browser images.
@@ -345,6 +351,7 @@ const renderInfoPanel = async (
     await doubleRAF();
     await doubleRAF();
 
+    pinImgDimensions(el);
     const snap = await snapdom(el, { embedFonts: false });
     const panelCanvas = await snap.toCanvas({ scale: dpr });
 
