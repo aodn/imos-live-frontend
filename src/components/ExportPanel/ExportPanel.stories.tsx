@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { MapExportPanel } from './MapExportPanel';
+import { ExportPanel } from './ExportPanel';
 import { CategoryColorScaleBar } from '@/components/ColorScaleBar';
 import { LinearColorScaleBar } from '@/components/ColorScaleBar';
 import { MHW_CATEGORY_LEGEND_COLORS, HW_CATEGORY_LEGEND_LABELS } from '@/constants';
@@ -18,10 +18,10 @@ const SST_COLORS = [
 
 const meta = {
   title: 'components/MapExportPanel',
-  component: MapExportPanel,
+  component: ExportPanel,
   parameters: { layout: 'centered', backgrounds: { default: 'map' } },
   tags: ['autodocs'],
-} satisfies Meta<typeof MapExportPanel>;
+} satisfies Meta<typeof ExportPanel>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;

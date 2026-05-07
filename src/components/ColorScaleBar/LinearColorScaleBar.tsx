@@ -13,7 +13,7 @@ type ColorScaleBarProps = {
 };
 
 export function LinearColorScaleBar({
-  height = 12,
+  height = 10,
   tickCount = 5,
   className,
   min,

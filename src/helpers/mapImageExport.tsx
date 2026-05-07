@@ -5,7 +5,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { snapdom } from '@zumer/snapdom';
 import { type ProductName } from '@/constants';
 import { queryClient } from '@/config/reactQueryConfig';
-import { MapExportPanel } from '@/components/MapExportPanel/MapExportPanel';
+import { ExportPanel, MapScaleBar } from '@/components';
 
 export type ExportProduct = {
   name: ProductName;
@@ -33,18 +33,9 @@ type CanvasTheme = {
   frameFontSize: number;
   minTickLabelGapPx: number;
   frameColor: string;
-  scaleBarFontSize: number;
-  scaleBarH: number;
   scaleBarTargetPx: number;
-  scaleBarSegments: number;
   scaleMarginRight: number;
   scaleMarginBottom: number;
-  scaleBarColor: string;
-  arrowHalfW: number;
-  arrowUpperH: number;
-  arrowLowerH: number;
-  barToArrowGap: number;
-  arrowColor: string;
 };
 
 const NORMAL_THEME: CanvasTheme = {
@@ -58,18 +49,9 @@ const NORMAL_THEME: CanvasTheme = {
   frameFontSize: 12,
   minTickLabelGapPx: 60,
   frameColor: '#1a2a3a',
-  scaleBarFontSize: 14,
-  scaleBarH: 8,
   scaleBarTargetPx: 150,
-  scaleBarSegments: 2,
   scaleMarginRight: 15,
   scaleMarginBottom: 20,
-  scaleBarColor: '#1a2a3a',
-  arrowHalfW: 14,
-  arrowUpperH: 26,
-  arrowLowerH: 12,
-  barToArrowGap: 42,
-  arrowColor: '#333333',
 };
 
 const COMPACT_THEME: CanvasTheme = {
@@ -83,18 +65,9 @@ const COMPACT_THEME: CanvasTheme = {
   frameFontSize: 10,
   minTickLabelGapPx: 45,
   frameColor: '#1a2a3a',
-  scaleBarFontSize: 11,
-  scaleBarH: 6,
   scaleBarTargetPx: 100,
-  scaleBarSegments: 1,
   scaleMarginRight: 10,
   scaleMarginBottom: 12,
-  scaleBarColor: '#1a2a3a',
-  arrowHalfW: 10,
-  arrowUpperH: 18,
-  arrowLowerH: 8,
-  barToArrowGap: 28,
-  arrowColor: '#333333',
 };
 
 // Fixed constants
@@ -153,29 +126,7 @@ const niceScaleKm = (maxKm: number): number => {
 
 // Drawing functions
 
-const drawNorthArrow = (
-  ctx: CanvasRenderingContext2D,
-  cx: number,
-  tipY: number,
-  bottomY: number,
-  halfWidth: number,
-  t: CanvasTheme,
-) => {
-  const notchY = bottomY - halfWidth * 1.1;
-  ctx.save();
-  ctx.strokeStyle = t.arrowColor;
-  ctx.lineWidth = 2.0;
-  ctx.beginPath();
-  ctx.moveTo(cx, tipY);
-  ctx.lineTo(cx + halfWidth, bottomY);
-  ctx.lineTo(cx, notchY);
-  ctx.lineTo(cx - halfWidth, bottomY);
-  ctx.closePath();
-  ctx.stroke();
-  ctx.restore();
-};
-
-const drawScaleBar = (
+const renderScaleIndicator = async (
   ctx: CanvasRenderingContext2D,
   bounds: MapBounds,
   mapX: number,
@@ -183,53 +134,49 @@ const drawScaleBar = (
   mapW: number,
   mapH: number,
   t: CanvasTheme,
+  compact: boolean,
 ) => {
-  const mb = t.scaleMarginBottom;
+  const dpr = window.devicePixelRatio || 1;
   const { west, east, south, north } = bounds;
   const centerLatRad = (((south + north) / 2) * Math.PI) / 180;
   const kmPerDegLon = (EARTH_RADIUS_KM * Math.PI * Math.cos(centerLatRad)) / 180;
   const pixelsPerKm = mapW / (kmPerDegLon * (east - west));
 
-  const arrowCX = mapX + mapW - t.scaleMarginRight - t.arrowHalfW;
-  const arrowBottomY = mapY + mapH - mb;
-  const arrowTipY = arrowBottomY - t.arrowLowerH - t.arrowUpperH;
+  const maxBarPhysPx = Math.max(0, mapW * 0.4 - t.scaleMarginRight);
+  const scaleKm = niceScaleKm(
+    Math.min(t.scaleBarTargetPx / pixelsPerKm, maxBarPhysPx / pixelsPerKm),
+  );
+  if (scaleKm <= 0) return;
 
-  if (arrowTipY < mapY) return;
+  const barWidthCss = (scaleKm * pixelsPerKm) / dpr;
 
-  const barRightX = arrowCX - t.arrowHalfW - t.barToArrowGap;
-  const maxBarPx = Math.max(0, barRightX - mapX);
-  const scaleKm = niceScaleKm(Math.min(t.scaleBarTargetPx / pixelsPerKm, maxBarPx / pixelsPerKm));
-  const barWidth = scaleKm * pixelsPerKm;
-  const barX = barRightX - barWidth;
-  const barBottom = arrowBottomY;
-  const barTop = barBottom - t.scaleBarH;
+  const container = document.createElement('div');
+  container.style.cssText =
+    'position:fixed;left:-9999px;top:-9999px;z-index:-1;pointer-events:none;';
+  document.body.appendChild(container);
+  const root = createRoot(container);
+  root.render(createElement(MapScaleBar, { scaleKm, barWidthCss, compact }));
+  await doubleRAF();
 
-  ctx.save();
-  ctx.strokeStyle = t.scaleBarColor;
-  ctx.fillStyle = t.scaleBarColor;
-  ctx.lineWidth = 2.0;
+  const el = container.firstElementChild as HTMLElement;
+  const physW = Math.round(el.offsetWidth * dpr);
+  const physH = Math.round(el.offsetHeight * dpr);
 
-  ctx.beginPath();
-  ctx.moveTo(barX, barBottom);
-  ctx.lineTo(barRightX, barBottom);
-  ctx.stroke();
+  const x = mapX + mapW - physW - t.scaleMarginRight;
+  const y = mapY + mapH - physH - t.scaleMarginBottom;
 
-  ctx.font = `${t.scaleBarFontSize}px sans-serif`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'bottom';
-  for (let i = 0; i <= t.scaleBarSegments; i++) {
-    const tx = barX + (i / t.scaleBarSegments) * barWidth;
-    const km = (i / t.scaleBarSegments) * scaleKm;
-    const label = i === t.scaleBarSegments ? `${Math.round(km)} km` : String(Math.round(km));
-    ctx.beginPath();
-    ctx.moveTo(tx, barTop);
-    ctx.lineTo(tx, barBottom);
-    ctx.stroke();
-    ctx.fillText(label, tx, barTop - 2);
+  if (y < mapY) {
+    root.unmount();
+    container.remove();
+    return;
   }
 
-  drawNorthArrow(ctx, arrowCX, arrowTipY, arrowBottomY, t.arrowHalfW, t);
-  ctx.restore();
+  const snap = await snapdom(el, { embedFonts: false });
+  const scaleCanvas = await snap.toCanvas({ scale: dpr });
+  ctx.drawImage(scaleCanvas, x, y, physW, physH);
+
+  root.unmount();
+  container.remove();
 };
 
 const drawCoordinateFrame = (
@@ -363,7 +310,7 @@ const renderInfoPanel = async (
       createElement(
         QueryClientProvider,
         { client: queryClient },
-        createElement(MapExportPanel, { ...panelProps, ...extraProps }),
+        createElement(ExportPanel, { ...panelProps, ...extraProps }),
       );
 
     // Pre-warm cached legend images so img.complete=true when the component mounts.
@@ -452,7 +399,7 @@ export const exportMapImage = async (
 
   if (bounds) {
     drawCoordinateFrame(ctx, bounds, padL, padT, mapW, mapH, t);
-    drawScaleBar(ctx, bounds, padL, padT, mapW, mapH, t);
+    await renderScaleIndicator(ctx, bounds, padL, padT, mapW, mapH, t, compact);
   }
 
   await renderInfoPanel(ctx, offscreen, padL, padT, mapH, date, product, compact, t.panelPadding);

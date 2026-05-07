@@ -24,7 +24,7 @@ type SymLogColorScaleBarProps = {
 };
 
 export function SymLogColorScaleBar({
-  height = 12,
+  height = 10,
   numStops = 256,
   className = '',
   min = -1.2,
