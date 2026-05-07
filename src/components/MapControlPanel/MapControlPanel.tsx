@@ -94,6 +94,7 @@ export function MapControlPanel({
 
   const productLegend = useMemo(() => {
     if (!product) return undefined;
+    //TODO: pass each legend component here, pass props for export only.
     return featuredDataset.find(f => f.product === product)?.legend;
   }, [product]);
 

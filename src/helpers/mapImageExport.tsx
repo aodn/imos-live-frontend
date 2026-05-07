@@ -180,81 +180,6 @@ const renderScaleIndicator = async (
   container.remove();
 };
 
-const drawCoordinateFrame = (
-  ctx: CanvasRenderingContext2D,
-  bounds: MapBounds,
-  mapX: number,
-  mapY: number,
-  mapW: number,
-  mapH: number,
-  t: CanvasTheme,
-) => {
-  const { west, east, south, north } = bounds;
-  const southMerc = mercatorY(south);
-  const northMerc = mercatorY(north);
-  const lonInterval = niceGraticuleInterval(east - west, mapW, t);
-  const latInterval = niceGraticuleInterval(north - south, mapH, t);
-
-  ctx.save();
-  ctx.strokeStyle = t.frameColor;
-  ctx.lineWidth = 1.5;
-  ctx.strokeRect(mapX, mapY, mapW, mapH);
-  ctx.restore();
-
-  ctx.save();
-  ctx.font = `${t.frameFontSize}px sans-serif`;
-  ctx.fillStyle = t.frameColor;
-  ctx.strokeStyle = t.frameColor;
-  ctx.lineWidth = 1;
-
-  const firstLon = Math.ceil(west / lonInterval) * lonInterval;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  let lonI = 0;
-  while (lonI < MAX_GRATICULE_TICKS) {
-    const lon = Math.round((firstLon + lonI++ * lonInterval) * 1e6) / 1e6;
-    if (lon > east + 1e-9) break;
-    const px = mapX + lonToPixel(lon, west, east, mapW);
-    const label = formatCoord(lon);
-    ctx.beginPath();
-    ctx.moveTo(px, mapY);
-    ctx.lineTo(px, mapY - t.tickLen);
-    ctx.stroke();
-    ctx.fillText(label, px, mapY - t.tickLen - t.frameFontSize / 2 - 2);
-    ctx.beginPath();
-    ctx.moveTo(px, mapY + mapH);
-    ctx.lineTo(px, mapY + mapH + t.tickLen);
-    ctx.stroke();
-    ctx.fillText(label, px, mapY + mapH + t.tickLen + t.frameFontSize / 2 + 2);
-  }
-
-  const firstLat = Math.ceil(south / latInterval) * latInterval;
-  ctx.textBaseline = 'middle';
-  let latI = 0;
-  while (latI < MAX_GRATICULE_TICKS) {
-    const lat = Math.round((firstLat + latI++ * latInterval) * 1e6) / 1e6;
-    if (lat > north + 1e-9) break;
-    const py = mapY + latToPixel(lat, southMerc, northMerc, mapH);
-    const label = formatCoord(lat);
-    ctx.textAlign = 'right';
-    ctx.beginPath();
-    ctx.moveTo(mapX, py);
-    ctx.lineTo(mapX - t.tickLen, py);
-    ctx.stroke();
-    ctx.fillText(label, mapX - t.tickLen - 4, py);
-    ctx.textAlign = 'left';
-    ctx.beginPath();
-    ctx.moveTo(mapX + mapW, py);
-    ctx.lineTo(mapX + mapW + t.tickLen, py);
-    ctx.stroke();
-    ctx.fillText(label, mapX + mapW + t.tickLen + 4, py);
-  }
-
-  ctx.restore();
-};
-
-// Info panel rendering via React + snapdom
-
 /** Pins every img to its computed pixel size so snapdom doesn't misresolve `w-auto`. */
 const pinImgDimensions = (el: HTMLElement) => {
   el.querySelectorAll('img').forEach(img => {
@@ -373,6 +298,80 @@ const renderInfoPanel = async (
     root.unmount();
     container.remove();
   }
+};
+
+// Draw on cavas as it needs dynamic computation.
+const drawCoordinateFrame = (
+  ctx: CanvasRenderingContext2D,
+  bounds: MapBounds,
+  mapX: number,
+  mapY: number,
+  mapW: number,
+  mapH: number,
+  t: CanvasTheme,
+) => {
+  const { west, east, south, north } = bounds;
+  const southMerc = mercatorY(south);
+  const northMerc = mercatorY(north);
+  const lonInterval = niceGraticuleInterval(east - west, mapW, t);
+  const latInterval = niceGraticuleInterval(north - south, mapH, t);
+
+  ctx.save();
+  ctx.strokeStyle = t.frameColor;
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(mapX, mapY, mapW, mapH);
+  ctx.restore();
+
+  ctx.save();
+  ctx.font = `${t.frameFontSize}px sans-serif`;
+  ctx.fillStyle = t.frameColor;
+  ctx.strokeStyle = t.frameColor;
+  ctx.lineWidth = 1;
+
+  const firstLon = Math.ceil(west / lonInterval) * lonInterval;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  let lonI = 0;
+  while (lonI < MAX_GRATICULE_TICKS) {
+    const lon = Math.round((firstLon + lonI++ * lonInterval) * 1e6) / 1e6;
+    if (lon > east + 1e-9) break;
+    const px = mapX + lonToPixel(lon, west, east, mapW);
+    const label = formatCoord(lon);
+    ctx.beginPath();
+    ctx.moveTo(px, mapY);
+    ctx.lineTo(px, mapY - t.tickLen);
+    ctx.stroke();
+    ctx.fillText(label, px, mapY - t.tickLen - t.frameFontSize / 2 - 2);
+    ctx.beginPath();
+    ctx.moveTo(px, mapY + mapH);
+    ctx.lineTo(px, mapY + mapH + t.tickLen);
+    ctx.stroke();
+    ctx.fillText(label, px, mapY + mapH + t.tickLen + t.frameFontSize / 2 + 2);
+  }
+
+  const firstLat = Math.ceil(south / latInterval) * latInterval;
+  ctx.textBaseline = 'middle';
+  let latI = 0;
+  while (latI < MAX_GRATICULE_TICKS) {
+    const lat = Math.round((firstLat + latI++ * latInterval) * 1e6) / 1e6;
+    if (lat > north + 1e-9) break;
+    const py = mapY + latToPixel(lat, southMerc, northMerc, mapH);
+    const label = formatCoord(lat);
+    ctx.textAlign = 'right';
+    ctx.beginPath();
+    ctx.moveTo(mapX, py);
+    ctx.lineTo(mapX - t.tickLen, py);
+    ctx.stroke();
+    ctx.fillText(label, mapX - t.tickLen - 4, py);
+    ctx.textAlign = 'left';
+    ctx.beginPath();
+    ctx.moveTo(mapX + mapW, py);
+    ctx.lineTo(mapX + mapW + t.tickLen, py);
+    ctx.stroke();
+    ctx.fillText(label, mapX + mapW + t.tickLen + 4, py);
+  }
+
+  ctx.restore();
 };
 
 /** Renders the map canvas to a PNG with coordinate frame, scale bar, and info panel, then downloads it. */
