@@ -117,7 +117,7 @@ export const PRODUCTLEGENDS = {
     max: MAX_VECTOR_SPEED,
   },
   [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: {
-    scales: [-1.2, -0.5, -0.2, -0.1, 0, 0.1, 0.2, 0.5, 1.2],
+    scales: [-1.2, -0.8, -0.4, 0, 0.4, 0.8, 1.2],
     min: -1.2,
     max: 1.2,
     colors: 'x-Rainbow',

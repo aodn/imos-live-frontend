@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { cn } from '@/utils';
 import { Skeleton } from '../Skeleton';
 import { ImageErrorIcon } from '../Icons';
@@ -48,6 +48,17 @@ export function Image({
   const [isLoading, setIsLoading] = useState(!isDataURI(src));
   const [hasError, setHasError] = useState(false);
   const [currentSrc, setCurrentSrc] = useState(src);
+  const imgRef = useRef<HTMLImageElement>(null);
+
+  // If the image is already in the browser cache when this component mounts,
+  // img.complete is true synchronously but onLoad fires async — skip the loading state immediately. Make sure onLoad will fire synchronously as img.complete is true.
+  // Otherwise, snapdom (elements to canvas) will captured the component when img.complete is true but isLoading = true, as onLoad not fired yet, so isLoading not change to false.
+  useLayoutEffect(() => {
+    const el = imgRef.current;
+    if (el?.complete && el.naturalWidth > 0) {
+      setIsLoading(false);
+    }
+  }, [currentSrc]);
 
   useEffect(() => {
     setCurrentSrc(src);
@@ -131,19 +142,15 @@ export function Image({
       {!hasError && (
         <img
           {...imgProps}
+          ref={imgRef}
           src={currentSrc}
           alt={alt}
           loading={loading}
           onLoad={handleLoad}
           onError={handleError}
-          className={cn(
-            imageClassName,
-            'transition-opacity duration-300',
-            isLoading ? 'opacity-0' : 'opacity-100',
-            {
-              'hover:scale-105 transform-gpu origin-center': hoverZoomed,
-            },
-          )}
+          className={cn(imageClassName, isLoading ? 'opacity-0' : 'opacity-100', {
+            'hover:scale-105 transform-gpu origin-center': hoverZoomed,
+          })}
           style={{
             width: width ?? undefined,
             height: height ?? undefined,

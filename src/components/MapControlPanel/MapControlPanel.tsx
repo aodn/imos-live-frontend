@@ -1,4 +1,5 @@
-import { Button } from '@/components';
+import { useMemo } from 'react';
+import { Button, featuredDataset } from '@/components';
 import { cn } from '@/utils';
 import {
   RenewIcon,
@@ -11,19 +12,9 @@ import {
 import { INITIAL_ZOOM, MIN_EXPORT_MAP_WIDTH } from '@/config';
 import { useIsMapDragging, useIsMapZooming, useMapCanvasWidth } from '@/hooks';
 import { setSidebarOpen, useMapUIStore, useSidebarStore } from '@/store';
-import { exportMapImage, rasterLegendUrl } from '@/helpers';
+import { exportMapImage } from '@/helpers';
 import { useShallow } from 'zustand/shallow';
-import type { RasterSource } from '@/constants';
-import {
-  HW_CATEGORY_LEGEND_LABELS,
-  MHW_CATEGORY_LEGEND_COLORS,
-  PRODUCT,
-  PRODUCTLEGENDS,
-  PRODUCTS,
-  type ProductType,
-  type RasterLegendArgs,
-} from '@/constants';
-import { useQuery } from '@tanstack/react-query';
+import { PRODUCT, PRODUCTS, type ProductType } from '@/constants';
 
 const getProductInImpageExport = (
   gslaAnomalySeaLevelsEnabled: boolean,
@@ -78,14 +69,6 @@ export function MapControlPanel({
     mhwCategoryMosaicEnabled,
   );
 
-  const isCategoricalProduct = product === PRODUCT.AUSTEMP_MHW_CATEGORY_MOSAIC;
-
-  const { data: legendUrl } = useQuery({
-    queryKey: ['rasterLegendUrl', PRODUCTS[product!]?.sourceId, date],
-    queryFn: () => rasterLegendUrl(PRODUCTS[product!]?.sourceId as RasterSource, new Date(date)),
-    enabled: !!date && !!product && !isCategoricalProduct,
-  });
-
   const isMapOnOperation = isDragging || isZooming;
   const isMapTooNarrow = mapCanvasWidth > 0 && mapCanvasWidth < MIN_EXPORT_MAP_WIDTH;
   const isSidebarOpen = useSidebarStore(s => s.isOpen);
@@ -109,24 +92,16 @@ export function MapControlPanel({
     setSidebarOpen(false);
   };
 
+  const productLegend = useMemo(() => {
+    if (!product) return undefined;
+    return featuredDataset.find(f => f.product === product)?.legend;
+  }, [product]);
+
   const downloadMapImage = () => {
     if (!mapRef.current) return;
 
     const productArg = product
-      ? isCategoricalProduct
-        ? {
-            name: PRODUCTS[product].name,
-            categoricalLegend: {
-              colors: MHW_CATEGORY_LEGEND_COLORS,
-              labels: HW_CATEGORY_LEGEND_LABELS,
-            },
-          }
-        : {
-            name: PRODUCTS[product].name,
-            legendUrl,
-            scales: (PRODUCTLEGENDS[product] as RasterLegendArgs).scales,
-            label: (PRODUCTLEGENDS[product] as RasterLegendArgs).label,
-          }
+      ? { name: PRODUCTS[product].name, legend: productLegend }
       : undefined;
 
     const rawBounds = mapRef.current.getBounds();
