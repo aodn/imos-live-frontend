@@ -125,6 +125,16 @@ const niceScaleKm = (maxKm: number): number => {
   return result;
 };
 
+/** Waits for the export logo to load, then pins its rendered width+height as inline styles.
+ *  Prevents snapdom from misresolving `w-auto` and `h-[*]` Tailwind classes. */
+export function pinExportLogoImg(el: HTMLElement): void {
+  const logoImg = el.querySelector<HTMLImageElement>('[data-export-logo]');
+  if (logoImg && logoImg.offsetWidth > 0) {
+    logoImg.style.width = `${logoImg.offsetWidth}px`;
+    logoImg.style.height = `${logoImg.offsetHeight}px`;
+  }
+}
+
 export const canvasRootGenerator = () => {
   const container = document.createElement('div');
   container.style.cssText =
@@ -269,9 +279,7 @@ const renderInfoPanel = async (
     await doubleRAF();
     await doubleRAF();
 
-    // Pin only the logo img — it has `w-auto` which snapdom misresolves
-    const logoImg = el.querySelector<HTMLImageElement>('[data-export-logo]');
-    if (logoImg && logoImg.offsetWidth > 0) logoImg.style.width = `${logoImg.offsetWidth}px`;
+    pinExportLogoImg(el);
     const snap = await snapdom(el, { embedFonts: false });
     const panelCanvas = await snap.toCanvas({ scale: dpr });
 

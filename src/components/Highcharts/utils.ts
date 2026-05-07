@@ -19,7 +19,7 @@ import type {
   SeriesData,
   ThemeConfig,
 } from './type';
-import { canvasRootGenerator } from '@/helpers';
+import { canvasRootGenerator, pinExportLogoImg } from '@/helpers';
 
 export const DEFAULT_THEME = {
   colors: [
@@ -455,8 +455,11 @@ export const buildExportingConfig = (exportingConfig: any) => {
           py = 12;
         const { root, container } = canvasRootGenerator();
 
-        // First render to measure dimensions
+        // First render to measure dimensions — two doubleRAF calls so the logo PNG has
+        // time to load from cache before cssW is captured. Without this, w-auto resolves
+        // to 0 on an unloaded image, making cssW too small and squishing the panel.
         root.render(createElement(ExportPanel, { date: selectedDate, compact: true }));
+        await doubleRAF();
         await doubleRAF();
 
         const el = container.firstElementChild as HTMLElement;
@@ -488,8 +491,7 @@ export const buildExportingConfig = (exportingConfig: any) => {
         );
         await doubleRAF();
 
-        const logoImg = el.querySelector<HTMLImageElement>('[data-export-logo]');
-        if (logoImg && logoImg.offsetWidth > 0) logoImg.style.width = `${logoImg.offsetWidth}px`;
+        pinExportLogoImg(el);
         const snap = await snapdom(el, { embedFonts: false });
         const panelCanvas = await snap.toCanvas({ scale });
 
