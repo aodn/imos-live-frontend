@@ -101,10 +101,9 @@ body {
   }
 }
 
-/* Reposition Mapbox logo above the date selection bar (top-right) */
-/* DateSelectionBar: bottom-2 (8px) + height 64px = 72px from map bottom */
+/* Reposition Mapbox logo top-right of the map */
 .mapboxgl-ctrl-bottom-right {
-  bottom: 72px !important;
+  top: 4px !important;
 }
 
 .custom-popup .mapboxgl-popup-content {
