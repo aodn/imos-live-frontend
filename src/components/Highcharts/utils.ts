@@ -1,5 +1,9 @@
+import { createElement } from 'react';
+import { snapdom } from '@zumer/snapdom';
 import type { BuoyItemContent } from '@/types';
 import type Highcharts from 'highcharts/highstock'; // Use highstock
+import { ExportPanel } from '@/components';
+import { doubleRAF } from '@/utils';
 // Import modules - they auto-register in Highcharts 12.4.0+
 import 'highcharts/modules/accessibility';
 import 'highcharts/modules/boost';
@@ -15,6 +19,7 @@ import type {
   SeriesData,
   ThemeConfig,
 } from './type';
+import { canvasRootGenerator, pinExportLogoImg } from '@/helpers';
 
 export const DEFAULT_THEME = {
   colors: [
@@ -409,11 +414,10 @@ export const buildExportingConfig = (exportingConfig: any) => {
     typeof exportingConfig.filename === 'function'
       ? exportingConfig.filename
       : () => exportingConfig.filename || 'chart';
-  const watermarkUrl: string | undefined = exportingConfig.watermarkUrl;
   const selectedDate = exportingConfig.selectedDate;
 
   const makeDownloadHandler = (mimeType: string, ext: string) =>
-    function (this: any) {
+    async function (this: any) {
       const width = this.chartWidth;
       const height = this.chartHeight;
       const scale = 2;
@@ -432,97 +436,82 @@ export const buildExportingConfig = (exportingConfig: any) => {
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, width, height);
 
-      const triggerDownload = () => {
-        canvas.toBlob(blob => {
-          if (!blob) return;
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `${getFilename()}.${ext}`;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-        }, mimeType);
-      };
-
-      const drawWatermark = (onDone: () => void) => {
-        if (!watermarkUrl) return onDone();
-        const logo = new Image();
-        logo.onload = () => {
-          const px = 6,
-            py = 12;
-          const logoH = 28,
-            panelPad = 8,
-            gap = 7;
-          const titleFontSize = 9,
-            subFontSize = 8;
-          const logoW = (logo.naturalWidth / logo.naturalHeight) * logoH;
-          const date = selectedDate;
-          const siteUrl = window.location.origin;
-
-          ctx.save();
-          ctx.font = `bold ${titleFontSize}px sans-serif`;
-          const titleW = ctx.measureText('IMOS Live').width;
-          ctx.font = `${subFontSize}px sans-serif`;
-          const textColW = Math.max(
-            titleW,
-            ctx.measureText(date).width,
-            ctx.measureText(siteUrl).width,
-          );
-          const panelW = panelPad + logoW + gap + textColW + panelPad;
-          const panelH = panelPad + logoH + panelPad;
-
-          ctx.fillStyle = 'rgba(240, 245, 250, 0.96)';
-          ctx.strokeStyle = 'rgba(59, 80, 104, 0.25)';
-          ctx.lineWidth = 0.75;
-          ctx.beginPath();
-          ctx.roundRect(px, py, panelW, panelH, 5);
-          ctx.fill();
-          ctx.stroke();
-          ctx.restore();
-
-          ctx.save();
-          ctx.globalAlpha = 0.9;
-          ctx.drawImage(logo, px + panelPad, py + panelPad, logoW, logoH);
-          ctx.globalAlpha = 1;
-
-          const textX = px + panelPad + logoW + gap;
-          const titleLineH = titleFontSize + 2;
-          const subLineH = subFontSize + 2;
-          const textBlockH = titleLineH + subLineH + subFontSize;
-          const vertOffset = Math.max(0, Math.floor((logoH - textBlockH) / 2));
-          const lineY = py + panelPad + vertOffset;
-
-          ctx.textBaseline = 'top';
-          ctx.font = `bold ${titleFontSize}px sans-serif`;
-          ctx.fillStyle = '#1a2a3a';
-          ctx.fillText('IMOS Live', textX, lineY);
-          ctx.font = `${subFontSize}px sans-serif`;
-          ctx.fillStyle = '#3b5068';
-          ctx.fillText(date, textX, lineY + titleLineH);
-          ctx.fillStyle = '#6b8a9e';
-          ctx.fillText(siteUrl, textX, lineY + titleLineH + subLineH);
-          ctx.restore();
-
-          onDone();
-        };
-        logo.onerror = onDone;
-        logo.src = watermarkUrl;
-      };
-
-      const svgBlob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
-      const svgUrl = URL.createObjectURL(svgBlob);
-      const chartImg = new Image();
-      chartImg.onload = () => {
-        // Draw watermark first so chart renders on top of it
-        drawWatermark(() => {
+      // Draw chart first so we can extract the region behind the panel for frosted glass
+      await new Promise<void>(resolve => {
+        const svgBlob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+        const svgUrl = URL.createObjectURL(svgBlob);
+        const chartImg = new Image();
+        chartImg.onload = () => {
           ctx.drawImage(chartImg, 0, 0);
           URL.revokeObjectURL(svgUrl);
-          triggerDownload();
-        });
-      };
-      chartImg.src = svgUrl;
+          resolve();
+        };
+        chartImg.src = svgUrl;
+      });
+
+      // Render ExportPanel with frosted glass on top of the chart
+      if (selectedDate) {
+        const px = 6,
+          py = 12;
+        const { root, container } = canvasRootGenerator();
+
+        // First render to measure dimensions — two doubleRAF calls so the logo PNG has
+        // time to load from cache before cssW is captured. Without this, w-auto resolves
+        // to 0 on an unloaded image, making cssW too small and squishing the panel.
+        root.render(createElement(ExportPanel, { date: selectedDate, compact: true }));
+        await doubleRAF();
+        await doubleRAF();
+
+        const el = container.firstElementChild as HTMLElement;
+        const cssW = el.offsetWidth;
+        const cssH = el.offsetHeight;
+
+        // Extract the canvas region behind the panel for the frosted-glass background
+        const bgCanvas = document.createElement('canvas');
+        bgCanvas.width = cssW * scale;
+        bgCanvas.height = cssH * scale;
+        bgCanvas
+          .getContext('2d')!
+          .drawImage(
+            canvas,
+            px * scale,
+            py * scale,
+            cssW * scale,
+            cssH * scale,
+            0,
+            0,
+            cssW * scale,
+            cssH * scale,
+          );
+        const frostedBgSrc = bgCanvas.toDataURL();
+
+        // Re-render with frosted background
+        root.render(
+          createElement(ExportPanel, { date: selectedDate, compact: true, frostedBgSrc }),
+        );
+        await doubleRAF();
+
+        pinExportLogoImg(el);
+        const snap = await snapdom(el, { embedFonts: false });
+        const panelCanvas = await snap.toCanvas({ scale });
+
+        root.unmount();
+        container.remove();
+
+        ctx.drawImage(panelCanvas, px, py, cssW, cssH);
+      }
+
+      canvas.toBlob(blob => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${getFilename()}.${ext}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, mimeType);
     };
 
   return {

@@ -12,7 +12,8 @@
       "WebFetch(domain:api.mapbox.com)",
       "Bash(pnpm import:*)",
       "Bash(pnpm add:*)",
-      "Bash(npx vitest *)"
+      "Bash(npx vitest *)",
+      "Bash(node *)"
     ],
     "deny": [],
     "ask": []

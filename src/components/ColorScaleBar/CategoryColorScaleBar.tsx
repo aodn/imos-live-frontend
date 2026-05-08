@@ -11,7 +11,7 @@ type CategoryColorScaleBarProps = {
 };
 
 export function CategoryColorScaleBar({
-  height = 12,
+  height = 10,
   className,
   colors = MHW_CATEGORY_LEGEND_COLORS,
   labels = HW_CATEGORY_LEGEND_LABELS,

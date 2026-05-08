@@ -29,3 +29,4 @@ export * from './minusOneUTCDay';
 export * from './throttle';
 export * from './formatLatLngToDirectional';
 export * from './isNumeric';
+export * from './doubleRAF';

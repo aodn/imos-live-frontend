@@ -94,7 +94,7 @@ export const useChartOptions = (props: LineChartProps) => {
           }
         : undefined,
 
-      exporting: buildExportingConfig(exporting),
+      exporting: buildExportingConfig(exporting) as Highcharts.ExportingOptions,
 
       accessibility: {
         enabled: true,
