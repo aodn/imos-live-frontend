@@ -91,7 +91,6 @@ export type CategoryLegendArgs = {
 };
 
 export const MHW_CATEGORY_LEGEND_COLORS = [
-  '#2b97b0', // invalid
   '#8c0000', // none
   '#ff9701', // moderate
   '#67ff96', // strong
@@ -99,14 +98,7 @@ export const MHW_CATEGORY_LEGEND_COLORS = [
   '#00078f', // extreme
 ];
 
-export const HW_CATEGORY_LEGEND_LABELS = [
-  'invalid',
-  'none',
-  'moderate',
-  'strong',
-  'severe',
-  'extreme',
-];
+export const HW_CATEGORY_LEGEND_LABELS = ['none', 'moderate', 'strong', 'severe', 'extreme'];
 
 export const PRODUCTLEGENDS = {
   [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: {
