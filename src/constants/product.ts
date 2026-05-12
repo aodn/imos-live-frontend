@@ -130,10 +130,10 @@ export const PRODUCTLEGENDS = {
     label: 'degrees Celsius (°C)',
   },
   [PRODUCT.AUSTEMP_SST_MOSAIC]: {
-    scales: [-50, -25, 0, 25, 50],
-    min: -50,
+    scales: [0, 10, 20, 30, 40, 50],
+    min: 0,
     max: 50,
-    colors: 'div-RdBu-inv',
+    colors: 'x-Sst',
     label: 'degrees Celsius (°C)',
   },
   [PRODUCT.AUSTEMP_MHW_CATEGORY_MOSAIC]: {
