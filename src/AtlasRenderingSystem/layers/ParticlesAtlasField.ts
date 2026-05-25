@@ -1,13 +1,13 @@
 /**
- * OceanCurrentAtlasField
+ * ParticlesAtlasField
  *
- * GPU particle engine for the ocean-current-field Atlas renderer.
- * Replaces VectorField.js — same ping-pong simulation loop, same Mapbox
- * coordinate conventions, but samples velocity from the Atlas texture
- * instead of a single flat PNG.
+ * GPU particle engine for the ocean-current Atlas renderer. Runs a ping-pong
+ * particle simulation, sampling velocity from the Atlas texture (LOD1 + finer
+ * LODs blended in) rather than a single flat PNG.
  *
  * Caller contract:
- *   1. Call setSource(manifest, tileBaseUrl, legendRange) when date changes — awaits LOD1 preload.
+ *   1. Call setSource(manifest, tileBaseUrl, legendRange) when date changes — resolves after
+ *      the first LOD1 tile is uploaded; remaining tiles continue in the background.
  *   2. Call onMapMove(bounds, zoom) on every moveend / zoom event.
  *   3. Call startAnimation() / stopAnimation() to control rendering.
  *   4. Call draw() from the Mapbox custom layer render() callback.
@@ -95,7 +95,6 @@ export function createParticlesAtlasField(
   let particleBufferInfo: twgl.BufferInfo | null = null;
   /** Constant full-viewport quad, shared by the screen-composite and update passes. */
   let quadBufferInfo: twgl.BufferInfo | null = null;
-  let nParticles = config.nParticles;
 
   // ── Screen textures & framebuffer ────────────────────────────────────────
   let textures: Record<string, WebGLTexture> | null = null;
@@ -256,7 +255,7 @@ export function createParticlesAtlasField(
       a_pos: { numComponents: 2, data: new Float32Array([0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1]) },
     });
 
-    setParticles(nParticles);
+    setParticles(config.nParticles);
     setColorRamp(computeRamp(currentPalette));
     initScreenTextures();
     framebuffer = gl.createFramebuffer();
@@ -444,7 +443,7 @@ export function createParticlesAtlasField(
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.clear(gl.COLOR_BUFFER_BIT);
-    setParticles(nParticles);
+    setParticles(config.nParticles);
   }
 
   // ── Public API ────────────────────────────────────────────────────────────
@@ -539,11 +538,10 @@ export function createParticlesAtlasField(
   }
 
   function updateConfig(newConfig: Partial<CustomizableParticleConfig>) {
-    if (newConfig.nParticles !== undefined && newConfig.nParticles !== nParticles) {
-      nParticles = newConfig.nParticles as typeof nParticles;
-      setParticles(nParticles);
-    }
+    const countChanged =
+      newConfig.nParticles !== undefined && newConfig.nParticles !== config.nParticles;
     Object.assign(config, newConfig);
+    if (countChanged) setParticles(config.nParticles);
   }
 
   function onMapMove(bounds: mapboxgl.LngLatBounds, zoom: number) {

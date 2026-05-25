@@ -8,7 +8,7 @@ import {
   CloseFullScreenIcon,
   DownloadIcon,
 } from '../Icons';
-import { INITIAL_ZOOM, MIN_EXPORT_MAP_WIDTH } from '@/config';
+import { COLOR_OPTIONS, INITIAL_ZOOM, MIN_EXPORT_MAP_WIDTH } from '@/config';
 import { useIsMapDragging, useIsMapZooming, useMapCanvasWidth } from '@/hooks';
 import { setSidebarOpen, useMapUIStore, useSidebarStore } from '@/store';
 import { exportMapImage } from '@/helpers';
@@ -65,7 +65,7 @@ export function MapControlPanel({
     const productArg = activeProduct
       ? {
           name: PRODUCTS[activeProduct].name,
-          colors: colorTuplesToCss(PRODUCTLEGENDS[activeProduct].colors!),
+          colors: colorTuplesToCss(COLOR_OPTIONS[PRODUCTLEGENDS[activeProduct].colorKey]),
           scales: PRODUCTLEGENDS[activeProduct].scales,
           label: PRODUCTLEGENDS[activeProduct].label,
         }

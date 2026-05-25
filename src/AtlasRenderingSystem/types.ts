@@ -39,14 +39,17 @@ export type ParticleConfig = {
 
 export type CustomizableParticleConfig = ParticleConfig;
 
+// Default slider positions for the standalone module. The host app overrides
+// these via updateConfig from its own particle store; these are the fallback
+// values used before the first override.
 export const INITIAL_PARTICLE_CONFIG: CustomizableParticleConfig = {
   nParticles: 30000,
-  fadeOpacity: Number(((0.99 - 0.9) * 0.9 + 0.9).toFixed(2)),
-  speedFactor: Number(((8.0 - 1.0) * 0.5 + 1.0).toFixed(1)),
+  fadeOpacity: 0.98, // 90% of the [0.9, 0.99] range
+  speedFactor: 4.5, // 50% of the [1.0, 8.0] range
   dropRate: 0.002,
   dropRateBump: 0.05,
-  pointSize: Number(((5.0 - 0.5) * 0.1 + 0.5).toFixed(1)),
-} as const;
+  pointSize: 0.9, // 10% of the [0.5, 5.0] range
+};
 
 // ── Handle types (Phase 4 factory return value) ───────────────────────────────
 

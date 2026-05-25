@@ -1,5 +1,5 @@
 /**
- * HeatmapAtlasField (formerly ScalarAtlasField)
+ * HeatmapAtlasField
  *
  * GPU scalar overlay for atlas-based products (sea level anomaly, SST anomaly mosaic, etc.).
  * Renders a full-viewport quad each frame, sampling scalar values from the Atlas texture
@@ -199,13 +199,13 @@ export function createHeatmapAtlasField(
 
   function setVisible(isVisible: boolean) {
     visible = isVisible;
-    if (isVisible) {
-      const bounds = map.getBounds();
-      if (bounds) updateMapBounds(bounds);
-    }
   }
 
   function draw() {
+    // Refresh bounds every frame: the quad is full-screen and its geography is
+    // derived from u_bounds, but the layer only listens to moveend/zoom (not
+    // continuous 'move'), so this is what keeps the overlay aligned during a pan.
+    // mapBounds is read only here, so this is also its single authoritative write.
     const currentBounds = map.getBounds();
     if (currentBounds) updateMapBounds(currentBounds);
 
@@ -259,7 +259,7 @@ export function createHeatmapAtlasField(
   }
 
   function onMapMove(bounds: mapboxgl.LngLatBounds, zoom: number) {
-    updateMapBounds(bounds);
+    // mapBounds is refreshed in draw(); here we only drive the chunk schedulers.
     syncSchedulersOnMove({ bounds, zoom, schedulers, lodController });
   }
 

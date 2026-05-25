@@ -1,12 +1,11 @@
 /**
- * windAtlasLayer
+ * particlesAtlasLayer
  *
- * Mapbox custom layer wrapper for oceanCurrentAtlasField.
- * Mirrors the structure of vectorLayer.ts — same event wiring, same
- * visibility / config API — but drives oceanCurrentAtlasField instead of VectorField.
+ * Mapbox custom layer wrapper for ParticlesAtlasField. Wires map events to the
+ * field, pausing the animation while the map moves and resuming on moveend.
  *
  * Usage:
- *   const layer = particlesAtlasLayer('gsla-wind-atlas', palette);
+ *   const layer = particlesAtlasLayer('gsla-ocean-current-atlas', palette);
  *   map.addLayer(layer);
  *   await layer.setSource(manifest, '/26-01-01/ocean_current', legendRange);
  *   layer.setVisible(true);
@@ -27,7 +26,7 @@ const ZOOM_THROTTLE_MS = 100;
 
 export type ParticlesAtlasLayerInterface = mapboxgl.CustomLayerInterface & {
   visible: boolean;
-  oceanCurrentAtlasField?: ParticlesAtlasFieldAPI;
+  field?: ParticlesAtlasFieldAPI;
   setSource: (
     manifest: ProductManifest,
     tileBaseUrl: string,
@@ -57,24 +56,20 @@ export function particlesAtlasLayer(
     visible: false,
 
     onAdd(map, gl) {
-      this.oceanCurrentAtlasField = createParticlesAtlasField(
-        map,
-        gl as WebGL2RenderingContext,
-        palette,
-      );
+      this.field = createParticlesAtlasField(map, gl as WebGL2RenderingContext, palette);
 
       onMoveStartH = () => this.onMoveStart();
       onMoveEndH = () => {
         this.onMoveEnd();
         if (this.visible) {
           const bounds = map.getBounds();
-          if (bounds) this.oceanCurrentAtlasField?.onMapMove(bounds, map.getZoom());
+          if (bounds) this.field?.onMapMove(bounds, map.getZoom());
         }
       };
       onZoomH = throttle(() => {
         if (this.visible) {
           const bounds = map.getBounds();
-          if (bounds) this.oceanCurrentAtlasField?.onMapMove(bounds, map.getZoom());
+          if (bounds) this.field?.onMapMove(bounds, map.getZoom());
         }
       }, ZOOM_THROTTLE_MS);
       onResizeH = () => this.onResize();
@@ -91,46 +86,46 @@ export function particlesAtlasLayer(
       if (onZoomH) map.off('zoom', onZoomH);
       if (onResizeH) map.off('resize', onResizeH);
       onMoveStartH = onMoveEndH = onZoomH = onResizeH = null;
-      this.oceanCurrentAtlasField?.destroy();
-      this.oceanCurrentAtlasField = undefined;
+      this.field?.destroy();
+      this.field = undefined;
     },
 
     render() {
-      this.oceanCurrentAtlasField?.draw();
+      this.field?.draw();
     },
 
     async setSource(manifest: ProductManifest, tileBaseUrl: string, legendRange: [number, number]) {
-      await this.oceanCurrentAtlasField?.setSource(manifest, tileBaseUrl, legendRange);
-      if (this.visible) this.oceanCurrentAtlasField?.startAnimation();
+      await this.field?.setSource(manifest, tileBaseUrl, legendRange);
+      if (this.visible) this.field?.startAnimation();
     },
 
     setVisible(visible: boolean) {
       this.visible = visible;
       if (visible) {
-        this.oceanCurrentAtlasField?.startAnimation();
+        this.field?.startAnimation();
       } else {
-        this.oceanCurrentAtlasField?.stopAnimation();
+        this.field?.stopAnimation();
       }
     },
 
     updateConfig(config: Partial<CustomizableParticleConfig>) {
-      this.oceanCurrentAtlasField?.updateConfig(config);
+      this.field?.updateConfig(config);
     },
 
     updatePalette(patch: PalettePatch) {
-      this.oceanCurrentAtlasField?.updatePalette(patch);
+      this.field?.updatePalette(patch);
     },
 
     onMoveStart() {
-      if (this.visible) this.oceanCurrentAtlasField?.stopAnimation();
+      if (this.visible) this.field?.stopAnimation();
     },
 
     onMoveEnd() {
-      if (this.visible) this.oceanCurrentAtlasField?.startAnimation();
+      if (this.visible) this.field?.startAnimation();
     },
 
     onResize() {
-      this.oceanCurrentAtlasField?.resize();
+      this.field?.resize();
     },
   };
 }

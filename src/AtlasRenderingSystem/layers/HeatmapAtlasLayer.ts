@@ -1,7 +1,7 @@
 /**
- * scalarAtlasLayer
+ * heatmapAtlasLayer
  *
- * Mapbox custom layer wrapper for ScalarAtlasField.
+ * Mapbox custom layer wrapper for HeatmapAtlasField.
  * Used by all scalar-overlay atlas products (sea level anomaly, SST anomaly mosaic, etc.).
  *
  * Usage:

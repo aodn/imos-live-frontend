@@ -5,7 +5,6 @@ import {
   UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
   WAVE_BUOYS_LAYER_ID,
 } from '@/constants';
-import type { VectoryLayerInterface } from '@/layers';
 import type { Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
 import { type Map } from 'mapbox-gl';
@@ -45,7 +44,7 @@ const mapComponent = {
       .poll(() =>
         page.waitForFunction(layerID => {
           const map = (window as any).map as Map | undefined;
-          const layer = map?.getLayer(layerID) as VectoryLayerInterface;
+          const layer = map?.getLayer(layerID);
           return layer;
         }, layerID),
       )
