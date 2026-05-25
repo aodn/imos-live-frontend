@@ -64,6 +64,8 @@ export type ParticlesAtlasFieldAPI = {
   onMapMove: (bounds: mapboxgl.LngLatBounds, zoom: number) => void;
   /** Set the LOD crossfade blend value (0 = LOD1, 1 = LOD2). Called by LODController. */
   setLodBlend: (value: number) => void;
+  /** Stop the animation loop and release all GPU resources. Call from the layer's onRemove. */
+  destroy: () => void;
 };
 
 // ── Factory ───────────────────────────────────────────────────────────────────
@@ -135,6 +137,14 @@ export function createParticlesAtlasField(
   // ── Private helpers ───────────────────────────────────────────────────────
 
   function setParticles(num: number) {
+    // Free the previous ping-pong pair before reallocating — setParticles is
+    // called repeatedly (clear / updateConfig), so skipping this leaks two
+    // RG32F textures per call.
+    if (particleTextures) {
+      gl.deleteTexture(particleTextures.particleTexture0);
+      gl.deleteTexture(particleTextures.particleTexture1);
+    }
+
     particleRes = Math.ceil(Math.sqrt(num));
     numParticles = particleRes * particleRes;
 
@@ -591,6 +601,48 @@ export function createParticlesAtlasField(
     setColorRamp(computeRamp(currentPalette));
   }
 
+  function destroy() {
+    // Stop the rAF loop directly — avoid stopAnimation(), whose clear() would
+    // recreate the particle textures we're about to delete.
+    animState = 'PAUSED';
+    if (animationId !== null) {
+      cancelAnimationFrame(animationId);
+      animationId = null;
+    }
+    // Invalidate any in-flight setSource callbacks.
+    fetchGeneration++;
+
+    schedulers.forEach(s => s.destroy());
+    schedulers = [];
+    lodController.destroy();
+    atlas?.destroy();
+    atlas = null;
+
+    if (programInfo) gl.deleteProgram(programInfo.program);
+    if (screenProgramInfo) gl.deleteProgram(screenProgramInfo.program);
+    if (updateProgramInfo) gl.deleteProgram(updateProgramInfo.program);
+    programInfo = screenProgramInfo = updateProgramInfo = null;
+
+    if (framebuffer) {
+      gl.deleteFramebuffer(framebuffer);
+      framebuffer = null;
+    }
+    if (particleTextures) {
+      gl.deleteTexture(particleTextures.particleTexture0);
+      gl.deleteTexture(particleTextures.particleTexture1);
+      particleTextures = null;
+    }
+    if (textures) {
+      gl.deleteTexture(textures.backgroundTexture);
+      gl.deleteTexture(textures.screenTexture);
+      textures = null;
+    }
+    if (colorRampTexture) {
+      gl.deleteTexture(colorRampTexture.colorRampTexture);
+      colorRampTexture = null;
+    }
+  }
+
   return {
     setSource,
     startAnimation,
@@ -601,5 +653,6 @@ export function createParticlesAtlasField(
     updatePalette,
     onMapMove,
     setLodBlend,
+    destroy,
   };
 }

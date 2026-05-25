@@ -31,6 +31,9 @@ export type HeatmapAtlasLayerInterface = mapboxgl.CustomLayerInterface & {
 
 export function heatmapAtlasLayer(id: string, palette: ColorPalette): HeatmapAtlasLayerInterface {
   let mapRef: mapboxgl.Map | null = null;
+  // Stored so onRemove can detach them — anonymous handlers would leak.
+  let onMoveEnd: (() => void) | null = null;
+  let onZoom: (() => void) | null = null;
 
   return {
     id,
@@ -41,18 +44,26 @@ export function heatmapAtlasLayer(id: string, palette: ColorPalette): HeatmapAtl
       mapRef = map;
       this.field = createHeatmapAtlasField(map, gl as WebGL2RenderingContext, palette);
 
-      map.on('moveend', () => {
+      const forward = () => {
         if (this.visible) {
           const bounds = map.getBounds();
           if (bounds) this.field?.onMapMove(bounds, map.getZoom());
         }
-      });
-      map.on('zoom', () => {
-        if (this.visible) {
-          const bounds = map.getBounds();
-          if (bounds) this.field?.onMapMove(bounds, map.getZoom());
-        }
-      });
+      };
+      onMoveEnd = forward;
+      onZoom = forward;
+      map.on('moveend', onMoveEnd);
+      map.on('zoom', onZoom);
+    },
+
+    onRemove(map) {
+      if (onMoveEnd) map.off('moveend', onMoveEnd);
+      if (onZoom) map.off('zoom', onZoom);
+      onMoveEnd = null;
+      onZoom = null;
+      this.field?.destroy();
+      this.field = undefined;
+      mapRef = null;
     },
 
     render() {

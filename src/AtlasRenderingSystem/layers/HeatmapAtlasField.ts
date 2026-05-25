@@ -46,6 +46,8 @@ export type HeatmapAtlasFieldAPI = {
   setVisible: (visible: boolean) => void;
   draw: () => void;
   onMapMove: (bounds: mapboxgl.LngLatBounds, zoom: number) => void;
+  /** Release all GPU resources, schedulers and timers. Call from the layer's onRemove. */
+  destroy: () => void;
 };
 
 function computeRamp(palette: ColorPalette): Record<string, string> {
@@ -327,11 +329,39 @@ export function createHeatmapAtlasField(
     }
   }
 
+  function destroy() {
+    visible = false;
+    // Invalidate any in-flight setSource callbacks.
+    fetchGeneration++;
+
+    schedulers.forEach(s => s.destroy());
+    schedulers = [];
+    lodController.destroy();
+    atlas?.destroy();
+    atlas = null;
+
+    if (programInfo) {
+      gl.deleteProgram(programInfo.program);
+      programInfo = null;
+    }
+    if (bufferInfo?.attribs) {
+      for (const name in bufferInfo.attribs) {
+        gl.deleteBuffer(bufferInfo.attribs[name].buffer);
+      }
+      bufferInfo = null;
+    }
+    if (colorRampTexture) {
+      gl.deleteTexture(colorRampTexture);
+      colorRampTexture = null;
+    }
+  }
+
   return {
     setSource,
     updatePalette,
     setVisible,
     draw,
     onMapMove,
+    destroy,
   };
 }

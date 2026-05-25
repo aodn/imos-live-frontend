@@ -41,6 +41,12 @@ export function particlesAtlasLayer(
   id: string,
   palette: ColorPalette,
 ): ParticlesAtlasLayerInterface {
+  // Stored so onRemove can detach them — anonymous handlers would leak.
+  let onMoveStartH: (() => void) | null = null;
+  let onMoveEndH: (() => void) | null = null;
+  let onZoomH: (() => void) | null = null;
+  let onResizeH: (() => void) | null = null;
+
   return {
     id,
     type: 'custom' as const,
@@ -53,21 +59,36 @@ export function particlesAtlasLayer(
         palette,
       );
 
-      map.on('movestart', () => this.onMoveStart());
-      map.on('moveend', () => {
+      onMoveStartH = () => this.onMoveStart();
+      onMoveEndH = () => {
         this.onMoveEnd();
         if (this.visible) {
           const bounds = map.getBounds();
           if (bounds) this.oceanCurrentAtlasField?.onMapMove(bounds, map.getZoom());
         }
-      });
-      map.on('zoom', () => {
+      };
+      onZoomH = () => {
         if (this.visible) {
           const bounds = map.getBounds();
           if (bounds) this.oceanCurrentAtlasField?.onMapMove(bounds, map.getZoom());
         }
-      });
-      map.on('resize', () => this.onResize());
+      };
+      onResizeH = () => this.onResize();
+
+      map.on('movestart', onMoveStartH);
+      map.on('moveend', onMoveEndH);
+      map.on('zoom', onZoomH);
+      map.on('resize', onResizeH);
+    },
+
+    onRemove(map) {
+      if (onMoveStartH) map.off('movestart', onMoveStartH);
+      if (onMoveEndH) map.off('moveend', onMoveEndH);
+      if (onZoomH) map.off('zoom', onZoomH);
+      if (onResizeH) map.off('resize', onResizeH);
+      onMoveStartH = onMoveEndH = onZoomH = onResizeH = null;
+      this.oceanCurrentAtlasField?.destroy();
+      this.oceanCurrentAtlasField = undefined;
     },
 
     render() {
