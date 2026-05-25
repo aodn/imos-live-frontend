@@ -94,7 +94,10 @@ export function createParticlesAtlasField(
   let particleTextures: Record<string, WebGLTexture> | null = null;
   let numParticles = 0;
   let particleRes = 0;
-  let particleIndices: Float32Array | null = null;
+  /** a_index attribute buffer — rebuilt only when the particle count changes. */
+  let particleBufferInfo: twgl.BufferInfo | null = null;
+  /** Constant full-viewport quad, shared by the screen-composite and update passes. */
+  let quadBufferInfo: twgl.BufferInfo | null = null;
   let nParticles = config.nParticles;
 
   // ── Screen textures & framebuffer ────────────────────────────────────────
@@ -135,6 +138,11 @@ export function createParticlesAtlasField(
   let animationId: number | null = null;
 
   // ── Private helpers ───────────────────────────────────────────────────────
+
+  function deleteBufferInfo(info: twgl.BufferInfo | null) {
+    if (!info?.attribs) return;
+    for (const name in info.attribs) gl.deleteBuffer(info.attribs[name].buffer);
+  }
 
   function setParticles(num: number) {
     // Free the previous ping-pong pair before reallocating — setParticles is
@@ -179,8 +187,14 @@ export function createParticlesAtlasField(
       },
     });
 
-    particleIndices = new Float32Array(numParticles);
+    const particleIndices = new Float32Array(numParticles);
     for (let i = 0; i < numParticles; i++) particleIndices[i] = i;
+
+    // Rebuild the a_index buffer for the new count; free the old one first.
+    deleteBufferInfo(particleBufferInfo);
+    particleBufferInfo = twgl.createBufferInfoFromArrays(gl, {
+      a_index: { numComponents: 1, data: particleIndices },
+    });
   }
 
   function setColorRamp(colors: Record<string, string>) {
@@ -240,6 +254,11 @@ export function createParticlesAtlasField(
       makeOceanCurrentAtlasFsUpdate(totalSlots, totalVirtualChunks, atlasW, atlasH),
     ]);
 
+    // Constant full-viewport quad: (0,0)=bottom-left, (1,1)=top-right.
+    quadBufferInfo = twgl.createBufferInfoFromArrays(gl, {
+      a_pos: { numComponents: 2, data: new Float32Array([0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1]) },
+    });
+
     setParticles(nParticles);
     setColorRamp(computeRamp(currentPalette));
     initScreenTextures();
@@ -267,7 +286,7 @@ export function createParticlesAtlasField(
       !vectorMin ||
       !vectorMax ||
       !mapBounds ||
-      !particleIndices ||
+      !particleBufferInfo ||
       !lodGridsFlat ||
       !uvScale ||
       !uvOffset
@@ -276,11 +295,7 @@ export function createParticlesAtlasField(
 
     gl.useProgram(programInfo.program);
 
-    const bufferInfo = twgl.createBufferInfoFromArrays(gl, {
-      a_index: { numComponents: 1, data: particleIndices },
-    });
-
-    twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo);
+    twgl.setBuffersAndAttributes(gl, programInfo, particleBufferInfo);
     twgl.setUniforms(programInfo, {
       u_atlas: atlas.getTexture(),
       u_slots: atlas.getSlotsData(),
@@ -302,20 +317,16 @@ export function createParticlesAtlasField(
       u_max_speed: currentPalette.legendRange[1],
     });
 
-    twgl.drawBufferInfo(gl, bufferInfo, gl.POINTS);
+    twgl.drawBufferInfo(gl, particleBufferInfo, gl.POINTS);
   }
 
   function drawTexture(texture: WebGLTexture, opacity: number) {
-    if (!screenProgramInfo) return;
+    if (!screenProgramInfo || !quadBufferInfo) return;
     gl.useProgram(screenProgramInfo.program);
 
-    const bufferInfo = twgl.createBufferInfoFromArrays(gl, {
-      a_pos: { numComponents: 2, data: new Float32Array([0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1]) },
-    });
-
-    twgl.setBuffersAndAttributes(gl, screenProgramInfo, bufferInfo);
+    twgl.setBuffersAndAttributes(gl, screenProgramInfo, quadBufferInfo);
     twgl.setUniforms(screenProgramInfo, { u_screen: texture, u_opacity: opacity });
-    twgl.drawBufferInfo(gl, bufferInfo);
+    twgl.drawBufferInfo(gl, quadBufferInfo);
   }
 
   function drawScreen() {
@@ -358,7 +369,8 @@ export function createParticlesAtlasField(
       !vectorMax ||
       !mapBounds ||
       !uvScale ||
-      !uvOffset
+      !uvOffset ||
+      !quadBufferInfo
     )
       return;
 
@@ -373,11 +385,7 @@ export function createParticlesAtlasField(
     gl.viewport(0, 0, particleRes, particleRes);
     gl.useProgram(updateProgramInfo.program);
 
-    const bufferInfo = twgl.createBufferInfoFromArrays(gl, {
-      a_pos: { numComponents: 2, data: new Float32Array([0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1]) },
-    });
-
-    twgl.setBuffersAndAttributes(gl, updateProgramInfo, bufferInfo);
+    twgl.setBuffersAndAttributes(gl, updateProgramInfo, quadBufferInfo);
     twgl.setUniforms(updateProgramInfo, {
       u_atlas: atlas.getTexture(),
       u_slots: atlas.getSlotsData(),
@@ -397,7 +405,7 @@ export function createParticlesAtlasField(
       u_drop_rate_bump: config.dropRateBump,
     });
 
-    twgl.drawBufferInfo(gl, bufferInfo);
+    twgl.drawBufferInfo(gl, quadBufferInfo);
 
     // Ping-pong: swap particle textures
     const tmp = particleTextures.particleTexture0;
@@ -641,6 +649,11 @@ export function createParticlesAtlasField(
       gl.deleteTexture(colorRampTexture.colorRampTexture);
       colorRampTexture = null;
     }
+
+    deleteBufferInfo(particleBufferInfo);
+    deleteBufferInfo(quadBufferInfo);
+    particleBufferInfo = null;
+    quadBufferInfo = null;
   }
 
   return {

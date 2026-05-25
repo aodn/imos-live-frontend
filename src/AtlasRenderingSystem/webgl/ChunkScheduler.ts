@@ -129,7 +129,9 @@ export function createChunkScheduler(
     aborts.get(id)?.abort();
     aborts.delete(id);
     loading.delete(id);
-    inflight = Math.max(0, inflight - 1);
+    // inflight is decremented by the fetch's .finally handler. Decrementing here
+    // too would double-count (the aborted fetch still settles and runs .finally),
+    // letting drain() start more than CONCURRENCY concurrent fetches.
   }
 
   async function drain() {
@@ -157,9 +159,16 @@ export function createChunkScheduler(
           }
         })
         .finally(() => {
-          loading.delete(id);
-          aborts.delete(id);
+          // This fetch has settled (resolved, errored, or aborted) — release its
+          // concurrency slot exactly once.
           inflight = Math.max(0, inflight - 1);
+          // Only clear the id-keyed state if we're still the active controller for
+          // this id. A cancelled chunk that scrolled back into scope may have been
+          // re-queued with a newer controller, which we must not clobber.
+          if (aborts.get(id) === ctrl) {
+            aborts.delete(id);
+            loading.delete(id);
+          }
           drain();
         });
     }
