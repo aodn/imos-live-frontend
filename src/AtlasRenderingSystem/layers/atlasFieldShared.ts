@@ -155,6 +155,33 @@ export function preloadLod1(params: {
 }
 
 /**
+ * Blocking LOD1 preload: fetch + upload every LOD1 tile and resolve only once
+ * all are resident (rejects if any fails).
+ *
+ * Required by the particle engine, whose update/draw shaders sample LOD1
+ * unconditionally via worldToAtlasUV(lonlat, 0). A not-yet-resident chunk maps
+ * to u_chunk_slots[idx] === -1, so the shader would index u_slots[-1] — an
+ * out-of-bounds (undefined) read — rather than discarding the way the heatmap's
+ * alpha mask does. So every LOD1 tile must be present before the animation runs.
+ */
+export async function preloadAllLod1(params: {
+  tileBaseUrl: string;
+  lod1Ids: string[];
+  atlas: AtlasManagerAPI;
+  isStale: () => boolean;
+}): Promise<void> {
+  const { tileBaseUrl, lod1Ids, atlas, isStale } = params;
+  await Promise.all(
+    lod1Ids.map(async id => {
+      const blob = await fetch(`${tileBaseUrl}/${id}.png`).then(r => r.blob());
+      const img = await createImageBitmap(blob, { premultiplyAlpha: 'none' });
+      if (isStale()) return; // superseded — don't upload to a torn-down atlas
+      atlas.upload(id, img);
+    }),
+  );
+}
+
+/**
  * Shared onMapMove scheduler logic: reset the crossfade when a freshly entered
  * area still has unloaded chunks, then update every scheduler with the new viewport.
  */

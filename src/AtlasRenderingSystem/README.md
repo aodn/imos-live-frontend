@@ -7,15 +7,17 @@ The Atlas Rendering System is the shared GPU infrastructure that backs all chunk
 
 Both share the same `AtlasManager`, `ChunkScheduler`, and `LODController` primitives.
 
+The package under `src/AtlasRenderingSystem/` is **self-contained and framework-agnostic** — it imports nothing from the host app (no `@/` paths) and depends only on `mapbox-gl` and `twgl.js`. Its public entry point is `index.ts` (`createScalarAtlasLayer` / `createParticleAtlasLayer` + types). The React/Zustand/React-Query glue listed below lives in the host app (`src/hooks/layers/*`, `src/api/*`), not in the package.
+
 ### Tech stack
 
-| Component     | Technology            |
-| ------------- | --------------------- |
-| Map           | Mapbox GL JS          |
-| Rendering     | WebGL 2 (hand-rolled) |
-| Shaders       | GLSL ES 3.00          |
-| UI            | React + Zustand       |
-| Data fetching | React Query           |
+| Component     | Technology            | Where                             |
+| ------------- | --------------------- | --------------------------------- |
+| Map           | Mapbox GL JS          | package                           |
+| Rendering     | WebGL 2 (hand-rolled) | package                           |
+| Shaders       | GLSL ES 3.00          | package                           |
+| UI            | React + Zustand       | host app (`src/hooks`, store)     |
+| Data fetching | React Query           | host app (`src/hooks`, `src/api`) |
 
 ---
 
@@ -23,7 +25,7 @@ Both share the same `AtlasManager`, `ChunkScheduler`, and `LODController` primit
 
 1. **Generate tiles** — produce `manifest.json` + PNG files named `{lod}/{cx}/{cy}.png`. See [Tile & LOD configuration](#tile--lod-configuration-manifestjson) for all manifest fields.
 
-2. **`src/constants/product.ts`** — add entries to `PRODUCT`, `PRODUCTS`, `PRODUCTLEGENDS`, and `PRODUCTCOLORPALETTES`. See [Visual appearance](#visual-appearance-srcconstantsproductts) for what each controls.
+2. **`src/constants/product.ts`** — add entries to `PRODUCT`, `PRODUCTS`, and `PRODUCTLEGENDS`. The legend's `colorKey` selects a palette from `COLOR_OPTIONS` (`src/config/colorPalettes.ts`); `buildProductPalette` assembles the `ColorPalette` the layer uploads. See [Visual appearance](#visual-appearance-srcconstantsproductts) for what each controls.
 
 3. **`MapComponent.tsx`** — wire the hook:
 
@@ -119,10 +121,10 @@ Switching to 256×256 `chunkPx` (258×258 `storedPx`) auto-sizes to 4096×4096 �
 
 ### Visual appearance (`src/constants/product.ts`)
 
-| Constant               | What it controls                                                                 |
-| ---------------------- | -------------------------------------------------------------------------------- |
-| `PRODUCTLEGENDS`       | Legend label, colour scale type (`linear`/`log`), and `[min, max]` display range |
-| `PRODUCTCOLORPALETTES` | Pre-converted `ColorPalette` for the WebGL colour ramp texture upload            |
+| Constant                                        | What it controls                                                                                                 |
+| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `PRODUCTLEGENDS`                                | Legend `label`, colour scale type (`linear`/`log`), `[min, max]` display `range`, and a `colorKey`               |
+| `COLOR_OPTIONS` (`src/config/colorPalettes.ts`) | Maps each `colorKey` to its raw RGB tuples; `buildProductPalette` converts them into the uploaded `ColorPalette` |
 
 `u_value_range` (from manifest) and `u_legend_range` (from `PRODUCTLEGENDS`) are intentionally separate — the colour ramp can be narrowed for visual emphasis without changing the stored data encoding.
 
@@ -134,12 +136,12 @@ Applies only to the ocean current particle layer.
 
 | Parameter      | Default | Effect                                         |
 | -------------- | ------- | ---------------------------------------------- |
-| `nParticles`   | 10 000  | Total particle count                           |
-| `fadeOpacity`  | 0.985   | Trail persistence (higher = longer trails)     |
-| `speedFactor`  | 5.0     | Velocity multiplier                            |
-| `dropRate`     | 0.003   | Base probability of respawning per frame       |
+| `nParticles`   | 30 000  | Total particle count                           |
+| `fadeOpacity`  | 0.98    | Trail persistence (higher = longer trails)     |
+| `speedFactor`  | 4.5     | Velocity multiplier                            |
+| `dropRate`     | 0.002   | Base probability of respawning per frame       |
 | `dropRateBump` | 0.05    | Extra respawn chance for fast-moving particles |
-| `pointSize`    | 1.2     | Particle size in pixels                        |
+| `pointSize`    | 0.9     | Particle size in pixels                        |
 
 ---
 
@@ -488,19 +490,21 @@ Atlas dimensions are auto-computed from `slotPx` and the LOD grids (see [Atlas a
 
 **Methods**
 
-| Method                 | Description                                                                |
-| ---------------------- | -------------------------------------------------------------------------- |
-| `upload(chunkId, img)` | Upload ImageBitmap into the atlas. LOD2+ triggers LRU if the pool is full. |
-| `has(chunkId)`         | True if the chunk is currently resident.                                   |
-| `touch(chunkId)`       | Refresh LRU timestamp. Call for every visible chunk each frame.            |
-| `getSlotsData()`       | `Float32Array` — static UV layout per slot → `u_slots`                     |
-| `getChunkSlots()`      | `Int32Array` — virtual→physical mapping → `u_chunk_slots`                  |
-| `getLodOffsets()`      | `Int32Array` — cumulative LOD offsets → `u_lod_offsets`                    |
-| `getLodCount()`        | Number of active LODs → `u_lod_count`                                      |
-| `getTotalSlots()`      | Total physical slots (atlasCols × atlasRows)                               |
-| `getAtlasW()`          | Actual atlas width after auto-sizing and clamping                          |
-| `getAtlasH()`          | Actual atlas height after auto-sizing and clamping                         |
-| `destroy()`            | Delete GPU texture and reset all state.                                    |
+| Method                    | Description                                                                |
+| ------------------------- | -------------------------------------------------------------------------- |
+| `upload(chunkId, img)`    | Upload ImageBitmap into the atlas. LOD2+ triggers LRU if the pool is full. |
+| `has(chunkId)`            | True if the chunk is currently resident.                                   |
+| `touch(chunkId)`          | Refresh LRU timestamp. Call for every visible chunk each frame.            |
+| `getTexture()`            | The `WebGLTexture` → `u_atlas`                                             |
+| `getSlotsData()`          | `Float32Array` — static UV layout per slot → `u_slots`                     |
+| `getChunkSlots()`         | `Int32Array` — virtual→physical mapping → `u_chunk_slots`                  |
+| `getLodOffsets()`         | `Int32Array` — cumulative LOD offsets → `u_lod_offsets`                    |
+| `getLodCount()`           | Number of active LODs → `u_lod_count`                                      |
+| `getTotalSlots()`         | Total physical slots (atlasCols × atlasRows)                               |
+| `getTotalVirtualChunks()` | Sum of all LOD grid cells → sizes `u_chunk_slots`                          |
+| `getAtlasW()`             | Actual atlas width after auto-sizing and clamping                          |
+| `getAtlasH()`             | Actual atlas height after auto-sizing and clamping                         |
+| `destroy()`               | Delete GPU texture and reset all state.                                    |
 
 **LRU eviction**
 
@@ -516,15 +520,16 @@ Orchestrates the atlas, schedulers, and LOD controller for scalar overlay produc
 
 ```ts
 setSource(manifest, tileBaseUrl, legendRange): Promise<void>
-updateLegendRange(range: [number, number]): void
-onMapMove(bounds: LngLatBounds, zoom: number): void
+updatePalette(patch: PalettePatch): void   // legendRange, rawColors, and/or scale
 setVisible(visible: boolean): void
+onMapMove(bounds: LngLatBounds, zoom: number): void
 draw(): void
+destroy(): void                            // free GPU resources; call from the layer's onRemove
 ```
 
 **Progressive LOD1 preload** — `setSource` resolves as soon as the first LOD1 tile is uploaded so the layer becomes visible immediately. Remaining tiles continue in the background; each upload triggers `map.triggerRepaint()` so coverage fills in progressively. Rejects only if every tile fails.
 
-A `fetchGeneration` counter discards stale upload callbacks if `setSource` is called again (e.g. date change) before the previous fetch completes. Unloaded LOD1 tile regions safely discard in the fragment shader via the alpha mask (`a < 0.01`).
+A `fetchGeneration` counter discards stale upload callbacks if `setSource` is called again (e.g. date change) before the previous fetch completes. Unloaded LOD1 tile regions discard in the fragment shader via the alpha mask (`a < 0.01`).
 
 ---
 
@@ -536,16 +541,17 @@ Orchestrates the atlas, schedulers, and LOD controller for the ocean current par
 
 ```ts
 setSource(manifest, tileBaseUrl, legendRange): Promise<void>
-setLodBlend(value: number): void
 startAnimation(): void
 stopAnimation(): void
+draw(): void
 resize(): void
 updateConfig(config: Partial<CustomizableParticleConfig>): void
+updatePalette(patch: PalettePatch): void
 onMapMove(bounds: LngLatBounds, zoom: number): void
-draw(): void
+destroy(): void                            // stop the rAF loop and free GPU resources
 ```
 
-**Blocking LOD1 preload** — `setSource` uses `Promise.all` and blocks until every LOD1 tile is resident before resolving. This is required because the particle position-update shader calls `worldToAtlasUV(lonlat, 0)` unconditionally — a missing LOD1 chunk produces an out-of-bounds `u_slots[-1]` access (undefined behaviour) rather than the graceful discard the heatmap alpha mask provides.
+**Blocking LOD1 preload** — `setSource` uses `preloadAllLod1` (`Promise.all`) and blocks until every LOD1 tile is resident before resolving. This is required because the particle position-update and draw shaders call `worldToAtlasUV(lonlat, 0)` unconditionally — a missing LOD1 chunk produces an out-of-bounds `u_slots[-1]` access (undefined behaviour) rather than the graceful discard the heatmap alpha mask provides.
 
 A `fetchGeneration` counter discards stale upload callbacks and aborts scheduler setup if superseded by a newer `setSource` call.
 
@@ -598,7 +604,7 @@ When the user pans into a new area, `reset()` snaps `u_lod_blend` back to 0 so L
 
 ## Shader Uniforms
 
-Shader source is generated by factory functions (`makeScalarAtlasFs(totalSlots)`, `makeOceanCurrentAtlasFsParticle/Update(totalSlots, atlasW, atlasH)`) that inject `totalSlots` as a GLSL compile-time constant, sizing `u_slots` to match the atlas layout exactly.
+Shader source is generated by factory functions (`makeScalarAtlasFs(totalSlots, totalVirtualChunks)`, `makeOceanCurrentAtlasFsParticle/Update(totalSlots, totalVirtualChunks, atlasW, atlasH)`) that inject `totalSlots` and `totalVirtualChunks` as GLSL compile-time constants, sizing `u_slots` and `u_chunk_slots` to match the atlas layout exactly. The shared Mercator/atlas-lookup GLSL (uniforms + `returnLonLat`/`physicalSlot`/`worldToAtlasUV`, plus the particle bilinear sampler) lives in `webgl/atlasGlsl.ts` and is concatenated into each shader.
 
 ### Shared (both shader families)
 
@@ -641,17 +647,20 @@ src/
       AtlasManager.ts       — GPU texture + slot pool + LRU eviction
       ChunkScheduler.ts     — on-demand fetch queue per LOD
       LODController.ts      — crossfade blend animation
+      atlasGlsl.ts          — shared GLSL (uniforms + Mercator/atlas lookup + bilinear sampler)
       heatmapShader.ts      — scalarAtlasVs + makeScalarAtlasFs() factory
       particlesShader.ts    — makeOceanCurrentAtlasFsParticle/Update() factories
     layers/
       HeatmapAtlasField.ts  — orchestrates atlas for scalar products
       HeatmapAtlasLayer.ts  — Mapbox CustomLayerInterface wrapper (scalar)
       ParticlesAtlasField.ts — orchestrates atlas for particle products
-      particlesAtlasLayer.ts — Mapbox CustomLayerInterface wrapper (particles)
+      ParticlesAtlasLayer.ts — Mapbox CustomLayerInterface wrapper (particles)
+      atlasFieldShared.ts   — shared field logic (manifest parsing, LOD1 preload, scheduler wiring)
     utils/
       colorScaleUtils.ts    — colour ramp conversion (linear/log)
       getColorRamp.ts       — colour ramp builder
       rgbToHex.ts           — hex conversion helper
+      throttle.ts           — leading+trailing throttle (caps the zoom event)
 
   hooks/layers/
     useScalarAtlasLayer.ts  — React hook: wires createScalarAtlasLayer to Zustand store

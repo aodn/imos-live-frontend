@@ -21,7 +21,7 @@ export type { ParticlesAtlasLayerInterface } from './layers/ParticlesAtlasLayer'
 export { heatmapAtlasLayer } from './layers/HeatmapAtlasLayer';
 export { particlesAtlasLayer } from './layers/ParticlesAtlasLayer';
 
-// ── Factory functions (Phase 4 — standalone, framework-agnostic API) ─────────
+// ── Factory functions  ─────────
 import { heatmapAtlasLayer as _heatmapAtlasLayer } from './layers/HeatmapAtlasLayer';
 import { particlesAtlasLayer as _particlesAtlasLayer } from './layers/ParticlesAtlasLayer';
 import type {

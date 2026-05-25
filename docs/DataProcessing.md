@@ -27,7 +27,7 @@ Normalisation ranges are derived from the **full pre-resampled dataset** (entire
 
 ### manifest.json and data.json
 
-`manifest.json` format is documented in [AtlasRenderingSystem.md — Manifest Format](AtlasRenderingSystem.md#manifest-format). Ocean current manifests use `uRange`/`vRange` (m/s) instead of `valueRange`.
+`manifest.json` format is documented in [Atlas Rendering System — Tile & LOD configuration](../src/AtlasRenderingSystem/README.md#tile--lod-configuration-manifestjson). Ocean current manifests use `uRange`/`vRange` (m/s) instead of `valueRange`.
 
 `data.json`
 

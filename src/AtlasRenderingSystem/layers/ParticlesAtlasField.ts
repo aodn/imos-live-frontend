@@ -6,8 +6,9 @@
  * LODs blended in) rather than a single flat PNG.
  *
  * Caller contract:
- *   1. Call setSource(manifest, tileBaseUrl, legendRange) when date changes — resolves after
- *      the first LOD1 tile is uploaded; remaining tiles continue in the background.
+ *   1. Call setSource(manifest, tileBaseUrl, legendRange) when date changes — awaits the full
+ *      LOD1 preload (all tiles resident) before resolving, since the shaders sample LOD1
+ *      unconditionally.
  *   2. Call onMapMove(bounds, zoom) on every moveend / zoom event.
  *   3. Call startAnimation() / stopAnimation() to control rendering.
  *   4. Call draw() from the Mapbox custom layer render() callback.
@@ -42,7 +43,7 @@ import {
   buildLodGridsFlat,
   lod1ChunkIds,
   createLodSchedulers,
-  preloadLod1,
+  preloadAllLod1,
   syncSchedulersOnMove,
 } from './atlasFieldShared';
 
@@ -478,8 +479,19 @@ export function createParticlesAtlasField(
       lods: lodsSorted.map(({ grid }) => ({ grid })),
     });
 
-    // Compile shaders and set up GPU resources on first call. Atlas dimensions
-    // are known immediately, so this needn't wait for the LOD1 fetch.
+    // Blocking LOD1 preload — every LOD1 tile must be resident before the caller
+    // starts the animation: the particle shaders sample LOD1 unconditionally, so a
+    // missing chunk would index u_slots[-1] (out-of-bounds) instead of discarding.
+    await preloadAllLod1({
+      tileBaseUrl,
+      lod1Ids: lod1ChunkIds(lod1),
+      atlas,
+      isStale: () => gen !== fetchGeneration,
+    });
+
+    if (gen !== fetchGeneration) return; // superseded during preload
+
+    // Compile shaders on first call, then wire on-demand LOD schedulers.
     if (!programInfo)
       initializeShaders(
         atlas.getTotalSlots(),
@@ -494,15 +506,6 @@ export function createParticlesAtlasField(
       onChunkLoaded,
       bounds: manifest.bounds,
       lodsSorted,
-    });
-
-    // Fetch LOD1 progressively — resolves on the first uploaded tile; the
-    // animation loop (started by the caller) repaints as the rest stream in.
-    await preloadLod1({
-      tileBaseUrl,
-      lod1Ids: lod1ChunkIds(lod1),
-      atlas,
-      isStale: () => gen !== fetchGeneration,
     });
   }
 

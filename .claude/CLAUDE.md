@@ -54,21 +54,22 @@ import { cn } from '@/utils';
 
 `src/constants/product.ts` is the single source of truth for all products — never hardcode any of the following elsewhere:
 
-| Constant               | What it owns                                                                                     |
-| ---------------------- | ------------------------------------------------------------------------------------------------ |
-| `PRODUCTS`             | `layerId`, `sourceId`, `bucketPath` per product                                                  |
-| `PRODUCTLEGENDS`       | Legend config (label, color scale, min/max) consumed by sidebar UI components                    |
-| `PRODUCTCOLORPALETTES` | Pre-converted `ColorPalette` for WebGL color ramp texture upload, consumed by layer constructors |
+| Constant         | What it owns                                                                                                   |
+| ---------------- | -------------------------------------------------------------------------------------------------------------- |
+| `PRODUCTS`       | `layerId`, `sourceId`, `bucketPath` per product                                                                |
+| `PRODUCTLEGENDS` | Legend config (label, color scale, min/max range, and a `colorKey`) consumed by sidebar UI and the layer hooks |
+
+Colors are **not** defined in `product.ts`. A legend's `colorKey` indexes `COLOR_OPTIONS` in `src/config/colorPalettes.ts`, and `buildProductPalette` (`src/helpers`) converts the legend into the `ColorPalette` the WebGL layer uploads as its color-ramp texture.
 
 Each product is visualized via its own dedicated hook in `src/hooks/`:
 
-- `useParticleLayer` — GSLA Ocean Geostrophic Current (WebGL particle animation)
-- `useWebGLHeatmapLayer` — GSLA Anomaly Sea Levels and SST Anomaly Mosaic (WebGL atlas scalar overlay)
+- `useParticleAtlasLayer` — GSLA Ocean Geostrophic Current (WebGL particle animation)
+- `useScalarAtlasLayer` — GSLA Anomaly Sea Levels and SST Anomaly Mosaic (WebGL atlas scalar overlay)
 - `useWaveBuoysLayer` — Wave Buoys (clustered circle layer)
 
 When adding a new product, touch these files in order:
 
-1. **`src/constants/product.ts`** — add to `PRODUCT`, `PRODUCTS` (with `layerId`/`sourceId`), `PRODUCTLEGENDS`, and `PRODUCTCOLORPALETTES`
+1. **`src/constants/product.ts`** — add to `PRODUCT`, `PRODUCTS` (with `layerId`/`sourceId`), and `PRODUCTLEGENDS` (whose `colorKey` selects a palette from `COLOR_OPTIONS` in `src/config/colorPalettes.ts`)
 2. **`src/hooks/layers/use<ProductName>Layer.ts`** — create a dedicated layer hook; reuse the shared layer hooks already used across existing products:
    - `useMapboxLayerSetup` — handles layer initialisation lifecycle
    - `useDidMountEffect` — re-fetches data when date changes
@@ -87,4 +88,4 @@ Layer paint/layout config belongs in `src/config/layerConfig.ts`. Always add lay
 
 ## WebGL Particle Engine
 
-`src/layers/ParticlesAtlasField.ts` and `src/webgl/particlesShader.ts` implement the ping-pong texture particle system — be cautious modifying them. Particle settings (count, speed, fade, size) are configurable via `src/config/particleConfig.ts`.
+`src/AtlasRenderingSystem/layers/ParticlesAtlasField.ts` and `src/AtlasRenderingSystem/webgl/particlesShader.ts` implement the ping-pong texture particle system — be cautious modifying them. Particle settings (count, speed, fade, size) are configurable via `src/config/particleConfig.ts`. The atlas renderer is a self-contained package; see `src/AtlasRenderingSystem/README.md` for its full architecture and API.
