@@ -20,6 +20,10 @@ import type {
   ColorPalette,
   PalettePatch,
 } from '../types';
+import { throttle } from '../utils';
+
+/** Mapbox fires `zoom` every frame of a zoom animation — cap onMapMove frequency. */
+const ZOOM_THROTTLE_MS = 100;
 
 export type ParticlesAtlasLayerInterface = mapboxgl.CustomLayerInterface & {
   visible: boolean;
@@ -67,12 +71,12 @@ export function particlesAtlasLayer(
           if (bounds) this.oceanCurrentAtlasField?.onMapMove(bounds, map.getZoom());
         }
       };
-      onZoomH = () => {
+      onZoomH = throttle(() => {
         if (this.visible) {
           const bounds = map.getBounds();
           if (bounds) this.oceanCurrentAtlasField?.onMapMove(bounds, map.getZoom());
         }
-      };
+      }, ZOOM_THROTTLE_MS);
       onResizeH = () => this.onResize();
 
       map.on('movestart', onMoveStartH);

@@ -135,9 +135,10 @@ export function createChunkScheduler(
   }
 
   async function drain() {
+    // Highest priority (lowest number) first. Nothing is enqueued during the
+    // synchronous loop below, so sort once here rather than on every iteration.
+    queue.sort((a, b) => a.priority - b.priority);
     while (inflight < CONCURRENCY && queue.length > 0) {
-      // Always process highest priority (lowest number) first
-      queue.sort((a, b) => a.priority - b.priority);
       const entry = queue.shift()!;
       const { chunkId: id } = entry;
 

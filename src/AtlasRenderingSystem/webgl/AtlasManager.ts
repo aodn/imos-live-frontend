@@ -231,17 +231,21 @@ export function createAtlasManager(
   /** Evict the least-recently-used pool slot and return its physical index. */
   function evictLRU(): number {
     let minTime = Infinity;
-    let victim = '';
+    let victim: string | null = null;
     for (const [id, t] of lastUsed) {
       if (t < minTime) {
         minTime = t;
         victim = id;
       }
     }
+    if (victim === null) {
+      // Pool is full but nothing is evictable — should be unreachable given the
+      // uniform-size check, but fail loudly rather than corrupt the slot map.
+      throw new Error('AtlasManager.evictLRU: no evictable pool slot available');
+    }
     const physSlot = chunkToSlot.get(victim)!;
-    const virtIdx = virtualIndex(
-      ...(Object.values(parseChunkId(victim)) as [number, number, number]),
-    );
+    const { lod, cx, cy } = parseChunkId(victim);
+    const virtIdx = virtualIndex(lod, cx, cy);
     chunkSlots[virtIdx] = -1;
     chunkToSlot.delete(victim);
     slotToChunk.delete(physSlot);

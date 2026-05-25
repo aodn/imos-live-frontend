@@ -18,19 +18,29 @@
  *   4. Call draw() from the Mapbox custom layer render() callback.
  */
 
-import mapboxgl from 'mapbox-gl';
 import * as twgl from 'twgl.js';
 import type { AtlasManagerAPI, ChunkSchedulerAPI, LODControllerAPI } from '../webgl';
 import {
   createAtlasManager,
-  createChunkScheduler,
   createLODController,
   makeScalarAtlasFs,
   scalarAtlasVs,
 } from '../webgl';
 
-import { getColorRamp, convertLogColorScaleToRamp, convertLinearColorScaleToRamp } from '../utils';
+import { getColorRamp } from '../utils';
 import type { ProductManifest, ColorPalette, PalettePatch } from '../types';
+import {
+  computeRamp,
+  mercatorBoundsArray,
+  sortManifestLods,
+  dataBoundsFromManifest,
+  computeUvTransform,
+  buildLodGridsFlat,
+  lod1ChunkIds,
+  createLodSchedulers,
+  preloadLod1,
+  syncSchedulersOnMove,
+} from './atlasFieldShared';
 
 export type { ColorPalette, PalettePatch };
 
@@ -49,16 +59,6 @@ export type HeatmapAtlasFieldAPI = {
   /** Release all GPU resources, schedulers and timers. Call from the layer's onRemove. */
   destroy: () => void;
 };
-
-function computeRamp(palette: ColorPalette): Record<string, string> {
-  const { scale, legendRange, rawColors } = palette;
-  return scale === 'log'
-    ? convertLogColorScaleToRamp({
-        minMaxRatio: legendRange[0] / legendRange[1],
-        colors: rawColors,
-      })
-    : convertLinearColorScaleToRamp({ colors: rawColors });
-}
 
 // ── Factory ───────────────────────────────────────────────────────────────────
 
@@ -126,11 +126,7 @@ export function createHeatmapAtlasField(
   }
 
   function updateMapBounds(bounds: mapboxgl.LngLatBounds) {
-    const nw = bounds.getNorthWest();
-    const se = bounds.getSouthEast();
-    const nwM = mapboxgl.MercatorCoordinate.fromLngLat(nw);
-    const seM = mapboxgl.MercatorCoordinate.fromLngLat(se);
-    mapBounds = [nwM.x, seM.y, seM.x, nwM.y];
+    mapBounds = mercatorBoundsArray(bounds);
   }
 
   function onChunkLoaded(_id: string) {
@@ -160,30 +156,18 @@ export function createHeatmapAtlasField(
   ): Promise<void> {
     const gen = ++fetchGeneration;
 
-    const lodsSorted = Object.entries(manifest.lods)
-      .sort(([a], [b]) => Number(a) - Number(b))
-      .map(([, entry]) => entry);
-
+    const lodsSorted = sortManifestLods(manifest);
     const lod1 = lodsSorted[0]!;
 
-    const { lonMin, lonMax, latMin, latMax } = manifest.bounds;
-    dataBounds = [lonMin, latMax, lonMax, latMin];
+    dataBounds = dataBoundsFromManifest(manifest.bounds);
     valueRange = manifest.valueRange ?? null;
     currentPalette = { ...currentPalette, legendRange: newLegendRange };
-    uvScale = [lod1.chunkPx[0] / lod1.storedPx[0], lod1.chunkPx[1] / lod1.storedPx[1]];
-    uvOffset = [lod1.padding / lod1.storedPx[0], lod1.padding / lod1.storedPx[1]];
-
-    // Build flat LOD grids array for the shader uniform (padded to MAX_LODS=4 × 2 floats)
-    lodGridsFlat = new Float32Array(4 * 2);
-    lodsSorted.forEach(({ grid }, i) => {
-      lodGridsFlat![i * 2] = grid[0];
-      lodGridsFlat![i * 2 + 1] = grid[1];
-    });
+    ({ uvScale, uvOffset } = computeUvTransform(lod1));
+    lodGridsFlat = buildLodGridsFlat(lodsSorted);
 
     // Teardown previous state
     atlas?.destroy();
     schedulers.forEach(s => s.destroy());
-    schedulers = [];
     lodController.destroy();
     lodController = createLODController();
 
@@ -194,57 +178,22 @@ export function createHeatmapAtlasField(
 
     if (!programInfo) initializeShaders(atlas.getTotalSlots(), atlas.getTotalVirtualChunks());
 
-    // Create one scheduler per on-demand LOD (LODs 2..N)
-    for (let lodNum = 2; lodNum <= lodsSorted.length; lodNum++) {
-      const lodEntry = lodsSorted[lodNum - 1];
-      schedulers.push(
-        createChunkScheduler(
-          atlas,
-          tileBaseUrl,
-          onChunkLoaded,
-          { lonMin, lonMax, latMin, latMax, cols: lodEntry.grid[0], rows: lodEntry.grid[1] },
-          lodNum,
-          lodEntry.zoomThreshold,
-        ),
-      );
-    }
+    schedulers = createLodSchedulers({
+      atlas,
+      tileBaseUrl,
+      onChunkLoaded,
+      bounds: manifest.bounds,
+      lodsSorted,
+    });
 
-    // Build the list of LOD1 tile IDs to fetch
-    const [lod1Cols, lod1Rows] = lod1.grid;
-    const lod1Ids: string[] = [];
-    for (let cy = 0; cy < lod1Rows; cy++)
-      for (let cx = 0; cx < lod1Cols; cx++) lod1Ids.push(`1/${cx}/${cy}`);
-
-    if (lod1Ids.length === 0) return;
-
-    // Fetch LOD1 tiles progressively. Resolve as soon as the first tile is
-    // uploaded so the caller can make the layer visible immediately. Remaining
-    // tiles continue in the background; each upload triggers a repaint so they
-    // appear incrementally. Reject only when every tile has failed.
-    await new Promise<void>((resolve, reject) => {
-      let firstResolved = false;
-      let failCount = 0;
-
-      for (const id of lod1Ids) {
-        (async () => {
-          try {
-            const blob = await fetch(`${tileBaseUrl}/${id}.png`).then(r => r.blob());
-            const img = await createImageBitmap(blob, { premultiplyAlpha: 'none' });
-            if (gen !== fetchGeneration) return; // superseded by a newer setSource call
-            atlas!.upload(id, img);
-            map.triggerRepaint();
-            if (!firstResolved) {
-              firstResolved = true;
-              resolve();
-            }
-          } catch {
-            if (gen !== fetchGeneration) return;
-            failCount++;
-            if (failCount === lod1Ids.length && !firstResolved)
-              reject(new Error('All LOD1 tile fetches failed'));
-          }
-        })();
-      }
+    // Fetch LOD1 progressively — resolves on the first uploaded tile so the
+    // caller can reveal the layer immediately; each tile triggers a repaint.
+    await preloadLod1({
+      tileBaseUrl,
+      lod1Ids: lod1ChunkIds(lod1),
+      atlas,
+      isStale: () => gen !== fetchGeneration,
+      onTileUploaded: () => map.triggerRepaint(),
     });
   }
 
@@ -311,22 +260,7 @@ export function createHeatmapAtlasField(
 
   function onMapMove(bounds: mapboxgl.LngLatBounds, zoom: number) {
     updateMapBounds(bounds);
-
-    // Reset blend if any scheduler has unloaded visible chunks (new area entered)
-    if (schedulers.some(s => !s.allVisibleLoaded())) {
-      lodController.reset();
-    }
-
-    const mapBoundsObj = {
-      west: bounds.getWest(),
-      east: bounds.getEast(),
-      south: bounds.getSouth(),
-      north: bounds.getNorth(),
-    };
-
-    for (const scheduler of schedulers) {
-      scheduler.update(mapBoundsObj, zoom);
-    }
+    syncSchedulersOnMove({ bounds, zoom, schedulers, lodController });
   }
 
   function destroy() {

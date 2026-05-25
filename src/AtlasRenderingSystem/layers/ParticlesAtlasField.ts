@@ -11,10 +11,8 @@
  *   2. Call onMapMove(bounds, zoom) on every moveend / zoom event.
  *   3. Call startAnimation() / stopAnimation() to control rendering.
  *   4. Call draw() from the Mapbox custom layer render() callback.
- *   5. Call setLodBlend(v) from LODController (Phase 6).
  */
 
-import mapboxgl from 'mapbox-gl';
 import * as twgl from 'twgl.js';
 
 import type {
@@ -24,7 +22,7 @@ import type {
   PalettePatch,
 } from '../types';
 import { INITIAL_PARTICLE_CONFIG } from '../types';
-import { getColorRamp, convertLogColorScaleToRamp, convertLinearColorScaleToRamp } from '../utils';
+import { getColorRamp } from '../utils';
 import type { AtlasManagerAPI, ChunkSchedulerAPI, LODControllerAPI } from '../webgl';
 import {
   createLODController,
@@ -34,18 +32,19 @@ import {
   oceanCurrentAtlasFsScreen,
   makeOceanCurrentAtlasFsUpdate,
   createAtlasManager,
-  createChunkScheduler,
 } from '../webgl';
-
-function computeRamp(palette: ColorPalette): Record<string, string> {
-  const { scale, legendRange, rawColors } = palette;
-  return scale === 'log'
-    ? convertLogColorScaleToRamp({
-        minMaxRatio: legendRange[0] / legendRange[1],
-        colors: rawColors,
-      })
-    : convertLinearColorScaleToRamp({ colors: rawColors });
-}
+import {
+  computeRamp,
+  mercatorBoundsArray,
+  sortManifestLods,
+  dataBoundsFromManifest,
+  computeUvTransform,
+  buildLodGridsFlat,
+  lod1ChunkIds,
+  createLodSchedulers,
+  preloadLod1,
+  syncSchedulersOnMove,
+} from './atlasFieldShared';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -62,8 +61,6 @@ export type ParticlesAtlasFieldAPI = {
   updateConfig: (config: Partial<CustomizableParticleConfig>) => void;
   updatePalette: (patch: PalettePatch) => void;
   onMapMove: (bounds: mapboxgl.LngLatBounds, zoom: number) => void;
-  /** Set the LOD crossfade blend value (0 = LOD1, 1 = LOD2). Called by LODController. */
-  setLodBlend: (value: number) => void;
   /** Stop the animation loop and release all GPU resources. Call from the layer's onRemove. */
   destroy: () => void;
 };
@@ -266,12 +263,7 @@ export function createParticlesAtlasField(
   }
 
   function updateMapBounds(bounds: mapboxgl.LngLatBounds) {
-    const nw = bounds.getNorthWest();
-    const se = bounds.getSouthEast();
-    const nwM = mapboxgl.MercatorCoordinate.fromLngLat(nw);
-    const seM = mapboxgl.MercatorCoordinate.fromLngLat(se);
-    // [nwX, seY, seX, nwY] — same layout as VectorField.js setBounds()
-    mapBounds = [nwM.x, seM.y, seM.x, nwM.y];
+    mapBounds = mercatorBoundsArray(bounds);
   }
 
   // ── Draw helpers ──────────────────────────────────────────────────────────
@@ -464,32 +456,21 @@ export function createParticlesAtlasField(
   ): Promise<void> {
     const gen = ++fetchGeneration;
     currentPalette = { ...currentPalette, legendRange };
-    const lodsSorted = Object.entries(manifest.lods)
-      .sort(([a], [b]) => Number(a) - Number(b))
-      .map(([, entry]) => entry);
 
+    const lodsSorted = sortManifestLods(manifest);
     const lod1 = lodsSorted[0]!;
 
-    const { lonMin, lonMax, latMin, latMax } = manifest.bounds;
     const { uRange, vRange } = manifest;
     if (!uRange || !vRange) throw new Error('Particle manifest missing uRange/vRange');
-    dataBounds = [lonMin, latMax, lonMax, latMin];
+    dataBounds = dataBoundsFromManifest(manifest.bounds);
     vectorMin = [uRange[0], vRange[0]];
     vectorMax = [uRange[1], vRange[1]];
-    uvScale = [lod1.chunkPx[0] / lod1.storedPx[0], lod1.chunkPx[1] / lod1.storedPx[1]];
-    uvOffset = [lod1.padding / lod1.storedPx[0], lod1.padding / lod1.storedPx[1]];
-
-    // Build flat LOD grids array for the shader uniform (padded to MAX_LODS=4 × 2 floats)
-    lodGridsFlat = new Float32Array(4 * 2);
-    lodsSorted.forEach(({ grid }, i) => {
-      lodGridsFlat![i * 2] = grid[0];
-      lodGridsFlat![i * 2 + 1] = grid[1];
-    });
+    ({ uvScale, uvOffset } = computeUvTransform(lod1));
+    lodGridsFlat = buildLodGridsFlat(lodsSorted);
 
     // Reset atlas and LOD state for new date
     atlas?.destroy();
     schedulers.forEach(s => s.destroy());
-    schedulers = [];
     lodController.destroy();
     lodController = createLODController();
 
@@ -498,24 +479,8 @@ export function createParticlesAtlasField(
       lods: lodsSorted.map(({ grid }) => ({ grid })),
     });
 
-    // Preload all LOD1 chunks in parallel
-    const [lod1Cols, lod1Rows] = lod1.grid;
-    const lod1Ids: string[] = [];
-    for (let cy = 0; cy < lod1Rows; cy++)
-      for (let cx = 0; cx < lod1Cols; cx++) lod1Ids.push(`1/${cx}/${cy}`);
-
-    await Promise.all(
-      lod1Ids.map(async id => {
-        const blob = await fetch(`${tileBaseUrl}/${id}.png`).then(r => r.blob());
-        const img = await createImageBitmap(blob, { premultiplyAlpha: 'none' });
-        if (gen !== fetchGeneration) return;
-        atlas!.upload(id, img);
-      }),
-    );
-
-    if (gen !== fetchGeneration) return;
-
-    // Compile shaders and set up GPU resources on first call
+    // Compile shaders and set up GPU resources on first call. Atlas dimensions
+    // are known immediately, so this needn't wait for the LOD1 fetch.
     if (!programInfo)
       initializeShaders(
         atlas.getTotalSlots(),
@@ -524,20 +489,22 @@ export function createParticlesAtlasField(
         atlas.getAtlasH(),
       );
 
-    // Create one scheduler per on-demand LOD (LODs 2..N)
-    for (let lodNum = 2; lodNum <= lodsSorted.length; lodNum++) {
-      const lodEntry = lodsSorted[lodNum - 1];
-      schedulers.push(
-        createChunkScheduler(
-          atlas,
-          tileBaseUrl,
-          onChunkLoaded,
-          { lonMin, lonMax, latMin, latMax, cols: lodEntry.grid[0], rows: lodEntry.grid[1] },
-          lodNum,
-          lodEntry.zoomThreshold,
-        ),
-      );
-    }
+    schedulers = createLodSchedulers({
+      atlas,
+      tileBaseUrl,
+      onChunkLoaded,
+      bounds: manifest.bounds,
+      lodsSorted,
+    });
+
+    // Fetch LOD1 progressively — resolves on the first uploaded tile; the
+    // animation loop (started by the caller) repaints as the rest stream in.
+    await preloadLod1({
+      tileBaseUrl,
+      lod1Ids: lod1ChunkIds(lod1),
+      atlas,
+      isStale: () => gen !== fetchGeneration,
+    });
   }
 
   function startAnimation() {
@@ -581,27 +548,7 @@ export function createParticlesAtlasField(
 
   function onMapMove(bounds: mapboxgl.LngLatBounds, zoom: number) {
     updateMapBounds(bounds);
-
-    // Reset blend if any scheduler has unloaded visible chunks (new area entered)
-    if (schedulers.some(s => !s.allVisibleLoaded())) {
-      lodController.reset();
-    }
-
-    const mapBoundsObj = {
-      west: bounds.getWest(),
-      east: bounds.getEast(),
-      south: bounds.getSouth(),
-      north: bounds.getNorth(),
-    };
-
-    for (const scheduler of schedulers) {
-      scheduler.update(mapBoundsObj, zoom);
-    }
-  }
-
-  function setLodBlend(value: number) {
-    lodController.reset();
-    if (value > 0) lodController.startBlendIn();
+    syncSchedulersOnMove({ bounds, zoom, schedulers, lodController });
   }
 
   function updatePalette(patch: PalettePatch) {
@@ -665,7 +612,6 @@ export function createParticlesAtlasField(
     updateConfig,
     updatePalette,
     onMapMove,
-    setLodBlend,
     destroy,
   };
 }

@@ -14,8 +14,12 @@
 import { createHeatmapAtlasField } from './HeatmapAtlasField';
 import type { HeatmapAtlasFieldAPI } from './HeatmapAtlasField';
 import type { ProductManifest, ColorPalette, PalettePatch } from '../types';
+import { throttle } from '../utils';
 
 export type { ColorPalette, PalettePatch };
+
+/** Mapbox fires `zoom` every frame of a zoom animation — cap onMapMove frequency. */
+const ZOOM_THROTTLE_MS = 100;
 
 export type HeatmapAtlasLayerInterface = mapboxgl.CustomLayerInterface & {
   visible: boolean;
@@ -51,7 +55,7 @@ export function heatmapAtlasLayer(id: string, palette: ColorPalette): HeatmapAtl
         }
       };
       onMoveEnd = forward;
-      onZoom = forward;
+      onZoom = throttle(forward, ZOOM_THROTTLE_MS);
       map.on('moveend', onMoveEnd);
       map.on('zoom', onZoom);
     },
