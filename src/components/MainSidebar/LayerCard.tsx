@@ -36,6 +36,7 @@ export function LayerCard({
   const productLegend = useMapUIStore(s =>
     !isWaveBuoyProduct ? s.productLegends[product as TilesProduct] : null,
   );
+
   const colorKey = productLegend?.colorKey ?? 'RdBu_r';
   const legendScale = productLegend?.scale ?? 'linear';
 

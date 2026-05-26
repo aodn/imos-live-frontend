@@ -70,7 +70,7 @@ export const featuredDataset: LayersDataset[] = [
       src: sstImage,
       alt: 'Marine heatwave SSTA Mosaic',
     },
-    title: 'Marine heatwave sea surface temperature anomaly',
+    title: 'Marine heatwave sea surface temperature anomaly (SSTA) mosaic',
     icon: <ThermometerIcon size="lg" />,
     description:
       'Sea Surface Temperature Anomaly (SSTA) mosaic for the Australasian region, showing deviations from the long-term mean to identify marine heatwave conditions.',
@@ -87,7 +87,7 @@ export const featuredDataset: LayersDataset[] = [
       src: sstImage,
       alt: 'Marine heatwave SST Mosaic',
     },
-    title: 'Marine heatwave sea surface temperature anomaly',
+    title: 'Marine heatwave sea surface temperature (SST) Mosaic',
     icon: <ThermometerIcon size="lg" />,
     description:
       'Sea Surface Temperature Anomaly (SSTA) mosaic for the Australasian region, showing deviations from the long-term mean to identify marine heatwave conditions.',

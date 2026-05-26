@@ -87,7 +87,6 @@ export const PRODUCTLEGENDS = {
     range: [0.01, MAX_VECTOR_SPEED],
     scale: 'log',
   },
-
   [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: {
     scales: [-1.2, -0.6, 0, 0.6, 1.2],
     label: 'sea level anomaly (m)',
@@ -103,9 +102,9 @@ export const PRODUCTLEGENDS = {
     scale: 'linear',
   },
   [PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC]: {
-    scales: [-4, -2, 0, 2, 4],
+    scales: [0, 10, 20, 30, 40, 50],
     label: 'degrees Celsius (°C)',
-    range: [-4, 4],
+    range: [0, 50],
     colorKey: 'RdBu_r' as ColorOptionKey,
     scale: 'linear',
   },
