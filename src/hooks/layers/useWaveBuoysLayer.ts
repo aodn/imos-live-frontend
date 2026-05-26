@@ -1,4 +1,4 @@
-import { getWaveBuoyLocations } from '@/api';
+import { getLatestWaveBuoySites, getWaveBuoySitesByDate } from '@/api';
 import {
   UNCLUSTERED_WAVE_BUOYS_LAYER_CONFIG,
   WAVE_BUOY_CLUSTER_LABEL_LAYER_CONFIG,
@@ -7,10 +7,11 @@ import {
 import type { BuoyLayer, BuoySource, ProductType } from '@/constants';
 import {
   PRODUCT,
+  PRODUCTS,
   UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
   WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID,
 } from '@/constants';
-import { addLayerInOrder, addOrUpdateGeoJsonSource } from '@/helpers';
+import { addLayerInOrder, addOrUpdateGeoJsonSource, mergeAndFilterBuoyFeatures } from '@/helpers';
 import { circleLayer, symbolLayer } from '@/layers';
 import { useMapUIStore, setProductErrorByProduct } from '@/store';
 import { useQuery } from '@tanstack/react-query';
@@ -19,15 +20,20 @@ import { useShallow } from 'zustand/shallow';
 import { useDidMountEffect } from '../useDidMountEffect';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
+import allWaveBuoySitesBackup from '@/assets/wave_buoy_all_sites.json';
+import { normalizeWaveBuoyDates } from '@/utils';
+import type { WaveBuoyPositionFeatureCollection } from '@/types';
 
 type UseWaveBuoysLayer = {
   map: React.RefObject<mapboxgl.Map | null>;
-  layerId: BuoyLayer;
-  sourceId: BuoySource;
   product: ProductType;
 };
 
-export function useWaveBuoysLayer({ map, layerId, sourceId, product }: UseWaveBuoysLayer) {
+export function useWaveBuoysLayer({ map, product }: UseWaveBuoysLayer) {
+  const { layerId, sourceId } = PRODUCTS[product] as {
+    layerId: BuoyLayer;
+    sourceId: BuoySource;
+  };
   const { enabled, date, isError } = useMapUIStore(
     useShallow(s => ({
       enabled: s.productEnabled[product],
@@ -36,10 +42,22 @@ export function useWaveBuoysLayer({ map, layerId, sourceId, product }: UseWaveBu
     })),
   );
 
-  const buoyQuery = useQuery({
-    queryKey: ['wave_buoy_locations', date],
-    queryFn: () => getWaveBuoyLocations(date),
+  const buoySiteQuery = useQuery({
+    queryKey: ['wave_buoy_sites_by_date', date],
+    queryFn: () => getWaveBuoySitesByDate(date),
     enabled: enabled && !!date,
+  });
+
+  const allWaveBuoySitesQuery = useQuery({
+    queryKey: ['wave_buoy_sites_all'],
+    queryFn: async (): Promise<WaveBuoyPositionFeatureCollection> => {
+      try {
+        return await getLatestWaveBuoySites();
+      } catch {
+        return normalizeWaveBuoyDates(allWaveBuoySitesBackup as WaveBuoyPositionFeatureCollection);
+      }
+    },
+    enabled: enabled,
   });
 
   const waveBuoysLayer = useMemo(
@@ -85,31 +103,50 @@ export function useWaveBuoysLayer({ map, layerId, sourceId, product }: UseWaveBu
 
   const setDataByDataset = useCallback(async () => {
     setProductErrorByProduct(PRODUCT.WAVE_BUOYS, false);
-    // when error thrown no break code but set fallback to data.
-    // this can fix the bug that when sylte change, or switch from
-    // date no data to date owning data buouys displaying or hiding unexpectedly.
-    const data = await buoyQuery.promise.catch(() => {
+    // when error thrown no break code but set fallback to empty collection.
+    // this can fix the bug that when style changes, or switching from
+    // date no data to date owning data buoys displaying or hiding unexpectedly.
+    const buoySitesPromise = buoySiteQuery.promise.catch(() => {
       setProductErrorByProduct(PRODUCT.WAVE_BUOYS, true);
       return {
-        type: 'FeatureCollection',
+        type: 'FeatureCollection' as const,
         features: [],
-      } as GeoJSON.FeatureCollection;
+      };
     });
+
+    const [allBuoySites, buoySites] = await Promise.all([
+      allWaveBuoySitesQuery.promise,
+      buoySitesPromise,
+    ]);
 
     addOrUpdateGeoJsonSource({
       map: map.current!,
       id: sourceId,
-      data,
+      data: {
+        ...allBuoySites,
+        features: mergeAndFilterBuoyFeatures(allBuoySites, buoySites, date),
+      },
       enableCluser: true,
       clusterRadius: 40,
     });
-  }, [buoyQuery.promise, map, sourceId]);
+  }, [allWaveBuoySitesQuery.promise, buoySiteQuery.promise, date, map, sourceId]);
 
   const setupLayer = useCallback(async () => {
     if (buoyLayers.some(layer => !layer)) return;
-    await setDataByDataset();
+    // Always add layers immediately with an empty source so the layer is registered on the
+    // map without blocking on API responses. Data is filled in asynchronously by setDataByDataset.
+    addOrUpdateGeoJsonSource({
+      map: map.current!,
+      id: sourceId,
+      data: { type: 'FeatureCollection', features: [] },
+      enableCluser: true,
+      clusterRadius: 40,
+    });
     buoyLayers.forEach(layer => addLayerInOrder(map, layer));
-  }, [buoyLayers, map, setDataByDataset]);
+    if (enabled) {
+      setDataByDataset();
+    }
+  }, [buoyLayers, enabled, map, setDataByDataset, sourceId]);
 
   const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [setupLayer]);
 
@@ -121,7 +158,7 @@ export function useWaveBuoysLayer({ map, layerId, sourceId, product }: UseWaveBu
   );
 
   useDidMountEffect(() => {
-    if (!map.current || !loadComplete) return;
+    if (!map.current || !loadComplete || !enabled) return;
     setDataByDataset();
-  }, [loadComplete, date]);
+  }, [loadComplete, date, enabled]);
 }

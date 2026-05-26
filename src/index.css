@@ -101,6 +101,11 @@ body {
   }
 }
 
+/* Reposition Mapbox logo top-right of the map */
+.mapboxgl-ctrl-bottom-right {
+  top: 4px !important;
+}
+
 .custom-popup .mapboxgl-popup-content {
   @apply p-0 bg-transparent shadow-none;
 }

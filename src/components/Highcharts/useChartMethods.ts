@@ -1,7 +1,7 @@
 import type HighchartsReact from 'highcharts-react-official';
 import { useCallback } from 'react';
 import type { DataPoint, SeriesData, ThemeConfig, AnimationConfig } from './type';
-import { DEFAULT_THEME, processSeries, exportFallbacks } from './utils';
+import { DEFAULT_THEME, processSeries } from './utils';
 
 export const useChartMethods = (
   chartRef: React.RefObject<HighchartsReact.RefObject | null>,
@@ -158,18 +158,6 @@ export const useChartMethods = (
     [chartRef],
   );
 
-  const exportChart = useCallback(
-    (format: 'png' | 'jpeg' | 'pdf' | 'svg', filename = 'chart') => {
-      const chart = chartRef.current?.chart;
-      if (!chart) return;
-
-      if (format === 'svg' || format === 'png' || format === 'jpeg' || format === 'pdf') {
-        exportFallbacks[format](chart, filename);
-      }
-    },
-    [chartRef],
-  );
-
   const updateSize = useCallback(
     (newWidth?: number, newHeight?: number) => {
       const chart = chartRef.current?.chart;
@@ -251,7 +239,6 @@ export const useChartMethods = (
     removeSeries,
     showSeries,
     hideSeries,
-    exportChart,
     updateSize,
     getChartInstance,
     redraw,

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { LogColorScaleBar } from './LogColorScaleBar';
-import { particles } from '@/config';
+import speedColors from '@/config/speed_colormap.json' with { type: 'json' };
 
 const meta = {
   title: 'Components/ColorScaleBar/logarthmic',
@@ -26,6 +26,6 @@ export const Default: Story = {
     max: 7,
     className: 'w-120',
     height: 12,
-    colors: particles.colors as [number, number, number][],
+    colors: speedColors as [number, number, number][],
   },
 };

@@ -560,10 +560,6 @@ export const InteractiveControls: Story = {
   render: args => {
     const chartRef = useRef<any>(null);
 
-    const handleExport = (format: 'png' | 'jpeg' | 'pdf' | 'svg') => {
-      chartRef.current?.exportChart(format, 'my-chart');
-    };
-
     const handleAddSeries = () => {
       chartRef.current?.addSeries({
         name: `Series ${Date.now()}`,
@@ -581,18 +577,6 @@ export const InteractiveControls: Story = {
     return (
       <div>
         <div style={{ marginBottom: '20px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-          <button
-            onClick={() => handleExport('png')}
-            style={{ padding: '8px 16px', border: '1px solid #ccc', borderRadius: '4px' }}
-          >
-            Export PNG
-          </button>
-          <button
-            onClick={() => handleExport('svg')}
-            style={{ padding: '8px 16px', border: '1px solid #ccc', borderRadius: '4px' }}
-          >
-            Export SVG
-          </button>
           <button
             onClick={handleAddSeries}
             style={{ padding: '8px 16px', border: '1px solid #ccc', borderRadius: '4px' }}

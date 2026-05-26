@@ -46,9 +46,11 @@ export type TooltipConfig = Highcharts.TooltipOptions & {
 
 type ExportConfig = {
   enabled?: boolean;
-  filename?: string;
-  formats?: ('png' | 'jpeg' | 'pdf' | 'svg')[];
+  filename?: string | (() => string);
+  formats?: ('png' | 'jpeg' | 'pdf' | 'svg' | 'csv' | 'xls')[];
   buttons?: Highcharts.ExportingButtonsOptions;
+  watermarkUrl?: string;
+  selectedDate?: string;
 };
 
 // NEW: Range Selector Type Interfaces
@@ -150,7 +152,6 @@ type LineChartExposedMethods = {
   resetZoom: () => void;
 
   // Chart utilities
-  exportChart: (format: 'png' | 'jpeg' | 'pdf' | 'svg', filename?: string) => void;
   updateSize: (width?: number, height?: number) => void;
   getChartInstance: () => Highcharts.Chart | null;
   getChartOptions: () => Highcharts.Options;

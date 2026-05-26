@@ -22,8 +22,9 @@ export function useWaveBuoysUnclusteredClick(
       if (!e.features?.length) return;
 
       const feature = e.features[0];
-      const featureId = feature.properties?._id;
+      if (feature.properties?.hasDataForDate === false) return;
 
+      const featureId = feature.properties?._id;
       if (featureId !== undefined) {
         selectFeature(featureId);
       }

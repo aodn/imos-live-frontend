@@ -1,7 +1,7 @@
 import type { BuoyDataVariants } from '@/types';
 
 export const colors = [
-  '#e17055',
+  '#3b6e8f',
   '#0984e3',
   '#00b894',
   '#6c5ce7',
@@ -25,6 +25,6 @@ export const VariantReadableName = {
 };
 
 export const directionColors = {
-  direction: '#FF5722',
-  speed: '#2196F3',
+  direction: '#3b6e8f',
+  speed: '#3b6e8f',
 };

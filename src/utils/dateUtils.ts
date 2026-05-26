@@ -9,8 +9,28 @@ dayjs.extend(utc);
  * In frontend, we display dates in local time to users, but the wave buoy API expects dates in UTC with nanosecond precision.
  * We need to convert local dates to UTC and add the time component to ensure we are querying the correct date range.
  */
-export function toWaveBuoyApiDate(date: string | Date): string {
-  return dayjs(date).utc().format('YYYY-MM-DDTHH:mm:ss.000000000[Z]');
+export function localToUTC(
+  date: string | Date,
+  format = 'YYYY-MM-DDTHH:mm:ss.000000000[Z]',
+): string {
+  return dayjs(date).utc().format(format);
+}
+
+// Convert UTC to local date time
+// dayjs(date).utc() vs dayjs.utc(date)
+// dayjs(date).utc() convernt localdatetime to utc.
+// dayjs.utc(date) convert utc to utc, becasue it expected date is utc.
+export function utcToLocalDateTime(
+  input: number | string | Date,
+  format = 'YYYY-MM-DD HH:mm:ss',
+): string {
+  const date = dayjs.utc(input);
+
+  if (!date.isValid()) {
+    throw new Error(`Invalid UTC date: ${input}`);
+  }
+
+  return date.local().format(format);
 }
 
 export function getLastDates<const T extends number>(length: T) {
@@ -62,25 +82,6 @@ export const getLast10Dates = getLastDates(10);
 
 export const getLast31Dates = getLastDates(31);
 
-/**
- * Converts a UTC date string to local time string
- * @param input
- * @param locales
- * @param options
- * @returns LocaleDateString
- */
-export function toLocalDateTime(
-  input: number | string | Date,
-  locales?: Intl.LocalesArgument,
-  options?: Intl.DateTimeFormatOptions,
-): string {
-  const date = new Date(input);
-  if (isNaN(date.getTime())) {
-    throw new Error(`Invalid UTC date: ${input}`);
-  }
-  return date.toLocaleString(locales, options);
-}
-
 export function getDate3DaysAgo() {
   const today = new Date();
   const resultDate = new Date(today);
@@ -99,35 +100,17 @@ export function isSameDay(date1: Date, date2: Date) {
   );
 }
 
-/**
- * Convert UTC date to ISO date string (YYYY-MM-DD)
- *
- * Useful for API calls and storage that expect date strings.
- * Uses UTC date components to avoid timezone issues.
- *
- * @param date - UTC date
- * @returns ISO date string
- *
- * @example
- * toISODateString(new Date("2024-01-15T14:30:00Z"))
- * // → "2024-01-15"
- */
-export function toISODateString(date: Date): string {
-  const year = date.getUTCFullYear();
-  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-  const day = String(date.getUTCDate()).padStart(2, '0');
-
-  return `${year}-${month}-${day}`;
-}
-
-/** Convert a UTC date to a local date string (YYYY-MM-DD) — use this instead of toISODateString when you need the date in the user's timezone */
-export function toLocalDateString(date: string | Date): string {
-  return dayjs.utc(date).local().format('YYYY-MM-DD');
-}
-
 /** Convert compact date string (yyyymmdd) to ISO format (yyyy-mm-dd) */
 export function toISOFromCompact(date: string): string {
   return `${date.slice(0, 4)}-${date.slice(4, 6)}-${date.slice(6, 8)}`;
+}
+
+/** Convert ISO format (yyyy-mm-dd) to compact date string (yyyymmdd)*/
+export function toCompactDate(date: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return;
+  }
+  return date.replace(/-/g, '');
 }
 
 /** Extract the latest fulfilled date from Promise.allSettled results */
@@ -139,10 +122,31 @@ export function getLatestFulfilledDate(results: PromiseSettledResult<string | nu
     .at(-1);
 }
 
-/** Convert ISO format (yyyy-mm-dd) to compact date string (yyyymmdd)*/
-export function toCompactDate(date: string) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    return;
+export const today = () => dayjs().format('YYYYMMDD');
+const FORMATS = [
+  'YYYY-MM-DD',
+  'YYYY/MM/DD',
+  'DD-MM-YYYY',
+  'DD/MM/YYYY',
+  'YYYY-MM-DDTHH:mm:ssZ',
+  'YYYY-MM-DDTHH:mm:ss',
+];
+
+// dayjs(input) always convert input to local datetime, no matter what input is, even 'Z' existing in input will also be ignored.
+function normalizeToLocalStarting(date: string | Date) {
+  if (!date) {
+    return dayjs().startOf('day');
   }
-  return date.replace(/-/g, '');
+  if (date instanceof Date) {
+    return dayjs(date).startOf('day');
+  }
+  return dayjs(date, FORMATS).startOf('day');
+}
+
+/**
+ * Checks if a is more than N days before b (default 30)
+ */
+export function isBeforeDays(a: string | Date, b: string | Date, days = 30): boolean {
+  const diff = normalizeToLocalStarting(b).diff(normalizeToLocalStarting(a), 'day');
+  return diff >= 0 && diff <= days;
 }

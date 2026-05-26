@@ -1,11 +1,16 @@
-import imosLogo from '@/assets/imos_logo_with_title.png';
+import type { ReactNode } from 'react';
+import { createElement } from 'react';
+import { createRoot } from 'react-dom/client';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { snapdom } from '@zumer/snapdom';
 import { type ProductName } from '@/constants';
+import { queryClient } from '@/config/reactQueryConfig';
+import { ExportPanel, MapScaleBar } from '@/components';
+import { doubleRAF } from '@/utils';
 
-type ExportProduct = {
+export type ExportProduct = {
   name: ProductName;
-  colors?: string[];
-  scales?: number[];
-  label?: string;
+  legend?: ReactNode;
 };
 
 export type MapBounds = {
@@ -15,49 +20,12 @@ export type MapBounds = {
   north: number;
 };
 
-const IMOS_LIVE_URLS: Record<string, string> = {
-  edge: 'https://imoslive.edge.aodn.org.au',
-  production: 'https://imoslive-beta.aodn.org.au',
-};
 /** Below this CSS width the compact theme is applied for a better fit. */
 const COMPACT_BREAKPOINT_PX = 800;
 
-// Themes — all layout-sensitive constants live here so narrow maps can scale.
-type ExportTheme = {
-  // Canvas
+type CanvasTheme = {
   canvasBg: string;
-  // Info panel
   panelPadding: number;
-  panelInner: number;
-  panelGap: number;
-  panelRadius: number;
-  panelBlurPx: number;
-  panelFillColor: string; // supports rgba
-  panelBorderColor: string; // supports rgba
-  // Title
-  titleLineH: number;
-  titleFontSize: number;
-  titleColor: string;
-  // Date
-  subLineH: number;
-  subFontSize: number;
-  dateColor: string;
-  // URL
-  urlFontSize: number;
-  urlColor: string;
-  // Product name
-  productNameFontSize: number;
-  productNameColor: string;
-  // Legend / scales
-  legendMaxW: number;
-  scalesLabelFontSize: number;
-  scalesH: number;
-  scalesColor: string;
-  // Legend label
-  labelH: number;
-  legendLabelColor: string;
-  // Coordinate frame
-  // framePadL/R must fit: tickLen + frameFontSize + ~20 px of margin
   framePadL: number;
   framePadR: number;
   framePadT: number;
@@ -65,57 +33,15 @@ type ExportTheme = {
   tickLen: number;
   frameFontSize: number;
   minTickLabelGapPx: number;
-  frameColor: string; // border + tick labels
-  // Scale bar
-  scaleBarFontSize: number;
-  scaleBarH: number;
-  scaleBarTargetPx: number; // target bar pixel width (independent of map size)
-  scaleBarSegments: number; // number of intervals (1 = just 0 and X km; 2 = also midpoint)
+  frameColor: string;
+  scaleBarTargetPx: number;
   scaleMarginRight: number;
   scaleMarginBottom: number;
-  scaleBarColor: string;
-  // North arrow
-  arrowHalfW: number;
-  arrowUpperH: number;
-  arrowLowerH: number;
-  barToArrowGap: number;
-  arrowColor: string;
 };
 
-const NORMAL_THEME: ExportTheme = {
-  // Canvas
+const NORMAL_THEME: CanvasTheme = {
   canvasBg: '#ffffff',
-  // Info panel
   panelPadding: 20,
-  panelInner: 16,
-  panelGap: 16,
-  panelRadius: 10,
-  panelBlurPx: 16,
-  panelFillColor: 'rgba(255, 255, 255, 0.7)',
-  panelBorderColor: 'rgba(255, 255, 255, 0.5)',
-  // Title
-  titleLineH: 24,
-  titleFontSize: 18,
-  titleColor: '#1a2a3a',
-  // Date
-  subLineH: 18,
-  subFontSize: 13,
-  dateColor: '#3b5068',
-  // URL
-  urlFontSize: 12,
-  urlColor: '#6b8a9e',
-  // Product name
-  productNameFontSize: 14,
-  productNameColor: '#1a2a3a',
-  // Legend / scales
-  legendMaxW: 200,
-  scalesLabelFontSize: 10,
-  scalesH: 14,
-  scalesColor: '#3b5068',
-  // Legend label
-  labelH: 14,
-  legendLabelColor: '#6b8a9e',
-  // Coordinate frame
   framePadL: 50,
   framePadR: 50,
   framePadT: 30,
@@ -124,56 +50,14 @@ const NORMAL_THEME: ExportTheme = {
   frameFontSize: 12,
   minTickLabelGapPx: 60,
   frameColor: '#1a2a3a',
-  // Scale bar
-  scaleBarFontSize: 14,
-  scaleBarH: 8,
   scaleBarTargetPx: 150,
-  scaleBarSegments: 2,
   scaleMarginRight: 15,
   scaleMarginBottom: 20,
-  scaleBarColor: '#1a2a3a',
-  // North arrow
-  arrowHalfW: 14,
-  arrowUpperH: 26,
-  arrowLowerH: 12,
-  barToArrowGap: 42,
-  arrowColor: '#333333',
 };
 
-const COMPACT_THEME: ExportTheme = {
-  // Canvas
+const COMPACT_THEME: CanvasTheme = {
   canvasBg: '#ffffff',
-  // Info panel
   panelPadding: 12,
-  panelInner: 10,
-  panelGap: 10,
-  panelRadius: 8,
-  panelBlurPx: 16,
-  panelFillColor: 'rgba(255, 255, 255, 0.7)',
-  panelBorderColor: 'rgba(255, 255, 255, 0.5)',
-  // Title
-  titleLineH: 18,
-  titleFontSize: 13,
-  titleColor: '#1a2a3a',
-  // Date
-  subLineH: 14,
-  subFontSize: 10,
-  dateColor: '#3b5068',
-  // URL
-  urlFontSize: 10,
-  urlColor: '#6b8a9e',
-  // Product name
-  productNameFontSize: 11,
-  productNameColor: '#1a2a3a',
-  // Legend / scales
-  legendMaxW: 130,
-  scalesLabelFontSize: 8,
-  scalesH: 10,
-  scalesColor: '#3b5068',
-  // Legend label
-  labelH: 10,
-  legendLabelColor: '#6b8a9e',
-  // Coordinate frame
   framePadL: 36,
   framePadR: 36,
   framePadT: 22,
@@ -182,36 +66,17 @@ const COMPACT_THEME: ExportTheme = {
   frameFontSize: 10,
   minTickLabelGapPx: 45,
   frameColor: '#1a2a3a',
-  // Scale bar
-  scaleBarFontSize: 11,
-  scaleBarH: 6,
   scaleBarTargetPx: 100,
-  scaleBarSegments: 1,
   scaleMarginRight: 10,
   scaleMarginBottom: 12,
-  scaleBarColor: '#1a2a3a',
-  // North arrow
-  arrowHalfW: 10,
-  arrowUpperH: 18,
-  arrowLowerH: 8,
-  barToArrowGap: 28,
-  arrowColor: '#333333',
 };
 
-// Fixed constants (not theme-dependent)
+// Fixed constants
 const EARTH_RADIUS_KM = 6371;
 const MAX_TICKS_PER_AXIS = 5;
 const MAX_GRATICULE_TICKS = 1000;
 
 // Utilities
-/** Loads an image from a URL, rejecting if it fails. */
-const loadImage = (src: string): Promise<HTMLImageElement> =>
-  new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = reject;
-    img.src = src;
-  });
 
 /** Triggers a PNG download of the given canvas. */
 const downloadCanvasAsImage = (canvas: HTMLCanvasElement) => {
@@ -227,18 +92,15 @@ const mercatorY = (lat: number): number => {
   return Math.log(Math.tan(Math.PI / 4 + latRad / 2));
 };
 
-/** Maps a latitude to a canvas Y pixel using Mercator projection. */
 const latToPixel = (lat: number, southMerc: number, northMerc: number, mapH: number): number => {
   const latMerc = mercatorY(lat);
   return mapH * (1 - (latMerc - southMerc) / (northMerc - southMerc));
 };
 
-/** Maps a longitude to a canvas X pixel (linear, no projection needed). */
 const lonToPixel = (lon: number, west: number, east: number, mapW: number): number =>
   (mapW * (lon - west)) / (east - west);
 
-/** Returns a human-friendly graticule interval (degrees) that fits within the available pixels. */
-const niceGraticuleInterval = (span: number, availablePx: number, t: ExportTheme): number => {
+const niceGraticuleInterval = (span: number, availablePx: number, t: CanvasTheme): number => {
   const maxTicks = Math.min(
     MAX_TICKS_PER_AXIS,
     Math.max(2, Math.floor(availablePx / t.minTickLabelGapPx)),
@@ -248,15 +110,12 @@ const niceGraticuleInterval = (span: number, availablePx: number, t: ExportTheme
   return candidates.find(c => c >= rough) ?? 90;
 };
 
-/** Formats a coordinate value, omitting the decimal if it's a whole number. */
 const formatCoord = (val: number): string => {
   const r = Math.round(val * 10) / 10;
   return Number.isInteger(r) ? String(r) : r.toFixed(1);
 };
 
-/** Returns the largest human-friendly km value that fits within maxKm. */
 const niceScaleKm = (maxKm: number): number => {
-  // Sub-km candidates handle very small maps or highly zoomed-in views.
   const candidates = [0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100, 200, 250, 500, 1000, 2000, 5000];
   let result = candidates[0];
   for (const k of candidates) {
@@ -266,197 +125,185 @@ const niceScaleKm = (maxKm: number): number => {
   return result;
 };
 
+/** Waits for the export logo to load, then pins its rendered width+height as inline styles.
+ *  Prevents snapdom from misresolving `w-auto` and `h-[*]` Tailwind classes. */
+export function pinExportLogoImg(el: HTMLElement): void {
+  const logoImg = el.querySelector<HTMLImageElement>('[data-export-logo]');
+  if (logoImg && logoImg.offsetWidth > 0) {
+    logoImg.style.width = `${logoImg.offsetWidth}px`;
+    logoImg.style.height = `${logoImg.offsetHeight}px`;
+  }
+}
+
+export const canvasRootGenerator = () => {
+  const container = document.createElement('div');
+  container.style.cssText =
+    'position:fixed;left:-9999px;top:-9999px;z-index:-1;pointer-events:none;';
+  document.body.appendChild(container);
+  return { root: createRoot(container), container };
+};
+
 // Drawing functions
 
-/** Draws a frosted-glass rounded rectangle by blurring and tinting the underlying map. */
-const drawFrostedBackground = (
-  ctx: CanvasRenderingContext2D,
-  mapCanvas: HTMLCanvasElement,
-  mapOffsetX: number,
-  mapOffsetY: number,
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-  t: ExportTheme,
-) => {
-  ctx.save();
-  ctx.beginPath();
-  ctx.roundRect(x, y, w, h, t.panelRadius);
-  ctx.clip();
-  ctx.filter = `blur(${t.panelBlurPx}px)`;
-  ctx.drawImage(mapCanvas, mapOffsetX, mapOffsetY);
-  ctx.filter = 'none';
-  ctx.fillStyle = t.panelFillColor;
-  ctx.fill();
-  ctx.restore();
-
-  ctx.save();
-  ctx.beginPath();
-  ctx.roundRect(x, y, w, h, t.panelRadius);
-  ctx.strokeStyle = t.panelBorderColor;
-  ctx.lineWidth = 1;
-  ctx.stroke();
-  ctx.restore();
-};
-
-/** Draws the title, date, and URL text in the info panel. */
-const drawInfoColumn = (
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  date: string,
-  t: ExportTheme,
-) => {
-  ctx.font = `bold ${t.titleFontSize}px sans-serif`;
-  ctx.fillStyle = t.titleColor;
-  ctx.fillText('IMOS Live', x, y + t.titleLineH - 4);
-
-  ctx.font = `${t.subFontSize}px sans-serif`;
-  ctx.fillStyle = t.dateColor;
-  ctx.fillText(date, x, y + t.titleLineH + t.subLineH - 4);
-
-  ctx.font = `${t.urlFontSize}px sans-serif`;
-  ctx.fillStyle = t.urlColor;
-  // ctx.fillText('https://imoslive.edge.aodn.org.au', x, y + t.titleLineH + t.subLineH * 2 - 4);
-  ctx.fillText(
-    IMOS_LIVE_URLS[import.meta.env.MODE] || 'https://imoslive.aodn.org.au',
-    x,
-    y + t.titleLineH + t.subLineH * 2 - 4,
-  );
-};
-
-/** Draws the product name, legend image, scale values, and label in the info panel. */
-const drawProductColumn = (
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  product: ExportProduct,
-  legend: HTMLCanvasElement | null,
-  legendWidth: number,
-  legendHeight: number,
-  t: ExportTheme,
-) => {
-  ctx.font = `bold ${t.productNameFontSize}px sans-serif`;
-  ctx.fillStyle = t.productNameColor;
-  ctx.fillText(product.name, x, y + t.subLineH - 4);
-
-  if (!legend) return;
-
-  const legendY = y + t.subLineH + 4;
-  ctx.drawImage(legend, x, legendY, legendWidth, legendHeight);
-  let cursorY = legendY + legendHeight;
-
-  if (product.scales && product.scales.length > 0) {
-    cursorY += 4;
-    ctx.font = `${t.scalesLabelFontSize}px sans-serif`;
-    ctx.fillStyle = t.scalesColor;
-    ctx.textAlign = 'center';
-    const count = product.scales.length;
-    product.scales.forEach((scale, i) => {
-      const scaleX = count === 1 ? x + legendWidth / 2 : x + (i / (count - 1)) * legendWidth;
-      ctx.fillText(String(scale), scaleX, cursorY + t.scalesH - 2);
-    });
-    ctx.textAlign = 'start';
-    cursorY += t.scalesH;
-  }
-
-  if (product.label) {
-    cursorY += 4;
-    ctx.font = `${t.scalesLabelFontSize}px sans-serif`;
-    ctx.fillStyle = t.legendLabelColor;
-    ctx.textAlign = 'center';
-    ctx.fillText(product.label, x + legendWidth / 2, cursorY + t.labelH - 2);
-    ctx.textAlign = 'start';
-  }
-};
-
-/** Draws a simple north-pointing arrow. */
-const drawNorthArrow = (
-  ctx: CanvasRenderingContext2D,
-  cx: number,
-  tipY: number,
-  bottomY: number,
-  halfWidth: number,
-  t: ExportTheme,
-) => {
-  const notchY = bottomY - halfWidth * 1.1;
-
-  ctx.save();
-  ctx.strokeStyle = t.arrowColor;
-  ctx.lineWidth = 2.0;
-  ctx.beginPath();
-  ctx.moveTo(cx, tipY);
-  ctx.lineTo(cx + halfWidth, bottomY);
-  ctx.lineTo(cx, notchY);
-  ctx.lineTo(cx - halfWidth, bottomY);
-  ctx.closePath();
-  ctx.stroke();
-  ctx.restore();
-};
-
-/** Draws a horizontal scale bar and north arrow in the bottom-right of the map area. */
-const drawScaleBar = (
+const renderScaleIndicator = async (
   ctx: CanvasRenderingContext2D,
   bounds: MapBounds,
   mapX: number,
   mapY: number,
   mapW: number,
   mapH: number,
-  t: ExportTheme,
+  t: CanvasTheme,
+  compact: boolean,
 ) => {
-  const mb = t.scaleMarginBottom;
+  const dpr = window.devicePixelRatio || 1;
   const { west, east, south, north } = bounds;
   const centerLatRad = (((south + north) / 2) * Math.PI) / 180;
   const kmPerDegLon = (EARTH_RADIUS_KM * Math.PI * Math.cos(centerLatRad)) / 180;
   const pixelsPerKm = mapW / (kmPerDegLon * (east - west));
 
-  const arrowCX = mapX + mapW - t.scaleMarginRight - t.arrowHalfW;
-  const arrowBottomY = mapY + mapH - mb;
-  const arrowTipY = arrowBottomY - t.arrowLowerH - t.arrowUpperH;
+  const maxBarPhysPx = Math.max(0, mapW * 0.4 - t.scaleMarginRight);
+  const scaleKm = niceScaleKm(
+    Math.min(t.scaleBarTargetPx / pixelsPerKm, maxBarPhysPx / pixelsPerKm),
+  );
+  if (scaleKm <= 0) return;
 
-  // If the arrow tip would be above the map area there's no room — skip drawing.
-  if (arrowTipY < mapY) return;
+  const barWidthCss = (scaleKm * pixelsPerKm) / dpr;
 
-  const barRightX = arrowCX - t.arrowHalfW - t.barToArrowGap;
-  // Limit the bar so barX never goes left of the map edge.
-  const maxBarPx = Math.max(0, barRightX - mapX);
-  const scaleKm = niceScaleKm(Math.min(t.scaleBarTargetPx / pixelsPerKm, maxBarPx / pixelsPerKm));
-  const barWidth = scaleKm * pixelsPerKm;
-  const barX = barRightX - barWidth;
-  const barBottom = arrowBottomY;
-  const barTop = barBottom - t.scaleBarH;
+  const { root, container } = canvasRootGenerator();
 
-  ctx.save();
-  ctx.strokeStyle = t.scaleBarColor;
-  ctx.fillStyle = t.scaleBarColor;
-  ctx.lineWidth = 2.0;
+  root.render(createElement(MapScaleBar, { scaleKm, barWidthCss, compact }));
+  await doubleRAF();
 
-  ctx.beginPath();
-  ctx.moveTo(barX, barBottom);
-  ctx.lineTo(barRightX, barBottom);
-  ctx.stroke();
+  const el = container.firstElementChild as HTMLElement;
+  const physW = Math.round(el.offsetWidth * dpr);
+  const physH = Math.round(el.offsetHeight * dpr);
 
-  ctx.font = `${t.scaleBarFontSize}px sans-serif`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'bottom';
-  for (let i = 0; i <= t.scaleBarSegments; i++) {
-    const tx = barX + (i / t.scaleBarSegments) * barWidth;
-    const km = (i / t.scaleBarSegments) * scaleKm;
-    const label = i === t.scaleBarSegments ? `${Math.round(km)} km` : String(Math.round(km));
-    ctx.beginPath();
-    ctx.moveTo(tx, barTop);
-    ctx.lineTo(tx, barBottom);
-    ctx.stroke();
-    ctx.fillText(label, tx, barTop - 2);
+  const x = mapX + mapW - physW - t.scaleMarginRight;
+  const y = mapY + mapH - physH - t.scaleMarginBottom;
+
+  if (y < mapY) {
+    root.unmount();
+    container.remove();
+    return;
   }
 
-  drawNorthArrow(ctx, arrowCX, arrowTipY, arrowBottomY, t.arrowHalfW, t);
+  const snap = await snapdom(el, { embedFonts: false });
+  const scaleCanvas = await snap.toCanvas({ scale: dpr });
+  ctx.drawImage(scaleCanvas, x, y, physW, physH);
 
-  ctx.restore();
+  root.unmount();
+  container.remove();
 };
 
-/** Draws a border and lat/lon tick labels around the map area. */
+/**
+ * Pre-loads all cached raster legend URLs as browser images.
+ * This ensures img.complete = true when the component renders, so the browser
+ * fires onLoad as a queued task and React can flush isLoading=false before we snap.
+ */
+const prewarmLegendImages = (): Promise<void[]> =>
+  Promise.all(
+    queryClient
+      .getQueryCache()
+      .getAll()
+      .filter(q => Array.isArray(q.queryKey) && q.queryKey[0] === 'rasterLegendUrl')
+      .map(q => q.state.data as string | undefined)
+      .filter((url): url is string => Boolean(url))
+      .map(
+        url =>
+          new Promise<void>(resolve => {
+            const img = new Image();
+            img.onload = () => resolve();
+            img.onerror = () => resolve();
+            img.src = url;
+          }),
+      ),
+  );
+
+/** Renders MapExportPanel off-screen via React, captures it with snapdom, and draws it onto ctx. */
+const renderInfoPanel = async (
+  ctx: CanvasRenderingContext2D,
+  offscreenCanvas: HTMLCanvasElement,
+  mapX: number,
+  mapY: number,
+  mapH: number,
+  date: string,
+  product: ExportProduct | undefined,
+  compact: boolean,
+  panelPadding: number,
+) => {
+  const { root, container } = canvasRootGenerator();
+
+  const panelProps = {
+    date,
+    product: product ? { name: product.name, legend: product.legend } : undefined,
+    compact,
+  };
+
+  try {
+    const wrap = (extraProps?: { frostedBgSrc?: string }) =>
+      createElement(
+        QueryClientProvider,
+        { client: queryClient },
+        createElement(ExportPanel, { ...panelProps, ...extraProps }),
+      );
+
+    // Pre-warm cached legend images so img.complete=true when the component mounts.
+    // This causes the browser to queue an onLoad task, which React flushes within doubleRAF.
+    await prewarmLegendImages();
+
+    // First render to measure dimensions
+    root.render(wrap());
+    await doubleRAF(); // onLoad fires as queued task → React flushes isLoading=false
+    await doubleRAF(); // extra pass to ensure React re-render is committed
+
+    const el = container.firstElementChild as HTMLElement;
+    const cssW = el.offsetWidth;
+    const cssH = el.offsetHeight;
+    const dpr = window.devicePixelRatio || 1;
+    const physW = Math.round(cssW * dpr);
+    const physH = Math.round(cssH * dpr);
+
+    // Position: bottom-left of map area (physical canvas pixels)
+    const x = mapX + panelPadding;
+    const y = mapY + mapH - physH - panelPadding;
+
+    // Extract the canvas region behind the panel for the frosted-glass effect
+    const bgCanvas = document.createElement('canvas');
+    bgCanvas.width = physW;
+    bgCanvas.height = physH;
+    bgCanvas.getContext('2d')!.drawImage(offscreenCanvas, -x, -y);
+    const frostedBgSrc = bgCanvas.toDataURL();
+
+    // Re-render with frosted background
+    root.render(wrap({ frostedBgSrc }));
+    await doubleRAF();
+    await doubleRAF();
+
+    pinExportLogoImg(el);
+    const snap = await snapdom(el, { embedFonts: false });
+    const panelCanvas = await snap.toCanvas({ scale: dpr });
+
+    // snapdom loses color fidelity when serialising <img> elements.
+    // Find the raster legend img and redraw it directly so its pixels are exact.
+    const legendImg = el.querySelector('[data-export-legend] img') as HTMLImageElement | null;
+    if (legendImg?.complete && legendImg.naturalWidth > 0) {
+      const panelRect = el.getBoundingClientRect();
+      const imgRect = legendImg.getBoundingClientRect();
+      const lx = (imgRect.left - panelRect.left) * dpr;
+      const ly = (imgRect.top - panelRect.top) * dpr;
+      const lw = imgRect.width * dpr;
+      const lh = imgRect.height * dpr;
+      panelCanvas.getContext('2d')!.drawImage(legendImg, lx, ly, lw, lh);
+    }
+
+    ctx.drawImage(panelCanvas, x, y, physW, physH);
+  } finally {
+    root.unmount();
+    container.remove();
+  }
+};
+
+// Draw on cavas as it needs dynamic computation.
 const drawCoordinateFrame = (
   ctx: CanvasRenderingContext2D,
   bounds: MapBounds,
@@ -464,7 +311,7 @@ const drawCoordinateFrame = (
   mapY: number,
   mapW: number,
   mapH: number,
-  t: ExportTheme,
+  t: CanvasTheme,
 ) => {
   const { west, east, south, north } = bounds;
   const southMerc = mercatorY(south);
@@ -472,7 +319,6 @@ const drawCoordinateFrame = (
   const lonInterval = niceGraticuleInterval(east - west, mapW, t);
   const latInterval = niceGraticuleInterval(north - south, mapH, t);
 
-  // Border around the map
   ctx.save();
   ctx.strokeStyle = t.frameColor;
   ctx.lineWidth = 1.5;
@@ -485,7 +331,6 @@ const drawCoordinateFrame = (
   ctx.strokeStyle = t.frameColor;
   ctx.lineWidth = 1;
 
-  // Longitude ticks — top and bottom edges
   const firstLon = Math.ceil(west / lonInterval) * lonInterval;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
@@ -495,13 +340,11 @@ const drawCoordinateFrame = (
     if (lon > east + 1e-9) break;
     const px = mapX + lonToPixel(lon, west, east, mapW);
     const label = formatCoord(lon);
-
     ctx.beginPath();
     ctx.moveTo(px, mapY);
     ctx.lineTo(px, mapY - t.tickLen);
     ctx.stroke();
     ctx.fillText(label, px, mapY - t.tickLen - t.frameFontSize / 2 - 2);
-
     ctx.beginPath();
     ctx.moveTo(px, mapY + mapH);
     ctx.lineTo(px, mapY + mapH + t.tickLen);
@@ -509,7 +352,6 @@ const drawCoordinateFrame = (
     ctx.fillText(label, px, mapY + mapH + t.tickLen + t.frameFontSize / 2 + 2);
   }
 
-  // Latitude ticks — left and right edges
   const firstLat = Math.ceil(south / latInterval) * latInterval;
   ctx.textBaseline = 'middle';
   let latI = 0;
@@ -518,14 +360,12 @@ const drawCoordinateFrame = (
     if (lat > north + 1e-9) break;
     const py = mapY + latToPixel(lat, southMerc, northMerc, mapH);
     const label = formatCoord(lat);
-
     ctx.textAlign = 'right';
     ctx.beginPath();
     ctx.moveTo(mapX, py);
     ctx.lineTo(mapX - t.tickLen, py);
     ctx.stroke();
     ctx.fillText(label, mapX - t.tickLen - 4, py);
-
     ctx.textAlign = 'left';
     ctx.beginPath();
     ctx.moveTo(mapX + mapW, py);
@@ -537,83 +377,6 @@ const drawCoordinateFrame = (
   ctx.restore();
 };
 
-/** Measures text and computes pixel geometry for the frosted info panel. */
-const calculateInfoPanelLayout = ({
-  ctx,
-  mapAreaH,
-  logoAspect,
-  product,
-  legend,
-  t,
-}: {
-  ctx: CanvasRenderingContext2D;
-  mapAreaH: number;
-  logoAspect: number;
-  product: ExportProduct | undefined;
-  legend: HTMLCanvasElement | null;
-  t: ExportTheme;
-}) => {
-  const leftColHeight = t.titleLineH + t.subLineH * 2;
-  const logoWidth = logoAspect * leftColHeight;
-  const logoHeight = leftColHeight; // keep logo aspect ratio — do not stretch to contentHeight
-
-  ctx.font = `bold ${t.titleFontSize}px sans-serif`;
-  const titleWidth = ctx.measureText('IMOS Live').width;
-  ctx.font = `${t.subFontSize}px sans-serif`;
-  const dateWidth = ctx.measureText('9999-99-99').width;
-  ctx.font = `${t.urlFontSize}px sans-serif`;
-  const urlWidth = ctx.measureText(
-    IMOS_LIVE_URLS[import.meta.env.MODE] || 'https://imoslive.aodn.org.au',
-  ).width;
-  const leftColWidth = Math.max(titleWidth, dateWidth, urlWidth);
-
-  ctx.font = `bold ${t.productNameFontSize}px sans-serif`;
-  const productNameWidth = product ? ctx.measureText(product.name).width : 0;
-  const legendWidth = legend ? Math.min(t.legendMaxW, legend.width) : 0;
-  const legendHeight = legend ? legend.height * (legendWidth / legend.width) : 0;
-  const productColContentWidth = Math.max(productNameWidth, legendWidth);
-  const productColWidth = product ? t.panelGap + productColContentWidth : 0;
-
-  const legendExtra = legend
-    ? 8 + legendHeight + (product?.scales ? 4 + t.scalesH : 0) + (product?.label ? 4 + t.labelH : 0)
-    : 0;
-  const productColHeight = product ? t.subLineH + legendExtra : 0;
-  const contentHeight = Math.max(leftColHeight, productColHeight);
-
-  const bgWidth =
-    t.panelInner + logoWidth + t.panelGap + leftColWidth + productColWidth + t.panelInner;
-  const bgHeight = t.panelInner + contentHeight + t.panelInner;
-  const bgX = t.panelPadding;
-  const bgY = mapAreaH - bgHeight - t.panelPadding;
-
-  return {
-    logoWidth,
-    logoHeight,
-    leftColWidth,
-    legendWidth,
-    legendHeight,
-    bgX,
-    bgY,
-    bgWidth,
-    bgHeight,
-    contentX: bgX + t.panelInner,
-    contentY: bgY + t.panelInner,
-  };
-};
-
-/** Builds a horizontal gradient canvas from an array of CSS color strings. */
-const createLegendCanvas = (colors: string[]): HTMLCanvasElement => {
-  const canvas = document.createElement('canvas');
-  canvas.width = 256;
-  canvas.height = 12;
-  const ctx = canvas.getContext('2d')!;
-  const gradient = ctx.createLinearGradient(0, 0, 256, 0);
-  colors.forEach((color, i) => gradient.addColorStop(i / (colors.length - 1), color));
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, 256, 12);
-  return canvas;
-};
-
 /** Renders the map canvas to a PNG with coordinate frame, scale bar, and info panel, then downloads it. */
 export const exportMapImage = async (
   mapCanvas: HTMLCanvasElement,
@@ -623,7 +386,8 @@ export const exportMapImage = async (
 ) => {
   const mapW = mapCanvas.width;
   const mapH = mapCanvas.height;
-  const t = mapCanvas.clientWidth < COMPACT_BREAKPOINT_PX ? COMPACT_THEME : NORMAL_THEME;
+  const compact = mapCanvas.clientWidth < COMPACT_BREAKPOINT_PX;
+  const t = compact ? COMPACT_THEME : NORMAL_THEME;
 
   const padL = bounds ? t.framePadL : 0;
   const padR = bounds ? t.framePadR : 0;
@@ -640,49 +404,14 @@ export const exportMapImage = async (
     ctx.fillRect(0, 0, offscreen.width, offscreen.height);
   }
 
-  const legend: HTMLCanvasElement | null = product?.colors?.length
-    ? createLegendCanvas(product.colors)
-    : null;
-  const logo = await loadImage(imosLogo);
-  const layout = calculateInfoPanelLayout({
-    ctx,
-    mapAreaH: mapH,
-    logoAspect: logo.width / logo.height,
-    product,
-    legend,
-    t,
-  });
-
   ctx.drawImage(mapCanvas, padL, padT);
 
   if (bounds) {
     drawCoordinateFrame(ctx, bounds, padL, padT, mapW, mapH, t);
-    drawScaleBar(ctx, bounds, padL, padT, mapW, mapH, t);
+    await renderScaleIndicator(ctx, bounds, padL, padT, mapW, mapH, t, compact);
   }
 
-  const bgX = layout.bgX + padL;
-  const bgY = layout.bgY + padT;
-  const contentX = layout.contentX + padL;
-  const contentY = layout.contentY + padT;
-
-  drawFrostedBackground(ctx, mapCanvas, padL, padT, bgX, bgY, layout.bgWidth, layout.bgHeight, t);
-  ctx.drawImage(logo, contentX, contentY, layout.logoWidth, layout.logoHeight);
-
-  const textX = contentX + layout.logoWidth + t.panelGap;
-  drawInfoColumn(ctx, textX, contentY, date, t);
-
-  if (product) {
-    drawProductColumn(
-      ctx,
-      textX + layout.leftColWidth + t.panelGap,
-      contentY,
-      product,
-      legend,
-      layout.legendWidth,
-      layout.legendHeight,
-      t,
-    );
-  }
+  await renderInfoPanel(ctx, offscreen, padL, padT, mapH, date, product, compact, t.panelPadding);
 
   downloadCanvasAsImage(offscreen);
 };

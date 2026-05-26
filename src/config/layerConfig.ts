@@ -18,6 +18,7 @@ import type {
   LineLayerSpecification,
   SymbolLayerSpecification,
 } from 'mapbox-gl';
+import anomalySeaLevelColorMap from './anomaly_sea_level_colormap.json';
 
 export const WAVE_BUOYS_LAYER_CONFIG: Partial<CircleLayerSpecification> = {
   filter: ['has', 'point_count'], // Only show clustered points
@@ -49,8 +50,16 @@ export const UNCLUSTERED_WAVE_BUOYS_LAYER_CONFIG: Partial<CircleLayerSpecificati
     'circle-color': [
       'case',
       ['boolean', ['feature-state', 'selected'], false],
-      '#ffffff', // white center when selected
-      '#11b4da', // blue when not selected
+      '#ffffff', // selected: white fill
+      ['boolean', ['get', 'hasDataForDate'], true],
+      '#11b4da', // active: blue
+      '#aaaaaa', // inactive: gray
+    ],
+    'circle-opacity': [
+      'case',
+      ['boolean', ['get', 'hasDataForDate'], true],
+      1, // active: solid
+      1, // inactive: ghost — visible but clearly muted
     ],
     'circle-radius': [
       'case',
@@ -62,10 +71,17 @@ export const UNCLUSTERED_WAVE_BUOYS_LAYER_CONFIG: Partial<CircleLayerSpecificati
       'case',
       ['boolean', ['feature-state', 'selected'], false],
       3, // thicker stroke when selected
-      2, // normal stroke
+      ['boolean', ['get', 'hasDataForDate'], true],
+      2, // active: standard stroke
+      2, // inactive: hairline
     ],
-    'circle-stroke-color': '#000',
-    'circle-stroke-opacity': 1,
+    'circle-stroke-color': [
+      'case',
+      ['boolean', ['get', 'hasDataForDate'], true],
+      '#000000', // active: black
+      '#000000', // inactive: muted blue
+    ],
+    'circle-stroke-opacity': ['case', ['boolean', ['get', 'hasDataForDate'], true], 1, 1],
     // Add smooth transitions
     'circle-radius-transition': {
       duration: 200,
@@ -89,7 +105,12 @@ export const WAVE_BUOY_CLUSTER_LABEL_LAYER_CONFIG: Partial<SymbolLayerSpecificat
 
 export const ZOOM_LIMIT_TEMPPOINT_LAYER_PARTIAL: Partial<CircleLayerSpecification> = {
   paint: {
-    'circle-color': '#11b4da',
+    'circle-color': [
+      'case',
+      ['boolean', ['get', 'hasDataForDate'], true],
+      '#11b4da', // active: blue
+      '#aaaaaa', // inactive: gray
+    ],
     'circle-radius': 8,
     'circle-stroke-width': 1,
     'circle-stroke-color': '#fff',
@@ -154,3 +175,8 @@ export const LAYERS_ORDER = [
   MEASURE_LINES_LAYER_ID,
   MEASURE_POINTS_LAYER_ID,
 ] as const;
+
+export const gslaRasterImageColors = anomalySeaLevelColorMap as [number, number, number][];
+
+//this should be same in python script when generate the raster image
+export const gslaAnomalySeaLevelsRange = [-1.2, 1.2];

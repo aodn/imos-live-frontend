@@ -1,10 +1,17 @@
-import { getWaveBuoyDetails } from '@/api';
+import logoUrl from '@/assets/imos_logo_with_title.png';
+import { getWaveBuoyDetails, getWaveBuoyLatestDate } from '@/api';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import type { WaveBuoyPositionFeature } from '@/types';
-import { formatLatLngToDirectional, toLocalDateTime, toWaveBuoyChartData } from '@/utils';
+import {
+  formatLatLngToDirectional,
+  toCompactDate,
+  utcToLocalDateTime,
+  toWaveBuoyChartData,
+  today,
+} from '@/utils';
 import { useQuery } from '@tanstack/react-query';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { buoyDataDirectionVariant, noneDirectionVariants, VariantReadableName } from './config';
 import { LatestObservation } from './LatestObservation';
 import { LineChart } from './LineChart';
@@ -15,8 +22,12 @@ import {
   generateSeriesStyles,
   processDirectionData,
 } from './utils';
+import { useMapUIStore } from '@/store';
+import type { Chart } from 'highcharts/highstock';
 
 dayjs.extend(utc);
+
+export const WAVE_BUOY_MIN_DATE = 30;
 
 type WaveBuoyChartProps = {
   waveBuoysData: Omit<WaveBuoyPositionFeature, 'type'>[];
@@ -24,13 +35,21 @@ type WaveBuoyChartProps = {
 };
 
 function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
-  const { dateString, buoy, geometry } = toWaveBuoyChartData(waveBuoysData);
+  const { buoy, geometry } = toWaveBuoyChartData(waveBuoysData);
+  const selectedDate = useMapUIStore(s => s.date);
+  const visibleRangeRef = useRef<{ min: string; max: string } | null>(null);
+
+  const { data: latestWaveBuoyDate, isLoading: isLatestWaveBuoyDateLoading } = useQuery({
+    queryKey: ['wave_buoy_latest_date'],
+    queryFn: getWaveBuoyLatestDate,
+    select: data => toCompactDate(data),
+  });
 
   const { from, to } = useMemo(() => {
-    const end = dayjs(dateString).add(1, 'day'); // include the full dateString day in local time
-    const start = end.subtract(7, 'day');
+    const end = dayjs(latestWaveBuoyDate ?? today()).add(1, 'day'); // Include the full selectedDate day in local time
+    const start = dayjs(selectedDate).subtract(WAVE_BUOY_MIN_DATE, 'day'); // Start from 30 days before the selected date
     return { from: start.toDate(), to: end.toDate() };
-  }, [dateString]);
+  }, [selectedDate, latestWaveBuoyDate]);
 
   const {
     isLoading,
@@ -78,7 +97,7 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
 
   const dynamicButtons = useMemo(() => {
     const dataRange = calculateDataRange(seriseData);
-    return generateDynamicButtons(dataRange);
+    return generateDynamicButtons(dataRange, '12H');
   }, [seriseData]);
 
   //select middle button.
@@ -89,17 +108,16 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
   }, [dynamicButtons]);
 
   const title = useMemo(() => {
-    return (
-      buoy +
-      ' ' +
-      `(${formatLatLngToDirectional(geometry.coordinates[1], geometry.coordinates[0])})`
-    );
+    return `<span style="font-size: 18px; font-weight: 600;">${buoy}</span> <span style="font-size: 14px;">(${formatLatLngToDirectional(
+      geometry.coordinates[1],
+      geometry.coordinates[0],
+    )})</span>`;
   }, [buoy, geometry.coordinates]);
 
   const tooltipFormatter = useCallback(
     (context: any) => {
       const point = context.point;
-      const datetime = toLocalDateTime(point.x);
+      const datetime = utcToLocalDateTime(point.x);
 
       let tooltipHTML = `<div style="font-size: 12px;"><b>Time:</b> ${datetime}<br/>`;
 
@@ -167,8 +185,23 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
     ];
   }, [showDirection]);
 
+  const handleRangeChange = useCallback((min: number, max: number) => {
+    visibleRangeRef.current = {
+      min: utcToLocalDateTime(min, 'YYYYMMDD'),
+      max: utcToLocalDateTime(max, 'YYYYMMDD'),
+    };
+  }, []);
+
+  const handleChartLoad = useCallback(
+    (chart: Chart) => {
+      const { min, max } = chart.xAxis[0].getExtremes();
+      handleRangeChange(min, max);
+    },
+    [handleRangeChange],
+  );
+
   if (isError) return <div>error</div>;
-  if (isLoading) return <div>loading</div>;
+  if (isLoading || isLatestWaveBuoyDateLoading) return <div>loading</div>;
   if (isFeatureEmpty)
     return (
       <div>
@@ -185,8 +218,10 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
         series={seriseData!}
         title={title}
         turboThreshold={4000}
+        onChartLoad={handleChartLoad}
+        onRangeSelect={handleRangeChange}
         rangeSelector={{
-          enabled: false,
+          enabled: true,
           selected: defaultSelected,
           buttonPosition: {
             align: 'left',
@@ -215,7 +250,7 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
           inputDateFormat: '%Y-%m-%d',
           inputEditDateFormat: '%Y-%m-%d',
           floating: false,
-          y: -50,
+          y: -32,
           buttons: dynamicButtons,
         }}
         navigator={{
@@ -224,9 +259,9 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
           margin: 10,
         }}
         chart={{
-          marginTop: 80,
-          marginBottom: 80,
-          spacing: [10, 10, 15, 10],
+          marginTop: 28,
+          marginBottom: 40,
+          spacing: [10, 10, 10, 10],
         }}
         scrollbar={{ enabled: true, height: 20 }}
         responsive={true}
@@ -234,6 +269,31 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
           type: 'datetime',
           labels: { format: '{value:%b %e %H:%M}' },
           offset: 0,
+          // When no xAxis.minRange is set, Highcharts Stock auto-computes it as roughly 5× the data point interval for the loaded series.
+          // For buoys that report every 3–6 hours, this gives a minRange of ~15–30 hours — larger than 6H or 12H, so Highcharts silently
+          // rejects those zoom levels. Buoys with hourly or sub-hourly data land below 24H, so all buttons work. Therefore, we set this as 1 hour.
+          minRange: 3600 * 1000,
+          plotLines: [
+            {
+              value: dayjs(selectedDate).valueOf(),
+              color: '#3b6e8f',
+              width: 2,
+              dashStyle: 'Dash',
+              zIndex: 5,
+              label: {
+                text: dayjs(selectedDate).format('D MMM YYYY'),
+                rotation: 0,
+                align: 'center',
+                verticalAlign: 'top',
+                y: -6,
+                style: {
+                  color: '#3b6e8f',
+                  fontWeight: 'bold',
+                  fontSize: '12px',
+                },
+              },
+            },
+          ],
         }}
         yAxis={yAxisConfig}
         plotOptions={{
@@ -242,7 +302,17 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
             cropThreshold: 0,
           },
         }}
-        exporting={{ enabled: false }}
+        legend={{ enabled: false }}
+        exporting={{
+          enabled: true,
+          watermarkUrl: logoUrl,
+          selectedDate,
+          filename: () => {
+            const { min, max } = visibleRangeRef.current ?? {};
+            return min && max ? `${buoy}-waves_${min}_${max}` : `${buoy}-waves`;
+          },
+          formats: ['png', 'csv', 'xls'],
+        }}
         tooltip={{
           shared: true,
           split: false,

@@ -28,3 +28,4 @@ export * from './throttle';
 export * from './formatLatLngToDirectional';
 export * from './getColorRamp';
 export * from './pipe';
+export * from './doubleRAF';

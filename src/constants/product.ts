@@ -77,6 +77,16 @@ export type LegendArgs = {
   scale: 'log' | 'linear';
 };
 
+export const MHW_CATEGORY_LEGEND_COLORS = [
+  '#8c0000', // none
+  '#ff9701', // moderate
+  '#67ff96', // strong
+  '#007bff', // severe
+  '#00078f', // extreme
+];
+
+export const HW_CATEGORY_LEGEND_LABELS = ['none', 'moderate', 'strong', 'severe', 'extreme'];
+
 export const PRODUCTLEGENDS = {
   [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: {
     label: 'ocean current speed (m/s)',

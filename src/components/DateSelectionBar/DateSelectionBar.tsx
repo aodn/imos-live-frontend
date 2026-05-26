@@ -10,9 +10,10 @@ import {
   customDateLabelRenderer,
   customSelectionPanelRenderer,
 } from '../DateSlider';
-import { cn, toISODateString } from '@/utils';
+import { cn } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
 import { getMetaDataManifest } from '@/api';
+import { toISODateString } from '../DateSlider/utils';
 import { useShallow } from 'zustand/shallow';
 
 type DateSelectionBarProps = { className?: string };

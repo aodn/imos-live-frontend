@@ -1,5 +1,9 @@
+import { createElement } from 'react';
+import { snapdom } from '@zumer/snapdom';
 import type { BuoyItemContent } from '@/types';
 import type Highcharts from 'highcharts/highstock'; // Use highstock
+import { ExportPanel } from '@/components';
+import { doubleRAF } from '@/utils';
 // Import modules - they auto-register in Highcharts 12.4.0+
 import 'highcharts/modules/accessibility';
 import 'highcharts/modules/boost';
@@ -15,6 +19,7 @@ import type {
   SeriesData,
   ThemeConfig,
 } from './type';
+import { canvasRootGenerator, pinExportLogoImg } from '@/helpers';
 
 export const DEFAULT_THEME = {
   colors: [
@@ -281,6 +286,7 @@ export const buildTitleConfig = (
 ) => ({
   title: {
     text: title,
+    useHTML: true,
     style: {
       color: theme?.textColor || DEFAULT_THEME.textColor,
     },
@@ -385,27 +391,164 @@ export const buildExportingConfig = (exportingConfig: any) => {
 
   const defaultMenuItems = [
     'downloadPNG',
+    'downloadCSV',
+    'downloadXLS',
     'downloadJPEG',
     'downloadPDF',
     'downloadSVG',
     'separator',
-    'downloadCSV',
-    'downloadXLS',
   ];
+
+  // Maps ExportConfig.formats values to Highcharts menu item keys
+  const formatToMenuItem: Record<string, string> = {
+    png: 'downloadPNG',
+    jpeg: 'downloadJPEG',
+    pdf: 'downloadPDF',
+    svg: 'downloadSVG',
+    csv: 'downloadCSV',
+    xls: 'downloadXLS',
+  };
+
+  // Support a function so callers can compute the filename lazily at download time (e.g. from a ref)
+  const getFilename: () => string =
+    typeof exportingConfig.filename === 'function'
+      ? exportingConfig.filename
+      : () => exportingConfig.filename || 'chart';
+  const selectedDate = exportingConfig.selectedDate;
+
+  const makeDownloadHandler = (mimeType: string, ext: string) =>
+    async function (this: any) {
+      const width = this.chartWidth;
+      const height = this.chartHeight;
+      const scale = 2;
+
+      const svg = this.getSVG({
+        chart: { width, height },
+        rangeSelector: { enabled: true, inputEnabled: true, buttons: [] },
+        navigator: { enabled: true },
+        scrollbar: { enabled: true },
+      });
+      const canvas = document.createElement('canvas');
+      canvas.width = width * scale;
+      canvas.height = height * scale;
+      const ctx = canvas.getContext('2d')!;
+      ctx.scale(scale, scale);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, width, height);
+
+      // Draw chart first so we can extract the region behind the panel for frosted glass
+      await new Promise<void>(resolve => {
+        const svgBlob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+        const svgUrl = URL.createObjectURL(svgBlob);
+        const chartImg = new Image();
+        chartImg.onload = () => {
+          ctx.drawImage(chartImg, 0, 0);
+          URL.revokeObjectURL(svgUrl);
+          resolve();
+        };
+        chartImg.src = svgUrl;
+      });
+
+      // Render ExportPanel with frosted glass on top of the chart
+      if (selectedDate) {
+        const px = 6,
+          py = 12;
+        const { root, container } = canvasRootGenerator();
+
+        // First render to measure dimensions — two doubleRAF calls so the logo PNG has
+        // time to load from cache before cssW is captured. Without this, w-auto resolves
+        // to 0 on an unloaded image, making cssW too small and squishing the panel.
+        root.render(createElement(ExportPanel, { date: selectedDate, compact: true }));
+        await doubleRAF();
+        await doubleRAF();
+
+        const el = container.firstElementChild as HTMLElement;
+        const cssW = el.offsetWidth;
+        const cssH = el.offsetHeight;
+
+        // Extract the canvas region behind the panel for the frosted-glass background
+        const bgCanvas = document.createElement('canvas');
+        bgCanvas.width = cssW * scale;
+        bgCanvas.height = cssH * scale;
+        bgCanvas
+          .getContext('2d')!
+          .drawImage(
+            canvas,
+            px * scale,
+            py * scale,
+            cssW * scale,
+            cssH * scale,
+            0,
+            0,
+            cssW * scale,
+            cssH * scale,
+          );
+        const frostedBgSrc = bgCanvas.toDataURL();
+
+        // Re-render with frosted background
+        root.render(
+          createElement(ExportPanel, { date: selectedDate, compact: true, frostedBgSrc }),
+        );
+        await doubleRAF();
+
+        pinExportLogoImg(el);
+        const snap = await snapdom(el, { embedFonts: false });
+        const panelCanvas = await snap.toCanvas({ scale });
+
+        root.unmount();
+        container.remove();
+
+        ctx.drawImage(panelCanvas, px, py, cssW, cssH);
+      }
+
+      canvas.toBlob(blob => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${getFilename()}.${ext}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, mimeType);
+    };
 
   return {
     enabled: true,
-    filename: exportingConfig.filename || 'chart',
+    filename: getFilename(),
     fallbackToExportServer: false,
-    sourceWidth: 800,
-    sourceHeight: 600,
-    scale: 1,
+    scale: 2,
     chartOptions: {
+      rangeSelector: { enabled: false },
+      navigator: { enabled: true },
+      scrollbar: { enabled: true },
       plotOptions: {
         series: {
           dataLabels: {
-            enabled: true,
+            enabled: false,
           },
+        },
+      },
+    },
+    // text overrides the Highcharts default language string (e.g. 'Download PNG image')
+    // CSV/XLS handlers update chart.options.exporting.filename just before download so the
+    // filename reflects the current visible range (read from a ref) rather than the stale
+    // value baked into chart options at render time.
+    menuItemDefinitions: {
+      downloadPNG: { text: 'Download Image', onclick: makeDownloadHandler('image/png', 'png') },
+      downloadCSV: {
+        text: 'Download CSV',
+        onclick: function (this: any) {
+          this.options.exporting.filename = getFilename();
+          this.downloadCSV();
+        },
+      },
+      downloadXLS: {
+        text: 'Download Excel',
+        onclick: function (this: any) {
+          this.options.exporting.filename = getFilename();
+          this.downloadXLS();
         },
       },
     },
@@ -413,165 +556,12 @@ export const buildExportingConfig = (exportingConfig: any) => {
       contextButton: {
         menuItems: exportingConfig.formats
           ? exportingConfig.formats.map(
-              (format: string) =>
-                defaultMenuItems.find(item => item.toLowerCase().includes(format)) || 'downloadPNG',
+              (format: string) => formatToMenuItem[format] ?? 'downloadPNG',
             )
           : defaultMenuItems,
       },
     },
   };
-};
-
-// Export utilities
-export const exportFallbacks = {
-  svg: (chart: Highcharts.Chart, filename: string) => {
-    try {
-      const svg = (chart as any).getSVG({ chart: { backgroundColor: '#ffffff' } });
-      const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
-      downloadBlob(blob, `${filename}.svg`);
-    } catch (error) {
-      console.error('SVG export fallback failed:', error);
-    }
-  },
-
-  png: (chart: Highcharts.Chart, filename: string) => {
-    try {
-      const svg = (chart as any).getSVG({ chart: { backgroundColor: '#ffffff' } });
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const img = new Image();
-
-      img.onload = () => {
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx?.drawImage(img, 0, 0);
-
-        canvas.toBlob(blob => {
-          if (blob) downloadBlob(blob, `${filename}.png`);
-        }, 'image/png');
-      };
-
-      const svgBlob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
-      img.src = URL.createObjectURL(svgBlob);
-    } catch (error) {
-      console.error('PNG export fallback failed:', error);
-    }
-  },
-
-  jpeg: (chart: Highcharts.Chart, filename: string) => {
-    return new Promise<void>((resolve, reject) => {
-      try {
-        const svg = (chart as any).getSVG({
-          chart: { backgroundColor: '#ffffff' },
-          exporting: { sourceWidth: 800, sourceHeight: 600 },
-        });
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-
-        if (!ctx) {
-          throw new Error('Canvas context not available');
-        }
-
-        const img = new Image();
-
-        img.onload = () => {
-          try {
-            canvas.width = img.naturalWidth || 800;
-            canvas.height = img.naturalHeight || 600;
-
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            ctx.drawImage(img, 0, 0);
-
-            canvas.toBlob(
-              blob => {
-                if (blob) {
-                  downloadBlob(blob, `${filename}.jpg`);
-                  resolve();
-                } else {
-                  reject(new Error('Failed to create JPEG blob'));
-                }
-              },
-              'image/jpeg',
-              0.9,
-            );
-          } catch (error) {
-            reject(error);
-          }
-        };
-
-        img.onerror = () => reject(new Error('Failed to load SVG as image'));
-
-        const svgBlob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
-        img.src = URL.createObjectURL(svgBlob);
-      } catch (error) {
-        reject(error);
-      }
-    });
-  },
-
-  pdf: (chart: Highcharts.Chart, filename: string) => {
-    return new Promise<void>((resolve, reject) => {
-      try {
-        const svg = (chart as any).getSVG({
-          chart: { backgroundColor: '#ffffff' },
-          exporting: { sourceWidth: 1200, sourceHeight: 800 },
-        });
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-
-        if (!ctx) {
-          throw new Error('Canvas context not available');
-        }
-
-        const img = new Image();
-
-        img.onload = () => {
-          try {
-            canvas.width = img.naturalWidth || 1200;
-            canvas.height = img.naturalHeight || 800;
-
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            ctx.drawImage(img, 0, 0);
-
-            canvas.toBlob(blob => {
-              if (blob) {
-                downloadBlob(blob, `${filename}.png`);
-                console.warn('PDF saved as PNG. Install jsPDF for proper PDF export.');
-                resolve();
-              } else {
-                reject(new Error('Failed to create PDF blob'));
-              }
-            }, 'image/png');
-          } catch (error) {
-            reject(error);
-          }
-        };
-
-        img.onerror = () => reject(new Error('Failed to load SVG as image'));
-
-        const svgBlob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
-        img.src = URL.createObjectURL(svgBlob);
-      } catch (error) {
-        reject(error);
-      }
-    });
-  },
-};
-
-export const downloadBlob = (blob: Blob, filename: string) => {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  link.style.display = 'none';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
 };
 
 export const calculateDateRange = (seriesData: any[]) => {
@@ -719,11 +709,32 @@ type RangeSelectorButtonType =
   | 'minute'
   | 'week';
 
-export function generateDynamicButtons(dataRange: ReturnType<typeof calculateDataRange>) {
+const RangeSelectionType = [
+  '6H',
+  '12H',
+  '1D',
+  '3D',
+  '1W',
+  '2W',
+  '1M',
+  '3M',
+  '6M',
+  '1Y',
+  'All',
+] as const;
+
+export function generateDynamicButtons(
+  dataRange: ReturnType<typeof calculateDataRange>,
+  minRange: (typeof RangeSelectionType)[number] = '12H',
+) {
   if (!dataRange) return [{ type: 'all' as RangeSelectorButtonType, text: 'All' }];
 
   const { rangeDays, rangeHours } = dataRange;
-  const buttons: { type: RangeSelectorButtonType; count?: number; text: string }[] = [];
+  const buttons: {
+    type: RangeSelectorButtonType;
+    count?: number;
+    text: typeof minRange;
+  }[] = [];
 
   // Add hour-based buttons for short ranges
   if (rangeHours >= 6) {
@@ -733,7 +744,7 @@ export function generateDynamicButtons(dataRange: ReturnType<typeof calculateDat
     buttons.push({ type: 'hour', count: 12, text: '12H' });
   }
   if (rangeHours >= 24) {
-    buttons.push({ type: 'day', count: 1, text: '24H' });
+    buttons.push({ type: 'day', count: 1, text: '1D' });
   }
 
   // Add day-based buttons
@@ -764,5 +775,7 @@ export function generateDynamicButtons(dataRange: ReturnType<typeof calculateDat
   // Always add "All" button
   buttons.push({ type: 'all', text: 'All' });
 
-  return buttons;
+  return buttons.filter(
+    b => RangeSelectionType.indexOf(b.text) > RangeSelectionType.indexOf(minRange),
+  );
 }
