@@ -1,5 +1,5 @@
-import type { WebGlLayerProduct } from '@/constants';
-import { PRODUCTS, WAVE_BUOYS_LAYER_ID } from '@/constants';
+import type { TilesProduct } from '@/constants';
+import { PRODUCT, PRODUCTS } from '@/constants';
 import { COLOR_OPTIONS } from '@/config';
 import { cn, toCompactDate, toISOFromCompact } from '@/utils';
 import type { ReactNode } from 'react';
@@ -31,25 +31,24 @@ export function LayerCard({
   product,
   portalLink,
 }: LayerCardProps) {
-  const isWaveBuoyProduct = product === 'wave-buoys';
+  const isWaveBuoyProduct = product === PRODUCT.WAVE_BUOYS;
 
   const productLegend = useMapUIStore(s =>
-    !isWaveBuoyProduct ? s.productLegends[product as WebGlLayerProduct] : null,
+    !isWaveBuoyProduct ? s.productLegends[product as TilesProduct] : null,
   );
   const colorKey = productLegend?.colorKey ?? 'RdBu_r';
   const legendScale = productLegend?.scale ?? 'linear';
 
-  const { data: webglProductData, isLoading: isWebglProductDateLoading } = useQuery({
-    queryKey: ['webgl_product_latest_date'],
-    queryFn: () => getMetaDataManifest(),
+  const { data: tilesProductData, isLoading: isTilesProductDateLoading } = useQuery({
+    queryKey: ['tiles_product_latest_date'],
+    queryFn: getMetaDataManifest,
     select: ({ products }) => ({
-      webglProductLatestDate:
-        products[PRODUCTS[product as WebGlLayerProduct].bucketPath].latest_date,
+      tilesProductLatestDate: products[product as TilesProduct].full_date_range.end,
     }),
     enabled: !isWaveBuoyProduct,
   });
 
-  const webglProductLatestDate = webglProductData?.webglProductLatestDate;
+  const tilesProductLatestDate = tilesProductData?.tilesProductLatestDate;
 
   const { data: latestWaveBuoyDate, isLoading: isWaveBuoyLoading } = useQuery({
     queryKey: ['wave_buoy_latest_date'],
@@ -60,12 +59,12 @@ export function LayerCard({
 
   const handleClick = () => {
     if (addToMap) addToMap(product, !visible);
-    if (layerId === WAVE_BUOYS_LAYER_ID) import('../Highcharts/WaveBuoyChart'); //preload wavebuoy chart when wavebuoylayer added.
+    if (layerId === PRODUCTS[PRODUCT.WAVE_BUOYS].layerId) import('../Highcharts/WaveBuoyChart'); //preload wavebuoy chart when wavebuoylayer added.
   };
 
-  const handleJumpToLatestWebglProduct = () => {
-    if (webglProductLatestDate) {
-      setJumpToDate(webglProductLatestDate);
+  const handleJumpToLatestTileslProduct = () => {
+    if (tilesProductLatestDate) {
+      setJumpToDate(tilesProductLatestDate);
     }
   };
   const handleJumpToLatestWaveBuoy = () => {
@@ -126,8 +125,8 @@ export function LayerCard({
             {!isWaveBuoyProduct && (
               <Button
                 variant="outline"
-                onClick={handleJumpToLatestWebglProduct}
-                disabled={isWebglProductDateLoading || !webglProductLatestDate}
+                onClick={handleJumpToLatestTileslProduct}
+                disabled={isTilesProductDateLoading || !tilesProductLatestDate}
                 className="text-btn-mobile md:text-btn text-imos-grey w-fit relative z-10"
               >
                 Latest Date
@@ -166,7 +165,7 @@ export function LayerCard({
               options={Object.keys(COLOR_OPTIONS).map(key => ({ label: key, value: key }))}
               initialValue={colorKey}
               onChange={v =>
-                setProductLegend(product as WebGlLayerProduct, {
+                setProductLegend(product as TilesProduct, {
                   colorKey: v as keyof typeof COLOR_OPTIONS,
                 })
               }

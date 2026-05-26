@@ -8,23 +8,22 @@ import type { ColorOptionKey } from '@/config/colorPalettes';
 export const gslaOverlayImageColors = anomalySeaLevel.colors as [number, number, number][];
 
 export const PRODUCT = {
-  GSLA_OCEAN_GEOSTROPHIC_CURRENT: 'gsla-ocean-geostrophic-current',
-  GSLA_ANOMALY_SEA_LEVELS: 'gsla-anomaly-sea-levels',
+  GSLA_OCEAN_GEOSTROPHIC_CURRENT: 'model_sea_level_anomaly_gridded_realtime_vcur_ucur',
+  GSLA_ANOMALY_SEA_LEVELS: 'model_sea_level_anomaly_gridded_realtime_gsla',
+  AUSTEMP_HEATWAVE_SSTA_MOSAIC: 'satellite_austemp_heatwave_8day_ssta_mosaic',
+  AUSTEMP_HEATWAVE_SST_MOSAIC: 'satellite_austemp_heatwave_8day_sst_mosaic',
   WAVE_BUOYS: 'wave-buoys',
-  SST_ANOMALY_MOSAIC: 'sst-anom-mosaic',
-  MARINE_HEATWAVE_SSTA_MOSAIC: 'marine-heatwave-ssta-mosaic',
-  MARINE_HEATWAVE_DHD_MOSAIC: 'marine-heatwave-dhd-mosaic',
 } as const;
 
 export type ProductType = (typeof PRODUCT)[keyof typeof PRODUCT];
 
-export type WebGlLayerProduct = Exclude<ProductType, typeof PRODUCT.WAVE_BUOYS>;
+export type TilesProduct = Exclude<ProductType, typeof PRODUCT.WAVE_BUOYS>;
 
 type ProductValue = {
   name: string;
   layerId: string;
   sourceId: string;
-  bucketPath?: string;
+  variables?: string[];
 };
 
 export const PRODUCTS = {
@@ -32,36 +31,30 @@ export const PRODUCTS = {
     name: 'GSLA Ocean Geostrophic Current',
     layerId: 'gsla-particle-layer',
     sourceId: 'gsla-particle-source',
-    bucketPath: 'ocean_current_gsla_ucur_vcur',
+    variables: ['UCUR', 'VCUR'],
   },
   [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: {
     name: 'GSLA Anomaly Sea Levels',
     layerId: 'gsla-raster-layer',
     sourceId: 'gsla-raster-source',
-    bucketPath: 'ocean_current_gsla_gsla',
+    variables: ['GSLA'],
   },
   [PRODUCT.WAVE_BUOYS]: {
     name: 'Wave Buoys',
     layerId: 'wave-buoys-layer',
     sourceId: 'wave-buoys-source',
   },
-  [PRODUCT.SST_ANOMALY_MOSAIC]: {
-    name: 'SST Anomaly Mosaic',
-    layerId: 'sst-anom-mosaic-layer',
-    sourceId: 'sst-anom-mosaic-source',
-    bucketPath: 'austemp_sst_anomaly_sst_anom_mosaic',
+  [PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC]: {
+    name: 'Austemp heatwave SST Mosaic',
+    layerId: 'austemp-heatwave-sst-mosaic-layer',
+    sourceId: 'austemp-heatwave-sst-mosaic-source',
+    variables: ['sst_mosaic'],
   },
-  [PRODUCT.MARINE_HEATWAVE_DHD_MOSAIC]: {
-    name: 'Marine heatwave DHD Mosaic',
-    layerId: 'marine-heatwave-dhd-mosaic-layer',
-    sourceId: 'marine-heatwave-dhd-mosaic-source',
-    bucketPath: 'ausTemp_marine_heatwave_aus_dhd_mosaic',
-  },
-  [PRODUCT.MARINE_HEATWAVE_SSTA_MOSAIC]: {
-    name: 'Marine heatwave SSTA Mosaic',
-    layerId: 'marine-heatwave-ssta-mosaic-layer',
-    sourceId: 'marine-heatwave-ssta-mosaic-source',
-    bucketPath: 'ausTemp_marine_heatwave_aus_ssta_mosaic',
+  [PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC]: {
+    name: 'Austemp heatwave SSTA Mosaic',
+    layerId: 'austemp-heatwave-ssta-mosaic-layer',
+    sourceId: 'austemp-heatwave-ssta-mosaic-source',
+    variables: ['ssta_mosaic'],
   },
 } as const satisfies Record<ProductType, ProductValue>;
 
@@ -94,13 +87,7 @@ export const PRODUCTLEGENDS = {
     range: [0.01, MAX_VECTOR_SPEED],
     scale: 'log',
   },
-  [PRODUCT.SST_ANOMALY_MOSAIC]: {
-    scales: [-4, -2, 0, 2, 4],
-    label: 'degrees Celsius (°C)',
-    range: [-4, 4],
-    colorKey: 'RdBu_r' as ColorOptionKey,
-    scale: 'linear',
-  },
+
   [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: {
     scales: [-1.2, -0.6, 0, 0.6, 1.2],
     label: 'sea level anomaly (m)',
@@ -108,14 +95,14 @@ export const PRODUCTLEGENDS = {
     colorKey: 'Anomaly Sea Level' as ColorOptionKey,
     scale: 'linear',
   },
-  [PRODUCT.MARINE_HEATWAVE_DHD_MOSAIC]: {
-    scales: [0, 35, 70, 105, 140, 175, 200],
-    range: [0, 200],
-    colorKey: 'RdBu_r' as ColorOptionKey,
+  [PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC]: {
+    scales: [-4, -2, 0, 2, 4],
     label: 'degrees Celsius (°C)',
+    range: [-4, 4],
+    colorKey: 'RdBu_r' as ColorOptionKey,
     scale: 'linear',
   },
-  [PRODUCT.MARINE_HEATWAVE_SSTA_MOSAIC]: {
+  [PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC]: {
     scales: [-4, -2, 0, 2, 4],
     label: 'degrees Celsius (°C)',
     range: [-4, 4],
@@ -136,22 +123,8 @@ export const layerIdToProduct = (layerId: ProductLayerId) => {
   return Object.entries(PRODUCTS).find(([, v]) => v.layerId === layerId)?.[0] as ProductType;
 };
 
-export const HEATMAP_GROUP = [
+export const TILES_GROUP = [
   PRODUCT.GSLA_ANOMALY_SEA_LEVELS,
-  PRODUCT.SST_ANOMALY_MOSAIC,
-  PRODUCT.MARINE_HEATWAVE_DHD_MOSAIC,
-  PRODUCT.MARINE_HEATWAVE_SSTA_MOSAIC,
-] as const satisfies ProductType[];
-
-export const GSLA_PARTICLE_LAYER_ID = PRODUCTS[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT].layerId;
-export const GSLA_ANOMALY_LAYER_ID = PRODUCTS[PRODUCT.GSLA_ANOMALY_SEA_LEVELS].layerId;
-export const SST_ANOMALY_MOSAIC_LAYER_ID = PRODUCTS[PRODUCT.SST_ANOMALY_MOSAIC].layerId;
-export const MARINE_HEATWAVE_DHD_MOSAIC_LAYER_ID =
-  PRODUCTS[PRODUCT.MARINE_HEATWAVE_DHD_MOSAIC].layerId;
-export const MARINE_HEATWAVE_SSTA_MOSAIC_LAYER_ID =
-  PRODUCTS[PRODUCT.MARINE_HEATWAVE_SSTA_MOSAIC].layerId;
-export const WAVE_BUOYS_LAYER_ID = PRODUCTS[PRODUCT.WAVE_BUOYS].layerId;
-export const WAVE_BUOYS_SOURCE_ID = PRODUCTS[PRODUCT.WAVE_BUOYS].sourceId;
-
-export type BuoySource = typeof WAVE_BUOYS_SOURCE_ID;
-export type BuoyLayer = typeof WAVE_BUOYS_LAYER_ID;
+  PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC,
+  PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC,
+] as const satisfies TilesProduct[];

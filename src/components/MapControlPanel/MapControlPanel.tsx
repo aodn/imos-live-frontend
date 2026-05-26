@@ -13,7 +13,7 @@ import { useIsMapDragging, useIsMapZooming, useMapCanvasWidth } from '@/hooks';
 import { setSidebarOpen, useMapUIStore, useSidebarStore } from '@/store';
 import { exportMapImage } from '@/helpers';
 import { useShallow } from 'zustand/shallow';
-import { HEATMAP_GROUP, PRODUCTLEGENDS, PRODUCTS } from '@/constants';
+import { TILES_GROUP, PRODUCTLEGENDS, PRODUCTS } from '@/constants';
 import { colorTuplesToCss } from '@/utils';
 
 export function MapControlPanel({
@@ -34,7 +34,7 @@ export function MapControlPanel({
     })),
   );
 
-  const activeProduct = HEATMAP_GROUP.find(p => productEnabled[p]);
+  const activeProduct = TILES_GROUP.find(p => productEnabled[p]);
 
   const isMapOnOperation = isDragging || isZooming;
   const isMapTooNarrow = mapCanvasWidth > 0 && mapCanvasWidth < MIN_EXPORT_MAP_WIDTH;

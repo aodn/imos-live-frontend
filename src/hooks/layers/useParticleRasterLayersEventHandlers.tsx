@@ -5,7 +5,8 @@ import {
   WORLD_LAND_FILL_LAYER_ID,
   UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
   ZOOM_LIMIT_TEMP_POINTS_LAYER_ID,
-  WAVE_BUOYS_LAYER_ID,
+  PRODUCTS,
+  PRODUCT,
 } from '@/constants';
 import { ClickedMapPopupContent } from '@/components';
 
@@ -28,7 +29,7 @@ export function useParticleRasterLayersEventHandlers({
         map,
         distanceMeasurementEnabled,
         higherPriorityLayers: [
-          WAVE_BUOYS_LAYER_ID,
+          PRODUCTS[PRODUCT.WAVE_BUOYS].layerId,
           UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
           ZOOM_LIMIT_TEMP_POINTS_LAYER_ID,
         ],

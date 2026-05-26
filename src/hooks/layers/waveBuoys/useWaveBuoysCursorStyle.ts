@@ -1,12 +1,13 @@
 import {
-  WAVE_BUOYS_LAYER_ID,
+  PRODUCT,
+  PRODUCTS,
   UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
   ZOOM_LIMIT_TEMP_POINTS_LAYER_ID,
 } from '@/constants';
 import { useEffect } from 'react';
 
 const layers = [
-  WAVE_BUOYS_LAYER_ID,
+  PRODUCTS[PRODUCT.WAVE_BUOYS].layerId,
   UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
   ZOOM_LIMIT_TEMP_POINTS_LAYER_ID,
 ] as const;

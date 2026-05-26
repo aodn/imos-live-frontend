@@ -10,8 +10,8 @@ import {
   INITIAL_ZOOM,
   INITIAL_PARTICLE_CONFIG,
 } from '@/config';
-import type { LegendArgs, ProductType, WebGlLayerProduct } from '@/constants';
-import { PRODUCT, HEATMAP_GROUP, PRODUCTLEGENDS } from '@/constants';
+import type { LegendArgs, ProductType, TilesProduct } from '@/constants';
+import { PRODUCT, TILES_GROUP, PRODUCTLEGENDS } from '@/constants';
 import type { StyleTitle } from '@/styles';
 import { type LngLat } from 'mapbox-gl';
 import { create } from 'zustand';
@@ -40,7 +40,7 @@ export type MapUIState = {
   productEnabled: ProductEnabled;
   productError: ProductError;
   productLoading: ProductLoading;
-  productLegends: Record<WebGlLayerProduct, LegendArgs>;
+  productLegends: Record<TilesProduct, LegendArgs>;
   jumpToDate: JumpToDate | null;
   setCenter: (center: LngLat) => void;
   setZoom: (zoom: number) => void;
@@ -53,8 +53,8 @@ export type MapUIState = {
   setProductErrorByProduct: (product: ProductType, error: boolean) => void;
   setProductLoadingByProduct: (product: ProductType, loading: boolean) => void;
   setProductEnabledByProduct: (product: ProductType, enabled: boolean) => void;
-  setProductLegend: (product: WebGlLayerProduct, legend: Partial<LegendArgs>) => void;
-  getProductLegend: (product: WebGlLayerProduct) => LegendArgs;
+  setProductLegend: (product: TilesProduct, legend: Partial<LegendArgs>) => void;
+  getProductLegend: (product: TilesProduct) => LegendArgs;
   setJumpToDate: (date: string) => void;
   clearJumpToDate: () => void;
 };
@@ -110,30 +110,27 @@ export const useMapUIStore = create(
       productEnabled: {
         [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: false,
         [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: false,
-        [PRODUCT.SST_ANOMALY_MOSAIC]: false,
         [PRODUCT.WAVE_BUOYS]: true,
-        [PRODUCT.MARINE_HEATWAVE_DHD_MOSAIC]: false,
-        [PRODUCT.MARINE_HEATWAVE_SSTA_MOSAIC]: false,
+        [PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC]: false,
+        [PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC]: false,
       },
       productError: {
         [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: false,
         [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: false,
-        [PRODUCT.SST_ANOMALY_MOSAIC]: false,
         [PRODUCT.WAVE_BUOYS]: false,
-        [PRODUCT.MARINE_HEATWAVE_DHD_MOSAIC]: false,
-        [PRODUCT.MARINE_HEATWAVE_SSTA_MOSAIC]: false,
+        [PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC]: false,
+        [PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC]: false,
       },
       productLoading: {
         [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: false,
         [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: false,
-        [PRODUCT.SST_ANOMALY_MOSAIC]: false,
         [PRODUCT.WAVE_BUOYS]: false,
-        [PRODUCT.MARINE_HEATWAVE_DHD_MOSAIC]: false,
-        [PRODUCT.MARINE_HEATWAVE_SSTA_MOSAIC]: false,
+        [PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC]: false,
+        [PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC]: false,
       },
       productLegends: Object.fromEntries(
         Object.entries(PRODUCTLEGENDS).map(([k, v]) => [k, { ...v }]),
-      ) as Record<WebGlLayerProduct, LegendArgs>,
+      ) as Record<TilesProduct, LegendArgs>,
       jumpToDate: null,
       setCenter: center => set({ center }),
       setZoom: zoom => set({ zoom }),
@@ -153,8 +150,8 @@ export const useMapUIStore = create(
       setProductEnabledByProduct: (product, enabled) => {
         set(prev => {
           const next = { ...prev.productEnabled };
-          if ((HEATMAP_GROUP as readonly ProductType[]).includes(product)) {
-            for (const p of HEATMAP_GROUP) next[p] = p === product && enabled;
+          if ((TILES_GROUP as readonly ProductType[]).includes(product)) {
+            for (const p of TILES_GROUP) next[p] = p === product && enabled;
           } else {
             next[product] = enabled;
           }

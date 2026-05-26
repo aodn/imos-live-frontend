@@ -13,6 +13,5 @@ export * from './useElementSize';
 export * from './useRAFDFn';
 export * from './useViewPortSize';
 export * from './useCurrentPage';
-export * from './usePopContentData';
 export * from './useDateSliderDates';
 export * from './useQueryParamsByKey';

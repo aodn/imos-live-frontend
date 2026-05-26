@@ -1,7 +1,7 @@
-import type { WebGlLayerProduct } from '@/constants';
+import type { TilesProduct } from '@/constants';
 import { PRODUCTLEGENDS, PRODUCTS } from '@/constants';
 import { COLOR_OPTIONS, LAYERS_ORDER } from '@/config';
-import { S3_BASE_URL, getProductManifest } from '@/api';
+import { TILE_BASE_URL, getProductManifest } from '@/api';
 import { buildProductPalette } from '@/helpers';
 import { createParticleAtlasLayer } from '@/AtlasRenderingSystem';
 import type { ParticleAtlasLayerHandle } from '@/AtlasRenderingSystem';
@@ -19,11 +19,11 @@ import { useProductDateAvailabilitySync } from './useProductDateAvailabilitySync
 
 type UseParticleAtlasLayer = {
   map: React.RefObject<mapboxgl.Map | null>;
-  layerId: string;
-  product: WebGlLayerProduct;
+  product: TilesProduct;
 };
 
-export function useParticleAtlasLayer({ map, layerId, product }: UseParticleAtlasLayer) {
+export function useParticleAtlasLayer({ map, product }: UseParticleAtlasLayer) {
+  const { layerId } = PRODUCTS[product];
   const {
     date,
     enabled,
@@ -55,7 +55,6 @@ export function useParticleAtlasLayer({ map, layerId, product }: UseParticleAtla
   const { isDateAvailable } = useProductDateAvailabilitySync(product, date);
 
   const legendRange = PRODUCTLEGENDS[product].range as [number, number];
-  const filePrefix = PRODUCTS[product].bucketPath!;
 
   const handleRef = useRef<ParticleAtlasLayerHandle | null>(null);
 
@@ -78,8 +77,8 @@ export function useParticleAtlasLayer({ map, layerId, product }: UseParticleAtla
     handleRef.current = createParticleAtlasLayer({
       map: map.current!,
       layerId,
-      fetchManifest: d => getProductManifest({ product: filePrefix, date: d }),
-      tileBaseUrl: `${S3_BASE_URL}/${filePrefix}`,
+      fetchManifest: d => getProductManifest({ product, date: d }),
+      tileBaseUrl: `${TILE_BASE_URL}/${product}`,
       colorPalette: buildProductPalette(getProductLegend(product)),
       legendRange,
     });
@@ -89,7 +88,7 @@ export function useParticleAtlasLayer({ map, layerId, product }: UseParticleAtla
     });
 
     if (enabled) await loadData();
-  }, [map, layerId, filePrefix, legendRange, product, enabled, loadData]);
+  }, [map, layerId, legendRange, product, enabled, loadData]);
 
   const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [setupLayer]);
 

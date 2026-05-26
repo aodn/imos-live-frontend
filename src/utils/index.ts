@@ -1,5 +1,5 @@
 export * from './buildDatasetUrl';
-export * from './extractDataFromImage';
+export * from './velocityDegreeProcessing';
 export * from './dateUtils';
 export * from './debounce';
 export * from './getScaledDimensions';

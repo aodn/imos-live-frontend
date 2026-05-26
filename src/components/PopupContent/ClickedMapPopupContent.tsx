@@ -1,10 +1,13 @@
-import { useClickedMapPopupContentData } from '@/hooks';
 import { useMapUIStore } from '@/store';
 import { useShallow } from 'zustand/shallow';
-import { LoaderIcon } from '../Icons';
 import type { LngLat } from 'mapbox-gl';
 import type { ClosePopupFn } from '@/helpers';
+import type { TilesProduct } from '@/constants';
 import { PRODUCT, PRODUCTLEGENDS } from '@/constants';
+import { useQueries } from '@tanstack/react-query';
+import { getPointData } from '@/api/tiles';
+import { LoaderIcon } from '@/components/Icons';
+import { velocityToReadable } from '@/utils';
 
 export type ClickedMapPopupContentProps = {
   onClose?: ClosePopupFn;
@@ -12,35 +15,58 @@ export type ClickedMapPopupContentProps = {
 };
 
 export function ClickedMapPopupContent({ onClose, lngLat }: ClickedMapPopupContentProps) {
-  const {
-    oceanCurrentEnabled,
-    gslaAnomalySeaLevelsEnabled,
-    sstAnomMosaicEnabled,
-    marineHeatwaveDhdEnabled,
-    marineHeatwaveSstaEnabled,
-    date,
-  } = useMapUIStore(
-    useShallow(s => ({
-      oceanCurrentEnabled: s.productEnabled[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT],
-      gslaAnomalySeaLevelsEnabled: s.productEnabled[PRODUCT.GSLA_ANOMALY_SEA_LEVELS],
-      sstAnomMosaicEnabled: s.productEnabled[PRODUCT.SST_ANOMALY_MOSAIC],
-      marineHeatwaveDhdEnabled: s.productEnabled[PRODUCT.MARINE_HEATWAVE_DHD_MOSAIC],
-      marineHeatwaveSstaEnabled: s.productEnabled[PRODUCT.MARINE_HEATWAVE_SSTA_MOSAIC],
-      date: s.date,
-    })),
+  const enabledProducts = useMapUIStore(
+    useShallow(s => {
+      const products = s.productEnabled;
+      return Object.keys(products)
+        .filter(p => products[p as keyof typeof products] === true)
+        .filter(p => p !== PRODUCT.WAVE_BUOYS) as TilesProduct[];
+    }),
   );
-
-  const { data, isLoading } = useClickedMapPopupContentData({
-    oceanCurrentEnabled,
-    gslaAnomalySeaLevelsEnabled,
-    sstAnomMosaicEnabled,
-    marineHeatwaveDhdEnabled,
-    marineHeatwaveSstaEnabled,
-    date,
-    lngLat,
-  });
+  const date = useMapUIStore(s => s.date);
 
   const { lat, lng } = lngLat || {};
+
+  const results = useQueries({
+    queries: enabledProducts.map(product => ({
+      queryKey: [product, 'getPointData', date, lng, lat],
+      queryFn: () => getPointData({ product, date, lon: lng, lat }),
+      enabled: !!date && lat != null && lng != null,
+    })),
+  });
+
+  const isLoading = results.some(r => r.isLoading);
+
+  // Flatten each product's point response into display rows.
+  const rows = enabledProducts.flatMap((product, i) => {
+    const variables = results[i].data?.variables;
+    if (!variables) return [];
+    const label = PRODUCTLEGENDS[product]?.label ?? product;
+
+    // The geostrophic current returns u/v components; derive speed + compass
+    // direction client-side via the shared velocity helper.
+    if (product === PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT) {
+      const u = variables.UCUR?.value;
+      const v = variables.VCUR?.value;
+      if (u == null || v == null) return [];
+      const { speed, degree, direction } = velocityToReadable(u, v);
+      return [
+        {
+          key: product,
+          label,
+          display: `${Math.round(degree)}° (${direction}) @ ${speed.toFixed(2)} m/s`,
+        },
+      ];
+    }
+
+    return Object.entries(variables)
+      .filter(([, v]) => v.value !== null)
+      .map(([varKey, v]) => ({
+        key: `${product}:${varKey}`,
+        label,
+        display: `${(v.value as number).toFixed(2)} ${v.units}`,
+      }));
+  });
 
   return (
     <div
@@ -67,79 +93,22 @@ export function ClickedMapPopupContent({ onClose, lngLat }: ClickedMapPopupConte
           <div className="flex justify-center items-center flex-1">
             <LoaderIcon className="animate-spin" color="imos-grey" size="lg" />
           </div>
+        ) : rows.length === 0 ? (
+          <div className="flex justify-center items-center flex-1 text-gray-500 text-sm">
+            No data at this location
+          </div>
         ) : (
           <div className="space-y-1">
-            {oceanCurrentEnabled && data[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT] && (
+            {rows.map(row => (
               <div
+                key={row.key}
                 className="flex-col md:flex-row flex justify-between md:items-center"
-                aria-label="Ocean surface current details"
+                aria-label={`${row.label} details`}
               >
-                <span className="text-gray-600 text-left">
-                  {PRODUCTLEGENDS[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT].label}:
-                </span>
-                <span className="text-gray-900 text-left">
-                  {Math.round(data[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]?.degree ?? 0)}° (
-                  {data[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]?.direction}) @{' '}
-                  {data[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]?.speed?.toFixed(2)} m/s
-                </span>
+                <span className="text-gray-600 text-left">{row.label}:</span>
+                <span className="text-gray-900 text-left">{row.display}</span>
               </div>
-            )}
-
-            {gslaAnomalySeaLevelsEnabled && data[PRODUCT.GSLA_ANOMALY_SEA_LEVELS] !== null && (
-              <div
-                className="flex-col md:flex-row flex justify-between md:items-center"
-                aria-label="Sea level anomaly details"
-              >
-                <span className="text-gray-600 text-left">
-                  {PRODUCTLEGENDS[PRODUCT.GSLA_ANOMALY_SEA_LEVELS].label}:
-                </span>
-                <span className="text-gray-900 text-left">
-                  {data[PRODUCT.GSLA_ANOMALY_SEA_LEVELS]?.toFixed(3)} m
-                </span>
-              </div>
-            )}
-
-            {sstAnomMosaicEnabled && data[PRODUCT.SST_ANOMALY_MOSAIC] !== null && (
-              <div
-                className="flex-col md:flex-row flex justify-between md:items-center"
-                aria-label="SST anomaly details"
-              >
-                <span className="text-gray-600 text-left">
-                  {PRODUCTLEGENDS[PRODUCT.SST_ANOMALY_MOSAIC].label}:
-                </span>
-                <span className="text-gray-900 text-left">
-                  {data[PRODUCT.SST_ANOMALY_MOSAIC]?.toFixed(2)} °C
-                </span>
-              </div>
-            )}
-
-            {marineHeatwaveDhdEnabled && data[PRODUCT.MARINE_HEATWAVE_DHD_MOSAIC] !== null && (
-              <div
-                className="flex-col md:flex-row flex justify-between md:items-center"
-                aria-label="Marine heatwave DHD details"
-              >
-                <span className="text-gray-600 text-left">
-                  {PRODUCTLEGENDS[PRODUCT.MARINE_HEATWAVE_DHD_MOSAIC].label}:
-                </span>
-                <span className="text-gray-900 text-left">
-                  {data[PRODUCT.MARINE_HEATWAVE_DHD_MOSAIC]?.toFixed(2)} °C·days
-                </span>
-              </div>
-            )}
-
-            {marineHeatwaveSstaEnabled && data[PRODUCT.MARINE_HEATWAVE_SSTA_MOSAIC] !== null && (
-              <div
-                className="flex-col md:flex-row flex justify-between md:items-center"
-                aria-label="Marine heatwave SSTA details"
-              >
-                <span className="text-gray-600 text-left">
-                  {PRODUCTLEGENDS[PRODUCT.MARINE_HEATWAVE_SSTA_MOSAIC].label}:
-                </span>
-                <span className="text-gray-900 text-left">
-                  {data[PRODUCT.MARINE_HEATWAVE_SSTA_MOSAIC]?.toFixed(2)} °C
-                </span>
-              </div>
-            )}
+            ))}
           </div>
         )}
       </div>

@@ -1,7 +1,7 @@
-import type { WebGlLayerProduct } from '@/constants';
+import type { TilesProduct } from '@/constants';
 import { PRODUCTLEGENDS, PRODUCTS } from '@/constants';
 import { COLOR_OPTIONS, LAYERS_ORDER } from '@/config';
-import { S3_BASE_URL, getProductManifest } from '@/api';
+import { getProductManifest, TILE_BASE_URL } from '@/api';
 import { buildProductPalette } from '@/helpers';
 import { createScalarAtlasLayer } from '@/AtlasRenderingSystem';
 import type { AtlasLayerHandle } from '@/AtlasRenderingSystem';
@@ -19,11 +19,11 @@ import { useProductDateAvailabilitySync } from './useProductDateAvailabilitySync
 
 type UseScalarAtlasLayer = {
   map: React.RefObject<mapboxgl.Map | null>;
-  layerId: string;
-  product: WebGlLayerProduct;
+  product: TilesProduct;
 };
 
-export function useScalarAtlasLayer({ map, layerId, product }: UseScalarAtlasLayer) {
+export function useScalarAtlasLayer({ map, product }: UseScalarAtlasLayer) {
+  const { layerId } = PRODUCTS[product];
   const { date, enabled, isError, isLoading, colorKey, legendScale } = useMapUIStore(
     useShallow(s => ({
       date: s.date,
@@ -38,7 +38,6 @@ export function useScalarAtlasLayer({ map, layerId, product }: UseScalarAtlasLay
   const { isDateAvailable } = useProductDateAvailabilitySync(product, date);
 
   const legendRange = PRODUCTLEGENDS[product].range as [number, number];
-  const filePrefix = PRODUCTS[product].bucketPath!;
 
   const handleRef = useRef<AtlasLayerHandle | null>(null);
 
@@ -61,8 +60,8 @@ export function useScalarAtlasLayer({ map, layerId, product }: UseScalarAtlasLay
     handleRef.current = createScalarAtlasLayer({
       map: map.current!,
       layerId,
-      fetchManifest: d => getProductManifest({ product: filePrefix, date: d }),
-      tileBaseUrl: `${S3_BASE_URL}/${filePrefix}`,
+      fetchManifest: d => getProductManifest({ product, date: d }),
+      tileBaseUrl: `${TILE_BASE_URL}/${product}`,
       colorPalette: buildProductPalette(getProductLegend(product)),
       legendRange,
     });
@@ -72,7 +71,7 @@ export function useScalarAtlasLayer({ map, layerId, product }: UseScalarAtlasLay
     });
 
     if (enabled) await loadData();
-  }, [map, layerId, filePrefix, legendRange, product, enabled, loadData]);
+  }, [map, layerId, legendRange, product, enabled, loadData]);
 
   const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [setupLayer]);
 

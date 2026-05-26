@@ -18,7 +18,7 @@ import { lazy, memo, Suspense, useEffect } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { DistanceMeasurement } from '../DistanceMeasurement';
 import { MapControlPanel } from '../MapControlPanel';
-import { PRODUCT, PRODUCTS } from '@/constants';
+import { PRODUCT } from '@/constants';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_KEY;
 
@@ -30,7 +30,6 @@ export const MapComponent = memo(function MapComponent() {
     waveBuoysEnabled,
     oceanCurrentEnabled,
     gslaAnomalySeaLevelsEnabled,
-    sstAnomMosaicEnabled,
     marineHeatwaveDhdEnabled,
     marineHeatwaveSstaEnabled,
   } = useMapUIStore(
@@ -39,9 +38,8 @@ export const MapComponent = memo(function MapComponent() {
       waveBuoysEnabled: s.productEnabled[PRODUCT.WAVE_BUOYS],
       oceanCurrentEnabled: s.productEnabled[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT],
       gslaAnomalySeaLevelsEnabled: s.productEnabled[PRODUCT.GSLA_ANOMALY_SEA_LEVELS],
-      sstAnomMosaicEnabled: s.productEnabled[PRODUCT.SST_ANOMALY_MOSAIC],
-      marineHeatwaveDhdEnabled: s.productEnabled[PRODUCT.MARINE_HEATWAVE_DHD_MOSAIC],
-      marineHeatwaveSstaEnabled: s.productEnabled[PRODUCT.MARINE_HEATWAVE_SSTA_MOSAIC],
+      marineHeatwaveDhdEnabled: s.productEnabled[PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC],
+      marineHeatwaveSstaEnabled: s.productEnabled[PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC],
     })),
   );
 
@@ -51,35 +49,24 @@ export const MapComponent = memo(function MapComponent() {
   //2. create layer, set data to layer and add layer to map.
   const { measurePointsGeojson, setMeasurePointsGeojson } = useDistanceMeasurementLayers(map);
   useWorldLandLayer(map);
+  useParticleAtlasLayer({
+    map,
+    product: PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT,
+  });
   useScalarAtlasLayer({
     map,
-    layerId: PRODUCTS[PRODUCT.GSLA_ANOMALY_SEA_LEVELS].layerId,
     product: PRODUCT.GSLA_ANOMALY_SEA_LEVELS,
   });
   useScalarAtlasLayer({
     map,
-    layerId: PRODUCTS[PRODUCT.SST_ANOMALY_MOSAIC].layerId,
-    product: PRODUCT.SST_ANOMALY_MOSAIC,
+    product: PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC,
   });
   useScalarAtlasLayer({
     map,
-    layerId: PRODUCTS[PRODUCT.MARINE_HEATWAVE_DHD_MOSAIC].layerId,
-    product: PRODUCT.MARINE_HEATWAVE_DHD_MOSAIC,
-  });
-  useScalarAtlasLayer({
-    map,
-    layerId: PRODUCTS[PRODUCT.MARINE_HEATWAVE_SSTA_MOSAIC].layerId,
-    product: PRODUCT.MARINE_HEATWAVE_SSTA_MOSAIC,
-  });
-  useParticleAtlasLayer({
-    map,
-    layerId: PRODUCTS[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT].layerId,
-    product: PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT,
+    product: PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC,
   });
   useWaveBuoysLayer({
     map,
-    layerId: PRODUCTS[PRODUCT.WAVE_BUOYS].layerId,
-    sourceId: PRODUCTS[PRODUCT.WAVE_BUOYS].sourceId,
     product: PRODUCT.WAVE_BUOYS,
   });
 
@@ -91,10 +78,7 @@ export const MapComponent = memo(function MapComponent() {
     map,
     oceanCurrentEnabled,
     heatmapEnabled:
-      gslaAnomalySeaLevelsEnabled ||
-      sstAnomMosaicEnabled ||
-      marineHeatwaveDhdEnabled ||
-      marineHeatwaveSstaEnabled,
+      gslaAnomalySeaLevelsEnabled || marineHeatwaveDhdEnabled || marineHeatwaveSstaEnabled,
     distanceMeasurementEnabled,
   });
 

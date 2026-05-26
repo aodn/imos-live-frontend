@@ -1,2 +1,2 @@
-export * from './scalarAtlas';
+export * from './tiles';
 export * from './waveBuoys';

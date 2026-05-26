@@ -81,6 +81,7 @@ export const getLast7Dates = getLastDates(7);
 export const getLast10Dates = getLastDates(10);
 
 export const getLast31Dates = getLastDates(31);
+export const getLast60Dates = getLastDates(60);
 
 export function getDate3DaysAgo() {
   const today = new Date();
