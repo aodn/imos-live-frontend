@@ -1,5 +1,5 @@
 import type { TilesProduct } from '@/constants';
-import { PRODUCT, PRODUCTS } from '@/constants';
+import { PRODUCT, PRODUCTLEGENDS, PRODUCTS } from '@/constants';
 import { COLOR_OPTIONS } from '@/config';
 import { cn, toCompactDate, toISOFromCompact } from '@/utils';
 import type { ReactNode } from 'react';
@@ -9,7 +9,7 @@ import { CollapsibleComponent } from '../Collapsible';
 import { Dropdown } from '../Dropdown';
 import { AddCircleIcon, ArrowIcon, MinusCircleIcon, VectorIcon } from '../Icons';
 import { Image } from '../Image';
-import { LinearColorScaleBar, LogColorScaleBar } from '../ColorScaleBar';
+import { CategoryColorScaleBar, LinearColorScaleBar, LogColorScaleBar } from '../ColorScaleBar';
 import type { LayersDataset } from './MainSidebarContent';
 import { useQuery } from '@tanstack/react-query';
 import { getMetaDataManifest, getWaveBuoyLatestDate } from '@/api';
@@ -32,7 +32,8 @@ export function LayerCard({
   portalLink,
 }: LayerCardProps) {
   const isWaveBuoyProduct = product === PRODUCT.WAVE_BUOYS;
-
+  const isCategoryLegend = PRODUCTLEGENDS[product as TilesProduct]?.scale === 'category';
+  console.log('isCategoryLegend', isCategoryLegend, product);
   const productLegend = useMapUIStore(s =>
     !isWaveBuoyProduct ? s.productLegends[product as TilesProduct] : null,
   );
@@ -157,7 +158,7 @@ export function LayerCard({
           </Button>
         </div>
 
-        {!isWaveBuoyProduct && (
+        {!isWaveBuoyProduct && !isCategoryLegend && (
           <div className="col-span-12 flex gap-3">
             <Dropdown
               className="flex-1"
@@ -172,26 +173,12 @@ export function LayerCard({
               }
               usePortal
             />
-            {/* <Dropdown
-              className="flex-1"
-              size="sm"
-              label="Scale"
-              options={[
-                { label: 'Linear', value: 'linear' },
-                { label: 'Log', value: 'log' },
-              ]}
-              initialValue={legendScale}
-              onChange={v =>
-                setProductLegend(product as WebGlLayerProduct, { scale: v as 'log' | 'linear' })
-              }
-              usePortal
-            /> */}
           </div>
         )}
 
         {!isWaveBuoyProduct && productLegend && (
           <div className="col-span-12">
-            {legendScale === 'log' ? (
+            {legendScale === 'log' && (
               <LogColorScaleBar
                 className="w-full"
                 colors={COLOR_OPTIONS[colorKey]}
@@ -199,14 +186,23 @@ export function LayerCard({
                 max={productLegend.range[1]}
                 label={productLegend.label}
               />
-            ) : (
+            )}
+            {legendScale === 'linear' && (
               <LinearColorScaleBar
                 className="w-full"
                 colors={COLOR_OPTIONS[colorKey]}
                 min={productLegend.range[0]}
                 max={productLegend.range[1]}
                 label={productLegend.label}
-                scales={productLegend.scales}
+                scales={productLegend.scales as number[]}
+              />
+            )}
+            {legendScale === 'category' && (
+              <CategoryColorScaleBar
+                className="w-full"
+                colors={COLOR_OPTIONS[colorKey]}
+                label={productLegend.label}
+                scales={productLegend.scales as string[]}
               />
             )}
           </div>

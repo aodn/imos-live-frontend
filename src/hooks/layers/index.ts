@@ -1,6 +1,6 @@
 export * from './useMapboxLayerSetup';
 export * from './useMapboxLayerVisibility';
-export * from './useParticleRasterLayersEventHandlers';
+export * from './useTilesLayersEventHandlers';
 export * from './useWaveBuoysLayer';
 export * from './useWaveBuoysLayerEventHandler';
 export * from './useWorldLandLayer';

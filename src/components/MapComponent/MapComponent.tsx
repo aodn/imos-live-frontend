@@ -5,7 +5,7 @@ import {
   useMapResize,
   useMapStyle,
   useParticleAtlasLayer,
-  useParticleRasterLayersEventHandlers,
+  useTilesLayersEventHandlers,
   useScalarAtlasLayer,
   useWaveBuoysLayer,
   useWaveBuoysLayerEventHandler,
@@ -32,6 +32,7 @@ export const MapComponent = memo(function MapComponent() {
     gslaAnomalySeaLevelsEnabled,
     marineHeatwaveDhdEnabled,
     marineHeatwaveSstaEnabled,
+    marineHeatwaveMcsCategoryEnabled,
   } = useMapUIStore(
     useShallow(s => ({
       distanceMeasurementEnabled: s.distanceMeasurementEnabled,
@@ -40,6 +41,7 @@ export const MapComponent = memo(function MapComponent() {
       gslaAnomalySeaLevelsEnabled: s.productEnabled[PRODUCT.GSLA_ANOMALY_SEA_LEVELS],
       marineHeatwaveDhdEnabled: s.productEnabled[PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC],
       marineHeatwaveSstaEnabled: s.productEnabled[PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC],
+      marineHeatwaveMcsCategoryEnabled: s.productEnabled[PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY],
     })),
   );
 
@@ -65,6 +67,10 @@ export const MapComponent = memo(function MapComponent() {
     map,
     product: PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC,
   });
+  useScalarAtlasLayer({
+    map,
+    product: PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY,
+  });
   useWaveBuoysLayer({
     map,
     product: PRODUCT.WAVE_BUOYS,
@@ -74,11 +80,14 @@ export const MapComponent = memo(function MapComponent() {
   const { clickedPointData: waveBuoysLayerClickedPointData, openDrawer } =
     useWaveBuoysLayerEventHandler(map, waveBuoysEnabled, distanceMeasurementEnabled);
 
-  useParticleRasterLayersEventHandlers({
+  useTilesLayersEventHandlers({
     map,
     oceanCurrentEnabled,
     heatmapEnabled:
-      gslaAnomalySeaLevelsEnabled || marineHeatwaveDhdEnabled || marineHeatwaveSstaEnabled,
+      gslaAnomalySeaLevelsEnabled ||
+      marineHeatwaveDhdEnabled ||
+      marineHeatwaveSstaEnabled ||
+      marineHeatwaveMcsCategoryEnabled,
     distanceMeasurementEnabled,
   });
 

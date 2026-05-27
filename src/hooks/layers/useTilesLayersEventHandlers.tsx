@@ -17,7 +17,7 @@ type UseMapEventHandlersOptions = {
   distanceMeasurementEnabled: boolean;
 };
 
-export function useParticleRasterLayersEventHandlers({
+export function useTilesLayersEventHandlers({
   map,
   oceanCurrentEnabled,
   heatmapEnabled,

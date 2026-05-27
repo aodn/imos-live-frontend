@@ -3,7 +3,7 @@ import { useShallow } from 'zustand/shallow';
 import type { LngLat } from 'mapbox-gl';
 import type { ClosePopupFn } from '@/helpers';
 import type { TilesProduct } from '@/constants';
-import { PRODUCT, PRODUCTLEGENDS } from '@/constants';
+import { HW_CATEGORY_LOOKUP, PRODUCT, PRODUCTLEGENDS } from '@/constants';
 import { useQueries } from '@tanstack/react-query';
 import { getPointData } from '@/api/tiles';
 import { LoaderIcon } from '@/components/Icons';
@@ -61,11 +61,22 @@ export function ClickedMapPopupContent({ onClose, lngLat }: ClickedMapPopupConte
 
     return Object.entries(variables)
       .filter(([, v]) => v.value !== null)
-      .map(([varKey, v]) => ({
-        key: `${product}:${varKey}`,
-        label,
-        display: `${(v.value as number).toFixed(2)} ${v.units}`,
-      }));
+      .map(([varKey, v]) => {
+        if (product === PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY) {
+          const category = v.value as number;
+          return {
+            key: `${product}:${varKey}`,
+            label,
+            display:
+              category + ' ' + HW_CATEGORY_LOOKUP[category as keyof typeof HW_CATEGORY_LOOKUP],
+          };
+        }
+        return {
+          key: `${product}:${varKey}`,
+          label,
+          display: `${(v.value as number).toFixed(2)} ${v.units ? v.units : ''}`,
+        };
+      });
   });
 
   return (

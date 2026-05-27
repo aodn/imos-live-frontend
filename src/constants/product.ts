@@ -2,16 +2,14 @@
  * this is the single truth of all the products in this project, and
  * the single truth of product's layerId, sourceId.
  */
-import { anomalySeaLevel } from '@/config/colorPalettes';
 import type { ColorOptionKey } from '@/config/colorPalettes';
-
-export const gslaOverlayImageColors = anomalySeaLevel.colors as [number, number, number][];
 
 export const PRODUCT = {
   GSLA_OCEAN_GEOSTROPHIC_CURRENT: 'model_sea_level_anomaly_gridded_realtime_vcur_ucur',
   GSLA_ANOMALY_SEA_LEVELS: 'model_sea_level_anomaly_gridded_realtime_gsla',
   AUSTEMP_HEATWAVE_SSTA_MOSAIC: 'satellite_austemp_heatwave_8day_ssta_mosaic',
   AUSTEMP_HEATWAVE_SST_MOSAIC: 'satellite_austemp_heatwave_8day_sst_mosaic',
+  AUSTEMP_HEATWAVE_MCS_CATEGORY: 'satellite_austemp_heatwave_8day_mcs_category',
   WAVE_BUOYS: 'wave-buoys',
 } as const;
 
@@ -56,6 +54,12 @@ export const PRODUCTS = {
     sourceId: 'austemp-heatwave-ssta-mosaic-source',
     variables: ['ssta_mosaic'],
   },
+  [PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY]: {
+    name: 'Austemp heatwave MCS Category',
+    layerId: 'austemp-heatwave-mcs-category-layer',
+    sourceId: 'austemp-heatwave-mcs-category-source',
+    variables: ['MCS_category'],
+  },
 } as const satisfies Record<ProductType, ProductValue>;
 
 export const MAX_VECTOR_SPEED = 3.0 as const;
@@ -66,19 +70,19 @@ export type LegendArgs = {
   colorKey: ColorOptionKey;
   range: [number, number];
   threshold?: number;
-  scales?: number[];
-  scale: 'log' | 'linear';
+  scales?: (number | string)[];
+  scale: 'log' | 'linear' | 'category';
 };
 
-export const MHW_CATEGORY_LEGEND_COLORS = [
-  '#8c0000', // none
-  '#ff9701', // moderate
-  '#67ff96', // strong
-  '#007bff', // severe
-  '#00078f', // extreme
-];
+export const HW_CATEGORY_LOOKUP = {
+  0: 'none',
+  1: 'moderate',
+  2: 'strong',
+  3: 'severe',
+  4: 'extreme',
+} as const;
 
-export const HW_CATEGORY_LEGEND_LABELS = ['none', 'moderate', 'strong', 'severe', 'extreme'];
+export const HW_CATEGORY_LEGEND_SCALES = Object.values(HW_CATEGORY_LOOKUP);
 
 export const PRODUCTLEGENDS = {
   [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: {
@@ -108,22 +112,18 @@ export const PRODUCTLEGENDS = {
     colorKey: 'RdBu_r' as ColorOptionKey,
     scale: 'linear',
   },
+  [PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY]: {
+    scales: HW_CATEGORY_LEGEND_SCALES,
+    range: [0, 4],
+    label: 'MCS Category',
+    colorKey: 'MHW_CATEGORY_LEGEND_COLORS' as ColorOptionKey,
+    scale: 'category',
+  },
 } as const satisfies Record<Exclude<ProductType, 'wave-buoys'>, LegendArgs>;
-
-export type ProductLayerId = (typeof PRODUCTS)[ProductType]['layerId'];
-export type ProductSourceId = (typeof PRODUCTS)[ProductType]['sourceId'];
-export type ProductName = (typeof PRODUCTS)[ProductType]['name'];
-
-export const sourceIdToProduct = (sourceId: ProductSourceId) => {
-  return Object.entries(PRODUCTS).find(([, v]) => v.sourceId === sourceId)?.[0] as ProductType;
-};
-
-export const layerIdToProduct = (layerId: ProductLayerId) => {
-  return Object.entries(PRODUCTS).find(([, v]) => v.layerId === layerId)?.[0] as ProductType;
-};
 
 export const TILES_GROUP = [
   PRODUCT.GSLA_ANOMALY_SEA_LEVELS,
   PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC,
   PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC,
+  PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY,
 ] as const satisfies TilesProduct[];

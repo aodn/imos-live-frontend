@@ -1,3 +1,5 @@
+import { hexToRgbArray } from '@/utils';
+
 export const rdBuR: { colors: [number, number, number][] } = {
   colors: [
     [0.02, 0.188, 0.38], // dark blue
@@ -107,10 +109,23 @@ export const anomalySeaLevel = {
   ],
 };
 
+export const MHW_CATEGORY_LEGEND_COLORS = [
+  '#8c0000', // none
+  '#ff9701', // moderate
+  '#67ff96', // strong
+  '#007bff', // severe
+  '#00078f', // extreme
+];
+
 export const COLOR_OPTIONS = {
   RdBu_r: rdBuR.colors as [number, number, number][],
   'Anomaly Sea Level': anomalySeaLevel.colors as [number, number, number][],
   Particles: particles.colors as [number, number, number][],
-};
+  MHW_CATEGORY_LEGEND_COLORS: MHW_CATEGORY_LEGEND_COLORS.map(hexToRgbArray) as [
+    number,
+    number,
+    number,
+  ][],
+} as const;
 
 export type ColorOptionKey = keyof typeof COLOR_OPTIONS;

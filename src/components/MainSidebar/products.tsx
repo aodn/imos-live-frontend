@@ -101,6 +101,23 @@ export const featuredDataset: LayersDataset[] = [
   },
   {
     image: {
+      src: sstImage,
+      alt: 'Marine heatwave SST Mosaic',
+    },
+    title: 'Marine heatwave sea surface temperature MCS Category',
+    icon: <ThermometerIcon size="lg" />,
+    description:
+      'Sea Surface Temperature Anomaly (SSTA) mosaic for the Australasian region, showing deviations from the long-term mean to identify marine heatwave conditions.',
+    layerId: PRODUCTS[PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY].layerId,
+    visible: false,
+    isError: false,
+    product: PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY,
+    addToMap: setProductEnabledByProduct,
+    portalLink:
+      'https://catalogue-imos.aodn.org.au/geonetwork/srv/eng/catalog.search#/search?any=IMOS%20-%20AusTemp%20-%20Marine%20Heatwave',
+  },
+  {
+    image: {
       src: waveBuoysImage,
       alt: 'Wave buoys',
     },

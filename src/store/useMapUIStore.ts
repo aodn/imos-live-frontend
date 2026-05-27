@@ -113,6 +113,7 @@ export const useMapUIStore = create(
         [PRODUCT.WAVE_BUOYS]: true,
         [PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC]: false,
         [PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC]: false,
+        [PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY]: false,
       },
       productError: {
         [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: false,
@@ -120,6 +121,7 @@ export const useMapUIStore = create(
         [PRODUCT.WAVE_BUOYS]: false,
         [PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC]: false,
         [PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC]: false,
+        [PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY]: false,
       },
       productLoading: {
         [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: false,
@@ -127,6 +129,7 @@ export const useMapUIStore = create(
         [PRODUCT.WAVE_BUOYS]: false,
         [PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC]: false,
         [PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC]: false,
+        [PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY]: false,
       },
       productLegends: Object.fromEntries(
         Object.entries(PRODUCTLEGENDS).map(([k, v]) => [k, { ...v }]),
