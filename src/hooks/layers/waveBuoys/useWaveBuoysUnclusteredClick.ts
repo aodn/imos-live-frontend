@@ -1,6 +1,6 @@
 import { UNCLUSTERED_WAVE_BUOYS_LAYER_ID } from '@/constants';
 import type { WaveBuoyPositionFeature } from '@/types';
-import { normalizeWaveBuouysData } from '@/utils';
+import { normalizeWaveBuouysData } from '@/helpers';
 import { useEffect } from 'react';
 
 /**

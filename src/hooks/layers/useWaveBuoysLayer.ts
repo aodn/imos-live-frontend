@@ -9,7 +9,12 @@ import {
   UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
   WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID,
 } from '@/constants';
-import { addLayerInOrder, addOrUpdateGeoJsonSource, mergeAndFilterBuoyFeatures } from '@/helpers';
+import {
+  addLayerInOrder,
+  addOrUpdateGeoJsonSource,
+  mergeAndFilterBuoyFeatures,
+  normalizeWaveBuoyDates,
+} from '@/helpers';
 import { circleLayer, symbolLayer } from '@/layers';
 import { useMapUIStore, setProductErrorByProduct } from '@/store';
 import { useQuery } from '@tanstack/react-query';
@@ -19,7 +24,6 @@ import { useDidMountEffect } from '../useDidMountEffect';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
 import allWaveBuoySitesBackup from '@/assets/wave_buoy_all_sites.json';
-import { normalizeWaveBuoyDates } from '@/utils';
 import type { WaveBuoyPositionFeatureCollection } from '@/types';
 
 type UseWaveBuoysLayer = {

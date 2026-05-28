@@ -1,8 +1,7 @@
 import { BuoyHoverPopupContent } from '@/components';
 import { UNCLUSTERED_WAVE_BUOYS_LAYER_ID, ZOOM_LIMIT_TEMP_POINTS_LAYER_ID } from '@/constants';
-import { type ClosePopupFn, showPopup } from '@/helpers';
+import { type ClosePopupFn, coordinateToLngLat, showPopup } from '@/helpers';
 import type { WaveBuoyGeometry, WaveBuoyPositionProperties } from '@/types';
-import { coordinateToLngLat } from '@/utils';
 import { useEffect, useRef } from 'react';
 
 /**

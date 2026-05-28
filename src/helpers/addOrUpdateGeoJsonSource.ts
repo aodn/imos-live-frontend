@@ -1,5 +1,5 @@
 import { CLUSTER_MAX_ZOOM } from '@/constants';
-import { addIdToFeatures } from '@/utils';
+import { addIdToFeatures } from './addIdToFeatures';
 
 export function addOrUpdateGeoJsonSource({
   map,

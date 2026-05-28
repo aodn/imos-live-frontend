@@ -1,5 +1,5 @@
 import type { WaveBuoyPositionFeature, WaveBuoyPositionFeatureCollection } from '@/types';
-import { utcToLocalDateTime } from './dateUtils';
+import { utcToLocalDateTime } from '@/utils';
 import type { GeoJSONFeature } from 'mapbox-gl';
 
 export function normalizeWaveBuoyDates(

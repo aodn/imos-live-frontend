@@ -1,5 +1,6 @@
 import type { WaveBuoyDetailsFeature, WaveBuoyPositionFeatureCollection } from '@/types';
-import { normalizeWaveBuoyDates, utcToLocalDateTime, localToUTC } from '@/utils';
+import { normalizeWaveBuoyDates } from '@/helpers';
+import { utcToLocalDateTime, localToUTC } from '@/utils';
 import axios from 'axios';
 
 /**
