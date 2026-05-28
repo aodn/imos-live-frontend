@@ -31,6 +31,7 @@ import { getColorRamp } from '../utils';
 import type { ProductManifest, ColorPalette, PalettePatch } from '../types';
 import {
   computeRamp,
+  buildDiscreteRampPixels,
   mercatorBoundsArray,
   sortManifestLods,
   dataBoundsFromManifest,
@@ -72,6 +73,12 @@ export function createHeatmapAtlasField(
   let bufferInfo: twgl.BufferInfo | null = null;
   let colorRampTexture: WebGLTexture | null = null;
   let currentPalette: ColorPalette = palette;
+  /**
+   * 0 = continuous data (256-stop interpolated ramp, LINEAR filtering).
+   * N>0 = categorical with N flag values (discrete N-pixel ramp, NEAREST
+   * filtering on both the ramp and the atlas; see setSource).
+   */
+  let numCategories = 0;
 
   // ── Atlas + chunk management ─────────────────────────────────────────────
   let atlas: AtlasManagerAPI | null = null;
@@ -115,12 +122,33 @@ export function createHeatmapAtlasField(
       },
     });
 
+    rebuildColorRampTexture();
+  }
+
+  /**
+   * (Re)create the colour-ramp texture from `currentPalette` + `numCategories`.
+   *
+   * Continuous: 256×1 ramp built from a canvas gradient, sampled with LINEAR.
+   * Categorical: N×1 ramp where each texel is one flag's colour, sampled with
+   * NEAREST so the shader's texel-centre lookup returns the exact palette entry
+   * without bleeding from its neighbours.
+   *
+   * Recreates the texture (rather than texSubImage2D) because the width changes
+   * between modes — even when only the colour count changes.
+   */
+  function rebuildColorRampTexture() {
+    if (colorRampTexture) gl.deleteTexture(colorRampTexture);
+    const categorical = numCategories > 0;
+    const { data, width } = categorical
+      ? buildDiscreteRampPixels(currentPalette.rawColors)
+      : { data: getColorRamp(computeRamp(currentPalette)), width: 256 };
+    const filter = categorical ? gl.NEAREST : gl.LINEAR;
     colorRampTexture = twgl.createTexture(gl, {
-      src: getColorRamp(computeRamp(currentPalette)),
-      width: 256,
+      src: data,
+      width,
       height: 1,
-      min: gl.LINEAR,
-      mag: gl.LINEAR,
+      min: filter,
+      mag: filter,
       wrap: gl.CLAMP_TO_EDGE,
     });
   }
@@ -141,12 +169,9 @@ export function createHeatmapAtlasField(
 
   function updatePalette(patch: PalettePatch) {
     currentPalette = { ...currentPalette, ...patch };
-    if (!colorRampTexture) return;
-    twgl.setTextureFromArray(gl, colorRampTexture, getColorRamp(computeRamp(currentPalette)), {
-      width: 256,
-      height: 1,
-      format: gl.RGBA,
-    });
+    // Ramp texture width / filter depend on numCategories (categorical vs
+    // continuous), so always rebuild rather than overwriting via texSubImage2D.
+    if (colorRampTexture) rebuildColorRampTexture();
   }
 
   async function setSource(
@@ -165,6 +190,12 @@ export function createHeatmapAtlasField(
     ({ uvScale, uvOffset } = computeUvTransform(lod1));
     lodGridsFlat = buildLodGridsFlat(lodsSorted);
 
+    // Categorical products carry `flagValues` in the manifest; presence flips
+    // the field into discrete mode (NEAREST atlas/ramp filtering, one ramp
+    // texel per flag, the shader rounds raw values to a flag index).
+    const prevNumCategories = numCategories;
+    numCategories = manifest.flagValues?.length ?? 0;
+
     // Teardown previous state
     atlas?.destroy();
     schedulers.forEach(s => s.destroy());
@@ -174,9 +205,13 @@ export function createHeatmapAtlasField(
     atlas = createAtlasManager(gl, {
       slotPx: lod1.storedPx,
       lods: lodsSorted.map(({ grid }) => ({ grid })),
+      filter: numCategories > 0 ? 'nearest' : 'linear',
     });
 
     if (!programInfo) initializeShaders(atlas.getTotalSlots(), atlas.getTotalVirtualChunks());
+    // Same field instance re-bound to a product with different categoricality
+    // (or different category count): rebuild the ramp texture to match.
+    else if (prevNumCategories !== numCategories) rebuildColorRampTexture();
 
     schedulers = createLodSchedulers({
       atlas,
@@ -250,6 +285,7 @@ export function createHeatmapAtlasField(
       u_value_range: valueRange,
       u_legend_range: currentPalette.legendRange,
       u_color_ramp: colorRampTexture,
+      u_num_categories: numCategories,
     });
 
     twgl.drawBufferInfo(gl, bufferInfo);

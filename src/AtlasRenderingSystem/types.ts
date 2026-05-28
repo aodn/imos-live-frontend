@@ -14,6 +14,19 @@ export type ProductManifest = {
   uRange?: [number, number];
   vRange?: [number, number];
   lods: Record<string, LodEntry>;
+  /**
+   * Categorical products only: integer flag values present in the data, e.g.
+   * `[0, 1, 2, 3, 4]`. Presence of this field tells the field/shader to switch
+   * to a discrete colour lookup and NEAREST atlas/ramp sampling — continuous
+   * products omit it.
+   *
+   * Assumed to be sequential integers spanning `valueRange[0]..valueRange[1]`
+   * (the standard CF-conventions layout); the shader rounds the decoded raw
+   * value to its index in this array.
+   */
+  flagValues?: number[];
+  /** Categorical products only: human-readable label per `flagValues` entry. */
+  flagMeanings?: string[];
 };
 
 // ── Color types ───────────────────────────────────────────────────────────────
@@ -21,7 +34,12 @@ export type ProductManifest = {
 export type ColorPalette = {
   legendRange: [number, number];
   rawColors: [number, number, number][];
-  scale: 'log' | 'linear';
+  /**
+   * 'log' / 'linear' build a 256-stop interpolated ramp.
+   * 'category' uploads `rawColors` as a discrete N-pixel ramp with NEAREST
+   * filtering — one colour per flag value, no interpolation.
+   */
+  scale: 'log' | 'linear' | 'category';
 };
 
 export type PalettePatch = Partial<ColorPalette>;

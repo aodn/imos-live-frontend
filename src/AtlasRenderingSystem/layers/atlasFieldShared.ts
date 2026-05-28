@@ -19,7 +19,31 @@ export function computeRamp(palette: ColorPalette): Record<string, string> {
         minMaxRatio: legendRange[0] / legendRange[1],
         colors: rawColors,
       })
-    : convertLinearColorScaleToRamp({ colors: rawColors });
+    : // 'linear' and (the never-categorical-here) 'category' both fall through to
+      // a linear ramp; HeatmapAtlasField bypasses computeRamp entirely when it
+      // detects a categorical product and calls buildDiscreteRampPixels instead.
+      convertLinearColorScaleToRamp({ colors: rawColors });
+}
+
+/**
+ * Build a discrete N-pixel × 1 RGBA ramp from `rawColors` — one texel per flag
+ * value, no interpolation. Combined with NEAREST sampling and texel-centre
+ * lookup in the shader this gives exact category → colour mapping.
+ */
+export function buildDiscreteRampPixels(rawColors: ColorPalette['rawColors']): {
+  data: Uint8Array;
+  width: number;
+} {
+  const width = rawColors.length;
+  const data = new Uint8Array(width * 4);
+  for (let i = 0; i < width; i++) {
+    const [r, g, b] = rawColors[i];
+    data[i * 4 + 0] = Math.round(r * 255);
+    data[i * 4 + 1] = Math.round(g * 255);
+    data[i * 4 + 2] = Math.round(b * 255);
+    data[i * 4 + 3] = 255;
+  }
+  return { data, width };
 }
 
 /** LngLatBounds → [nwMercatorX, seMercatorY, seMercatorX, nwMercatorY] for the u_bounds uniform. */

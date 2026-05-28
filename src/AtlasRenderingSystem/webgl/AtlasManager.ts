@@ -48,6 +48,12 @@ export type AtlasConfig = {
    * Index 0 = LOD '1', index 1 = LOD '2', etc. Up to MAX_LODS entries.
    */
   lods: Array<{ grid: [number, number] }>;
+  /**
+   * Atlas texture min/mag filter. Defaults to 'linear' (continuous data, smooth
+   * sampling). Categorical products must use 'nearest' so neighbouring pixels
+   * with different flag values are not blended into invented in-between values.
+   */
+  filter?: 'linear' | 'nearest';
 };
 
 export type AtlasManagerAPI = {
@@ -212,8 +218,9 @@ export function createAtlasManager(
     gl.UNSIGNED_BYTE,
     null,
   );
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  const filterMode = config.filter === 'nearest' ? gl.NEAREST : gl.LINEAR;
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filterMode);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filterMode);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   gl.bindTexture(gl.TEXTURE_2D, null);

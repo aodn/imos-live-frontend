@@ -85,16 +85,29 @@ The manifest is the primary configuration file for each product. It controls til
 }
 ```
 
-| Field                     | What it controls                                                                                  |
-| ------------------------- | ------------------------------------------------------------------------------------------------- |
-| `bounds`                  | Geographic extent of the dataset                                                                  |
-| `valueRange`              | `[rawMin, rawMax]` of the encoded scalar — used for RGB24 decoding                                |
-| `uRange`, `vRange`        | Velocity encoding ranges for particle products                                                    |
-| `lods['N'].grid`          | `[cols, rows]` — how many chunks tile the region at this LOD                                      |
-| `lods['N'].chunkPx`       | `[w, h]` — inner data pixels per tile (excludes padding). This is the geographic resolution knob. |
-| `lods['N'].storedPx`      | `[w, h]` — actual PNG pixel size (= `chunkPx + [2×padding, 2×padding]`)                           |
-| `lods['N'].padding`       | Padding pixels on each side. Recommended: **1**. See guidance below.                              |
-| `lods['N'].zoomThreshold` | _(LOD2+)_ Minimum map zoom to activate this LOD. Defaults to `6`. LOD1 ignores it.                |
+| Field                     | What it controls                                                                                                      |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `bounds`                  | Geographic extent of the dataset                                                                                      |
+| `valueRange`              | `[rawMin, rawMax]` of the encoded scalar — used for RGB24 decoding                                                    |
+| `uRange`, `vRange`        | Velocity encoding ranges for particle products                                                                        |
+| `flagValues`              | _(categorical only)_ Sequential integer flag values, e.g. `[0,1,2,3,4]`. Presence flips the heatmap to discrete mode. |
+| `flagMeanings`            | _(categorical only)_ Human-readable label per flag value (same length as `flagValues`)                                |
+| `lods['N'].grid`          | `[cols, rows]` — how many chunks tile the region at this LOD                                                          |
+| `lods['N'].chunkPx`       | `[w, h]` — inner data pixels per tile (excludes padding). This is the geographic resolution knob.                     |
+| `lods['N'].storedPx`      | `[w, h]` — actual PNG pixel size (= `chunkPx + [2×padding, 2×padding]`)                                               |
+| `lods['N'].padding`       | Padding pixels on each side. Recommended: **1**. See guidance below.                                                  |
+| `lods['N'].zoomThreshold` | _(LOD2+)_ Minimum map zoom to activate this LOD. Defaults to `6`. LOD1 ignores it.                                    |
+
+**Categorical (discrete) products**
+
+When `flagValues` is present, `HeatmapAtlasField` switches into categorical mode:
+
+- The atlas is created with NEAREST filtering so neighbouring pixels with different flag values are not blended.
+- The colour ramp becomes an N-pixel × 1 texture (one texel per `flagValues` entry, same order as the palette's `rawColors`), also sampled with NEAREST.
+- The shader decodes the raw value, rounds it to its index in `flagValues` (assumed sequential integers spanning `valueRange[0]..valueRange[1]`), and samples the ramp at the centre of that texel.
+- LOD blending: the finer LOD pops in fully on residency instead of crossfading — interpolating RGB-encoded categorical scalars would otherwise invent intermediate categories that aren't in the data.
+
+In the host app, the matching `PRODUCTLEGENDS` entry should set `scale: 'category'` and supply N colours under its `colorKey`. `buildProductPalette` then produces a `ColorPalette` with `scale: 'category'` and rawColors aligned 1:1 with `flagValues` from the manifest. See `AUSTEMP_HEATWAVE_MCS_CATEGORY` in `src/constants/product.ts` for a worked example.
 
 LOD keys are sorted numerically at runtime — insertion order in the JSON does not matter. Up to `MAX_LODS = 4` LODs are supported.
 
@@ -481,10 +494,11 @@ createAtlasManager(gl, config: AtlasConfig): AtlasManagerAPI
 
 **`AtlasConfig`**
 
-| Field    | Type                                | Description                                       |
-| -------- | ----------------------------------- | ------------------------------------------------- |
-| `slotPx` | `[number, number]`                  | Slot pixel size `[w, h]` — set to `lod1.storedPx` |
-| `lods`   | `Array<{ grid: [number, number] }>` | LOD configs, coarsest first                       |
+| Field    | Type                                | Description                                                                               |
+| -------- | ----------------------------------- | ----------------------------------------------------------------------------------------- |
+| `slotPx` | `[number, number]`                  | Slot pixel size `[w, h]` — set to `lod1.storedPx`                                         |
+| `lods`   | `Array<{ grid: [number, number] }>` | LOD configs, coarsest first                                                               |
+| `filter` | `'linear' \| 'nearest'`             | Atlas min/mag filter. Defaults to `'linear'`. Categorical products must pass `'nearest'`. |
 
 Atlas dimensions are auto-computed from `slotPx` and the LOD grids (see [Atlas auto-sizing](#atlas-auto-sizing)).
 
@@ -624,11 +638,12 @@ Shader source is generated by factory functions (`makeScalarAtlasFs(totalSlots, 
 
 ### Scalar-specific (heatmapShader)
 
-| Uniform          | Type        | Description                                                              |
-| ---------------- | ----------- | ------------------------------------------------------------------------ |
-| `u_value_range`  | `vec2`      | `[rawMin, rawMax]` from manifest — decodes RGB24 to physical units       |
-| `u_legend_range` | `vec2`      | `[legendMin, legendMax]` from `PRODUCTLEGENDS` — colour ramp clamp range |
-| `u_color_ramp`   | `sampler2D` | 256×1 colour ramp texture                                                |
+| Uniform            | Type        | Description                                                                                |
+| ------------------ | ----------- | ------------------------------------------------------------------------------------------ |
+| `u_value_range`    | `vec2`      | `[rawMin, rawMax]` from manifest — decodes RGB24 to physical units                         |
+| `u_legend_range`   | `vec2`      | `[legendMin, legendMax]` from `PRODUCTLEGENDS` — colour ramp clamp range (continuous only) |
+| `u_color_ramp`     | `sampler2D` | Continuous: 256×1 ramp (LINEAR). Categorical: N×1 ramp (NEAREST, one texel per flag)       |
+| `u_num_categories` | `int`       | `0` = continuous data, `N>0` = categorical with N flag values                              |
 
 ### Uniform component budget
 

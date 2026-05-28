@@ -10,11 +10,19 @@
  *
  * Atlas uniform conventions are documented in atlasGlsl.ts (shared with the
  * ocean-current shader). Scalar-specific uniforms:
- *   u_atlas         sampler2D the auto-sized atlas texture
- *   u_lod_count     int       number of active LODs (1–4)
- *   u_lod_blend     float     0.0→1.0, controls the final LOD transition
- *   u_value_range   vec2      [rawMin, rawMax] — the dataset's actual value range
- *   u_legend_range  vec2      [legendMin, legendMax] — color ramp clamp range
+ *   u_atlas           sampler2D the auto-sized atlas texture
+ *   u_lod_count       int       number of active LODs (1–4)
+ *   u_lod_blend       float     0.0→1.0, controls the final LOD transition (continuous only)
+ *   u_value_range     vec2      [rawMin, rawMax] — the dataset's actual value range
+ *   u_legend_range    vec2      [legendMin, legendMax] — color ramp clamp range (continuous only)
+ *   u_color_ramp      sampler2D continuous: 256×1 ramp; categorical: N×1 discrete ramp (one texel per flag)
+ *   u_num_categories  int       0 = continuous data, N>0 = categorical with N flag values
+ *
+ * Categorical mode skips the linear lookup and the LOD crossfade: each fragment
+ * picks the finer LOD's exact value (no scalar mix), rounds it to its index in
+ * `flagValues` (offset from u_value_range.x), and samples the colour ramp at
+ * the centre of that texel. The atlas and ramp must both be uploaded with
+ * NEAREST filtering — see HeatmapAtlasField.
  */
 
 import { makeAtlasGlsl } from './atlasGlsl';
@@ -45,17 +53,30 @@ uniform float     u_lod_blend;
 uniform vec2      u_value_range;
 uniform vec2      u_legend_range;
 uniform sampler2D u_color_ramp;
+uniform int       u_num_categories; // 0 = continuous; >0 = categorical N
 
 in  vec2 v_screen_pos;
 out vec4 fragColor;
 
 ${makeAtlasGlsl(totalSlots, totalVirtualChunks)}
 
-// Decode 24-bit RGB scalar and normalise to [0, 1] for color ramp lookup.
-float decodeScalar(vec3 rgb) {
+// Decode the 24-bit RGB scalar to its raw value in u_value_range units.
+float decodeRaw(vec3 rgb) {
     vec3 bytes = rgb * 255.0;
     float decoded = (bytes.r * 65536.0 + bytes.g * 256.0 + bytes.b) / 16777215.0;
-    float rawValue = decoded * (u_value_range.y - u_value_range.x) + u_value_range.x;
+    return decoded * (u_value_range.y - u_value_range.x) + u_value_range.x;
+}
+
+// Map a raw value to the [0, 1] colour-ramp lookup coordinate.
+// Continuous: clamp into the legend range.
+// Categorical: snap to the nearest flag index (assumed sequential ints starting
+// at u_value_range.x) and return the texel-centre coord for an N×1 ramp.
+float rawToRampCoord(float rawValue) {
+    if (u_num_categories > 0) {
+        float n = float(u_num_categories);
+        float idx = clamp(floor(rawValue - u_value_range.x + 0.5), 0.0, n - 1.0);
+        return (idx + 0.5) / n;
+    }
     return clamp(
         (rawValue - u_legend_range.x) / (u_legend_range.y - u_legend_range.x),
         0.0, 1.0
@@ -79,22 +100,30 @@ void main() {
     // Land / null-data mask is stored in the A channel.
     if (finalSample.a < 0.01) discard;
 
-    // Blend in finer LODs coarse→fine.
-    // All intermediate LODs are shown at 100% when their chunk is resident.
-    // Only the finest active LOD uses u_lod_blend (animates the crossfade).
+    // Walk finer LODs coarse→fine.
+    // Continuous: intermediate LODs replace at 100%; the finest active LOD
+    //   crossfades via u_lod_blend (animated).
+    // Categorical: blending RGB-encoded category indices is meaningless (it
+    //   would invent intermediate categories), so the finer sample replaces
+    //   the coarser one as soon as it is resident — no animated crossfade.
+    bool categorical = u_num_categories > 0;
     for (int i = 1; i < u_lod_count; i++) {
         int physSlot = physicalSlot(lonlat, i);
         if (physSlot >= 0) {
             vec4 finerSample = texture(u_atlas, worldToAtlasUV(lonlat, i));
             if (finerSample.a >= 0.01) {
-                float t = (i == u_lod_count - 1) ? u_lod_blend : 1.0;
-                finalSample = mix(finalSample, finerSample, t);
+                if (categorical) {
+                    finalSample = finerSample;
+                } else {
+                    float t = (i == u_lod_count - 1) ? u_lod_blend : 1.0;
+                    finalSample = mix(finalSample, finerSample, t);
+                }
             }
         }
     }
 
-    float scalar = decodeScalar(finalSample.rgb);
-    vec4 color = texture(u_color_ramp, vec2(scalar, 0.5));
+    float rampCoord = rawToRampCoord(decodeRaw(finalSample.rgb));
+    vec4 color = texture(u_color_ramp, vec2(rampCoord, 0.5));
     fragColor = vec4(color.rgb, finalSample.a);
 }
 `;
