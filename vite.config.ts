@@ -21,42 +21,22 @@ export default defineConfig(({ mode }) => {
     googleAnalyticsPlugin(mode),
   ];
 
-  let server: UserConfig['server'] = {};
-
-  if (mode === 'development') {
-    server = {
-      proxy: {
-        ...(!process.env['MOCKDATA']
-          ? {
-              '/api': {
-                target: 'https://portal.edge.aodn.org.au',
-                changeOrigin: true,
-              },
-            }
-          : {}),
-        ...(!process.env['MOCKDATA']
-          ? {
-              '/data': {
-                target: 'https://imoslive.edge.aodn.org.au',
-                changeOrigin: true,
-              },
-            }
-          : {}),
-        '/thredds': {
-          target: 'https://imoslive.edge.aodn.org.au',
-          changeOrigin: true,
-        },
-        '/tiles': {
-          target: 'https://imoslive.edge.aodn.org.au',
-          changeOrigin: true,
-        },
-        '/legends': {
-          target: 'https://imoslive.edge.aodn.org.au',
-          changeOrigin: true,
-        },
-      },
-    };
-  }
+  // In dev, proxy the wave-buoy REST endpoint through the portal so the browser
+  // can call it as a same-origin `/api/...` URL. `MOCKDATA=true` shuts the
+  // proxy off and the mock middleware below serves canned responses instead.
+  // Tile / manifest traffic uses an absolute URL configured via
+  // `VITE_TILE_BASE_URL` (see `.env.example`), so no proxy is needed for it.
+  const server: UserConfig['server'] =
+    mode === 'development' && !process.env['MOCKDATA']
+      ? {
+          proxy: {
+            '/api': {
+              target: 'https://portal.edge.aodn.org.au',
+              changeOrigin: true,
+            },
+          },
+        }
+      : {};
 
   if (VITE_STATS_ENABLED === 'true') {
     plugins.push(

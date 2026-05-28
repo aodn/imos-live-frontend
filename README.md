@@ -59,18 +59,17 @@ The platform visualises daily oceanographic data as a WebGL-accelerated particle
 
 ## API Routing
 
-All API calls use relative paths — no base URL or CORS configuration is required. Routing is handled at the infrastructure level in production, and mirrored locally via the Vite dev proxy.
+The application currently makes two kinds of HTTP calls:
 
-**Production:** A CloudFront distribution routes requests by path pattern to the appropriate backend origin:
+- **Wave-buoy REST** — relative path `/api/v1/...`. In production this is
+  routed by CloudFront to the OGC API; in development `vite.config.ts`
+  proxies it to `https://portal.edge.aodn.org.au`.
+- **Tile / manifest data** — absolute URL built from the `VITE_TILE_BASE_URL`
+  environment variable (see [`.env.example`](.env.example)). No proxy is
+  needed because the URL is fully-qualified.
 
-| Path pattern    | Origin           |
-| --------------- | ---------------- |
-| `/api/v1/*`     | OGC API          |
-| `/data/*`       | S3 bucket        |
-| `/tiles/*`      | Thredds Server   |
-| `/legends/*`    | Thredds Server   |
-| `/thredds/*`    | Thredds Server   |
-| `/_cf-errors/*` | AODN error pages |
-| `*` (default)   | Frontend app     |
-
-**Development:** `vite.config.ts` proxies the same paths to their respective backends, so the app behaves identically to production without any local configuration. When using `pnpm dev:mock`, `/api` and `/data` are intercepted by a local Vite middleware serving randomly generated data instead.
+The production CloudFront distribution may still define additional path
+patterns (`/data/*`, `/tiles/*`, `/legends/*`, `/thredds/*`) for historical
+or future use, but the application no longer calls them, so the dev proxy
+does not mirror them either. `pnpm dev:mock` intercepts `/api` with a local
+Vite middleware serving randomly generated data.

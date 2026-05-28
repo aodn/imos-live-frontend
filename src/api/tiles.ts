@@ -12,8 +12,15 @@ export type MetaDataManifest = {
   cache_version: string;
 };
 
-// This can be configured in vite.config.js, and point to cloudFront behaviour.
-export const TILE_BASE_URL = 'http://3.106.121.209/data_tiles';
+/**
+ * Base URL for the tile/manifest origin. Configured via `VITE_TILE_BASE_URL`
+ * in `.env` (or `.env.local`). Production should point at the TLS-terminated
+ * CloudFront distribution; the bare-IP HTTP default is only retained as a
+ * fallback for engineers running against a raw origin during local tile
+ * pipeline work.
+ */
+export const TILE_BASE_URL: string =
+  import.meta.env.VITE_TILE_BASE_URL || 'http://3.106.121.209/data_tiles';
 
 export const getMetaDataManifest = async (): Promise<MetaDataManifest> => {
   const response = await axios.get<MetaDataManifest>(`${TILE_BASE_URL}/manifest`);
