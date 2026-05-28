@@ -7,5 +7,6 @@ export * from './useWorldLandLayer';
 export * from './useDistanceMeasurementLayers';
 export * from './useDistanceMeasurementLayersEventHandler';
 export * from './useProductDateAvailabilitySync';
+export * from './useAtlasLayer';
 export * from './useScalarAtlasLayer';
 export * from './useParticleAtlasLayer';
