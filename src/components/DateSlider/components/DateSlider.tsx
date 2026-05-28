@@ -1,8 +1,8 @@
-import { useViewportSize, useDrag } from '@/hooks';
-import { cn, checkDateDuration } from '@/utils';
 import { memo, useCallback, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { ACCESSIBILITY } from '../constants';
 import {
+  useDrag,
+  useViewportSize,
   useSliderConfig,
   useScales,
   usePositionState,
@@ -18,7 +18,7 @@ import {
   useSliderRePosition,
 } from '../hooks';
 import type { SliderProps, TimeUnit, DragHandle } from '../type';
-import { generateTrackWidth } from '../utils';
+import { cn, checkDateDuration, generateTrackWidth } from '../utils';
 import { DateSliderWrapper } from './DateSliderWrapper';
 import {
   customSelectionPanelRenderer,

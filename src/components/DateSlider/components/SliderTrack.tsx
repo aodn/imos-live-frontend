@@ -1,8 +1,8 @@
-import { cn } from '@/utils';
 import { memo, useCallback, useState, useEffect, useMemo } from 'react';
 import { useIsScrolling } from '../hooks';
 import type { Scale, ScaleType, SliderTrackProps } from '../type';
 import {
+  cn,
   formatDate,
   getDateFromPercent,
   calculateLabelPosition,

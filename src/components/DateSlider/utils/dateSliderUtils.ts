@@ -16,7 +16,7 @@ import type {
   TimeUnit,
   ViewMode,
 } from '../type';
-import { clampPercent } from '../utils';
+import { clampPercent } from './clamp';
 
 /**
  * Add a certain amount of scale units to a date to get a new date.
