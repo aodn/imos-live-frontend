@@ -10,7 +10,7 @@ import 'highcharts/modules/boost';
 import 'highcharts/modules/exporting';
 import 'highcharts/modules/export-data';
 import 'highcharts/modules/offline-exporting';
-import { buoyDataDirectionVariant, colors, directionColors, VariantReadableName } from './config';
+import { buoyDataDirectionVariant, colors, directionColors, readableVariantName } from './config';
 import type {
   AnimationConfig,
   NavigatorConfig,
@@ -586,20 +586,25 @@ export const calculateDateRange = (seriesData: any[]) => {
   };
 };
 
-export function generateSeriesStyles(viriants: string[]): Partial<SeriesData>[] {
-  return viriants.map((v, _index) => ({
-    name: v,
-    // color: colors[index % colors.length],
-    //TODO: temp set to same color.
-    color: colors[0],
-    type: 'line',
-    lineWidth: 2,
-    marker: {
-      enabled: true,
-      radius: 2,
-      symbol: 'circle',
-    },
-  }));
+export function generateSeriesStyles(variants: string[]): Record<string, Partial<SeriesData>> {
+  return Object.fromEntries(
+    variants.map(v => [
+      v,
+      {
+        name: v,
+        // color: colors[index % colors.length],
+        //TODO: temp set to same color.
+        color: colors[0],
+        type: 'line' as const,
+        lineWidth: 2,
+        marker: {
+          enabled: true,
+          radius: 2,
+          symbol: 'circle',
+        },
+      },
+    ]),
+  );
 }
 
 export function createDirectionArrow(
@@ -644,10 +649,7 @@ export function processDirectionData(data: BuoyItemContent): SeriesData | null {
   });
 
   return {
-    name:
-      buoyDataDirectionVariant in VariantReadableName
-        ? VariantReadableName[buoyDataDirectionVariant]
-        : buoyDataDirectionVariant,
+    name: readableVariantName(buoyDataDirectionVariant),
     type: 'scatter',
     data: processedData,
     color: directionColors.direction,

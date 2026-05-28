@@ -7,10 +7,16 @@ import { toWaveBuoyChartData } from '@/helpers';
 import { formatLatLngToDirectional, toCompactDate, utcToLocalDateTime, today } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useMemo, useRef } from 'react';
-import { buoyDataDirectionVariant, noneDirectionVariants, VariantReadableName } from './config';
+import {
+  buoyDataDirectionVariant,
+  noneDirectionVariants,
+  PRIMARY_COLOR,
+  readableVariantName,
+  VariantReadableName,
+} from './config';
 import { LatestObservation } from './LatestObservation';
 import { LineChart } from './LineChart';
-import type { SeriesData } from './type';
+import type { SeriesData, TooltipFormatterContext } from './type';
 import {
   calculateDataRange,
   generateDynamicButtons,
@@ -18,7 +24,7 @@ import {
   processDirectionData,
 } from './utils';
 import { useMapUIStore } from '@/store';
-import type { Chart } from 'highcharts/highstock';
+import type Highcharts from 'highcharts/highstock';
 
 dayjs.extend(utc);
 
@@ -29,7 +35,25 @@ type WaveBuoyChartProps = {
   showDirection?: boolean;
 };
 
-function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
+// HTML string for the Highcharts title (rendered via useHTML on the chart).
+function formatBuoyTitle(buoy: string, lng: number, lat: number): string {
+  return `<span style="font-size: 18px; font-weight: 600;">${buoy}</span> <span style="font-size: 14px;">(${formatLatLngToDirectional(
+    lat,
+    lng,
+  )})</span>`;
+}
+
+// JSX equivalent for the loading/error/empty branches — React would otherwise escape the HTML.
+function BuoyTitleHeading({ buoy, lng, lat }: { buoy: string; lng: number; lat: number }) {
+  return (
+    <h2 className="text-center font-bold">
+      <span className="text-lg font-semibold">{buoy}</span>{' '}
+      <span className="text-sm font-normal">({formatLatLngToDirectional(lat, lng)})</span>
+    </h2>
+  );
+}
+
+export function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
   // toWaveBuoyChartData throws on empty input. Compute defensively so hooks below
   // stay in the same order across renders; render-time guard happens after the hooks.
   const buoyChartData = useMemo(
@@ -68,26 +92,23 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
 
   const isFeatureEmpty = !feature || !feature.properties;
 
-  const seriseData: SeriesData[] = useMemo(() => {
+  const seriesData: SeriesData[] = useMemo(() => {
     if (isFeatureEmpty) return [];
 
     const properties = feature.properties;
 
     // Buoys typically report wave height under one of WSSH/WHTH — pick the first
     // variant with data. If both exist the order in noneDirectionVariants wins.
-    const seriesStyle = generateSeriesStyles(noneDirectionVariants);
+    const seriesStyles = generateSeriesStyles(noneDirectionVariants);
     const regularVariant = noneDirectionVariants.find(
       variant => (properties[variant] ?? []).length > 0,
     );
     const regularSeries = regularVariant
       ? {
           data: properties[regularVariant],
-          ...seriesStyle.find(s => s.name === regularVariant),
-          //update name from variant like SSMD... to like wave height..., this is to update legend label to readable name.
-          name:
-            regularVariant in VariantReadableName
-              ? VariantReadableName[regularVariant as keyof typeof VariantReadableName]
-              : regularVariant,
+          ...seriesStyles[regularVariant],
+          // legend label uses the readable name (e.g. SSWMD → "wave direction") rather than the variant code.
+          name: readableVariantName(regularVariant),
           yAxis: 0,
         }
       : null;
@@ -100,9 +121,9 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
   }, [feature?.properties, isFeatureEmpty, showDirection]);
 
   const dynamicButtons = useMemo(() => {
-    const dataRange = calculateDataRange(seriseData);
+    const dataRange = calculateDataRange(seriesData);
     return generateDynamicButtons(dataRange, '12H');
-  }, [seriseData]);
+  }, [seriesData]);
 
   //select middle button.
   const defaultSelected = useMemo(() => {
@@ -111,87 +132,80 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
     return Math.floor(buttonCount / 2);
   }, [dynamicButtons]);
 
-  const title = useMemo(() => {
-    if (!buoyChartData) return '';
-    const [lng, lat] = buoyChartData.geometry.coordinates;
-    return `<span style="font-size: 18px; font-weight: 600;">${buoy}</span> <span style="font-size: 14px;">(${formatLatLngToDirectional(
-      lat,
-      lng,
-    )})</span>`;
-  }, [buoy, buoyChartData]);
+  const title = buoyChartData
+    ? formatBuoyTitle(
+        buoy,
+        buoyChartData.geometry.coordinates[0],
+        buoyChartData.geometry.coordinates[1],
+      )
+    : '';
+
+  // Indexed lookup so the tooltip doesn't scan WPFM on every hover.
+  const wavePeriodByTime = useMemo(() => {
+    const map = new Map<number, number>();
+    feature?.properties.WPFM?.forEach(d => {
+      if (Array.isArray(d)) map.set(d[0], d[1]);
+    });
+    return map;
+  }, [feature?.properties.WPFM]);
 
   const tooltipFormatter = useCallback(
-    (context: any) => {
+    (context: TooltipFormatterContext) => {
       const point = context.point;
-      const datetime = utcToLocalDateTime(point.x);
+      const datetime = utcToLocalDateTime(point.x as number);
 
       let tooltipHTML = `<div style="font-size: 12px;"><b>Time:</b> ${datetime}<br/>`;
 
       if (point.series.name === VariantReadableName[buoyDataDirectionVariant]) {
-        //display wave direciton and period
-        const wavePeriodPoint = feature?.properties.WPFM?.find(
-          d => Array.isArray(d) && d[0] === point.x,
-        );
+        // display wave direction and period
+        const wavePeriod = wavePeriodByTime.get(point.x as number) ?? null;
 
-        const wavePeriod =
-          wavePeriodPoint && Array.isArray(wavePeriodPoint) ? wavePeriodPoint[1] : null;
-
-        const direction = point.options?.direction || point.y;
+        const direction = (point.options as { direction?: number }).direction ?? point.y;
         tooltipHTML += `<span style="color:${point.color}">●</span> <b>${VariantReadableName.SSWMD}:</b> ${direction?.toFixed(1)}° (to)<br/><span style="color:${point.color}">●</span> <b>${VariantReadableName.WPFM}:</b> ${wavePeriod} s<br/>`;
       } else {
-        //display wave height
+        // display wave height
         tooltipHTML += `<span style="color:${point.color}">●</span> <b>${VariantReadableName.WSSH}:</b> ${point.y?.toFixed(2)} m<br/>`;
       }
 
       tooltipHTML += '</div>';
       return tooltipHTML;
     },
-    [feature],
+    [wavePeriodByTime],
   );
 
   const yAxisConfig = useMemo(() => {
-    if (!showDirection) {
-      // Single axis when no direction arrows
-      return {
-        gridLineWidth: 1,
-        lineWidth: 0,
-        tickWidth: 0,
-        title: { text: 'Wave Height (m)' },
-        labels: { style: { fontSize: '12px' } },
-        offset: 0,
-      };
-    }
+    // Primary axis for wave data — shrinks to 85% when an arrow axis is added below.
+    const primary = {
+      gridLineWidth: 1,
+      lineWidth: 0,
+      tickWidth: 0,
+      title: { text: 'Wave Height (m)' },
+      labels: { style: { fontSize: '12px' } },
+      offset: 0,
+      ...(showDirection ? { height: '85%', top: '5%' } : {}),
+    };
 
-    return [
-      // Primary axis for wave data (takes up most of chart)
-      {
-        gridLineWidth: 1,
-        lineWidth: 0,
-        tickWidth: 0,
-        title: { text: 'Wave Height (m)' },
-        labels: { style: { fontSize: '12px' } },
-        offset: 0,
-        height: '85%', // Use 85% of chart height
-        top: '5%', // Start 5% from top
-      },
-      // Secondary axis for arrows (small space at bottom)
-      {
-        title: { text: undefined },
-        labels: { enabled: false },
-        gridLineWidth: 0,
-        lineWidth: 0,
-        tickWidth: 0,
-        visible: false,
-        height: '10%', // Use 10% of chart height
-        top: '90%', // Position at 90% from top (bottom area)
-        min: -1, // Fixed range for arrow positioning
-        max: 1,
-        offset: 0,
-      },
-    ];
+    if (!showDirection) return [primary];
+
+    // Secondary axis for arrows (small strip at the bottom of the chart).
+    const arrowAxis = {
+      title: { text: undefined },
+      labels: { enabled: false },
+      gridLineWidth: 0,
+      lineWidth: 0,
+      tickWidth: 0,
+      visible: false,
+      height: '10%',
+      top: '90%',
+      min: -1, // Fixed range for arrow positioning
+      max: 1,
+      offset: 0,
+    };
+
+    return [primary, arrowAxis];
   }, [showDirection]);
 
-  const handleRangeChange = useCallback((min: number, max: number) => {
+  const updateVisibleRange = useCallback((min: number, max: number) => {
     visibleRangeRef.current = {
       min: utcToLocalDateTime(min, 'YYYYMMDD'),
       max: utcToLocalDateTime(max, 'YYYYMMDD'),
@@ -199,21 +213,34 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
   }, []);
 
   const handleChartLoad = useCallback(
-    (chart: Chart) => {
+    (chart: Highcharts.Chart) => {
       const { min, max } = chart.xAxis[0].getExtremes();
-      handleRangeChange(min, max);
+      updateVisibleRange(min, max);
     },
-    [handleRangeChange],
+    [updateVisibleRange],
   );
 
   // Render-time guard for the defensive empty-data case (see useMemo on buoyChartData).
   if (!buoyChartData) return null;
-  if (isError) return <div>error</div>;
-  if (isLoading || isLatestWaveBuoyDateLoading) return <div>loading</div>;
+  const [lng, lat] = buoyChartData.geometry.coordinates;
+  if (isError)
+    return (
+      <div>
+        <BuoyTitleHeading buoy={buoy} lng={lng} lat={lat} />
+        <p>Sorry! Failed to load data for this buoy.</p>
+      </div>
+    );
+  if (isLoading || isLatestWaveBuoyDateLoading)
+    return (
+      <div>
+        <BuoyTitleHeading buoy={buoy} lng={lng} lat={lat} />
+        <p>Loading…</p>
+      </div>
+    );
   if (isFeatureEmpty)
     return (
       <div>
-        <h2 className="text-center font-bold">{title}</h2>
+        <BuoyTitleHeading buoy={buoy} lng={lng} lat={lat} />
         <p>Sorry! No Data for this buoy.</p>
       </div>
     );
@@ -223,11 +250,11 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
       <LineChart
         width={'100%'}
         height={500}
-        series={seriseData!}
+        series={seriesData}
         title={title}
         turboThreshold={4000}
         onChartLoad={handleChartLoad}
-        onRangeSelect={handleRangeChange}
+        onRangeSelect={updateVisibleRange}
         rangeSelector={{
           enabled: true,
           selected: defaultSelected,
@@ -284,7 +311,7 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
           plotLines: [
             {
               value: dayjs(selectedDate).valueOf(),
-              color: '#3b6e8f',
+              color: PRIMARY_COLOR,
               width: 2,
               dashStyle: 'Dash',
               zIndex: 5,
@@ -295,7 +322,7 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
                 verticalAlign: 'top',
                 y: -6,
                 style: {
-                  color: '#3b6e8f',
+                  color: PRIMARY_COLOR,
                   fontWeight: 'bold',
                   fontSize: '12px',
                 },
@@ -328,9 +355,8 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
           customFormatter: tooltipFormatter,
         }}
       />
-      {feature && feature.properties && <LatestObservation feature={feature} />}
+      {/* feature is non-null here — isFeatureEmpty already early-returned above. */}
+      <LatestObservation feature={feature!} />
     </div>
   );
 }
-
-export default WaveBuoyChart;

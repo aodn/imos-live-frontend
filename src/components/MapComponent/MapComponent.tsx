@@ -22,7 +22,9 @@ import { PRODUCT } from '@/constants';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_KEY;
 
-const WaveBuoyChart = lazy(() => import('../Highcharts/WaveBuoyChart'));
+const WaveBuoyChart = lazy(() =>
+  import('../Highcharts/WaveBuoyChart').then(m => ({ default: m.WaveBuoyChart })),
+);
 
 export const MapComponent = memo(function MapComponent() {
   const {
