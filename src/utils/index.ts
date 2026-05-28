@@ -21,6 +21,5 @@ export * from './addYears';
 export * from './minusOneUTCDay';
 export * from './throttle';
 export * from './formatLatLngToDirectional';
-export * from './getColorRamp';
 export * from './pipe';
 export * from './doubleRAF';

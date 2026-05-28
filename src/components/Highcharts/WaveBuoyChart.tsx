@@ -30,7 +30,13 @@ type WaveBuoyChartProps = {
 };
 
 function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
-  const { buoy, geometry } = toWaveBuoyChartData(waveBuoysData);
+  // toWaveBuoyChartData throws on empty input. Compute defensively so hooks below
+  // stay in the same order across renders; render-time guard happens after the hooks.
+  const buoyChartData = useMemo(
+    () => (waveBuoysData.length > 0 ? toWaveBuoyChartData(waveBuoysData) : null),
+    [waveBuoysData],
+  );
+  const buoy = buoyChartData?.buoy ?? '';
   const selectedDate = useMapUIStore(s => s.date);
   const visibleRangeRef = useRef<{ min: string; max: string } | null>(null);
 
@@ -55,7 +61,9 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
     queryFn: () => {
       return getWaveBuoyDetails(from, to, buoy);
     },
-    enabled: !!buoy,
+    // Wait for latestWaveBuoyDate so `to` is final on first fetch — otherwise we'd
+    // fire once with the today() fallback and refetch when the date resolves.
+    enabled: !!buoy && !isLatestWaveBuoyDateLoading,
   });
 
   const isFeatureEmpty = !feature || !feature.properties;
@@ -65,29 +73,30 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
 
     const properties = feature.properties;
 
+    // Buoys typically report wave height under one of WSSH/WHTH — pick the first
+    // variant with data. If both exist the order in noneDirectionVariants wins.
     const seriesStyle = generateSeriesStyles(noneDirectionVariants);
-    const [regularSeries] = noneDirectionVariants
-      .filter(variant => (properties[variant] ?? []).length > 0)
-      .map(variant => {
-        const data = properties[variant];
-
-        return {
-          data,
-          ...seriesStyle.find(s => s.name === variant),
+    const regularVariant = noneDirectionVariants.find(
+      variant => (properties[variant] ?? []).length > 0,
+    );
+    const regularSeries = regularVariant
+      ? {
+          data: properties[regularVariant],
+          ...seriesStyle.find(s => s.name === regularVariant),
           //update name from variant like SSMD... to like wave height..., this is to update legend label to readable name.
           name:
-            variant in VariantReadableName
-              ? VariantReadableName[variant as keyof typeof VariantReadableName]
-              : variant,
+            regularVariant in VariantReadableName
+              ? VariantReadableName[regularVariant as keyof typeof VariantReadableName]
+              : regularVariant,
           yAxis: 0,
-        };
-      });
-
-    const directionSeries = showDirection
-      ? processDirectionData(properties[buoyDataDirectionVariant])
+        }
       : null;
 
-    return directionSeries ? [regularSeries, directionSeries] : [regularSeries];
+    const directionSeries = showDirection
+      ? processDirectionData(properties[buoyDataDirectionVariant] ?? [])
+      : null;
+
+    return [regularSeries, directionSeries].filter((s): s is SeriesData => s !== null);
   }, [feature?.properties, isFeatureEmpty, showDirection]);
 
   const dynamicButtons = useMemo(() => {
@@ -103,11 +112,13 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
   }, [dynamicButtons]);
 
   const title = useMemo(() => {
+    if (!buoyChartData) return '';
+    const [lng, lat] = buoyChartData.geometry.coordinates;
     return `<span style="font-size: 18px; font-weight: 600;">${buoy}</span> <span style="font-size: 14px;">(${formatLatLngToDirectional(
-      geometry.coordinates[1],
-      geometry.coordinates[0],
+      lat,
+      lng,
     )})</span>`;
-  }, [buoy, geometry.coordinates]);
+  }, [buoy, buoyChartData]);
 
   const tooltipFormatter = useCallback(
     (context: any) => {
@@ -195,6 +206,8 @@ function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
     [handleRangeChange],
   );
 
+  // Render-time guard for the defensive empty-data case (see useMemo on buoyChartData).
+  if (!buoyChartData) return null;
   if (isError) return <div>error</div>;
   if (isLoading || isLatestWaveBuoyDateLoading) return <div>loading</div>;
   if (isFeatureEmpty)
