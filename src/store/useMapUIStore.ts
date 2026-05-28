@@ -7,7 +7,7 @@ import {
   INITIAL_DATE,
   INITIAL_DISTANCE_MEASUREMENT_ENABLED,
   INITIAL_STYLE,
-  INITIAL_WOULD_BOUNDARIES_ENABLED,
+  INITIAL_WORLD_BOUNDARIES_ENABLED,
   INITIAL_ZOOM,
 } from '@/constants';
 import type { LegendArgs, ProductType, TilesProduct } from '@/constants';
@@ -104,7 +104,7 @@ export const useMapUIStore = create(
       style: INITIAL_STYLE,
       particleConfig: INITIAL_PARTICLE_CONFIG,
       distanceMeasurementEnabled: INITIAL_DISTANCE_MEASUREMENT_ENABLED,
-      worldBoundariesEnabled: INITIAL_WOULD_BOUNDARIES_ENABLED,
+      worldBoundariesEnabled: INITIAL_WORLD_BOUNDARIES_ENABLED,
       dates: DATE_RANGE,
       date: INITIAL_DATE,
       productEnabled: {
@@ -196,7 +196,6 @@ export const useMapUIStore = create(
 
 //utils
 export const {
-  particleConfig,
   setCenter,
   setDate,
   setDistanceMeasurementEnabled,

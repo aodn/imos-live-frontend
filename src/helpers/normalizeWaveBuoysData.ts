@@ -14,7 +14,7 @@ export function normalizeWaveBuoyDates(
   };
 }
 
-export function normalizeWaveBuouysData(
+export function normalizeWaveBuoysData(
   features: GeoJSONFeature[],
 ): Omit<WaveBuoyPositionFeature, 'type'>[] {
   return features.map(f => ({

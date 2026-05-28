@@ -12,7 +12,7 @@ export type MetaDataManifest = {
   cache_version: string;
 };
 
-// This con be configured in vite.config.js, and point to cloudFront behaviour.
+// This can be configured in vite.config.js, and point to cloudFront behaviour.
 export const TILE_BASE_URL = 'http://3.106.121.209/data_tiles';
 
 export const getMetaDataManifest = async (): Promise<MetaDataManifest> => {

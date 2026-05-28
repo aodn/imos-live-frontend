@@ -1,5 +1,5 @@
-import loggImage from '@/assets/imos_logo_with_title.png';
-import occeanCurrentImage from '@/assets/ocean-current.webp';
+import logoImage from '@/assets/imos_logo_with_title.png';
+import oceanCurrentImage from '@/assets/ocean-current.webp';
 import anomalySeaLevelImage from '@/assets/sea-levels.webp';
 import waveBuoysImage from '@/assets/wave-buoys.webp';
 import sstImage from '@/assets/sst.jpg';
@@ -18,7 +18,7 @@ import { setProductEnabledByProduct } from '@/store';
 export const headerData = {
   title: 'IMOS Live',
   image: {
-    src: loggImage,
+    src: logoImage,
     alt: 'IMOS Logo',
     height: 63,
     width: 147,
@@ -28,7 +28,7 @@ export const headerData = {
 export const featuredDataset: LayersDataset[] = [
   {
     image: {
-      src: occeanCurrentImage,
+      src: oceanCurrentImage,
       alt: 'GSLA Ocean geostrophic current',
     },
     title: 'GSLA Ocean geostrophic current',

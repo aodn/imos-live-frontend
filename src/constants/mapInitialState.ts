@@ -11,7 +11,7 @@ export const INITIAL_STYLE: StyleTitle = 'Streets';
 export const INITIAL_CENTER = new mapboxgl.LngLat(133.7751, -25.2744);
 export const DATE_RANGE = getLast60Dates();
 export const INITIAL_DATE = DATE_RANGE.at(-1)!;
-export const INITIAL_WOULD_BOUNDARIES_ENABLED = true;
+export const INITIAL_WORLD_BOUNDARIES_ENABLED = true;
 export const INITIAL_DISTANCE_MEASUREMENT_ENABLED = false;
 
 export const QUERY_DATE_RANGE = getLast10Dates('yyyymmdd');

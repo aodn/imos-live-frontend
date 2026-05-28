@@ -63,13 +63,13 @@ export function useWaveBuoysLayerEventHandler(
 }
 /**
  * how cluster works?
- * In a zoom level, if the points distance is within the clusterRadius, then these points will be clutered into one group.
- * With zoomin, the poins outsider clusterRadius will move out from clustered group and go into unclustered layer.
+ * In a zoom level, if the points distance is within the clusterRadius, then these points will be clustered into one group.
+ * With zoom-in, the points outside clusterRadius will move out from the clustered group and go into the unclustered layer.
  *
- * getClusterLeaves can get points inside a cluser.
+ * getClusterLeaves can get points inside a cluster.
  *
- * And another problme in geojson data, coordinate precision only has one decimal, but in e.features.geometry.coordiates, the prcesion will have multiple decimals.
- * We can round the coordiates to one decimal to identify point from geojson.
+ * Another problem in geojson data: coordinate precision only has one decimal, but in e.features.geometry.coordinates the precision will have multiple decimals.
+ * We can round the coordinates to one decimal to identify a point from geojson.
  *
  * queryRenderedFeatures can only get features displayed within viewport.
  */

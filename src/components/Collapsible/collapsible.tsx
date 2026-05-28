@@ -18,7 +18,7 @@ export type CollapsibleComponentProps = {
   defaultOpen?: boolean;
   disable?: boolean;
   toggleIconHidden?: boolean;
-  isWidthFiexed?: boolean;
+  isWidthFixed?: boolean;
   overlayEnabled?: boolean;
   overlayClassName?: boolean;
 };
@@ -32,7 +32,7 @@ export function CollapsibleComponent({
   defaultOpen = false,
   disable = false,
   toggleIconHidden = false,
-  isWidthFiexed = false,
+  isWidthFixed = false,
   overlayEnabled,
   overlayClassName,
 }: CollapsibleComponentProps) {
@@ -45,7 +45,7 @@ export function CollapsibleComponent({
         'overflow-hidden transition-all duration-100 ease-in-out relative',
         wrapperClassName,
         {
-          'w-fit': open && !isWidthFiexed,
+          'w-fit': open && !isWidthFixed,
         },
       )}
     >

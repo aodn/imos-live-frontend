@@ -128,7 +128,7 @@ export function useWaveBuoysLayer({ map, product }: UseWaveBuoysLayer) {
         ...allBuoySites,
         features: mergeAndFilterBuoyFeatures(allBuoySites, buoySites, date),
       },
-      enableCluser: true,
+      enableCluster: true,
       clusterRadius: 40,
     });
   }, [allWaveBuoySitesQuery.promise, buoySiteQuery.promise, date, map, sourceId]);
@@ -141,7 +141,7 @@ export function useWaveBuoysLayer({ map, product }: UseWaveBuoysLayer) {
       map: map.current!,
       id: sourceId,
       data: { type: 'FeatureCollection', features: [] },
-      enableCluser: true,
+      enableCluster: true,
       clusterRadius: 40,
     });
     buoyLayers.forEach(layer => addLayerInOrder(map, layer));

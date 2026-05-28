@@ -13,7 +13,7 @@ export function LayerProducts({ products, className, title }: LayerProductsProps
   return (
     <div className={className}>
       <CollapsibleComponent
-        isWidthFiexed
+        isWidthFixed
         wrapperClassName="border rounded-lg shadow-lg"
         direction="up"
         trigger={({ open, toggle, direction }) => (

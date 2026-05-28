@@ -63,7 +63,7 @@ export function LayerCard({
     if (layerId === PRODUCTS[PRODUCT.WAVE_BUOYS].layerId) import('../Highcharts/WaveBuoyChart'); //preload wavebuoy chart when wavebuoylayer added.
   };
 
-  const handleJumpToLatestTileslProduct = () => {
+  const handleJumpToLatestTilesProduct = () => {
     if (tilesProductLatestDate) {
       setJumpToDate(tilesProductLatestDate);
     }
@@ -78,7 +78,7 @@ export function LayerCard({
     <CollapsibleComponent
       wrapperClassName="md:rounded-lg md:shadow-lg bg-white md:border border-b border-gray-300 md:p-4 pb-4"
       defaultOpen
-      isWidthFiexed
+      isWidthFixed
       overlayEnabled={isError}
       trigger={({ toggle, open, direction, toggleIconHidden }: TriggerArgs) => (
         <CardTrigger
@@ -126,7 +126,7 @@ export function LayerCard({
             {!isWaveBuoyProduct && (
               <Button
                 variant="outline"
-                onClick={handleJumpToLatestTileslProduct}
+                onClick={handleJumpToLatestTilesProduct}
                 disabled={isTilesProductDateLoading || !tilesProductLatestDate}
                 className="text-btn-mobile md:text-btn text-imos-grey w-fit relative z-10"
               >

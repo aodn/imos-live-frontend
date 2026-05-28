@@ -1,6 +1,6 @@
 import { CLUSTER_MAX_ZOOM } from '@/constants';
 import { ZOOM_LIMIT_TEMP_POINTS_LAYER_ID, ZOOM_LIMIT_TEMP_POINTS_SOURCE_ID } from '@/constants';
-import { normalizeWaveBuouysData, removeZoomLimitTempPoints } from '@/helpers';
+import { normalizeWaveBuoysData, removeZoomLimitTempPoints } from '@/helpers';
 import { type WaveBuoyPositionFeature } from '@/types';
 import { useEffect } from 'react';
 
@@ -22,7 +22,7 @@ export function useWaveBuoysZoomLimitClick(
       if (!e.features?.length) return;
       if (e.features[0].properties?.hasDataForDate === false) return;
 
-      setClickedPointData(normalizeWaveBuouysData(e.features));
+      setClickedPointData(normalizeWaveBuoysData(e.features));
     };
 
     mapInstance.on('click', ZOOM_LIMIT_TEMP_POINTS_LAYER_ID, handleClick);

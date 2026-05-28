@@ -32,7 +32,7 @@ export const MapComponent = memo(function MapComponent() {
     waveBuoysEnabled,
     oceanCurrentEnabled,
     gslaAnomalySeaLevelsEnabled,
-    marineHeatwaveDhdEnabled,
+    marineHeatwaveSstMosaicEnabled,
     marineHeatwaveSstaEnabled,
     marineHeatwaveMcsCategoryEnabled,
   } = useMapUIStore(
@@ -41,7 +41,7 @@ export const MapComponent = memo(function MapComponent() {
       waveBuoysEnabled: s.productEnabled[PRODUCT.WAVE_BUOYS],
       oceanCurrentEnabled: s.productEnabled[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT],
       gslaAnomalySeaLevelsEnabled: s.productEnabled[PRODUCT.GSLA_ANOMALY_SEA_LEVELS],
-      marineHeatwaveDhdEnabled: s.productEnabled[PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC],
+      marineHeatwaveSstMosaicEnabled: s.productEnabled[PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC],
       marineHeatwaveSstaEnabled: s.productEnabled[PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC],
       marineHeatwaveMcsCategoryEnabled: s.productEnabled[PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY],
     })),
@@ -87,7 +87,7 @@ export const MapComponent = memo(function MapComponent() {
     oceanCurrentEnabled,
     heatmapEnabled:
       gslaAnomalySeaLevelsEnabled ||
-      marineHeatwaveDhdEnabled ||
+      marineHeatwaveSstMosaicEnabled ||
       marineHeatwaveSstaEnabled ||
       marineHeatwaveMcsCategoryEnabled,
     distanceMeasurementEnabled,
