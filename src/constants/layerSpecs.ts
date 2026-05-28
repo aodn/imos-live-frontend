@@ -1,20 +1,9 @@
-import {
-  MEASURE_LINES_LAYER_ID,
-  MEASURE_POINTS_LAYER_ID,
-  UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
-  WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID,
-  WORLD_LAND_BORDER_LAYER_ID,
-  WORLD_LAND_FILL_LAYER_ID,
-  PRODUCT,
-  PRODUCTS,
-} from '@/constants';
 import type {
   CircleLayerSpecification,
   FillLayerSpecification,
   LineLayerSpecification,
   SymbolLayerSpecification,
 } from 'mapbox-gl';
-import anomalySeaLevelColorMap from './anomaly_sea_level_colormap.json';
 
 export const WAVE_BUOYS_LAYER_CONFIG: Partial<CircleLayerSpecification> = {
   filter: ['has', 'point_count'], // Only show clustered points
@@ -155,23 +144,3 @@ export const WORLD_LAND_FILL_CONFIG: Partial<FillLayerSpecification> = {
     'fill-outline-color': 'transparent',
   },
 } as const;
-
-//last one is the top layer.
-export const LAYERS_ORDER = [
-  PRODUCTS[PRODUCT.GSLA_ANOMALY_SEA_LEVELS].layerId,
-  PRODUCTS[PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC].layerId,
-  PRODUCTS[PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC].layerId,
-  PRODUCTS[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT].layerId,
-  WORLD_LAND_BORDER_LAYER_ID,
-  WORLD_LAND_FILL_LAYER_ID,
-  PRODUCTS[PRODUCT.WAVE_BUOYS].layerId,
-  UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
-  WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID,
-  MEASURE_LINES_LAYER_ID,
-  MEASURE_POINTS_LAYER_ID,
-] as const;
-
-export const gslaRasterImageColors = anomalySeaLevelColorMap as [number, number, number][];
-
-//this should be same in python script when generate the raster image
-export const gslaAnomalySeaLevelsRange = [-1.2, 1.2];

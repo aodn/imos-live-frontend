@@ -1,4 +1,4 @@
-import { CLUSTER_MAX_ZOOM } from '@/config';
+import { CLUSTER_MAX_ZOOM } from '@/constants';
 import { ZOOM_LIMIT_TEMP_POINTS_LAYER_ID, ZOOM_LIMIT_TEMP_POINTS_SOURCE_ID } from '@/constants';
 import { removeZoomLimitTempPoints } from '@/helpers';
 import { type WaveBuoyPositionFeature } from '@/types';

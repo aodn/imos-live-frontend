@@ -33,7 +33,7 @@ export const POINT_SIZE_RANGE = {
   max: 5.0,
 } as const;
 
-export const INITIAL_PARTICLE_CONFIG = {
+export const INITIAL_PARTICLE_CONFIG: CustomizableParticleConfig = {
   nParticles: 30000,
 
   // opacity of background screen, leading to fading of trails, related to trail length.
@@ -56,7 +56,7 @@ export const INITIAL_PARTICLE_CONFIG = {
   dropRateBump: 0.05,
 
   pointSize: generateValueByPercentage({ percentage: 0.1, range: POINT_SIZE_RANGE, decimals: 1 }),
-} as const;
+};
 
 /**
  * FADE_OPACITY_OPTIONS

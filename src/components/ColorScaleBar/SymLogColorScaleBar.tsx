@@ -7,7 +7,7 @@ import {
   interpolateColor,
   getSymlogColorPosition,
 } from './utils';
-import { particles } from '@/config';
+import { particles } from '@/constants';
 import { cn } from '@/utils';
 
 type SymLogColorScaleBarProps = {

@@ -8,7 +8,7 @@ import {
   CloseFullScreenIcon,
   DownloadIcon,
 } from '../Icons';
-import { COLOR_OPTIONS, INITIAL_ZOOM, MIN_EXPORT_MAP_WIDTH } from '@/config';
+import { COLOR_OPTIONS, INITIAL_ZOOM, MIN_EXPORT_MAP_WIDTH } from '@/constants';
 import { useIsMapDragging, useIsMapZooming, useMapCanvasWidth } from '@/hooks';
 import { setSidebarOpen, useMapUIStore, useSidebarStore } from '@/store';
 import { exportMapImage } from '@/helpers';

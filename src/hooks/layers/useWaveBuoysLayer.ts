@@ -1,13 +1,11 @@
 import { getLatestWaveBuoySites, getWaveBuoySitesByDate } from '@/api';
-import {
-  UNCLUSTERED_WAVE_BUOYS_LAYER_CONFIG,
-  WAVE_BUOY_CLUSTER_LABEL_LAYER_CONFIG,
-  WAVE_BUOYS_LAYER_CONFIG,
-} from '@/config';
 import type { BuoyLayer, BuoySource, ProductType } from '@/constants';
 import {
   PRODUCT,
   PRODUCTS,
+  UNCLUSTERED_WAVE_BUOYS_LAYER_CONFIG,
+  WAVE_BUOY_CLUSTER_LABEL_LAYER_CONFIG,
+  WAVE_BUOYS_LAYER_CONFIG,
   UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
   WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID,
 } from '@/constants';

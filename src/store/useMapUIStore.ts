@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import type { CustomizableParticleConfig, ParticleConfig } from '@/config';
+import type { CustomizableParticleConfig, ParticleConfig } from '@/AtlasRenderingSystem';
+import { INITIAL_PARTICLE_CONFIG } from '@/AtlasRenderingSystem';
 import {
   DATE_RANGE,
   INITIAL_CENTER,
@@ -8,8 +9,7 @@ import {
   INITIAL_STYLE,
   INITIAL_WOULD_BOUNDARIES_ENABLED,
   INITIAL_ZOOM,
-  INITIAL_PARTICLE_CONFIG,
-} from '@/config';
+} from '@/constants';
 import type { LegendArgs, ProductType, TilesProduct } from '@/constants';
 import { PRODUCT, TILES_GROUP, PRODUCTLEGENDS } from '@/constants';
 import type { StyleTitle } from '@/styles';

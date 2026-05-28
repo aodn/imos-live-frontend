@@ -1,4 +1,4 @@
-import { LAYERS_ORDER } from '@/config';
+import { LAYERS_ORDER } from '@/constants';
 import type {
   ParticlesAtlasLayerInterface,
   HeatmapAtlasLayerInterface,

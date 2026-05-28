@@ -1,6 +1,6 @@
 import type { TilesProduct } from '@/constants';
 import { PRODUCT, PRODUCTLEGENDS, PRODUCTS } from '@/constants';
-import { COLOR_OPTIONS } from '@/config';
+import { COLOR_OPTIONS } from '@/constants';
 import { cn, toCompactDate, toISOFromCompact } from '@/utils';
 import type { ReactNode } from 'react';
 import { Button } from '../Button';
@@ -33,7 +33,6 @@ export function LayerCard({
 }: LayerCardProps) {
   const isWaveBuoyProduct = product === PRODUCT.WAVE_BUOYS;
   const isCategoryLegend = PRODUCTLEGENDS[product as TilesProduct]?.scale === 'category';
-  console.log('isCategoryLegend', isCategoryLegend, product);
   const productLegend = useMapUIStore(s =>
     !isWaveBuoyProduct ? s.productLegends[product as TilesProduct] : null,
   );

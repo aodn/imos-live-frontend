@@ -126,6 +126,6 @@ export const COLOR_OPTIONS = {
     number,
     number,
   ][],
-} as const;
+};
 
 export type ColorOptionKey = keyof typeof COLOR_OPTIONS;

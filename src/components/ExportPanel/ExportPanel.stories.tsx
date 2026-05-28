@@ -3,7 +3,7 @@ import { ExportPanel } from './ExportPanel';
 import { CategoryColorScaleBar } from '@/components/ColorScaleBar';
 import { LinearColorScaleBar } from '@/components/ColorScaleBar';
 import { HW_CATEGORY_LEGEND_SCALES } from '@/constants';
-import { COLOR_OPTIONS } from '@/config';
+import { COLOR_OPTIONS } from '@/constants';
 
 const MHW_CATEGORY_LEGEND_COLORS = COLOR_OPTIONS.MHW_CATEGORY_LEGEND_COLORS;
 

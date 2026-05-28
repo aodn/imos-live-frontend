@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { CategoryColorScaleBar } from './CategoryColorScaleBar';
 import { HW_CATEGORY_LEGEND_SCALES } from '@/constants';
-import { COLOR_OPTIONS } from '@/config';
+import { COLOR_OPTIONS } from '@/constants';
 
 const MHW_CATEGORY_LEGEND_COLORS = COLOR_OPTIONS.MHW_CATEGORY_LEGEND_COLORS;
 

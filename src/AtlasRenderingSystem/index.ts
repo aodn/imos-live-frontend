@@ -4,14 +4,22 @@ export type {
   ProductManifest,
   ColorPalette,
   PalettePatch,
-  ParticleConfig,
-  CustomizableParticleConfig,
   AtlasLayerHandle,
   ParticleAtlasLayerHandle,
   ScalarAtlasLayerOptions,
   ParticleAtlasLayerOptions,
 } from './types';
-export { INITIAL_PARTICLE_CONFIG } from './types';
+
+// ── Particle config (types, default values, and slider ranges) ────────────────
+export type { ParticleConfig, CustomizableParticleConfig } from './config/particleConfig';
+export {
+  INITIAL_PARTICLE_CONFIG,
+  FADE_OPACITY_RANGE,
+  SPEED_FACTOR_RANGE,
+  DROP_RATE_RANGE,
+  DROP_RATE_BUMP_RANGE,
+  POINT_SIZE_RANGE,
+} from './config/particleConfig';
 
 // ── Layer interfaces and constructors (used by React bindings in the app) ─────
 export type { HeatmapAtlasFieldAPI } from './layers/HeatmapAtlasField';

@@ -1,4 +1,4 @@
-import { MAX_ZOOM } from '@/config';
+import { MAX_ZOOM } from '@/constants';
 import { useMapUIStore, setCenter, setZoom } from '@/store';
 import type { LngLatBoundsLike } from 'mapbox-gl';
 import mapboxgl from 'mapbox-gl';

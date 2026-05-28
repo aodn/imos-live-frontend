@@ -1,6 +1,6 @@
 import type { TilesProduct } from '@/constants';
 import { PRODUCTLEGENDS, PRODUCTS } from '@/constants';
-import { COLOR_OPTIONS, LAYERS_ORDER } from '@/config';
+import { COLOR_OPTIONS, LAYERS_ORDER } from '@/constants';
 import { getProductManifest, TILE_BASE_URL } from '@/api';
 import { buildProductPalette } from '@/helpers';
 import { createScalarAtlasLayer } from '@/AtlasRenderingSystem';

@@ -4,7 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { snapdom } from '@zumer/snapdom';
 import { type ProductName } from '@/constants';
-import { queryClient } from '@/config/reactQueryConfig';
+import { queryClient } from '@/api/queryClient';
 import { ExportPanel, MapScaleBar } from '@/components';
 import { doubleRAF } from '@/utils';
 

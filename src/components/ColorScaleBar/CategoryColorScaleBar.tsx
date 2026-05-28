@@ -1,4 +1,4 @@
-import { COLOR_OPTIONS } from '@/config';
+import { COLOR_OPTIONS } from '@/constants';
 import { PRODUCT, PRODUCTLEGENDS } from '@/constants';
 import { cn, rgbToHex } from '@/utils';
 import { useMemo } from 'react';

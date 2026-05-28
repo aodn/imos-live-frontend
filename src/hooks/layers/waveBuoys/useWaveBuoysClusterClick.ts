@@ -1,4 +1,4 @@
-import { CLUSTER_MAX_ZOOM } from '@/config';
+import { CLUSTER_MAX_ZOOM } from '@/constants';
 import { PRODUCT, PRODUCTS } from '@/constants';
 import { createZoomLimitPoints } from '@/helpers';
 import { useEffect } from 'react';

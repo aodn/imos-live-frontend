@@ -1,4 +1,4 @@
-import { COLOR_OPTIONS } from '@/config';
+import { COLOR_OPTIONS } from '@/constants';
 import type { LegendArgs } from '@/constants';
 import type { ColorPalette } from '@/AtlasRenderingSystem';
 
