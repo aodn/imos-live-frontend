@@ -1,6 +1,6 @@
 import { type StyleTitle } from '@/styles';
 import { getLast10Dates, getLast60Dates } from '@/utils';
-import { LngLat } from 'mapbox-gl';
+import mapboxgl from 'mapbox-gl';
 
 export const CLUSTER_MAX_ZOOM = 7;
 
@@ -8,7 +8,7 @@ export const MAX_ZOOM = CLUSTER_MAX_ZOOM;
 
 export const INITIAL_ZOOM = 3;
 export const INITIAL_STYLE: StyleTitle = 'Streets';
-export const INITIAL_CENTER = new LngLat(133.7751, -25.2744);
+export const INITIAL_CENTER = new mapboxgl.LngLat(133.7751, -25.2744);
 export const DATE_RANGE = getLast60Dates();
 export const INITIAL_DATE = DATE_RANGE.at(-1)!;
 export const INITIAL_WOULD_BOUNDARIES_ENABLED = true;
