@@ -1,10 +1,13 @@
 import {
   MEASURE_POINTS_LAYER_ID,
-  GSLA_ANOMALY_LAYER_ID,
-  GSLA_PARTICLE_LAYER_ID,
+  PRODUCT,
+  PRODUCTS,
   UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
-  WAVE_BUOYS_LAYER_ID,
 } from '@/constants';
+
+const GSLA_ANOMALY_LAYER_ID = PRODUCTS[PRODUCT.GSLA_ANOMALY_SEA_LEVELS].layerId;
+const GSLA_PARTICLE_LAYER_ID = PRODUCTS[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT].layerId;
+const WAVE_BUOYS_LAYER_ID = PRODUCTS[PRODUCT.WAVE_BUOYS].layerId;
 import type { Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
 import { type Map } from 'mapbox-gl';

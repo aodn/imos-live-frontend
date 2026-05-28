@@ -13,6 +13,7 @@ import {
 import { cn } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
 import { getMetaDataManifest } from '@/api';
+import { PRODUCT } from '@/constants';
 import { toISODateString } from '../DateSlider/utils';
 import { useShallow } from 'zustand/shallow';
 
@@ -35,7 +36,8 @@ export const DateSelectionBar = memo(function DateSelectionBar({
     queryKey: ['DateSelectionBar-getMetaDataManifest'],
     queryFn: getMetaDataManifest,
     select: data => {
-      return data.products['ocean_current_gsla_ucur_vcur'].latest_date;
+      const dates = data.products[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT].available_dates;
+      return dates[dates.length - 1];
     },
     enabled: !isDateInQueryParams, //if date already selected, stop.
     retry: false,

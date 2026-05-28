@@ -64,6 +64,12 @@ export const PRODUCTS = {
 
 export const MAX_VECTOR_SPEED = 3.0 as const;
 
+// Narrow string-literal types derived from PRODUCTS so callers can keep the
+// precise type of a product's identifying strings without re-stating literals.
+export type ProductName = (typeof PRODUCTS)[ProductType]['name'];
+export type BuoyLayer = (typeof PRODUCTS)[typeof PRODUCT.WAVE_BUOYS]['layerId'];
+export type BuoySource = (typeof PRODUCTS)[typeof PRODUCT.WAVE_BUOYS]['sourceId'];
+
 export const TILES_GROUP = [
   PRODUCT.GSLA_ANOMALY_SEA_LEVELS,
   PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC,
