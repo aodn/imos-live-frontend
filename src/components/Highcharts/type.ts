@@ -54,7 +54,7 @@ export type TooltipConfig = Highcharts.TooltipOptions & {
   customFormatter?: (context: TooltipFormatterContext) => string;
 };
 
-type ExportConfig = {
+export type ExportConfig = {
   enabled?: boolean;
   filename?: string | (() => string);
   formats?: ('png' | 'jpeg' | 'pdf' | 'svg' | 'csv' | 'xls')[];

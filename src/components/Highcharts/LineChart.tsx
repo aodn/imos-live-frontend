@@ -2,11 +2,11 @@ import React, { useRef, useImperativeHandle, useMemo, memo } from 'react';
 import Highcharts from 'highcharts/highstock';
 import HighchartsReact from 'highcharts-react-official';
 import type { LineChartProps } from './type';
-import { initializeHighchartsModules } from './utils';
 import { useChartOptions } from './useChartOptions';
 import { useChartMethods } from './useChartMethods';
 
-initializeHighchartsModules();
+// Highcharts 12.4.0+ auto-registers exporting/boost/accessibility/export-data/
+// offline-exporting modules at import time. See `utils/exporting.ts`.
 
 Highcharts.setOptions({
   time: {
