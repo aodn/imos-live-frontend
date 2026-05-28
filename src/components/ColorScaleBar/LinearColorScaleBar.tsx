@@ -1,4 +1,4 @@
-import { cn, rgbToHex } from '@/utils';
+import { rgbToHex } from '@/utils';
 import { useMemo } from 'react';
 import { formatTickValue } from './utils';
 
@@ -14,7 +14,7 @@ type ColorScaleBarProps = {
 };
 
 export function LinearColorScaleBar({
-  height = 12,
+  height = 10,
   tickCount = 5,
   className,
   min,
@@ -57,20 +57,6 @@ export function LinearColorScaleBar({
     ));
   }, [tickPositions]);
 
-  const scaleUnits = useMemo(() => {
-    return tickPositions.map(({ index, position, isEdge }) => (
-      <div
-        key={`scale-unit-${index}`}
-        className={cn('absolute flex flex-col items-center h-full', {
-          hidden: isEdge,
-        })}
-        style={{ left: `${position}%`, transform: 'translateX(-50%)' }}
-      >
-        <span className="h-full bg-black w-0.5" />
-      </div>
-    ));
-  }, [tickPositions]);
-
   return (
     <div className={className}>
       <div className="w-full">
@@ -81,8 +67,6 @@ export function LinearColorScaleBar({
             background: gradient,
           }}
         />
-
-        <div className="relative h-1">{scaleUnits}</div>
 
         <div className="relative mx-2 h-2">{scaleLabels}</div>
       </div>

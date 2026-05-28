@@ -22,7 +22,7 @@ type LogColorScaleBarProps = {
 };
 
 export function LogColorScaleBar({
-  height = 12,
+  height = 10,
   numStops = 256, //how smooth the legend can be.
   className,
   min = 0.01, //this cannot be 0 and has to be 10^n, n is integer, because we are using 10 base log scale.

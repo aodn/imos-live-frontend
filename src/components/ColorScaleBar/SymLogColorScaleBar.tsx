@@ -8,7 +8,6 @@ import {
   getSymlogColorPosition,
 } from './utils';
 import { particles } from '@/constants';
-import { cn } from '@/utils';
 
 type SymLogColorScaleBarProps = {
   height?: number;
@@ -24,7 +23,7 @@ type SymLogColorScaleBarProps = {
 };
 
 export function SymLogColorScaleBar({
-  height = 12,
+  height = 10,
   numStops = 256,
   className = '',
   min = -1.2,
@@ -80,20 +79,6 @@ export function SymLogColorScaleBar({
     ));
   }, [tickPositions]);
 
-  const scaleUnits = useMemo(() => {
-    return tickPositions.map(({ value, position, isEdge }, index) => (
-      <div
-        key={`scale-unit-${value}-${index}`}
-        className={cn('absolute flex flex-col items-center h-full', {
-          hidden: isEdge,
-        })}
-        style={{ left: `${position}%`, transform: 'translateX(-50%)' }}
-      >
-        <span className="h-full bg-black w-0.5" />
-      </div>
-    ));
-  }, [tickPositions]);
-
   return (
     <div className={className}>
       <div className="w-full">
@@ -105,7 +90,6 @@ export function SymLogColorScaleBar({
           }}
         />
 
-        <div className="relative h-1">{scaleUnits}</div>
         <div className="relative h-2 mx-2">{scaleLabels}</div>
       </div>
 

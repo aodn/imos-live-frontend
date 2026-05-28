@@ -13,8 +13,8 @@ import { useIsMapDragging, useIsMapZooming, useMapCanvasWidth } from '@/hooks';
 import { setSidebarOpen, useMapUIStore, useSidebarStore } from '@/store';
 import { exportMapImage } from '@/helpers';
 import { useShallow } from 'zustand/shallow';
-import { TILES_GROUP, PRODUCTLEGENDS, PRODUCTS } from '@/constants';
-import { colorTuplesToCss } from '@/utils';
+import { TILES_GROUP, PRODUCTS } from '@/constants';
+import { CategoryColorScaleBar, LinearColorScaleBar, LogColorScaleBar } from '../ColorScaleBar';
 
 export function MapControlPanel({
   ref: mapRef,
@@ -27,10 +27,11 @@ export function MapControlPanel({
   const isZooming = useIsMapZooming(mapRef);
   const mapCanvasWidth = useMapCanvasWidth(mapRef);
 
-  const { date, productEnabled } = useMapUIStore(
+  const { date, productEnabled, productLegends } = useMapUIStore(
     useShallow(s => ({
       date: s.date,
       productEnabled: s.productEnabled,
+      productLegends: s.productLegends,
     })),
   );
 
@@ -65,9 +66,7 @@ export function MapControlPanel({
     const productArg = activeProduct
       ? {
           name: PRODUCTS[activeProduct].name,
-          colors: colorTuplesToCss(COLOR_OPTIONS[PRODUCTLEGENDS[activeProduct].colorKey]),
-          scales: PRODUCTLEGENDS[activeProduct].scales,
-          label: PRODUCTLEGENDS[activeProduct].label,
+          legend: buildExportLegend(productLegends[activeProduct]),
         }
       : undefined;
 
@@ -140,5 +139,32 @@ export function MapControlPanel({
         <DownloadIcon className="text-imos-grey" size="lg" />
       </Button>
     </div>
+  );
+}
+
+/** Mirrors LayerCard's legend rendering so the exported PNG shows the same scale bar. */
+function buildExportLegend(legend: {
+  scale: 'log' | 'linear' | 'category';
+  colorKey: keyof typeof COLOR_OPTIONS;
+  range: readonly [number, number];
+  label: string;
+  scales?: readonly (number | string)[];
+}) {
+  const colors = COLOR_OPTIONS[legend.colorKey];
+  const [min, max] = legend.range;
+
+  if (legend.scale === 'log') {
+    return <LogColorScaleBar colors={colors} min={min} max={max} />;
+  }
+  if (legend.scale === 'category') {
+    return <CategoryColorScaleBar colors={colors} scales={legend.scales as string[] | undefined} />;
+  }
+  return (
+    <LinearColorScaleBar
+      colors={colors}
+      min={min}
+      max={max}
+      scales={legend.scales as number[] | undefined}
+    />
   );
 }
