@@ -62,44 +62,12 @@ export function getLastDates<const T extends number>(length: T) {
   };
 }
 /**
- * Get the last 7 dates in the format "YYYY-MM-DD".
- * The dates are in descending order, starting from 6 days ago.
- * For example, if today is 2023-10-07, the output will be:
- * ["2023-10-01", "2023-10-02", "2023-10-03", "2023-10-04", "2023-10-05", "2023-10-06", "2023-10-07"]
- * @returns Last 7 dates in the format "YY-MM-DD".
- * By passing format like 'yyyy-mm-dd', 'yy-mm-dd', 'dd/mm/yyyy', it will generate dates liek:
- * getLast7Dates('yy-mm-dd');
-    → ['24-05-25', ..., '24-05-31']
-
-    getLast7Dates('yyyy/mm/dd');
-    → ['2024/05/25', ..., '2024/05/31']
-
-    getLast7Dates('dd.mm.yyyy');
-    → ['25.05.2024', ..., '31.05.2024']
+ * Build a "last N dates" generator. The dates are returned in ascending order,
+ * ending today. Pass a format like 'yyyy-mm-dd', 'yy-mm-dd', or 'dd/mm/yyyy' to
+ * control the token rendering, e.g. getLastDates(7)('yy-mm-dd') → ['24-05-25', ..., '24-05-31'].
  */
-export const getLast7Dates = getLastDates(7);
 export const getLast10Dates = getLastDates(10);
-
-export const getLast31Dates = getLastDates(31);
 export const getLast60Dates = getLastDates(60);
-
-export function getDate3DaysAgo() {
-  const today = new Date();
-  const resultDate = new Date(today);
-  resultDate.setDate(today.getDate() - 3);
-  return resultDate;
-}
-
-export function isSameDay(date1: Date, date2: Date) {
-  const d1 = new Date(date1);
-  const d2 = new Date(date2);
-
-  return (
-    d1.getFullYear() === d2.getFullYear() &&
-    d1.getMonth() === d2.getMonth() &&
-    d1.getDate() === d2.getDate()
-  );
-}
 
 /** Convert compact date string (yyyymmdd) to ISO format (yyyy-mm-dd) */
 export function toISOFromCompact(date: string): string {
@@ -112,15 +80,6 @@ export function toCompactDate(date: string) {
     return;
   }
   return date.replace(/-/g, '');
-}
-
-/** Extract the latest fulfilled date from Promise.allSettled results */
-export function getLatestFulfilledDate(results: PromiseSettledResult<string | null>[]) {
-  return results
-    .filter((r): r is PromiseFulfilledResult<string> => r.status === 'fulfilled' && !!r.value)
-    .map(r => r.value)
-    .sort()
-    .at(-1);
 }
 
 export const today = () => dayjs().format('YYYYMMDD');

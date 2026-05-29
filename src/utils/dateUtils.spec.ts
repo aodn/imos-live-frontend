@@ -1,9 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   getLastDates,
-  getLatestFulfilledDate,
   isBeforeDays,
-  isSameDay,
   localToUTC,
   toCompactDate,
   toISOFromCompact,
@@ -26,44 +24,6 @@ describe('toISOFromCompact / toCompactDate', () => {
   it('toCompactDate returns undefined for malformed input', () => {
     expect(toCompactDate('2026/05/29')).toBeUndefined();
     expect(toCompactDate('not a date')).toBeUndefined();
-  });
-});
-
-describe('isSameDay', () => {
-  it('returns true for same year/month/day at different times', () => {
-    expect(isSameDay(new Date('2026-05-29T01:00:00'), new Date('2026-05-29T23:00:00'))).toBe(true);
-  });
-
-  it('returns false for adjacent days', () => {
-    expect(isSameDay(new Date('2026-05-29'), new Date('2026-05-30'))).toBe(false);
-  });
-});
-
-describe('getLatestFulfilledDate', () => {
-  it('returns the lexicographically largest fulfilled value', () => {
-    const results: PromiseSettledResult<string | null>[] = [
-      { status: 'fulfilled', value: '2026-05-01' },
-      { status: 'fulfilled', value: '2026-05-29' },
-      { status: 'fulfilled', value: '2026-05-15' },
-    ];
-    expect(getLatestFulfilledDate(results)).toBe('2026-05-29');
-  });
-
-  it('ignores rejected and null-valued promises', () => {
-    const results: PromiseSettledResult<string | null>[] = [
-      { status: 'rejected', reason: new Error('x') },
-      { status: 'fulfilled', value: null },
-      { status: 'fulfilled', value: '2026-05-01' },
-    ];
-    expect(getLatestFulfilledDate(results)).toBe('2026-05-01');
-  });
-
-  it('returns undefined when no fulfilled string values exist', () => {
-    const results: PromiseSettledResult<string | null>[] = [
-      { status: 'fulfilled', value: null },
-      { status: 'rejected', reason: new Error('x') },
-    ];
-    expect(getLatestFulfilledDate(results)).toBeUndefined();
   });
 });
 
