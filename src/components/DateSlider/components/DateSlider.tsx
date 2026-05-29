@@ -30,7 +30,6 @@ import { RenderSliderHandle } from './SliderHandle';
 import { SliderTrack } from './SliderTrack';
 import { TimeUnitSelection } from './TimeUnitSelection';
 
-//TODO: 2. testing.
 //TODO: 3. beautify stories.
 //TODO: 4. snap to unit.
 
