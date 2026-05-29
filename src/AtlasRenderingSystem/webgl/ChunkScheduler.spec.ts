@@ -118,7 +118,8 @@ describe('ChunkScheduler', () => {
     // The mock's abort handler removes them from pending and rejects.
     await Promise.resolve();
     expect(pendingCount()).toBe(0);
-    expect(scheduler.allVisibleLoaded()).toBe(false);
+    // Vacuously loaded: no visible chunks → no work outstanding for this LOD.
+    expect(scheduler.allVisibleLoaded()).toBe(true);
   });
 
   it('prioritises the viewport chunk over its buffer-ring neighbours', async () => {
@@ -256,7 +257,8 @@ describe('ChunkScheduler', () => {
 
     scheduler.update({ west: 100, east: 110, south: 100, north: 110 }, 8);
     expect(pendingCount()).toBe(0);
-    expect(scheduler.allVisibleLoaded()).toBe(false);
+    // Off-region viewport produces no visible chunks → vacuously loaded.
+    expect(scheduler.allVisibleLoaded()).toBe(true);
   });
 
   it('destroy aborts everything', async () => {
@@ -271,6 +273,7 @@ describe('ChunkScheduler', () => {
     scheduler.destroy();
     await Promise.resolve();
     expect(pendingCount()).toBe(0);
-    expect(scheduler.allVisibleLoaded()).toBe(false);
+    // After destroy, visibleIds is cleared → vacuously loaded (no work outstanding).
+    expect(scheduler.allVisibleLoaded()).toBe(true);
   });
 });

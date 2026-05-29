@@ -5,6 +5,8 @@ import type { AtlasManagerAPI, ChunkSchedulerAPI, LODControllerAPI } from '../we
 import {
   buildDiscreteRampPixels,
   buildLodGridsFlat,
+  buildLodZoomThresholds,
+  computeActiveLodCount,
   computeRamp,
   computeUvTransform,
   dataBoundsFromManifest,
@@ -136,6 +138,46 @@ describe('buildLodGridsFlat', () => {
     const flat = buildLodGridsFlat(sorted);
     expect(flat.length).toBe(8); // MAX_LODS=4 × 2
     expect(Array.from(flat)).toEqual([3, 2, 6, 4, 12, 10, 0, 0]);
+  });
+});
+
+describe('buildLodZoomThresholds', () => {
+  it('returns -Infinity for LOD1 and the per-LOD threshold for LOD2+', () => {
+    const lods: LodEntry[] = [
+      { ...LOD_ENTRY, grid: [3, 2] },
+      { ...LOD_ENTRY, grid: [6, 4], zoomThreshold: 5 },
+      { ...LOD_ENTRY, grid: [12, 10], zoomThreshold: 7 },
+    ];
+    expect(buildLodZoomThresholds(lods)).toEqual([-Infinity, 5, 7]);
+  });
+
+  it('defaults missing LOD2+ thresholds to DEFAULT_ZOOM_THRESHOLD (6)', () => {
+    const lods: LodEntry[] = [
+      { ...LOD_ENTRY, grid: [3, 2] },
+      { ...LOD_ENTRY, grid: [6, 4] },
+    ];
+    expect(buildLodZoomThresholds(lods)).toEqual([-Infinity, 6]);
+  });
+});
+
+describe('computeActiveLodCount', () => {
+  it('returns 1 at zooms below the LOD2 threshold (LOD1 only)', () => {
+    expect(computeActiveLodCount(4, [-Infinity, 5, 7])).toBe(1);
+    expect(computeActiveLodCount(5, [-Infinity, 5, 7])).toBe(1); // strict >, matching the scheduler
+  });
+
+  it('returns 2 between the LOD2 and LOD3 thresholds', () => {
+    expect(computeActiveLodCount(6, [-Infinity, 5, 7])).toBe(2);
+  });
+
+  it('returns 3 once the LOD3 threshold is exceeded', () => {
+    expect(computeActiveLodCount(8, [-Infinity, 5, 7])).toBe(3);
+  });
+
+  it('stops at the first inactive LOD so resident-but-stale finer LODs cannot leak through', () => {
+    // LOD2 inactive (zoom ≤ 5) but LOD3's threshold is technically exceeded —
+    // we still clamp to 1 so a leftover LOD2 chunk can't show as intermediate.
+    expect(computeActiveLodCount(5, [-Infinity, 5, 4])).toBe(1);
   });
 });
 

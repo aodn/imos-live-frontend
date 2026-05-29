@@ -41,6 +41,8 @@ import {
   dataBoundsFromManifest,
   computeUvTransform,
   buildLodGridsFlat,
+  buildLodZoomThresholds,
+  computeActiveLodCount,
   lod1ChunkIds,
   createLodSchedulers,
   preloadAllLod1,
@@ -122,6 +124,10 @@ export function createParticlesAtlasField(
   let mapBounds: [number, number, number, number] | null = null;
   /** Flat [cols0, rows0, cols1, rows1, ...] for u_lod_grids uniform, padded to 8 floats (4 LODs). */
   let lodGridsFlat: Float32Array | null = null;
+  /** Per-LOD zoom thresholds, aligned with the sorted LOD list. Drives the
+   *  dynamic u_lod_count below so a resident LOD2+ chunk left over from a
+   *  deeper zoom doesn't bleed through at a zoom where its LOD is inactive. */
+  let lodZoomThresholds: number[] = [];
   /** chunkPx / storedPx — maps local [0,1] UV into the data region (excluding padding). */
   let uvScale: [number, number] | null = null;
   /** padding / storedPx — shifts UV past the padding border. */
@@ -294,7 +300,10 @@ export function createParticlesAtlasField(
       u_chunk_slots: atlas.getChunkSlots(),
       u_lod_grids: lodGridsFlat,
       u_lod_offsets: atlas.getLodOffsets(),
-      u_lod_count: atlas.getLodCount(),
+      // Dynamic: zoom-gated active LOD count. Caps the shader's LOD loop so
+      // stale LOD2+ chunks resident from a deeper-zoom session can't show as
+      // intermediate-LOD velocity overrides once the user has zoomed back out.
+      u_lod_count: computeActiveLodCount(map.getZoom(), lodZoomThresholds),
       u_lod_blend: lodController.getValue(),
       u_uv_scale: uvScale,
       u_uv_offset: uvOffset,
@@ -467,6 +476,7 @@ export function createParticlesAtlasField(
     vectorMax = [uRange[1], vRange[1]];
     ({ uvScale, uvOffset } = computeUvTransform(lod1));
     lodGridsFlat = buildLodGridsFlat(lodsSorted);
+    lodZoomThresholds = buildLodZoomThresholds(lodsSorted);
 
     // Reset atlas and LOD state for new date
     atlas?.destroy();

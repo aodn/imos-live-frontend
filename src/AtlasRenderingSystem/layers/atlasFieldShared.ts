@@ -9,7 +9,7 @@ import mapboxgl from 'mapbox-gl';
 import type { ProductManifest, LodEntry, ColorPalette } from '../types';
 import { convertLogColorScaleToRamp, convertLinearColorScaleToRamp } from '../utils';
 import type { AtlasManagerAPI, ChunkSchedulerAPI, LODControllerAPI } from '../webgl';
-import { createChunkScheduler, MAX_LODS } from '../webgl';
+import { createChunkScheduler, DEFAULT_ZOOM_THRESHOLD, MAX_LODS } from '../webgl';
 
 /** Palette → 256-stop color-ramp stop map (log or linear scale). */
 export function computeRamp(palette: ColorPalette): Record<string, string> {
@@ -81,6 +81,31 @@ export function computeUvTransform(lod1: LodEntry): {
     uvScale: [lod1.chunkPx[0] / lod1.storedPx[0], lod1.chunkPx[1] / lod1.storedPx[1]],
     uvOffset: [lod1.padding / lod1.storedPx[0], lod1.padding / lod1.storedPx[1]],
   };
+}
+
+/**
+ * Per-LOD zoom thresholds aligned with `lodsSorted`. LOD1 is always active
+ * (-Infinity); LOD2+ default to `DEFAULT_ZOOM_THRESHOLD` when the manifest
+ * omits one. Matches `ChunkScheduler.update`'s `zoom > threshold` activation.
+ */
+export function buildLodZoomThresholds(lodsSorted: LodEntry[]): number[] {
+  return lodsSorted.map((lod, i) =>
+    i === 0 ? -Infinity : (lod.zoomThreshold ?? DEFAULT_ZOOM_THRESHOLD),
+  );
+}
+
+/**
+ * How many LODs (counting LOD1) should be sampled by the shader at this zoom.
+ * Walks lowest→highest and stops at the first inactive LOD so a resident chunk
+ * left over from a deeper zoom can't bleed through as an intermediate LOD.
+ */
+export function computeActiveLodCount(zoom: number, lodZoomThresholds: number[]): number {
+  let count = 1;
+  for (let i = 1; i < lodZoomThresholds.length; i++) {
+    if (zoom > lodZoomThresholds[i]) count = i + 1;
+    else break;
+  }
+  return count;
 }
 
 /** Flat [cols0, rows0, cols1, rows1, ...] padded to MAX_LODS×2 for the u_lod_grids uniform. */

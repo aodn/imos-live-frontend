@@ -218,7 +218,10 @@ export function createChunkScheduler(
   }
 
   function allVisibleLoaded(): boolean {
-    return visibleIds.length > 0 && visibleIds.every(id => atlas.has(id));
+    // Empty visibleIds — either below the zoom threshold or off-region. Treat as
+    // "nothing to wait for" (vacuously true) so the Field's LOD-blend gating
+    // doesn't stall an active LOD waiting on an inactive sibling scheduler.
+    return visibleIds.every(id => atlas.has(id));
   }
 
   function destroy() {

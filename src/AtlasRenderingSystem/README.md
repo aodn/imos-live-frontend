@@ -376,6 +376,11 @@ vec4 sample  = texture(u_atlas, atlasUV);
 
 `u_lod_blend` crossfades the finest active LOD from 0 → 1 over 300 ms (ease-out, driven by `LODController`). The blend does not start until every visible chunk for the finest LOD is resident, preventing a patchwork where some regions are crisp while adjacent ones are still coarse.
 
+`u_lod_count` is **zoom-gated**, not static. Each Field's `draw()` computes the active LOD count from the current map zoom and the per-LOD `zoomThreshold`s via `computeActiveLodCount`: LOD1 is always active; LOD2+ counts only while `zoom > threshold`. Two consequences worth knowing:
+
+- The shader's loop and "finest active LOD" pivot (`u_lod_count - 1`) both shrink as the user zooms out. A LOD2+ chunk loaded at a deeper zoom and still resident in the atlas after zoom-out is **not sampled** until the user zooms back past its threshold — preventing the square-patchwork artefact that would otherwise appear at low zoom (intermediate-LOD chunks override LOD1 at `t = 1.0`).
+- The chunks are **not evicted** by the zoom change. The atlas keeps them so zooming back in is instant; eviction remains purely LRU-driven by upload pressure (see [AtlasManager](#atlasmanager)).
+
 Pan/zoom cycle:
 
 1. User pans or zooms → `LODController.reset()` snaps `u_lod_blend` to 0 (LOD1 remains visible).
@@ -383,7 +388,7 @@ Pan/zoom cycle:
 3. Once every visible chunk is loaded → `LODController.startBlendIn()` begins the 300 ms fade.
 4. `u_lod_blend` reaches 1.0 → full LOD2+ resolution locked in.
 
-Intermediate LODs (loaded but not the finest) always show at full opacity. The fragment shader:
+Intermediate LODs (loaded but not the finest _active_) always show at full opacity. The fragment shader:
 
 ```glsl
 vec4 result = texture(u_atlas, worldToAtlasUV(lonlat, 0));
@@ -504,21 +509,21 @@ Atlas dimensions are auto-computed from `slotPx` and the LOD grids (see [Atlas a
 
 **Methods**
 
-| Method                    | Description                                                                |
-| ------------------------- | -------------------------------------------------------------------------- |
-| `upload(chunkId, img)`    | Upload ImageBitmap into the atlas. LOD2+ triggers LRU if the pool is full. |
-| `has(chunkId)`            | True if the chunk is currently resident.                                   |
-| `touch(chunkId)`          | Refresh LRU timestamp. Call for every visible chunk each frame.            |
-| `getTexture()`            | The `WebGLTexture` → `u_atlas`                                             |
-| `getSlotsData()`          | `Float32Array` — static UV layout per slot → `u_slots`                     |
-| `getChunkSlots()`         | `Int32Array` — virtual→physical mapping → `u_chunk_slots`                  |
-| `getLodOffsets()`         | `Int32Array` — cumulative LOD offsets → `u_lod_offsets`                    |
-| `getLodCount()`           | Number of active LODs → `u_lod_count`                                      |
-| `getTotalSlots()`         | Total physical slots (atlasCols × atlasRows)                               |
-| `getTotalVirtualChunks()` | Sum of all LOD grid cells → sizes `u_chunk_slots`                          |
-| `getAtlasW()`             | Actual atlas width after auto-sizing and clamping                          |
-| `getAtlasH()`             | Actual atlas height after auto-sizing and clamping                         |
-| `destroy()`               | Delete GPU texture and reset all state.                                    |
+| Method                    | Description                                                                                                                                 |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `upload(chunkId, img)`    | Upload ImageBitmap into the atlas. LOD2+ triggers LRU if the pool is full.                                                                  |
+| `has(chunkId)`            | True if the chunk is currently resident.                                                                                                    |
+| `touch(chunkId)`          | Refresh LRU timestamp. Call for every visible chunk each frame.                                                                             |
+| `getTexture()`            | The `WebGLTexture` → `u_atlas`                                                                                                              |
+| `getSlotsData()`          | `Float32Array` — static UV layout per slot → `u_slots`                                                                                      |
+| `getChunkSlots()`         | `Int32Array` — virtual→physical mapping → `u_chunk_slots`                                                                                   |
+| `getLodOffsets()`         | `Int32Array` — cumulative LOD offsets → `u_lod_offsets`                                                                                     |
+| `getLodCount()`           | Manifest LOD count. The Field zoom-gates this via `computeActiveLodCount` before writing `u_lod_count` (see [LOD blending](#lod-blending)). |
+| `getTotalSlots()`         | Total physical slots (atlasCols × atlasRows)                                                                                                |
+| `getTotalVirtualChunks()` | Sum of all LOD grid cells → sizes `u_chunk_slots`                                                                                           |
+| `getAtlasW()`             | Actual atlas width after auto-sizing and clamping                                                                                           |
+| `getAtlasH()`             | Actual atlas height after auto-sizing and clamping                                                                                          |
+| `destroy()`               | Delete GPU texture and reset all state.                                                                                                     |
 
 **LRU eviction**
 
@@ -586,13 +591,14 @@ createChunkScheduler(
 
 `zoomThreshold` defaults to `DEFAULT_ZOOM_THRESHOLD = 6`. Pass `lodEntry.zoomThreshold` from the manifest to make it per-LOD.
 
-| Behaviour             | Detail                                                                    |
-| --------------------- | ------------------------------------------------------------------------- |
-| **Viewport priority** | Viewport chunks at priority 0; 1-chunk buffer ring at priority 1          |
-| **Concurrency**       | Max 6 in-flight fetches                                                   |
-| **Zoom gate**         | Aborts all in-flight and no-ops if `zoom ≤ zoomThreshold`                 |
-| **Cancellation**      | Chunks scrolled outside the buffer zone are aborted via `AbortController` |
-| **LRU refresh**       | `atlas.touch(id)` for every visible loaded chunk per `update()` call      |
+| Behaviour                | Detail                                                                                                                                                      |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Viewport priority**    | Viewport chunks at priority 0; 1-chunk buffer ring at priority 1                                                                                            |
+| **Concurrency**          | Max 6 in-flight fetches                                                                                                                                     |
+| **Zoom gate**            | Aborts all in-flight and no-ops if `zoom ≤ zoomThreshold`                                                                                                   |
+| **Cancellation**         | Chunks scrolled outside the buffer zone are aborted via `AbortController`                                                                                   |
+| **`allVisibleLoaded()`** | Vacuously `true` when `visibleIds` is empty (zoom below threshold, off-region, or post-`destroy`). Lets one inactive sibling scheduler not stall the blend. |
+| **LRU refresh**          | `atlas.touch(id)` for every visible loaded chunk per `update()` call                                                                                        |
 
 ---
 
@@ -622,19 +628,19 @@ Shader source is generated by factory functions (`makeScalarAtlasFs(totalSlots, 
 
 ### Shared (both shader families)
 
-| Uniform         | Type        | Description                                                                     |
-| --------------- | ----------- | ------------------------------------------------------------------------------- |
-| `u_atlas`       | `sampler2D` | The atlas texture                                                               |
-| `u_bounds`      | `vec4`      | Viewport in Mercator: `[nwX, seY, seX, nwY]`                                    |
-| `u_data_bounds` | `vec4`      | Data region: `[lonMin, latMax, lonMax, latMin]`                                 |
-| `u_slots`       | `vec4[N]`   | Static UV layout per physical slot. N = totalSlots (auto-computed per manifest) |
-| `u_chunk_slots` | `int[N]`    | Virtual index → physical slot (−1 = not resident). N = sum of all LOD grids     |
-| `u_lod_grids`   | `vec2[4]`   | `[cols, rows]` per LOD, coarse→fine                                             |
-| `u_lod_offsets` | `int[4]`    | Cumulative virtual chunk offset per LOD                                         |
-| `u_lod_count`   | `int`       | Number of active LODs                                                           |
-| `u_lod_blend`   | `float`     | 0→1 crossfade for the finest active LOD                                         |
-| `u_uv_scale`    | `vec2`      | `chunkPx / storedPx` — crops local [0,1] UV to the inner data region            |
-| `u_uv_offset`   | `vec2`      | `padding / storedPx` — shifts past the padding border                           |
+| Uniform         | Type        | Description                                                                            |
+| --------------- | ----------- | -------------------------------------------------------------------------------------- |
+| `u_atlas`       | `sampler2D` | The atlas texture                                                                      |
+| `u_bounds`      | `vec4`      | Viewport in Mercator: `[nwX, seY, seX, nwY]`                                           |
+| `u_data_bounds` | `vec4`      | Data region: `[lonMin, latMax, lonMax, latMin]`                                        |
+| `u_slots`       | `vec4[N]`   | Static UV layout per physical slot. N = totalSlots (auto-computed per manifest)        |
+| `u_chunk_slots` | `int[N]`    | Virtual index → physical slot (−1 = not resident). N = sum of all LOD grids            |
+| `u_lod_grids`   | `vec2[4]`   | `[cols, rows]` per LOD, coarse→fine                                                    |
+| `u_lod_offsets` | `int[4]`    | Cumulative virtual chunk offset per LOD                                                |
+| `u_lod_count`   | `int`       | Zoom-gated active LOD count (≤ manifest LOD count). See [LOD blending](#lod-blending). |
+| `u_lod_blend`   | `float`     | 0→1 crossfade for the finest active LOD                                                |
+| `u_uv_scale`    | `vec2`      | `chunkPx / storedPx` — crops local [0,1] UV to the inner data region                   |
+| `u_uv_offset`   | `vec2`      | `padding / storedPx` — shifts past the padding border                                  |
 
 ### Scalar-specific (heatmapShader)
 
@@ -670,7 +676,7 @@ src/
       HeatmapAtlasLayer.ts  — Mapbox CustomLayerInterface wrapper (scalar)
       ParticlesAtlasField.ts — orchestrates atlas for particle products
       ParticlesAtlasLayer.ts — Mapbox CustomLayerInterface wrapper (particles)
-      atlasFieldShared.ts   — shared field logic (manifest parsing, LOD1 preload, scheduler wiring)
+      atlasFieldShared.ts   — shared field logic (manifest parsing, LOD1 preload, scheduler wiring, zoom-gated active LOD count)
     utils/
       colorScaleUtils.ts    — colour ramp conversion (linear/log)
       getColorRamp.ts       — colour ramp builder
