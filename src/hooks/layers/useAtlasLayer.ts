@@ -1,12 +1,13 @@
 import type { TilesProduct } from '@/constants';
 import { PRODUCTLEGENDS, PRODUCTS, COLOR_OPTIONS, LAYERS_ORDER } from '@/constants';
-import { TILE_BASE_URL, getProductManifest } from '@/api';
-import { buildProductPalette } from '@/helpers';
+import { TILE_BASE_URL, productManifestQueryOptions, queryClient } from '@/api';
+import { buildProductPalette, validateCategoricalManifest } from '@/helpers';
 import type { AtlasLayerHandle, ScalarAtlasLayerOptions } from '@/AtlasRenderingSystem';
 import {
   useMapUIStore,
   setProductErrorByProduct,
   setProductLoadingByProduct,
+  setProductLegend,
   getProductLegend,
 } from '@/store';
 import { useCallback, useEffect, useRef } from 'react';
@@ -91,7 +92,21 @@ export function useAtlasLayer<H extends AtlasLayerHandle>({
     handleRef.current = createLayer({
       map: map.current!,
       layerId,
-      fetchManifest: d => getProductManifest({ product, date: d }),
+      fetchManifest: async d => {
+        const manifest = await queryClient.fetchQuery(productManifestQueryOptions(product, d));
+        validateCategoricalManifest(product, manifest);
+        // Categorical products: rewrite the legend's tick labels with the
+        // manifest's CF `flag_meanings`. Popups read flag_values/flag_meanings
+        // directly from the query cache via `productManifestQueryOptions`.
+        if (
+          PRODUCTLEGENDS[product].scale === 'category' &&
+          manifest.flagMeanings &&
+          manifest.flagValues
+        ) {
+          setProductLegend(product, { scales: manifest.flagMeanings });
+        }
+        return manifest;
+      },
       tileBaseUrl: `${TILE_BASE_URL}/${product}`,
       colorPalette: buildProductPalette(getProductLegend(product)),
       legendRange,

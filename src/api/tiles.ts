@@ -1,5 +1,6 @@
 import type { ProductManifest } from '@/AtlasRenderingSystem';
 import type { PRODUCTS, TilesProduct } from '@/constants';
+import { queryOptions } from '@tanstack/react-query';
 import axios from 'axios';
 
 export type Products = Record<
@@ -36,6 +37,14 @@ export const getProductManifest = async (args: {
   );
   return response.data;
 };
+
+// staleTime: Infinity because a product's tile manifest for a given date is immutable.
+export const productManifestQueryOptions = (product: TilesProduct, date: string) =>
+  queryOptions({
+    queryKey: ['productManifest', product, date] as const,
+    queryFn: () => getProductManifest({ product, date }),
+    staleTime: Infinity,
+  });
 
 export type PointVariable = {
   value: number | null;

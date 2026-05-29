@@ -1,7 +1,5 @@
 // Narrow, explicit barrel — no `export *`. Add an entry here when a new symbol
 // becomes part of the public constants surface.
-// TODO: why not use export * from './products' etc.?
-// Is it just to be more explicit about what's being exported, or is there some technical reason?
 
 // Products
 export { PRODUCT, PRODUCTS, MAX_VECTOR_SPEED, TILES_GROUP } from './products';

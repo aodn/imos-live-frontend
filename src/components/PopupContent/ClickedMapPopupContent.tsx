@@ -4,8 +4,8 @@ import type { LngLat } from 'mapbox-gl';
 import type { ClosePopupFn } from '@/helpers';
 import type { TilesProduct } from '@/constants';
 import { HW_CATEGORY_LOOKUP, PRODUCT, PRODUCTLEGENDS } from '@/constants';
-import { useQueries } from '@tanstack/react-query';
-import { getPointData } from '@/api/tiles';
+import { useQueries, useQuery } from '@tanstack/react-query';
+import { getPointData, productManifestQueryOptions } from '@/api/tiles';
 import { LoaderIcon } from '@/components/Icons';
 import { roundToTwo, velocityToReadable } from '@/utils';
 
@@ -24,6 +24,11 @@ export function ClickedMapPopupContent({ onClose, lngLat }: ClickedMapPopupConte
     }),
   );
   const date = useMapUIStore(s => s.date);
+
+  const { data: mcsManifest } = useQuery({
+    ...productManifestQueryOptions(PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY, date),
+    enabled: enabledProducts.includes(PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY) && !!date,
+  });
 
   const { lat, lng } = {
     lat: roundToTwo(lngLat?.lat),
@@ -67,11 +72,20 @@ export function ClickedMapPopupContent({ onClose, lngLat }: ClickedMapPopupConte
       .map(([varKey, v]) => {
         if (product === PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY) {
           const category = v.value as number;
+          // Prefer the data-driven mapping from the manifest's flag_values /
+          // flag_meanings; fall back to the static constant only when the
+          // manifest hasn't loaded yet.
+          const flagValues = mcsManifest?.flagValues;
+          const flagMeanings = mcsManifest?.flagMeanings;
+          const idx = flagValues?.indexOf(category) ?? -1;
+          const meaning =
+            idx >= 0 && flagMeanings
+              ? flagMeanings[idx]
+              : HW_CATEGORY_LOOKUP[category as keyof typeof HW_CATEGORY_LOOKUP];
           return {
             key: `${product}:${varKey}`,
             label,
-            display:
-              category + ' ' + HW_CATEGORY_LOOKUP[category as keyof typeof HW_CATEGORY_LOOKUP],
+            display: category + (meaning ? ' ' + meaning : ''),
           };
         }
         return {

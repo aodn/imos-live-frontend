@@ -7,6 +7,7 @@ export * from './addOrUpdateVectorSource.ts';
 export * from './createEventPriority.ts';
 export * from './mapImageExport.ts';
 export * from './buildProductPalette.ts';
+export * from './validateCategoricalManifest.ts';
 export * from './mergeAndFilterBuoyFeatures.ts';
 export * from './normalizeWaveBuoysData';
 export * from './coordinateToLngLat';

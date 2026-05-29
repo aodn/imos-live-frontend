@@ -11,7 +11,14 @@ export type LegendArgs = {
   scale: 'log' | 'linear' | 'category';
 };
 
-// TODO: this should only be default, as the real one should come from the data itself in flag_meanings and flag_values. This is just a fallback.
+// Initial-render fallback for the MCS Category product's popup labels and
+// legend tick labels. The real source of truth is the CF `flag_meanings` on
+// the product manifest: the popup reads it via React Query
+// (`productManifestQueryOptions`) and `useAtlasLayer` overwrites the legend's
+// `scales` field with the manifest's `flag_meanings` after the manifest loads.
+// This map is only used until the manifest is in the cache.
+// `validateCategoricalManifest` warns in dev if this fallback drifts away
+// from the manifest data.
 export const HW_CATEGORY_LOOKUP = {
   0: 'none',
   1: 'moderate',

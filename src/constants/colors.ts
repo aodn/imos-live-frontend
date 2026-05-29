@@ -152,8 +152,10 @@ export const x_sst: { colors: [number, number, number][] } = {
   ],
 };
 
-// TODO: this will be compared against the numebr of flag_meanings and flag_values in the data. If not matching,
-// throw a warning in the console saying the visualisation may be wrong as the legend is not properly configured.
+// Fallback colour ramp for the MCS Category product. Indexed positionally —
+// slot N is the colour for flag value N. The real source of truth is the CF
+// `flag_values` on the product manifest; `validateCategoricalManifest` compares
+// the two at load time and warns in dev if the lengths drift apart.
 export const MHW_CATEGORY_LEGEND_COLORS = [
   '#8c0000', // none
   '#ff9701', // moderate
