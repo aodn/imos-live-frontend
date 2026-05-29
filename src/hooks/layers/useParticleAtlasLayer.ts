@@ -1,8 +1,8 @@
 import type { TilesProduct } from '@/constants';
 import { createParticleAtlasLayer } from '@/AtlasRenderingSystem';
-import type { ParticleAtlasLayerHandle } from '@/AtlasRenderingSystem';
+import type { ParticleAtlasLayerHandle, ScalarAtlasLayerOptions } from '@/AtlasRenderingSystem';
 import { useMapUIStore } from '@/store';
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { useAtlasLayer } from './useAtlasLayer';
 
@@ -12,10 +12,19 @@ type UseParticleAtlasLayer = {
 };
 
 export function useParticleAtlasLayer({ map, product }: UseParticleAtlasLayer) {
+  const createLayer = useCallback(
+    (options: ScalarAtlasLayerOptions) =>
+      createParticleAtlasLayer({
+        ...options,
+        particleConfig: useMapUIStore.getState().particleConfig,
+      }),
+    [],
+  );
+
   const { handleRef, loadComplete } = useAtlasLayer<ParticleAtlasLayerHandle>({
     map,
     product,
-    createLayer: createParticleAtlasLayer,
+    createLayer,
   });
 
   // Particle-only: sync the live particle-config slice into the WebGL layer.
