@@ -76,6 +76,7 @@ export default defineConfig(({ mode }) => {
     // define,
     test: {
       include: ['src/**/*.spec.ts', 'src/**/*.spec.tsx'],
+      setupFiles: ['src/test/setup.ts'],
     },
   };
 });

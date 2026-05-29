@@ -215,12 +215,14 @@ export function buildTitleConfig(
 
 // ─── Axis ──────────────────────────────────────────────────────────────────
 
-type AxisInput =
-  | Highcharts.XAxisOptions
-  | Highcharts.YAxisOptions
-  | (Highcharts.XAxisOptions | Highcharts.YAxisOptions)[];
-
-export function buildAxisConfig(axis: AxisInput | undefined, theme: ThemeConfig | undefined) {
+// Generic over the specific axis type so xAxis/yAxis call sites preserve their
+// distinct option shapes (e.g. `labels.distance` differs between axes). The
+// `defaultAxis` literal only sets style/colour fields that exist on both
+// XAxisOptions and YAxisOptions, so the boundary cast is safe.
+export function buildAxisConfig<T extends Highcharts.XAxisOptions | Highcharts.YAxisOptions>(
+  axis: T | T[] | undefined,
+  theme: ThemeConfig | undefined,
+): T[] {
   const defaultAxis = {
     gridLineColor: theme?.gridColor || DEFAULT_THEME.gridColor,
     lineColor: theme?.lineColor || DEFAULT_THEME.lineColor,
@@ -238,10 +240,10 @@ export function buildAxisConfig(axis: AxisInput | undefined, theme: ThemeConfig 
   };
 
   if (Array.isArray(axis)) {
-    return axis.map(a => ({ ...defaultAxis, ...a }));
+    return axis.map(a => ({ ...defaultAxis, ...a }) as T);
   }
 
-  return axis ? [{ ...defaultAxis, ...axis }] : [defaultAxis];
+  return axis ? [{ ...defaultAxis, ...axis } as T] : [defaultAxis as T];
 }
 
 // ─── Tooltip ───────────────────────────────────────────────────────────────

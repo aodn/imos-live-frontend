@@ -13,7 +13,11 @@
       "Bash(pnpm import:*)",
       "Bash(pnpm add:*)",
       "Bash(grep -E \"\\\\.\\(ts|js|tsx\\)$\")",
-      "Bash(npx eslint *)"
+      "Bash(npx eslint *)",
+      "Bash(pnpm test *)",
+      "Bash(pnpm vitest *)",
+      "Bash(pnpm exec *)",
+      "Bash(pnpm typecheck *)"
     ],
     "deny": [],
     "ask": []
