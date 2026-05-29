@@ -9,7 +9,6 @@ export function useMapStyle(map: React.RefObject<mapboxgl.Map | null>) {
       style: s.style,
     })),
   );
-  // TODO: when style changes, the particle configs did not persist, particle layer goes to initial default state, need to find a way to persist the particle layer configs when style changes.
   useEffect(() => {
     map.current?.setStyle(
       styles.find(s => s.title === style)?.source || (styles[0].source as any),
