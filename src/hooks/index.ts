@@ -9,7 +9,6 @@ export * from './useToggle';
 export * from './useDrag';
 export * from './useDropdownOutsideClick';
 export * from './useDropdownPosition';
-export * from './useElementSize';
 export * from './useRAFDFn';
 export * from './useViewPortSize';
 export * from './useCurrentPage';

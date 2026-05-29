@@ -25,7 +25,7 @@ The package under `src/AtlasRenderingSystem/` is **self-contained and framework-
 
 1. **Generate tiles** — produce `manifest.json` + PNG files named `{lod}/{cx}/{cy}.png`. See [Tile & LOD configuration](#tile--lod-configuration-manifestjson) for all manifest fields.
 
-2. **`src/constants/product.ts`** — add entries to `PRODUCT`, `PRODUCTS`, and `PRODUCTLEGENDS`. The legend's `colorKey` selects a palette from `COLOR_OPTIONS` (`src/config/colorPalettes.ts`); `buildProductPalette` assembles the `ColorPalette` the layer uploads. See [Visual appearance](#visual-appearance-srcconstantsproductts) for what each controls.
+2. **`src/constants/`** — add entries to `PRODUCT` and `PRODUCTS` in `products.ts`, plus a `PRODUCTLEGENDS` entry in `legends.ts`. The legend's `colorKey` selects a palette from `COLOR_OPTIONS` (`src/constants/colors.ts`); `buildProductPalette` (`src/helpers/buildProductPalette.ts`) assembles the `ColorPalette` the layer uploads. See [Visual appearance](#visual-appearance) for what each controls.
 
 3. **`MapComponent.tsx`** — wire the hook:
 
@@ -45,11 +45,11 @@ The package under `src/AtlasRenderingSystem/` is **self-contained and framework-
    });
    ```
 
-4. **`src/config/layerConfig.ts`** — add the layer ID to `LAYERS_ORDER`.
+4. **`src/constants/layerOrder.ts`** — add the layer ID to `LAYERS_ORDER`.
 
 5. **`src/components/MainSidebar/products.tsx`** — add the sidebar entry.
 
-No changes to atlas, shader, or scheduler code are needed unless the new product exceeds 4 LODs or a total virtual chunk count > 256. Atlas dimensions are auto-computed from the manifest — see [System limits](#system-limits-srcwebglatlasmananagerts) if you need to raise the VRAM cap.
+No changes to atlas, shader, or scheduler code are needed unless the new product exceeds 4 LODs or a total virtual chunk count > 256. Atlas dimensions are auto-computed from the manifest — see [System limits](#system-limits-srcatlasrenderingsystemwebglatlasmanagerts) if you need to raise the VRAM cap.
 
 ---
 
@@ -107,7 +107,7 @@ When `flagValues` is present, `HeatmapAtlasField` switches into categorical mode
 - The shader decodes the raw value, rounds it to its index in `flagValues` (assumed sequential integers spanning `valueRange[0]..valueRange[1]`), and samples the ramp at the centre of that texel.
 - LOD blending: the finer LOD pops in fully on residency instead of crossfading — interpolating RGB-encoded categorical scalars would otherwise invent intermediate categories that aren't in the data.
 
-In the host app, the matching `PRODUCTLEGENDS` entry should set `scale: 'category'` and supply N colours under its `colorKey`. `buildProductPalette` then produces a `ColorPalette` with `scale: 'category'` and rawColors aligned 1:1 with `flagValues` from the manifest. See `AUSTEMP_HEATWAVE_MCS_CATEGORY` in `src/constants/product.ts` for a worked example.
+In the host app, the matching `PRODUCTLEGENDS` entry should set `scale: 'category'` and supply N colours under its `colorKey`. `buildProductPalette` then produces a `ColorPalette` with `scale: 'category'` and rawColors aligned 1:1 with `flagValues` from the manifest. See `AUSTEMP_HEATWAVE_MCS_CATEGORY` in `src/constants/products.ts` for a worked example.
 
 LOD keys are sorted numerically at runtime — insertion order in the JSON does not matter. Up to `MAX_LODS = 4` LODs are supported.
 
@@ -117,7 +117,7 @@ Keep `padding: 1`. GPU bilinear filtering samples a 2×2 texel neighbourhood —
 
 `chunkPx` is the tile resolution knob. Choose it based on how much geography you want each tile to cover, then derive `storedPx = chunkPx + [2, 2]`. The atlas auto-sizes to fit based on the grid counts — any `chunkPx` value works without code changes.
 
-**Atlas auto-sizing**
+#### Atlas auto-sizing
 
 Atlas dimensions are computed automatically from `storedPx` and the LOD grids — you do not need to specify them. The sizing target is `LOD1 count + largest single on-demand LOD count`, which guarantees that any one zoom level can be fully resident without eviction. LRU handles any overflow. Both dimensions are capped at `MAX_ATLAS_SIZE = 4096` (64 MB per atlas).
 
@@ -132,18 +132,18 @@ Switching to 256×256 `chunkPx` (258×258 `storedPx`) auto-sizes to 4096×4096 �
 
 ---
 
-### Visual appearance (`src/constants/product.ts`)
+### Visual appearance
 
-| Constant                                        | What it controls                                                                                                 |
-| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `PRODUCTLEGENDS`                                | Legend `label`, colour scale type (`linear`/`log`), `[min, max]` display `range`, and a `colorKey`               |
-| `COLOR_OPTIONS` (`src/config/colorPalettes.ts`) | Maps each `colorKey` to its raw RGB tuples; `buildProductPalette` converts them into the uploaded `ColorPalette` |
+| Constant                                      | What it controls                                                                                                 |
+| --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `PRODUCTLEGENDS` (`src/constants/legends.ts`) | Legend `label`, colour scale type (`linear`/`log`), `[min, max]` display `range`, and a `colorKey`               |
+| `COLOR_OPTIONS` (`src/constants/colors.ts`)   | Maps each `colorKey` to its raw RGB tuples; `buildProductPalette` converts them into the uploaded `ColorPalette` |
 
 `u_value_range` (from manifest) and `u_legend_range` (from `PRODUCTLEGENDS`) are intentionally separate — the colour ramp can be narrowed for visual emphasis without changing the stored data encoding.
 
 ---
 
-### Particle behaviour (`src/config/particleConfig.ts`)
+### Particle behaviour (`src/AtlasRenderingSystem/config/particleConfig.ts`)
 
 Applies only to the ocean current particle layer.
 
@@ -688,7 +688,7 @@ src/
     useParticleAtlasLayer.ts — React hook: wires createParticleAtlasLayer to Zustand store
 
   api/
-    scalarAtlas.ts          — getProductManifest + ProductManifest type
+    tiles.ts                — getProductManifest (ProductManifest type re-exported from the package's types.ts)
 ```
 
 ---

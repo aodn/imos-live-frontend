@@ -4,14 +4,14 @@
 
 IMOS Live is an interactive marine data visualisation platform built for Australia's Integrated Marine Observing System. It combines multiple ocean datasets on an interactive Mapbox map, allowing users to explore and analyse current conditions across the Australasian region.
 
-The platform visualises daily oceanographic data as a WebGL-accelerated particle field showing geostrophic ocean current patterns, alongside scalar heatmap overlays for sea level anomalies and sea surface temperature (SST) anomalies. Wave buoy observations are displayed as interactive clustered map points with time-series charts. A temporal date slider lets users navigate through the available data history, and a distance measurement tool is provided for spatial analysis.
+The platform visualises daily oceanographic data as a WebGL-accelerated particle field showing geostrophic ocean current patterns, alongside WebGL scalar overlays for sea level anomalies and AusTEMP marine-heatwave products (SST mosaic, SST-anomaly mosaic, and a discrete marine-heatwave-category layer). Wave buoy observations are displayed as interactive clustered map points with time-series charts. A temporal date slider lets users navigate through the available data history, and a distance measurement tool is provided for spatial analysis.
 
 ## Key Features
 
 - Interactive global map with multiple style options
 - WebGL-accelerated particle animation showing ocean geostrophic current direction and speed
 - GSLA sea level anomaly WebGL heatmap overlay
-- Sea surface temperature (SST) anomaly overlay for coral bleaching monitoring
+- AusTEMP marine-heatwave overlays: SST mosaic, SST-anomaly (SSTA) mosaic, and a categorical marine-heatwave-category (MCS) layer
 - Wave buoy data with clustered map points and interactive time-series charts
 - Distance measurement tool
 - Customizable particle settings (count, size, speed, fade)
