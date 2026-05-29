@@ -75,6 +75,7 @@ export function useAtlasLayer<H extends AtlasLayerHandle>({
 
   const loadData = useCallback(async () => {
     if (!handleRef.current) return;
+    setProductErrorByProduct(product, false);
     if (!isDateAvailable) {
       setProductErrorByProduct(product, true);
       return;

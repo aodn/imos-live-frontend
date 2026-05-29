@@ -1,14 +1,16 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
+import { useRAFDFn } from '../useRAFDFn';
 
 export function useMapResize(
   map: React.RefObject<mapboxgl.Map | null>,
   mapContainer: React.RefObject<HTMLDivElement | null>,
 ) {
+  const resize = useRAFDFn(useCallback(() => map.current?.resize(), [map]));
+
   useEffect(() => {
     if (!mapContainer.current) return;
-    const observer = new ResizeObserver(() => map.current?.resize());
+    const observer = new ResizeObserver(() => resize());
     observer.observe(mapContainer.current);
     return () => observer.disconnect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mapContainer]);
+  }, [mapContainer, resize]);
 }

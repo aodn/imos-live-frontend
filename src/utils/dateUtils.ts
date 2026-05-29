@@ -1,8 +1,10 @@
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
+import customParseFormat from 'dayjs/plugin/customParseFormat.js';
 import type { FixedLengthArray } from '@/types';
 
 dayjs.extend(utc);
+dayjs.extend(customParseFormat);
 
 /** Convert a local date string (yyyy-mm-dd) or Date to the nanosecond UTC format expected by the wave buoy API
  *
@@ -16,10 +18,9 @@ export function localToUTC(
   return dayjs(date).utc().format(format);
 }
 
-// Convert UTC to local date time
-// dayjs(date).utc() vs dayjs.utc(date)
-// dayjs(date).utc() convernt localdatetime to utc.
-// dayjs.utc(date) convert utc to utc, becasue it expected date is utc.
+// Convert a UTC instant to a local-time string.
+// Note the distinction: `dayjs(date).utc()` converts a local datetime to UTC,
+// whereas `dayjs.utc(date)` parses the input as already being UTC.
 export function utcToLocalDateTime(
   input: number | string | Date,
   format = 'YYYY-MM-DD HH:mm:ss',
@@ -35,28 +36,15 @@ export function utcToLocalDateTime(
 
 export function getLastDates<const T extends number>(length: T) {
   return (format: string = 'yyyy-mm-dd'): FixedLengthArray<string, T> => {
-    const dates: string[] = [];
-    const today = new Date();
-    const endDate = new Date(today);
-    endDate.setDate(today.getDate());
+    // The documented lowercase tokens (yyyy/yy/mm/dd) map 1:1 onto dayjs's
+    // uppercase tokens, so upper-casing the format hands the rendering to dayjs.
+    const dayjsFormat = format.toUpperCase();
+    const base = dayjs().startOf('day');
 
-    for (let i = length - 1; i >= 0; i--) {
-      const date = new Date(endDate);
-      date.setDate(endDate.getDate() - i);
-
-      const yyyy = date.getFullYear();
-      const yy = String(yyyy).slice(-2);
-      const mm = String(date.getMonth() + 1).padStart(2, '0');
-      const dd = String(date.getDate()).padStart(2, '0');
-
-      const formattedDate = format
-        .replace(/yyyy/g, String(yyyy))
-        .replace(/yy/g, yy)
-        .replace(/mm/g, mm)
-        .replace(/dd/g, dd);
-
-      dates.push(formattedDate);
-    }
+    // Ascending order, ending today: index 0 is the oldest day.
+    const dates = Array.from({ length }, (_, i) =>
+      base.subtract(length - 1 - i, 'day').format(dayjsFormat),
+    );
 
     return dates as FixedLengthArray<string, T>;
   };
@@ -71,18 +59,19 @@ export const getLast60Dates = getLastDates(60);
 
 /** Convert compact date string (yyyymmdd) to ISO format (yyyy-mm-dd) */
 export function toISOFromCompact(date: string): string {
-  return `${date.slice(0, 4)}-${date.slice(4, 6)}-${date.slice(6, 8)}`;
+  return dayjs(date, 'YYYYMMDD').format('YYYY-MM-DD');
 }
 
 /** Convert ISO format (yyyy-mm-dd) to compact date string (yyyymmdd)*/
-export function toCompactDate(date: string) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    return;
-  }
-  return date.replace(/-/g, '');
+export function toCompactDate(date: string): string | undefined {
+  const parsed = dayjs(date, 'YYYY-MM-DD', true);
+  return parsed.isValid() ? parsed.format('YYYYMMDD') : undefined;
 }
 
-export const today = () => dayjs().format('YYYYMMDD');
+export function today() {
+  return dayjs().format('YYYYMMDD');
+}
+
 const FORMATS = [
   'YYYY-MM-DD',
   'YYYY/MM/DD',
@@ -104,9 +93,41 @@ function normalizeToLocalStarting(date: string | Date) {
 }
 
 /**
- * Checks if a is more than N days before b (default 30)
+ * Returns true when `a` falls within `days` days *before* `b`, inclusive on
+ * both ends — i.e. `0 ≤ (b − a) ≤ days`. Returns false when `a` is after `b`,
+ * or more than `days` days before it. Default window is 30 days.
  */
 export function isBeforeDays(a: string | Date, b: string | Date, days = 30): boolean {
   const diff = normalizeToLocalStarting(b).diff(normalizeToLocalStarting(a), 'day');
   return diff >= 0 && diff <= days;
+}
+
+/**
+ * Parse a date string into a UTC `Date`. A bare `yyyy-mm-dd` is treated as
+ * midnight UTC. Mirrors the helper in the self-contained DateSlider package so
+ * the host app doesn't depend on that package's internals.
+ */
+export function toUTCDate(dateString: string): Date {
+  // A bare `yyyy-mm-dd` is interpreted as midnight UTC; strings with a time
+  // component are parsed as-is.
+  const date = dayjs.utc(dateString);
+
+  if (!date.isValid()) {
+    throw new Error(`Invalid date string: ${dateString}`);
+  }
+  return date.toDate();
+}
+
+/** Add time units to a UTC date, operating purely on UTC components. */
+export function addTime(
+  date: Date,
+  amount: number,
+  unit: 'day' | 'month' | 'year' | 'hour' | 'minute',
+): Date {
+  return dayjs.utc(date).add(amount, unit).toDate();
+}
+
+/** Format a `Date` as a `yyyy-mm-dd` string using its UTC components. */
+export function toISODateString(date: Date): string {
+  return dayjs.utc(date).format('YYYY-MM-DD');
 }
