@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { LinearColorScaleBar } from './LinearColorScaleBar';
-import { anomalySeaLevel, PRODUCT, PRODUCTLEGENDS } from '@/constants';
+import { x_rainbow, PRODUCT, PRODUCTLEGENDS } from '@/constants';
 
 const gslaRange = PRODUCTLEGENDS[PRODUCT.GSLA_ANOMALY_SEA_LEVELS].range;
 
@@ -24,7 +24,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
-    colors: anomalySeaLevel.colors as [number, number, number][],
+    colors: x_rainbow.colors as [number, number, number][],
     label: 'anomaly sea level (m)',
     min: gslaRange[0],
     max: gslaRange[1],

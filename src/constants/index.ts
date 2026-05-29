@@ -1,5 +1,7 @@
 // Narrow, explicit barrel — no `export *`. Add an entry here when a new symbol
 // becomes part of the public constants surface.
+// TODO: why not use export * from './products' etc.?
+// Is it just to be more explicit about what's being exported, or is there some technical reason?
 
 // Products
 export { PRODUCT, PRODUCTS, MAX_VECTOR_SPEED, TILES_GROUP } from './products';
@@ -12,12 +14,13 @@ export type { LegendArgs } from './legends';
 // Colors / palettes
 export {
   rdBuR,
-  particles,
-  anomalySeaLevel,
+  x_rainbow,
+  ocean_to_terrain,
   MHW_CATEGORY_LEGEND_COLORS,
   COLOR_OPTIONS,
+  CONTINOUS_PRODUCT_COLOR_OPTIONS,
 } from './colors';
-export type { ColorOptionKey } from './colors';
+export type { ColorOptionKey, ContinuousDataColorOptionKey } from './colors';
 
 // Layer / source ID strings
 export {

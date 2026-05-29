@@ -7,7 +7,7 @@ import { HW_CATEGORY_LOOKUP, PRODUCT, PRODUCTLEGENDS } from '@/constants';
 import { useQueries } from '@tanstack/react-query';
 import { getPointData } from '@/api/tiles';
 import { LoaderIcon } from '@/components/Icons';
-import { velocityToReadable } from '@/utils';
+import { roundToTwo, velocityToReadable } from '@/utils';
 
 export type ClickedMapPopupContentProps = {
   onClose?: ClosePopupFn;
@@ -25,12 +25,15 @@ export function ClickedMapPopupContent({ onClose, lngLat }: ClickedMapPopupConte
   );
   const date = useMapUIStore(s => s.date);
 
-  const { lat, lng } = lngLat || {};
+  const { lat, lng } = {
+    lat: roundToTwo(lngLat?.lat),
+    lng: roundToTwo(lngLat?.lng),
+  };
 
   const results = useQueries({
     queries: enabledProducts.map(product => ({
       queryKey: [product, 'getPointData', date, lng, lat],
-      queryFn: () => getPointData({ product, date, lon: lng, lat }),
+      queryFn: () => getPointData({ product, date, lon: lng as number, lat: lat as number }),
       enabled: !!date && lat != null && lng != null,
     })),
   });
@@ -74,7 +77,7 @@ export function ClickedMapPopupContent({ onClose, lngLat }: ClickedMapPopupConte
         return {
           key: `${product}:${varKey}`,
           label,
-          display: `${(v.value as number).toFixed(2)} ${v.units ? v.units : ''}`,
+          display: `${roundToTwo(v.value as number)} ${v.units ? v.units : ''}`,
         };
       });
   });
@@ -86,7 +89,7 @@ export function ClickedMapPopupContent({ onClose, lngLat }: ClickedMapPopupConte
     >
       <div className="relative bg-imos-light text-black p-2 flex justify-between items-center">
         <h4 className="text-base text-center w-full">
-          ({lat?.toFixed(2)}, {lng?.toFixed(2)})
+          ({lat}, {lng})
         </h4>
         {onClose && (
           <button

@@ -23,3 +23,4 @@ export * from './throttle';
 export * from './formatLatLngToDirectional';
 export * from './pipe';
 export * from './doubleRAF';
+export * from './roundToTwo';

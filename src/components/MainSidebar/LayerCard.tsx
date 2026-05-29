@@ -1,6 +1,6 @@
 import type { TilesProduct } from '@/constants';
-import { PRODUCT, PRODUCTLEGENDS, PRODUCTS } from '@/constants';
-import { COLOR_OPTIONS } from '@/constants';
+import { COLOR_OPTIONS, PRODUCT, PRODUCTLEGENDS, PRODUCTS } from '@/constants';
+import { CONTINOUS_PRODUCT_COLOR_OPTIONS } from '@/constants';
 import { cn, toCompactDate, toISOFromCompact } from '@/utils';
 import type { ReactNode } from 'react';
 import { Button } from '../Button';
@@ -18,6 +18,8 @@ import { setJumpToDate, setProductLegend, useMapUIStore } from '@/store';
 export type LayerCardProps = LayersDataset & {
   portalLink?: string;
 };
+
+// TODO: refactor this.
 
 export function LayerCard({
   image,
@@ -163,7 +165,10 @@ export function LayerCard({
               className="flex-1"
               size="sm"
               label="Color palette"
-              options={Object.keys(COLOR_OPTIONS).map(key => ({ label: key, value: key }))}
+              options={Object.keys(CONTINOUS_PRODUCT_COLOR_OPTIONS).map(key => ({
+                label: key,
+                value: key,
+              }))}
               initialValue={colorKey}
               onChange={v =>
                 setProductLegend(product as TilesProduct, {

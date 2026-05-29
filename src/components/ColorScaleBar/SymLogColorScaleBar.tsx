@@ -7,7 +7,7 @@ import {
   interpolateColor,
   getSymlogColorPosition,
 } from './utils';
-import { particles } from '@/constants';
+import { ocean_to_terrain } from '@/constants';
 
 type SymLogColorScaleBarProps = {
   height?: number;
@@ -31,7 +31,7 @@ export function SymLogColorScaleBar({
   threshold = 0.1,
   compressedRange = 0.2,
   label,
-  colors = particles.colors as [number, number, number][],
+  colors = ocean_to_terrain.colors as [number, number, number][],
   intermediateTicks = [2, 5],
 }: SymLogColorScaleBarProps) {
   const gradient = useMemo(() => {

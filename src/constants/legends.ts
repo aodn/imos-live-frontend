@@ -11,6 +11,7 @@ export type LegendArgs = {
   scale: 'log' | 'linear' | 'category';
 };
 
+// TODO: this should only be default, as the real one should come from the data itself in flag_meanings and flag_values. This is just a fallback.
 export const HW_CATEGORY_LOOKUP = {
   0: 'none',
   1: 'moderate',
@@ -24,7 +25,7 @@ export const HW_CATEGORY_LEGEND_SCALES = Object.values(HW_CATEGORY_LOOKUP);
 export const PRODUCTLEGENDS = {
   [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: {
     label: 'ocean current speed (m/s)',
-    colorKey: 'Particles' as ColorOptionKey,
+    colorKey: 'Ocean to Terrain' as ColorOptionKey,
     range: [0.01, MAX_VECTOR_SPEED],
     scale: 'log',
   },
@@ -32,7 +33,7 @@ export const PRODUCTLEGENDS = {
     scales: [-1.2, -0.6, 0, 0.6, 1.2],
     label: 'sea level anomaly (m)',
     range: [-1.2, 1.2],
-    colorKey: 'Anomaly Sea Level' as ColorOptionKey,
+    colorKey: 'X Rainbow' as ColorOptionKey,
     scale: 'linear',
   },
   [PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC]: {
@@ -46,7 +47,7 @@ export const PRODUCTLEGENDS = {
     scales: [0, 10, 20, 30, 40, 50],
     label: 'degrees Celsius (°C)',
     range: [0, 50],
-    colorKey: 'RdBu_r' as ColorOptionKey,
+    colorKey: 'X SST' as ColorOptionKey,
     scale: 'linear',
   },
   [PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY]: {

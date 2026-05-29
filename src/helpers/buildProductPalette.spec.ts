@@ -16,7 +16,7 @@ describe('buildProductPalette', () => {
   it('preserves scale and range on the resulting palette', () => {
     const palette = buildProductPalette({
       label: 'test',
-      colorKey: 'Anomaly Sea Level',
+      colorKey: 'X Rainbow',
       range: [-1.2, 1.2],
       scale: 'linear',
     });
@@ -27,7 +27,7 @@ describe('buildProductPalette', () => {
   it('passes log scale through', () => {
     const palette = buildProductPalette({
       label: 'particles',
-      colorKey: 'Particles',
+      colorKey: 'Ocean to Terrain',
       range: [0.01, 3],
       scale: 'log',
     });
