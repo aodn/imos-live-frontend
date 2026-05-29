@@ -6,7 +6,6 @@ import { cn } from '@/utils';
 
 export function Layout() {
   const bottomDrawer = useDrawerStore(s => s.bottomDrawer);
-  // TODO: the height of bottom drawer is not ideal, need to match its content.
 
   const page = useCurrentPage();
 
