@@ -84,7 +84,7 @@ export function ClickedMapPopupContent({ onClose, lngLat }: ClickedMapPopupConte
         {
           key: product,
           label,
-          display: `${Math.round(degree)}° (${direction}) @ ${speed.toFixed(2)} m/s`,
+          display: `${Math.round(degree)}° (${direction}) @ ${roundToTwo(speed)?.toFixed(2)} m/s`,
         },
       ];
     }
@@ -113,7 +113,7 @@ export function ClickedMapPopupContent({ onClose, lngLat }: ClickedMapPopupConte
         return {
           key: `${product}:${varKey}`,
           label,
-          display: `${roundToTwo(v.value as number)} ${v.units ? v.units : ''}`,
+          display: `${roundToTwo(v.value as number)?.toFixed(2)} ${v.units ? v.units : ''}`,
         };
       });
   });
