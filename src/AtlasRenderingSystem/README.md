@@ -162,12 +162,13 @@ Applies only to the ocean current particle layer.
 
 These are code constants. Change them only if your product genuinely exceeds the current bounds.
 
-| Constant               | Value | Where to change           | When to raise it                                               |
-| ---------------------- | ----- | ------------------------- | -------------------------------------------------------------- |
-| `MAX_ATLAS_SIZE`       | 4096  | `webgl/AtlasManager.ts`   | Product needs more slots than 4096² can provide                |
-| `MAX_LODS`             | 4     | `webgl/AtlasManager.ts`   | Product has more than 4 LOD levels                             |
-| Fetch concurrency      | 6     | `webgl/ChunkScheduler.ts` | Too many/few parallel tile requests                            |
-| Default zoom threshold | 6     | `webgl/ChunkScheduler.ts` | LOD2 should activate earlier or later when not set in manifest |
+| Constant               | Value | Where to change           | When to raise it                                                |
+| ---------------------- | ----- | ------------------------- | --------------------------------------------------------------- |
+| `MAX_ATLAS_SIZE`       | 4096  | `webgl/AtlasManager.ts`   | Product needs more slots than 4096² can provide                 |
+| `MAX_LODS`             | 4     | `webgl/AtlasManager.ts`   | Product has more than 4 LOD levels                              |
+| Fetch concurrency      | 6     | `webgl/ChunkScheduler.ts` | Too many/few parallel tile requests                             |
+| `MAX_RETRIES`          | 3     | `webgl/ChunkScheduler.ts` | Transient tile failures should retry more/less before giving up |
+| Default zoom threshold | 6     | `webgl/ChunkScheduler.ts` | LOD2 should activate earlier or later when not set in manifest  |
 
 The virtual chunk array size (`u_chunk_slots[N]`) and atlas slot array size (`u_slots[N]`) are both computed dynamically from the manifest and injected into the shader at compile time — no constant to update. The only hard limit is the device's uniform budget, validated at runtime: `totalSlots × 4 + totalVirtualChunks + 30 ≤ gl.MAX_FRAGMENT_UNIFORM_COMPONENTS`. If this throws, the product has too many tiles for the device.
 
@@ -588,14 +589,15 @@ createChunkScheduler(
 
 `zoomThreshold` defaults to `DEFAULT_ZOOM_THRESHOLD = 6`. Pass `lodEntry.zoomThreshold` from the manifest to make it per-LOD.
 
-| Behaviour                | Detail                                                                                                                                                                                                                              |
-| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Viewport priority**    | Viewport chunks at priority 0; 1-chunk buffer ring at priority 1                                                                                                                                                                    |
-| **Concurrency**          | Max 6 in-flight fetches                                                                                                                                                                                                             |
-| **Zoom gate**            | Aborts all in-flight and no-ops if `zoom ≤ zoomThreshold`                                                                                                                                                                           |
-| **Cancellation**         | Chunks scrolled outside the buffer zone are aborted via `AbortController`                                                                                                                                                           |
-| **`allVisibleLoaded()`** | `true` once every visible chunk for this LOD is resident; vacuously `true` when `visibleIds` is empty (zoom below threshold, off-region, or post-`destroy`). Exposed for diagnostics — progressive rendering no longer gates on it. |
-| **LRU refresh**          | `atlas.touch(id)` for every visible loaded chunk per `update()` call                                                                                                                                                                |
+| Behaviour                | Detail                                                                                                                                                                                                                                                                                                                                                                        |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Viewport priority**    | Viewport chunks at priority 0; 1-chunk buffer ring at priority 1                                                                                                                                                                                                                                                                                                              |
+| **Concurrency**          | Max 6 in-flight fetches                                                                                                                                                                                                                                                                                                                                                       |
+| **Zoom gate**            | Aborts all in-flight and no-ops if `zoom ≤ zoomThreshold`                                                                                                                                                                                                                                                                                                                     |
+| **Cancellation**         | Chunks scrolled outside the buffer zone are aborted via `AbortController`                                                                                                                                                                                                                                                                                                     |
+| **Retry**                | A transient (non-abort) fetch failure is re-fetched up to `MAX_RETRIES` (3) times with exponential backoff (500ms / 1s / 2s), so a 404/network blip self-heals instead of leaving that region at the coarser LOD. Aborts never retry; a chunk that scrolls out of scope, zooms below threshold, or is destroyed cancels its pending retry. Each fresh view resets the budget. |
+| **`allVisibleLoaded()`** | `true` once every visible chunk for this LOD is resident; vacuously `true` when `visibleIds` is empty (zoom below threshold, off-region, or post-`destroy`). Exposed for diagnostics — progressive rendering no longer gates on it.                                                                                                                                           |
+| **LRU refresh**          | `atlas.touch(id)` for every visible loaded chunk per `update()` call                                                                                                                                                                                                                                                                                                          |
 
 ---
 

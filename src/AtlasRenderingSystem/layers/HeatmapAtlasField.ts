@@ -172,6 +172,10 @@ export function createHeatmapAtlasField(
     // Ramp texture width / filter depend on numCategories (categorical vs
     // continuous), so always rebuild rather than overwriting via texSubImage2D.
     if (colorRampTexture) rebuildColorRampTexture();
+    // The heatmap has no continuous render loop, so a palette change on an
+    // otherwise-static map would not reach the screen until the next pan/zoom or
+    // tile load. Request a frame so the new colours/scale apply immediately.
+    map.triggerRepaint();
   }
 
   async function setSource(
@@ -233,6 +237,9 @@ export function createHeatmapAtlasField(
 
   function setVisible(isVisible: boolean) {
     visible = isVisible;
+    // Toggling visibility must take effect even on a static map (no continuous
+    // render loop): request a frame so the layer appears — or clears — at once.
+    map.triggerRepaint();
   }
 
   function draw() {

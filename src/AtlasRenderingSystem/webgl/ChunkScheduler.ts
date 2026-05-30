@@ -11,6 +11,9 @@
  *  - Skip scheduling if zoom is below this LOD's threshold
  *  - Abort in-flight requests for chunks that scrolled out of scope
  *  - Fetch + decode remaining chunks in priority order (viewport first)
+ *  - Retry transient fetch failures with exponential backoff (a 404/network
+ *    blip would otherwise leave that region stuck at the coarser LOD until the
+ *    next map move re-queued it)
  *  - Upload each decoded ImageBitmap to the AtlasManager
  *  - Fire onChunkLoaded so the field can repaint and reveal the new chunk
  *
@@ -22,6 +25,10 @@ import type { AtlasManagerAPI } from './AtlasManager';
 
 export const DEFAULT_ZOOM_THRESHOLD = 6;
 const CONCURRENCY = 6;
+/** Automatic re-fetch attempts after a transient (non-abort) failure, per view. */
+export const MAX_RETRIES = 3;
+/** Backoff before retry N is RETRY_BASE_MS × 2^(N-1): 500ms, 1s, 2s. */
+const RETRY_BASE_MS = 500;
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -115,6 +122,15 @@ export function createChunkScheduler(
   const loading = new Set<string>();
   const aborts = new Map<string, AbortController>();
   let visibleIds: string[] = [];
+  /** Chunks currently in scope (viewport + buffer ring). A pending retry only
+   *  re-fetches if its chunk is still here — so a tile that scrolled away (or a
+   *  LOD that zoomed out of range) is not resurrected by a stale backoff timer. */
+  let neededIds = new Set<string>();
+  /** chunkId → consecutive failed attempts in the current view. Reset on success,
+   *  on scroll-away, and on give-up — so a chunk gets a fresh budget each visit. */
+  const retries = new Map<string, number>();
+  /** chunkId → pending backoff timer, so it can be cancelled. */
+  const retryTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
   // chunkId format: "${lod}/${cx}/${cy}"
   function makeChunkId(cx: number, cy: number): string {
@@ -125,10 +141,43 @@ export function createChunkScheduler(
     return `${tileBaseUrl}/${id}.png`;
   }
 
+  function clearRetry(id: string) {
+    const timer = retryTimers.get(id);
+    if (timer !== undefined) {
+      clearTimeout(timer);
+      retryTimers.delete(id);
+    }
+    retries.delete(id);
+  }
+
+  function clearAllRetries() {
+    retryTimers.forEach(timer => clearTimeout(timer));
+    retryTimers.clear();
+    retries.clear();
+  }
+
+  /** Re-enqueue a failed chunk after a backoff, unless it has scrolled out of
+   *  scope or already loaded by the time the timer fires. */
+  function scheduleRetry(id: string, priority: number, attempt: number) {
+    const delay = RETRY_BASE_MS * 2 ** (attempt - 1);
+    const timer = setTimeout(() => {
+      retryTimers.delete(id);
+      if (atlas.has(id) || loading.has(id)) return;
+      if (!neededIds.has(id)) {
+        retries.delete(id); // scrolled away — forget the failure history
+        return;
+      }
+      queue.push({ chunkId: id, priority });
+      drain();
+    }, delay);
+    retryTimers.set(id, timer);
+  }
+
   function cancelChunk(id: string) {
     aborts.get(id)?.abort();
     aborts.delete(id);
     loading.delete(id);
+    clearRetry(id);
     // inflight is decremented by the fetch's .finally handler. Decrementing here
     // too would double-count (the aborted fetch still settles and runs .finally),
     // letting drain() start more than CONCURRENCY concurrent fetches.
@@ -140,7 +189,7 @@ export function createChunkScheduler(
     queue.sort((a, b) => a.priority - b.priority);
     while (inflight < CONCURRENCY && queue.length > 0) {
       const entry = queue.shift()!;
-      const { chunkId: id } = entry;
+      const { chunkId: id, priority } = entry;
 
       if (loading.has(id) || atlas.has(id)) continue;
 
@@ -152,11 +201,19 @@ export function createChunkScheduler(
       fetchChunk(chunkUrl(id), ctrl.signal)
         .then(img => {
           atlas.upload(id, img);
+          retries.delete(id); // loaded — clear any failure history
           onChunkLoaded(id);
         })
         .catch(err => {
-          if (err?.name !== 'AbortError') {
-            console.warn('[ChunkScheduler] fetch failed:', id, err);
+          // Aborts are intentional (scrolled out of scope) — never a failure.
+          if (err?.name === 'AbortError') return;
+          const attempt = (retries.get(id) ?? 0) + 1;
+          if (attempt <= MAX_RETRIES) {
+            retries.set(id, attempt);
+            scheduleRetry(id, priority, attempt);
+          } else {
+            retries.delete(id); // give up; a later update() re-queues afresh
+            console.warn(`[ChunkScheduler] giving up on ${id} after ${MAX_RETRIES} retries:`, err);
           }
         })
         .finally(() => {
@@ -177,10 +234,13 @@ export function createChunkScheduler(
 
   function update(bounds: MapBounds, zoom: number) {
     if (zoom <= zoomThreshold) {
-      // This LOD not active — abort everything and reset
+      // This LOD not active — abort everything and reset, including any pending
+      // retries (a backoff timer must not re-fetch into an inactive LOD).
       aborts.forEach((_, id) => cancelChunk(id));
+      clearAllRetries();
       queue = [];
       visibleIds = [];
+      neededIds = new Set();
       return;
     }
 
@@ -198,10 +258,14 @@ export function createChunkScheduler(
       id => !visibleIds.includes(id),
     );
 
-    // Cancel requests that are no longer in scope
-    const needed = new Set([...visibleIds, ...buffered]);
+    // Cancel requests that are no longer in scope (in-flight fetches and any
+    // pending retries). neededIds gates the retry timers' re-enqueue.
+    neededIds = new Set([...visibleIds, ...buffered]);
     aborts.forEach((_, id) => {
-      if (!needed.has(id)) cancelChunk(id);
+      if (!neededIds.has(id)) cancelChunk(id);
+    });
+    retryTimers.forEach((_, id) => {
+      if (!neededIds.has(id)) clearRetry(id);
     });
 
     // Build fresh priority queue (skip already-loaded and already-loading)
@@ -226,8 +290,10 @@ export function createChunkScheduler(
 
   function destroy() {
     aborts.forEach((_, id) => cancelChunk(id));
+    clearAllRetries();
     queue = [];
     visibleIds = [];
+    neededIds = new Set();
   }
 
   return { update, allVisibleLoaded, destroy };

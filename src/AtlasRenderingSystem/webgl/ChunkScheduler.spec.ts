@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { AtlasManagerAPI } from './AtlasManager';
-import { createChunkScheduler, type ChunkRegion } from './ChunkScheduler';
+import { MAX_RETRIES, createChunkScheduler, type ChunkRegion } from './ChunkScheduler';
 
 const REGION: ChunkRegion = {
   lonMin: 0,
@@ -275,5 +275,134 @@ describe('ChunkScheduler', () => {
     expect(pendingCount()).toBe(0);
     // After destroy, visibleIds is cleared → vacuously loaded (no work outstanding).
     expect(scheduler.allVisibleLoaded()).toBe(true);
+  });
+});
+
+// ── Retry on transient failure ──────────────────────────────────────────────
+// A fetch that fails (non-abort) a configurable number of times per URL before
+// succeeding — lets us drive the backoff retry path deterministically.
+function flakyFetch(failuresByUrl: Map<string, number>) {
+  const calls: string[] = [];
+  const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+    calls.push(url);
+    const signal = init?.signal as AbortSignal | undefined;
+    if (signal?.aborted) {
+      const err = new Error('Aborted');
+      err.name = 'AbortError';
+      throw err;
+    }
+    const remaining = failuresByUrl.get(url) ?? 0;
+    if (remaining > 0) {
+      failuresByUrl.set(url, remaining - 1);
+      throw new Error('network boom'); // transient, non-abort failure
+    }
+    return { ok: true, blob: async () => new Blob() } as Response;
+  });
+  return { fetchMock, countFor: (url: string) => calls.filter(u => u === url).length };
+}
+
+describe('ChunkScheduler — retry on transient failure', () => {
+  const TARGET = 'http://x/2/1/2.png'; // the centre viewport chunk (cx=1, cy=2)
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.stubGlobal(
+      'createImageBitmap',
+      vi.fn(async () => ({}) as ImageBitmap),
+    );
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it('retries after a backoff and loads the chunk on a later attempt', async () => {
+    const { fetchMock, countFor } = flakyFetch(new Map([[TARGET, 1]])); // fail once
+    vi.stubGlobal('fetch', fetchMock);
+    const atlas = makeAtlas();
+    const onChunk = vi.fn();
+    const scheduler = createChunkScheduler(atlas, 'http://x', onChunk, REGION, 2, 0);
+
+    scheduler.update({ west: 11, east: 19, south: 11, north: 19 }, 8);
+
+    // First attempt fails — chunk not yet resident, no retry has fired.
+    await vi.advanceTimersByTimeAsync(0);
+    expect(countFor(TARGET)).toBe(1);
+    expect(atlas.uploaded.has('2/1/2')).toBe(false);
+
+    // Past the 500ms backoff — the retry re-fetches and this time succeeds.
+    await vi.advanceTimersByTimeAsync(600);
+    expect(countFor(TARGET)).toBe(2);
+    expect(atlas.uploaded.has('2/1/2')).toBe(true);
+    expect(onChunk).toHaveBeenCalledWith('2/1/2');
+
+    scheduler.destroy();
+  });
+
+  it('gives up after MAX_RETRIES and stops re-fetching', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const { fetchMock, countFor } = flakyFetch(new Map([[TARGET, Infinity]])); // always fail
+    vi.stubGlobal('fetch', fetchMock);
+    const atlas = makeAtlas();
+    const scheduler = createChunkScheduler(atlas, 'http://x', vi.fn(), REGION, 2, 0);
+
+    scheduler.update({ west: 11, east: 19, south: 11, north: 19 }, 8);
+
+    // Backoffs are 500ms + 1s + 2s = 3.5s; 4s covers the initial attempt + all retries.
+    await vi.advanceTimersByTimeAsync(4000);
+    const attempts = countFor(TARGET);
+    expect(attempts).toBe(1 + MAX_RETRIES); // initial + MAX_RETRIES retries
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('giving up on 2/1/2'),
+      expect.anything(),
+    );
+
+    // Further time passes — it has given up, so no more fetches.
+    await vi.advanceTimersByTimeAsync(10_000);
+    expect(countFor(TARGET)).toBe(attempts);
+    expect(atlas.uploaded.has('2/1/2')).toBe(false);
+
+    scheduler.destroy();
+  });
+
+  it('does not retry a chunk that scrolled out of scope before the backoff fired', async () => {
+    const { fetchMock, countFor } = flakyFetch(new Map([[TARGET, Infinity]]));
+    vi.stubGlobal('fetch', fetchMock);
+    const atlas = makeAtlas();
+    const scheduler = createChunkScheduler(atlas, 'http://x', vi.fn(), REGION, 2, 0);
+
+    // Fail the centre chunk once, scheduling a backoff retry.
+    scheduler.update({ west: 11, east: 19, south: 11, north: 19 }, 8);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(countFor(TARGET)).toBe(1);
+
+    // Pan far away before the retry fires — (1,2) is no longer in scope.
+    scheduler.update({ west: 51, east: 59, south: 1, north: 9 }, 8);
+
+    // Let the backoff window elapse — the stale timer must not re-fetch (1,2).
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(countFor(TARGET)).toBe(1);
+
+    scheduler.destroy();
+  });
+
+  it('does not retry an aborted fetch (zoom drops below the threshold)', async () => {
+    const { fetchMock, countFor } = flakyFetch(new Map([[TARGET, Infinity]]));
+    vi.stubGlobal('fetch', fetchMock);
+    const atlas = makeAtlas();
+    const scheduler = createChunkScheduler(atlas, 'http://x', vi.fn(), REGION, 2, 6);
+
+    scheduler.update({ west: 11, east: 19, south: 11, north: 19 }, 8);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(countFor(TARGET)).toBe(1);
+
+    // Zoom below the LOD threshold — clears pending retries for the now-inactive LOD.
+    scheduler.update({ west: 11, east: 19, south: 11, north: 19 }, 5);
+
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(countFor(TARGET)).toBe(1);
+
+    scheduler.destroy();
   });
 });
