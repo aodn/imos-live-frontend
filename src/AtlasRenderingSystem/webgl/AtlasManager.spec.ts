@@ -320,6 +320,76 @@ describe('createAtlasManager — LOD2+ pool & LRU', () => {
     });
     expect(() => atlas.touch('2/0/0')).not.toThrow();
   });
+
+  it('re-uploading an evicted chunk makes it resident again in a pool slot', () => {
+    const m = makeGl({ maxTextureSize: 1024 });
+    const atlas = createAtlasManager(m.gl, {
+      slotPx: [242, 194],
+      lods: [{ grid: [3, 3] }, { grid: [12, 10] }],
+    });
+    const poolSize = atlas.getTotalSlots() - 9;
+
+    for (let i = 0; i < poolSize; i++) {
+      nowValue = 2000 + i;
+      atlas.upload(`2/${i}/0`, FAKE_IMG);
+    }
+    // Overflow by one — evicts the oldest (2/0/0).
+    nowValue = 9000;
+    atlas.upload(`2/${poolSize}/0`, FAKE_IMG);
+    expect(atlas.has('2/0/0')).toBe(false);
+
+    // The scheduler re-fetches an evicted chunk when it scrolls back into view;
+    // re-uploading must make it resident again (in some valid pool slot), writing
+    // its pixels to the GPU rather than silently no-op'ing.
+    const uploadsBefore = m.uploads.length;
+    nowValue = 9500;
+    atlas.upload('2/0/0', FAKE_IMG);
+
+    expect(atlas.has('2/0/0')).toBe(true);
+    expect(m.uploads.length).toBe(uploadsBefore + 1); // pixels actually re-written
+    const cs = atlas.getChunkSlots();
+    expect(cs[atlas.getLodOffsets()[1] + 0]).toBeGreaterThanOrEqual(9); // a pool slot
+  });
+
+  it('keeps chunk→slot a bijection under heavy eviction churn', () => {
+    // Pool far smaller than the LOD2 grid: 1024² atlas → 20 slots, 9 dedicated to
+    // LOD1, 11 in the pool, but LOD2 has 120 chunks. Uploading them all forces
+    // ~109 evictions — the kind of churn a tile-heavy product would hit if its
+    // finest LOD exceeded the pool. Rendering stays correct only if no two
+    // resident chunks ever share a physical slot.
+    const { gl } = makeGl({ maxTextureSize: 1024 });
+    const atlas = createAtlasManager(gl, {
+      slotPx: [242, 194],
+      lods: [{ grid: [3, 3] }, { grid: [12, 10] }],
+    });
+    const totalSlots = atlas.getTotalSlots();
+    const poolSize = totalSlots - 9;
+
+    for (let cy = 0; cy < 3; cy++)
+      for (let cx = 0; cx < 3; cx++) atlas.upload(`1/${cx}/${cy}`, FAKE_IMG);
+    let clock = 2000;
+    for (let cy = 0; cy < 10; cy++) {
+      for (let cx = 0; cx < 12; cx++) {
+        nowValue = clock++;
+        atlas.upload(`2/${cx}/${cy}`, FAKE_IMG);
+      }
+    }
+
+    const cs = atlas.getChunkSlots();
+    const slotOwner = new Map<number, number>(); // physicalSlot → virtualIndex
+    let residentPool = 0;
+    for (let v = 0; v < cs.length; v++) {
+      const slot = cs[v];
+      if (slot < 0) continue;
+      // No physical slot may back two resident virtual chunks.
+      expect(slotOwner.has(slot)).toBe(false);
+      slotOwner.set(slot, v);
+      if (slot >= 9) residentPool++;
+    }
+    // Pool is never over-subscribed, and LOD1's dedicated slots are untouched.
+    expect(residentPool).toBeLessThanOrEqual(poolSize);
+    for (let v = 0; v < 9; v++) expect(cs[v]).toBe(v);
+  });
 });
 
 describe('createAtlasManager — destroy', () => {
