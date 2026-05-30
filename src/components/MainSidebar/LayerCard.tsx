@@ -9,7 +9,7 @@ import {
 import { cn, toCompactDate, toISOFromCompact } from '@/utils';
 import type { ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getMetaDataManifest, getWaveBuoyLatestDate } from '@/api';
+import { getWaveBuoyLatestDate, metaDataManifestQueryOptions } from '@/api';
 import { setJumpToDate, setProductLegend, useMapUIStore } from '@/store';
 import { Button } from '../Button';
 import type { TriggerArgs } from '../Collapsible';
@@ -108,8 +108,7 @@ function useLatestDate(product: ProductType) {
   const isWaveBuoy = product === PRODUCT.WAVE_BUOYS;
 
   const { data: tilesDate, isLoading: isTilesLoading } = useQuery({
-    queryKey: ['tiles_product_latest_date'],
-    queryFn: getMetaDataManifest,
+    ...metaDataManifestQueryOptions(),
     select: ({ products }) => products[product as TilesProduct].full_date_range.end,
     enabled: !isWaveBuoy,
   });

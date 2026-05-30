@@ -32,6 +32,8 @@ const AUSTEMP_HEATWAVE_PORTAL_LINK =
   'https://catalogue-imos.aodn.org.au/geonetwork/srv/eng/catalog.search#/search?any=IMOS%20-%20AusTemp%20-%20Marine%20Heatwave';
 const GSLA_PORTAL_LINK =
   'https://portal-beta.aodn.org.au/details/0c9eb39c-9cbe-4c6a-8a10-5867087e703a';
+const WAVE_BUOYS_PORTAL_LINK =
+  'https://portal-beta.aodn.org.au/details/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc';
 
 export const PRODUCTS = {
   [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: {
@@ -65,7 +67,7 @@ export const PRODUCTS = {
     sourceId: 'wave-buoys-source',
     description:
       'Buoys provide integral wave parameters. Buoy data from the following organisations contribute to the National Wave Archive: Manly Hydraulics Laboratory, Bureau of Meteorology, DOT, DES, IMOS, Gippsland Ports, DPE, UWA, Deakin University, Pilbara Ports Authority and Flinders University and SARDI.',
-    portalLink: 'https://portal-beta.aodn.org.au/details/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc',
+    portalLink: WAVE_BUOYS_PORTAL_LINK,
   },
   [PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC]: {
     name: 'Austemp heatwave SST Mosaic',

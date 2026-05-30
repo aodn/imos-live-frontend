@@ -28,6 +28,15 @@ export const getMetaDataManifest = async (): Promise<MetaDataManifest> => {
   return response.data;
 };
 
+// Shared key/fn for the top-level manifest so every consumer hits one cache
+// entry (and one network request). Per-observer `select`/`enabled` are layered
+// on at the call site.
+export const metaDataManifestQueryOptions = () =>
+  queryOptions({
+    queryKey: ['tiles_product_latest_date'] as const,
+    queryFn: getMetaDataManifest,
+  });
+
 export const getProductManifest = async (args: {
   product: TilesProduct;
   date: string;

@@ -12,7 +12,7 @@ import {
 } from '../DateSlider';
 import { cn, toISODateString } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
-import { getMetaDataManifest } from '@/api';
+import { metaDataManifestQueryOptions } from '@/api';
 import { PRODUCT } from '@/constants';
 import { useShallow } from 'zustand/shallow';
 
@@ -32,12 +32,8 @@ export const DateSelectionBar = memo(function DateSelectionBar({
   const imperativeHandlerRef = useRef<SliderExposedMethod>(null);
 
   const { data: latestDate } = useQuery({
-    queryKey: ['DateSelectionBar-getMetaDataManifest'],
-    queryFn: getMetaDataManifest,
-    select: data => {
-      const dates = data.products[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT].available_dates;
-      return dates[dates.length - 1];
-    },
+    ...metaDataManifestQueryOptions(),
+    select: data => data.products[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]?.available_dates.at(-1),
     enabled: !isDateInQueryParams, //if date already selected, stop.
     retry: false,
   });
@@ -55,7 +51,7 @@ export const DateSelectionBar = memo(function DateSelectionBar({
     clearJumpToDate();
   }, [jumpTrigger, jumpDate]);
 
-  const handleSelect = useCallback(async (v: SelectionResult) => {
+  const handleSelect = useCallback((v: SelectionResult) => {
     setDate(toISODateString((v as PointValue).point));
   }, []);
 
@@ -79,7 +75,7 @@ export const DateSelectionBar = memo(function DateSelectionBar({
           track: 'bg-white/10',
           scaleMark: 'bg-imos-grey',
         }}
-        onChange={handleSelect as (v: SelectionResult) => void}
+        onChange={handleSelect}
         layout={{
           width: 'fill',
           height: 64,
@@ -102,5 +98,3 @@ export const DateSelectionBar = memo(function DateSelectionBar({
     </div>
   );
 });
-
-DateSelectionBar.displayName = 'DateSelectionBar';
