@@ -19,7 +19,7 @@ import {
 } from '@/components';
 import { PRODUCT } from '@/constants';
 import { useViewportSize } from '@/hooks';
-import { useDrawerStore, refreshDates, closeLeftDrawer } from '@/store';
+import { useDrawerStore, refreshDates, closeLeftDrawer, openLeftDrawer } from '@/store';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useEffect, useMemo } from 'react';
 
@@ -41,6 +41,7 @@ export function Map() {
       <div className="h-full w-full flex flex-col">
         <MapHeader
           className="md:hidden"
+          onMenuClick={() => openLeftDrawer(<MainSidebarContent />)}
           image={{
             src: logImage,
             alt: 'IMOS Logo',

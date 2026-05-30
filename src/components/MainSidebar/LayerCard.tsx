@@ -219,7 +219,7 @@ function CardTrigger({
     <div className="flex items-center justify-between">
       <div className="flex  gap-x-4">
         {icon}
-        <h3 className={`text-title-sm mb-2`}>{title}</h3>
+        <h3 className="text-title-sm mb-2">{title}</h3>
       </div>
       {!toggleIconHidden && (
         <Button

@@ -56,7 +56,7 @@ Products are defined across three sibling files in `src/constants/` — never ha
 
 | File          | What it owns                                                                                                                                                           |
 | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `products.ts` | `PRODUCT` slugs and `PRODUCTS[slug] = { name, layerId, sourceId, variables? }`; also `TILES_GROUP` and `MAX_VECTOR_SPEED`                                              |
+| `products.ts` | `PRODUCT` slugs and `PRODUCTS[slug] = { name, layerId, sourceId, variables?, description, portalLink }`; also `TILES_GROUP` and `MAX_VECTOR_SPEED`                     |
 | `legends.ts`  | `PRODUCTLEGENDS[slug]` — legend config (label, scale type, min/max range, optional scale tick values, and a `colorKey`) consumed by the sidebar UI and the layer hooks |
 | `colors.ts`   | `COLOR_OPTIONS` — the named palettes a legend's `colorKey` indexes into                                                                                                |
 
@@ -70,14 +70,14 @@ Each product is visualized via its own dedicated hook in `src/hooks/layers/`:
 
 When adding a new product, touch these files in order:
 
-1. **`src/constants/products.ts`** — add an entry to `PRODUCT` and `PRODUCTS` (with `layerId`/`sourceId`); if it's a scalar/particle tiles product, also add the slug to `TILES_GROUP`
+1. **`src/constants/products.ts`** — add an entry to `PRODUCT` and `PRODUCTS` (with `layerId`/`sourceId` plus the user-facing `description` and `portalLink` — this is the single source of truth for product copy); if it's a scalar/particle tiles product, also add the slug to `TILES_GROUP`
 2. **`src/constants/legends.ts`** — add a `PRODUCTLEGENDS` entry whose `colorKey` selects a palette from `COLOR_OPTIONS` in `src/constants/colors.ts`
 3. **`src/hooks/layers/use<ProductName>Layer.ts`** — create a dedicated layer hook; reuse the shared layer hooks already used across existing products:
    - `useMapboxLayerSetup` — handles layer initialisation lifecycle
    - `useDidMountEffect` — re-fetches data when date changes
    - `useMapboxLayerVisibility` — handles show/hide based on enabled/error state (used by non-WebGL layers only, e.g. wave buoys)
 4. **`src/components/MapComponent/MapComponent.tsx`** — register the new hook
-5. **`src/components/MainSidebar/products.tsx`** — add an entry to `featuredDataset` (`image`, `title`, `description`, `icon`, `product`, `layerId`, `addToMap`, `portalLink`)
+5. **`src/components/MainSidebar/products.tsx`** — add an entry to `featuredPresentation` with the sidebar-only presentation (`product`, display `title`, `image`, `icon`); `featuredDataset` is derived from it, pulling `description`/`portalLink`/`layerId` from `PRODUCTS` — don't restate those here
 6. **`src/pages/Map.tsx`** — add the product icon entry to the `LayersIndicator`
 
 Layer paint/layout config belongs in `src/constants/layerSpecs.ts`. Always add layers to the map via `addLayerInOrder` (not Mapbox's `addLayer` directly) — and register the new layer's ID in `LAYERS_ORDER` in `src/constants/layerOrder.ts`, where the last entry is the top-most layer.
