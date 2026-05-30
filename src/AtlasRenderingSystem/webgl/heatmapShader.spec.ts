@@ -21,7 +21,6 @@ describe('makeScalarAtlasFs', () => {
     for (const uniform of [
       'u_atlas',
       'u_lod_count',
-      'u_lod_blend',
       'u_value_range',
       'u_legend_range',
       'u_color_ramp',
@@ -29,6 +28,10 @@ describe('makeScalarAtlasFs', () => {
     ]) {
       expect(src).toContain(uniform);
     }
+  });
+
+  it('renders progressively — no u_lod_blend crossfade uniform', () => {
+    expect(makeScalarAtlasFs(160, 159)).not.toContain('u_lod_blend');
   });
 
   it('embeds the shared atlasGlsl helpers (returnLonLat / worldToAtlasUV / physicalSlot)', () => {
@@ -46,5 +49,11 @@ describe('makeScalarAtlasFs', () => {
     expect(src).toContain('rawToRampCoord');
     expect(src).toContain('65536.0');
     expect(src).toContain('16777215.0');
+  });
+
+  it('guards the base LOD1 sample so a missing tile never indexes u_slots[-1]', () => {
+    const src = makeScalarAtlasFs(160, 159);
+    // physicalSlot(lonlat, 0) < 0 → discard, before worldToAtlasUV(lonlat, 0).
+    expect(src).toContain('physicalSlot(lonlat, 0) < 0');
   });
 });

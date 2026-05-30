@@ -5,7 +5,7 @@ The Atlas Rendering System is the shared GPU infrastructure that backs all chunk
 - **Scalar overlays** — full-viewport quad coloured by a decoded 24-bit scalar value (sea level anomaly, SST anomaly)
 - **Particle animations** — GPU ping-pong particles that sample velocity from the atlas (ocean current)
 
-Both share the same `AtlasManager`, `ChunkScheduler`, and `LODController` primitives.
+Both share the same `AtlasManager` and `ChunkScheduler` primitives.
 
 The package under `src/AtlasRenderingSystem/` is **self-contained and framework-agnostic** — it imports nothing from the host app (no `@/` paths) and depends only on `mapbox-gl` and `twgl.js`. Its public entry point is `index.ts` (`createScalarAtlasLayer` / `createParticleAtlasLayer` + types). The React/Zustand/React-Query glue listed below lives in the host app (`src/hooks/layers/*`, `src/api/*`), not in the package.
 
@@ -105,7 +105,7 @@ When `flagValues` is present, `HeatmapAtlasField` switches into categorical mode
 - The atlas is created with NEAREST filtering so neighbouring pixels with different flag values are not blended.
 - The colour ramp becomes an N-pixel × 1 texture (one texel per `flagValues` entry, same order as the palette's `rawColors`), also sampled with NEAREST.
 - The shader decodes the raw value, rounds it to its index in `flagValues` (assumed sequential integers spanning `valueRange[0]..valueRange[1]`), and samples the ramp at the centre of that texel.
-- LOD blending: the finer LOD pops in fully on residency instead of crossfading — interpolating RGB-encoded categorical scalars would otherwise invent intermediate categories that aren't in the data.
+- LOD blending: like every product, the finer LOD pops in fully on residency (progressive, no crossfade). For categorical data a hard replace is doubly required — interpolating RGB-encoded categorical scalars would invent intermediate categories that aren't in the data.
 
 In the host app, the matching `PRODUCTLEGENDS` entry should set `scale: 'category'` and supply N colours under its `colorKey`. `buildProductPalette` then produces a `ColorPalette` with `scale: 'category'` and rawColors aligned 1:1 with `flagValues` from the manifest. See `AUSTEMP_HEATWAVE_MCS_CATEGORY` in `src/constants/products.ts` for a worked example.
 
@@ -166,7 +166,6 @@ These are code constants. Change them only if your product genuinely exceeds the
 | ---------------------- | ----- | ------------------------- | -------------------------------------------------------------- |
 | `MAX_ATLAS_SIZE`       | 4096  | `webgl/AtlasManager.ts`   | Product needs more slots than 4096² can provide                |
 | `MAX_LODS`             | 4     | `webgl/AtlasManager.ts`   | Product has more than 4 LOD levels                             |
-| LOD blend duration     | 300ms | `webgl/LODController.ts`  | Crossfade feels too fast or too slow                           |
 | Fetch concurrency      | 6     | `webgl/ChunkScheduler.ts` | Too many/few parallel tile requests                            |
 | Default zoom threshold | 6     | `webgl/ChunkScheduler.ts` | LOD2 should activate earlier or later when not set in manifest |
 
@@ -372,33 +371,33 @@ vec2 atlasUV = slot.xy + vec2(localU, localV) * slot.zw;
 vec4 sample  = texture(u_atlas, atlasUV);
 ```
 
-**LOD blending**
+**LOD blending — progressive, no crossfade**
 
-`u_lod_blend` crossfades the finest active LOD from 0 → 1 over 300 ms (ease-out, driven by `LODController`). The blend does not start until every visible chunk for the finest LOD is resident, preventing a patchwork where some regions are crisp while adjacent ones are still coarse.
+Rendering is **progressive**: every resident chunk is sampled the moment it lands, and each finer chunk fully replaces the coarser sample under it at full opacity. Finer detail pops in tile-by-tile as the `ChunkScheduler` fills the viewport — there is no animated crossfade and no "wait for the whole LOD to finish loading" gate. A region whose finer tile hasn't arrived simply shows the coarser LOD beneath it until it does.
 
 `u_lod_count` is **zoom-gated**, not static. Each Field's `draw()` computes the active LOD count from the current map zoom and the per-LOD `zoomThreshold`s via `computeActiveLodCount`: LOD1 is always active; LOD2+ counts only while `zoom > threshold`. Two consequences worth knowing:
 
-- The shader's loop and "finest active LOD" pivot (`u_lod_count - 1`) both shrink as the user zooms out. A LOD2+ chunk loaded at a deeper zoom and still resident in the atlas after zoom-out is **not sampled** until the user zooms back past its threshold — preventing the square-patchwork artefact that would otherwise appear at low zoom (intermediate-LOD chunks override LOD1 at `t = 1.0`).
+- The shader's loop shrinks as the user zooms out. A LOD2+ chunk loaded at a deeper zoom and still resident in the atlas after zoom-out is **not sampled** until the user zooms back past its threshold — preventing the square-patchwork artefact that would otherwise appear at low zoom (a stale intermediate-LOD chunk overriding LOD1).
 - The chunks are **not evicted** by the zoom change. The atlas keeps them so zooming back in is instant; eviction remains purely LRU-driven by upload pressure (see [AtlasManager](#atlasmanager)).
 
 Pan/zoom cycle:
 
-1. User pans or zooms → `LODController.reset()` snaps `u_lod_blend` to 0 (LOD1 remains visible).
-2. `ChunkScheduler` fetches required LOD2+ tiles for the new viewport.
-3. Once every visible chunk is loaded → `LODController.startBlendIn()` begins the 300 ms fade.
-4. `u_lod_blend` reaches 1.0 → full LOD2+ resolution locked in.
+1. User pans or zooms → `syncSchedulersOnMove` updates every scheduler with the new viewport.
+2. `ChunkScheduler` fetches the LOD2+ tiles now in view.
+3. Each tile, on upload, fires `onChunkLoaded` → `map.triggerRepaint()`, so it appears as soon as it's decoded.
 
-Intermediate LODs (loaded but not the finest _active_) always show at full opacity. The fragment shader:
+The fragment shader:
 
 ```glsl
+if (physicalSlot(lonlat, 0) < 0) discard;   // LOD1 tile not resident — skip (no u_slots[-1])
 vec4 result = texture(u_atlas, worldToAtlasUV(lonlat, 0));
 if (result.a < 0.01) discard;
 
+// Each resident finer chunk replaces the coarser sample at full opacity.
 for (int i = 1; i < u_lod_count; i++) {
     if (physicalSlot(lonlat, i) >= 0) {
         vec4 finer = texture(u_atlas, worldToAtlasUV(lonlat, i));
-        float t = (i == u_lod_count - 1) ? u_lod_blend : 1.0;
-        result  = mix(result, finer, t);
+        if (finer.a >= 0.01) result = finer;
     }
 }
 ```
@@ -467,16 +466,14 @@ Map interactions (pan / zoom)  →  onMapMove(bounds, zoom)
     │      - uploads each decoded ImageBitmap → atlas.upload()
     │      - fires onChunkLoaded callback
     ▼
-onChunkLoaded  →  if all schedulers' visible chunks are loaded
-    │                  LODController.startBlendIn()
-    │                  map.triggerRepaint()          ← heatmap only; starts blend animation
-    │                  (particles: rAF loop in tick() drives repaints continuously)
+onChunkLoaded  →  map.triggerRepaint()           ← reveal the new chunk progressively
+    │                  (heatmap has no rAF loop, so this is what shows each tile;
+    │                   particles also repaint continuously via tick())
     ▼
 draw()  — called every frame by Mapbox render()
     │  uploads uniforms: u_atlas, u_slots, u_chunk_slots,
     │                    u_lod_grids, u_lod_offsets, u_lod_count,
-    │                    u_lod_blend, u_uv_scale, u_uv_offset, …
-    │  if lodController.isAnimating() → map.triggerRepaint()  ← sustains blend loop
+    │                    u_uv_scale, u_uv_offset, …
     ▼
 GPU fragment shader  (see Shader Coordinate Lookup)
     ▼
@@ -548,7 +545,7 @@ destroy(): void                            // free GPU resources; call from the 
 
 **Progressive LOD1 preload** — `setSource` resolves as soon as the first LOD1 tile is uploaded so the layer becomes visible immediately. Remaining tiles continue in the background; each upload triggers `map.triggerRepaint()` so coverage fills in progressively. Rejects only if every tile fails.
 
-A `fetchGeneration` counter discards stale upload callbacks if `setSource` is called again (e.g. date change) before the previous fetch completes. Unloaded LOD1 tile regions discard in the fragment shader via the alpha mask (`a < 0.01`).
+A `fetchGeneration` counter discards stale upload callbacks if `setSource` is called again (e.g. date change) before the previous fetch completes. Unloaded LOD1 tile regions discard in the fragment shader via an explicit slot guard (`physicalSlot(lonlat, 0) < 0`) before the base sample — a tile that never loads (a failed fetch, which has no scheduler to retry it) would otherwise index `u_slots[-1]` and smear another tile's data into that region instead of discarding.
 
 ---
 
@@ -591,34 +588,20 @@ createChunkScheduler(
 
 `zoomThreshold` defaults to `DEFAULT_ZOOM_THRESHOLD = 6`. Pass `lodEntry.zoomThreshold` from the manifest to make it per-LOD.
 
-| Behaviour                | Detail                                                                                                                                                      |
-| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Viewport priority**    | Viewport chunks at priority 0; 1-chunk buffer ring at priority 1                                                                                            |
-| **Concurrency**          | Max 6 in-flight fetches                                                                                                                                     |
-| **Zoom gate**            | Aborts all in-flight and no-ops if `zoom ≤ zoomThreshold`                                                                                                   |
-| **Cancellation**         | Chunks scrolled outside the buffer zone are aborted via `AbortController`                                                                                   |
-| **`allVisibleLoaded()`** | Vacuously `true` when `visibleIds` is empty (zoom below threshold, off-region, or post-`destroy`). Lets one inactive sibling scheduler not stall the blend. |
-| **LRU refresh**          | `atlas.touch(id)` for every visible loaded chunk per `update()` call                                                                                        |
+| Behaviour                | Detail                                                                                                                                                                                                                              |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Viewport priority**    | Viewport chunks at priority 0; 1-chunk buffer ring at priority 1                                                                                                                                                                    |
+| **Concurrency**          | Max 6 in-flight fetches                                                                                                                                                                                                             |
+| **Zoom gate**            | Aborts all in-flight and no-ops if `zoom ≤ zoomThreshold`                                                                                                                                                                           |
+| **Cancellation**         | Chunks scrolled outside the buffer zone are aborted via `AbortController`                                                                                                                                                           |
+| **`allVisibleLoaded()`** | `true` once every visible chunk for this LOD is resident; vacuously `true` when `visibleIds` is empty (zoom below threshold, off-region, or post-`destroy`). Exposed for diagnostics — progressive rendering no longer gates on it. |
+| **LRU refresh**          | `atlas.touch(id)` for every visible loaded chunk per `update()` call                                                                                                                                                                |
 
 ---
 
-### LODController
+### Progressive rendering
 
-**File:** `src/AtlasRenderingSystem/webgl/LODController.ts`
-
-Animates `u_lod_blend` (0 → 1) over 300 ms with an ease-out quadratic curve. Driven by the draw loop — no separate `requestAnimationFrame`.
-
-| Method           | Effect                                              |
-| ---------------- | --------------------------------------------------- |
-| `startBlendIn()` | Begin animating toward 1.0                          |
-| `reset()`        | Snap to 0 and cancel animation                      |
-| `getValue()`     | Read current value and advance animation if running |
-| `isAnimating()`  | True while animation is in progress                 |
-| `destroy()`      | Snap to 0 and release resources                     |
-
-When the user pans into a new area, `reset()` snaps `u_lod_blend` back to 0 so LOD1 shows through again, then `startBlendIn()` is called once all visible LOD2+ chunks have loaded, fading them in over 300 ms.
-
-**Animation loop (heatmap):** `onChunkLoaded` calls `map.triggerRepaint()` to start the first blend frame. Each `draw()` sustains the loop with another `triggerRepaint()` while `isAnimating()` is true. Particles drive repaints via their own rAF loop instead.
+There is no crossfade controller. Each chunk is sampled the moment it is resident and finer chunks hard-replace coarser ones at full opacity (see [LOD blending](#lod-blending)). The heatmap has no continuous render loop, so `onChunkLoaded` calls `map.triggerRepaint()` to reveal each tile as it arrives; the particle layer repaints every frame via its own rAF `tick()` loop and picks up new tiles automatically.
 
 ---
 
@@ -638,7 +621,6 @@ Shader source is generated by factory functions (`makeScalarAtlasFs(totalSlots, 
 | `u_lod_grids`   | `vec2[4]`   | `[cols, rows]` per LOD, coarse→fine                                                    |
 | `u_lod_offsets` | `int[4]`    | Cumulative virtual chunk offset per LOD                                                |
 | `u_lod_count`   | `int`       | Zoom-gated active LOD count (≤ manifest LOD count). See [LOD blending](#lod-blending). |
-| `u_lod_blend`   | `float`     | 0→1 crossfade for the finest active LOD                                                |
 | `u_uv_scale`    | `vec2`      | `chunkPx / storedPx` — crops local [0,1] UV to the inner data region                   |
 | `u_uv_offset`   | `vec2`      | `padding / storedPx` — shifts past the padding border                                  |
 
@@ -667,7 +649,6 @@ src/
     webgl/
       AtlasManager.ts       — GPU texture + slot pool + LRU eviction
       ChunkScheduler.ts     — on-demand fetch queue per LOD
-      LODController.ts      — crossfade blend animation
       atlasGlsl.ts          — shared GLSL (uniforms + Mercator/atlas lookup + bilinear sampler)
       heatmapShader.ts      — scalarAtlasVs + makeScalarAtlasFs() factory
       particlesShader.ts    — makeOceanCurrentAtlasFsParticle/Update() factories

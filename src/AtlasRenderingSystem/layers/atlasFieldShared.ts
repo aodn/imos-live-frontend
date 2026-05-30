@@ -8,7 +8,7 @@
 import mapboxgl from 'mapbox-gl';
 import type { ProductManifest, LodEntry, ColorPalette } from '../types';
 import { convertLogColorScaleToRamp, convertLinearColorScaleToRamp } from '../utils';
-import type { AtlasManagerAPI, ChunkSchedulerAPI, LODControllerAPI } from '../webgl';
+import type { AtlasManagerAPI, ChunkSchedulerAPI } from '../webgl';
 import { createChunkScheduler, DEFAULT_ZOOM_THRESHOLD, MAX_LODS } from '../webgl';
 
 /** Palette → 256-stop color-ramp stop map (log or linear scale). */
@@ -231,19 +231,17 @@ export async function preloadAllLod1(params: {
 }
 
 /**
- * Shared onMapMove scheduler logic: reset the crossfade when a freshly entered
- * area still has unloaded chunks, then update every scheduler with the new viewport.
+ * Shared onMapMove scheduler logic: update every scheduler with the new
+ * viewport so it fetches the chunks now in view. Rendering is progressive —
+ * each chunk pops in via its own load callback as it arrives — so there is no
+ * crossfade state to reset here.
  */
 export function syncSchedulersOnMove(params: {
   bounds: mapboxgl.LngLatBounds;
   zoom: number;
   schedulers: ChunkSchedulerAPI[];
-  lodController: LODControllerAPI;
 }): void {
-  const { bounds, zoom, schedulers, lodController } = params;
-  if (schedulers.some(s => !s.allVisibleLoaded())) {
-    lodController.reset();
-  }
+  const { bounds, zoom, schedulers } = params;
   const mapBoundsObj = {
     west: bounds.getWest(),
     east: bounds.getEast(),

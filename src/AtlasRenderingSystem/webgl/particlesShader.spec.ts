@@ -40,10 +40,13 @@ describe('makeOceanCurrentAtlasFsParticle', () => {
       'u_color_ramp',
       'u_max_speed',
       'u_lod_count',
-      'u_lod_blend',
     ]) {
       expect(src).toContain(uniform);
     }
+  });
+
+  it('renders progressively — no u_lod_blend crossfade uniform', () => {
+    expect(makeOceanCurrentAtlasFsParticle(40, 39, 2048, 1024)).not.toContain('u_lod_blend');
   });
 
   it('embeds atlas + bilinear-sampler helpers', () => {

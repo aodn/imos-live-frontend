@@ -12,7 +12,7 @@
  *  - Abort in-flight requests for chunks that scrolled out of scope
  *  - Fetch + decode remaining chunks in priority order (viewport first)
  *  - Upload each decoded ImageBitmap to the AtlasManager
- *  - Fire onChunkLoaded so the LODController can trigger crossfade
+ *  - Fire onChunkLoaded so the field can repaint and reveal the new chunk
  *
  * ChunkId convention: "{lod}/{cx}/{cy}"  e.g. "2/3/2", "3/5/4"
  * File URL:           "{tileBaseUrl}/{lod}/{cx}/{cy}.png"

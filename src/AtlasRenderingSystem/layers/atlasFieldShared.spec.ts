@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import mapboxgl from 'mapbox-gl';
 import type { ColorPalette, LodEntry, ProductManifest } from '../types';
-import type { AtlasManagerAPI, ChunkSchedulerAPI, LODControllerAPI } from '../webgl';
+import type { AtlasManagerAPI, ChunkSchedulerAPI } from '../webgl';
 import {
   buildDiscreteRampPixels,
   buildLodGridsFlat,
@@ -178,6 +178,14 @@ describe('computeActiveLodCount', () => {
     // LOD2 inactive (zoom ≤ 5) but LOD3's threshold is technically exceeded —
     // we still clamp to 1 so a leftover LOD2 chunk can't show as intermediate.
     expect(computeActiveLodCount(5, [-Infinity, 5, 4])).toBe(1);
+  });
+
+  it('walks all four LODs of AUSTEMP_HEATWAVE_SST_MOSAIC (thresholds 4/5/6)', () => {
+    const t = [-Infinity, 4, 5, 6]; // LOD1 always; LOD2>4, LOD3>5, LOD4>6
+    expect(computeActiveLodCount(3, t)).toBe(1);
+    expect(computeActiveLodCount(4.5, t)).toBe(2);
+    expect(computeActiveLodCount(5.5, t)).toBe(3);
+    expect(computeActiveLodCount(7, t)).toBe(4);
   });
 });
 
@@ -379,35 +387,14 @@ describe('syncSchedulersOnMove', () => {
     } as ChunkSchedulerAPI & { update: ReturnType<typeof vi.fn> };
   }
 
-  function makeLodController(): LODControllerAPI & { reset: ReturnType<typeof vi.fn> } {
-    return {
-      startBlendIn: vi.fn(),
-      reset: vi.fn(),
-      getValue: vi.fn(() => 0),
-      isAnimating: vi.fn(() => false),
-      destroy: vi.fn(),
-    };
-  }
-
-  it('resets the LOD controller if any scheduler has unloaded visible chunks', () => {
+  it('updates every scheduler with the new viewport bounds and zoom', () => {
     const bounds = new mapboxgl.LngLatBounds([110, -45], [160, -10]);
     const schedulers = [makeScheduler(true), makeScheduler(false)];
-    const lodController = makeLodController();
 
-    syncSchedulersOnMove({ bounds, zoom: 8, schedulers, lodController });
+    syncSchedulersOnMove({ bounds, zoom: 8, schedulers });
 
-    expect(lodController.reset).toHaveBeenCalledTimes(1);
     for (const s of schedulers) {
       expect(s.update).toHaveBeenCalledWith({ west: 110, east: 160, south: -45, north: -10 }, 8);
     }
-  });
-
-  it('does not reset when every scheduler reports allVisibleLoaded', () => {
-    const bounds = new mapboxgl.LngLatBounds([110, -45], [160, -10]);
-    const schedulers = [makeScheduler(true), makeScheduler(true)];
-    const lodController = makeLodController();
-
-    syncSchedulersOnMove({ bounds, zoom: 8, schedulers, lodController });
-    expect(lodController.reset).not.toHaveBeenCalled();
   });
 });

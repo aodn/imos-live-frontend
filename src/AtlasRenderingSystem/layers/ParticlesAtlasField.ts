@@ -24,9 +24,8 @@ import type {
 } from '../types';
 import { INITIAL_PARTICLE_CONFIG } from '../types';
 import { getColorRamp } from '../utils';
-import type { AtlasManagerAPI, ChunkSchedulerAPI, LODControllerAPI } from '../webgl';
+import type { AtlasManagerAPI, ChunkSchedulerAPI } from '../webgl';
 import {
-  createLODController,
   oceanCurrentAtlasVs,
   makeOceanCurrentAtlasFsParticle,
   oceanCurrentAtlasVsQuad,
@@ -132,9 +131,6 @@ export function createParticlesAtlasField(
   let uvScale: [number, number] | null = null;
   /** padding / storedPx — shifts UV past the padding border. */
   let uvOffset: [number, number] | null = null;
-
-  // ── LOD blend ────────────────────────────────────────────────────────────
-  let lodController: LODControllerAPI = createLODController();
 
   // ── Animation ────────────────────────────────────────────────────────────
   let animState: 'ANIMATING' | 'PAUSED' = 'PAUSED';
@@ -304,7 +300,6 @@ export function createParticlesAtlasField(
       // stale LOD2+ chunks resident from a deeper-zoom session can't show as
       // intermediate-LOD velocity overrides once the user has zoomed back out.
       u_lod_count: computeActiveLodCount(map.getZoom(), lodZoomThresholds),
-      u_lod_blend: lodController.getValue(),
       u_uv_scale: uvScale,
       u_uv_offset: uvOffset,
       u_particles: particleTextures.particleTexture0,
@@ -417,9 +412,11 @@ export function createParticlesAtlasField(
   // ── ChunkScheduler callback ───────────────────────────────────────────────
 
   function onChunkLoaded(_id: string) {
-    if (schedulers.every(s => s.allVisibleLoaded())) {
-      lodController.startBlendIn();
-    }
+    // Progressive rendering: each chunk is sampled the moment it's resident.
+    // The animation's rAF tick loop already repaints every frame, so newly
+    // loaded chunks appear on their own — a repaint here covers the case where
+    // chunks finish loading while the animation is momentarily paused.
+    map.triggerRepaint();
   }
 
   // ── Animation loop ────────────────────────────────────────────────────────
@@ -481,8 +478,6 @@ export function createParticlesAtlasField(
     // Reset atlas and LOD state for new date
     atlas?.destroy();
     schedulers.forEach(s => s.destroy());
-    lodController.destroy();
-    lodController = createLODController();
 
     atlas = createAtlasManager(gl, {
       slotPx: lod1.storedPx,
@@ -559,7 +554,7 @@ export function createParticlesAtlasField(
 
   function onMapMove(bounds: mapboxgl.LngLatBounds, zoom: number) {
     updateMapBounds(bounds);
-    syncSchedulersOnMove({ bounds, zoom, schedulers, lodController });
+    syncSchedulersOnMove({ bounds, zoom, schedulers });
   }
 
   function updatePalette(patch: PalettePatch) {
@@ -580,7 +575,6 @@ export function createParticlesAtlasField(
 
     schedulers.forEach(s => s.destroy());
     schedulers = [];
-    lodController.destroy();
     atlas?.destroy();
     atlas = null;
 

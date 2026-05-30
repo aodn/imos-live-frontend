@@ -8,7 +8,8 @@
  * Supports 1, 2, or 3 LODs — determined by the manifest at runtime.
  *   - LOD1 is always preloaded eagerly.
  *   - LOD2..N are loaded on demand, one ChunkScheduler per LOD.
- *   - The LODController animates the crossfade for the finest active LOD.
+ *   - Each chunk is sampled the moment it's resident — finer detail pops in
+ *     per-chunk as tiles arrive (progressive rendering, no animated crossfade).
  *
  * Caller contract:
  *   1. Call setSource(manifest, tileBaseUrl, legendRange) when date changes — resolves after the
@@ -19,13 +20,8 @@
  */
 
 import * as twgl from 'twgl.js';
-import type { AtlasManagerAPI, ChunkSchedulerAPI, LODControllerAPI } from '../webgl';
-import {
-  createAtlasManager,
-  createLODController,
-  makeScalarAtlasFs,
-  scalarAtlasVs,
-} from '../webgl';
+import type { AtlasManagerAPI, ChunkSchedulerAPI } from '../webgl';
+import { createAtlasManager, makeScalarAtlasFs, scalarAtlasVs } from '../webgl';
 
 import { getColorRamp } from '../utils';
 import type { ProductManifest, ColorPalette, PalettePatch } from '../types';
@@ -86,7 +82,6 @@ export function createHeatmapAtlasField(
   let atlas: AtlasManagerAPI | null = null;
   /** One scheduler per on-demand LOD (LODs 2..N). Index 0 = LOD2, index 1 = LOD3, etc. */
   let schedulers: ChunkSchedulerAPI[] = [];
-  let lodController: LODControllerAPI = createLODController();
 
   // ── Data state ───────────────────────────────────────────────────────────
   // u_data_bounds: [lonMin, latMax, lonMax, latMin]
@@ -164,11 +159,10 @@ export function createHeatmapAtlasField(
   }
 
   function onChunkLoaded(_id: string) {
-    // Start blending in when all on-demand schedulers have their visible chunks loaded
-    if (schedulers.every(s => s.allVisibleLoaded())) {
-      lodController.startBlendIn();
-      map.triggerRepaint();
-    }
+    // Progressive rendering: repaint as each chunk lands so it pops in
+    // immediately, instead of waiting for the whole LOD to finish loading.
+    // The heatmap has no continuous rAF loop, so this is what reveals new tiles.
+    map.triggerRepaint();
   }
 
   // ── Public API ────────────────────────────────────────────────────────────
@@ -206,8 +200,6 @@ export function createHeatmapAtlasField(
     // Teardown previous state
     atlas?.destroy();
     schedulers.forEach(s => s.destroy());
-    lodController.destroy();
-    lodController = createLODController();
 
     atlas = createAtlasManager(gl, {
       slotPx: lod1.storedPx,
@@ -273,9 +265,6 @@ export function createHeatmapAtlasField(
 
     gl.useProgram(programInfo.program);
 
-    const lodBlend = lodController.getValue();
-    if (lodController.isAnimating()) map.triggerRepaint();
-
     twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo);
     twgl.setUniforms(programInfo, {
       u_atlas: atlas.getTexture(),
@@ -287,7 +276,6 @@ export function createHeatmapAtlasField(
       // stale LOD2+ chunks resident from a deeper-zoom session can't show as
       // intermediate-LOD patches once the user has zoomed back out.
       u_lod_count: computeActiveLodCount(map.getZoom(), lodZoomThresholds),
-      u_lod_blend: lodBlend,
       u_bounds: mapBounds,
       u_data_bounds: dataBounds,
       u_uv_scale: uvScale,
@@ -306,7 +294,7 @@ export function createHeatmapAtlasField(
 
   function onMapMove(bounds: mapboxgl.LngLatBounds, zoom: number) {
     // mapBounds is refreshed in draw(); here we only drive the chunk schedulers.
-    syncSchedulersOnMove({ bounds, zoom, schedulers, lodController });
+    syncSchedulersOnMove({ bounds, zoom, schedulers });
   }
 
   function destroy() {
@@ -316,7 +304,6 @@ export function createHeatmapAtlasField(
 
     schedulers.forEach(s => s.destroy());
     schedulers = [];
-    lodController.destroy();
     atlas?.destroy();
     atlas = null;
 

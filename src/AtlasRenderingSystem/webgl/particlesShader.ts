@@ -8,7 +8,6 @@
  *   u_vector_max    vec2      [uMax_m/s, vMax_m/s]
  *   u_atlas         sampler2D the auto-sized atlas texture
  *   u_lod_count     int       number of active LODs (1–4)
- *   u_lod_blend     float     0.0→1.0, controls the final LOD transition
  */
 
 import { makeAtlasGlsl, makeBilinearSamplerGlsl } from './atlasGlsl';
@@ -93,7 +92,6 @@ uniform vec2      u_vector_max;
 uniform sampler2D u_color_ramp;
 uniform float     u_max_speed;
 uniform int       u_lod_count;
-uniform float     u_lod_blend;
 
 in  vec2 v_particle_pos;
 out vec4 fragColor;
@@ -118,13 +116,12 @@ void main() {
     // LOD1 velocity — always available as the base
     vec2 velocity = mix(u_vector_min, u_vector_max, sampleAtlasRG(uv0));
 
-    // Blend in finer LODs coarse→fine.
-    // Intermediate LODs blend at 100% when resident; finest active LOD uses u_lod_blend.
+    // Walk finer LODs coarse→fine. Each resident finer chunk fully replaces the
+    // coarser velocity the moment it loads — finer detail pops in per-chunk as
+    // tiles arrive (progressive rendering), no animated crossfade.
     for (int i = 1; i < u_lod_count; i++) {
         if (physicalSlot(lonlat, i) >= 0) {
-            vec2 finerVelocity = mix(u_vector_min, u_vector_max, sampleAtlasRG(worldToAtlasUV(lonlat, i)));
-            float t = (i == u_lod_count - 1) ? u_lod_blend : 1.0;
-            velocity = mix(velocity, finerVelocity, t);
+            velocity = mix(u_vector_min, u_vector_max, sampleAtlasRG(worldToAtlasUV(lonlat, i)));
         }
     }
 
