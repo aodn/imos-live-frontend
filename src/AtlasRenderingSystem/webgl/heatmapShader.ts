@@ -122,6 +122,13 @@ void main() {
         }
     }
 
+    // Coastline edge: the atlas is LINEAR-filtered, so at the data/nodata
+    // boundary the A mask ramps 0→1 across one texel and the RGB-packed value
+    // blends toward the nodata sentinel — decoding to a bogus low-ramp colour
+    // (a cyan fringe). Drop everything below half a texel of valid data so the
+    // edge stays crisp instead of feathering onto the coast.
+    if (finalSample.a < 0.5) discard;
+
     float rampCoord = rawToRampCoord(decodeRaw(finalSample.rgb));
     vec4 color = texture(u_color_ramp, vec2(rampCoord, 0.5));
     fragColor = vec4(color.rgb, finalSample.a);
