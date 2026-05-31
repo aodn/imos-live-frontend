@@ -13,12 +13,7 @@
 
 import { createParticlesAtlasField } from './ParticlesAtlasField';
 import type { ParticlesAtlasFieldAPI } from './ParticlesAtlasField';
-import type {
-  CustomizableParticleConfig,
-  ProductManifest,
-  ColorPalette,
-  PalettePatch,
-} from '../types';
+import type { ParticleConfig, ProductManifest, ColorPalette, PalettePatch } from '../types';
 import { throttle } from '../utils';
 
 /** Mapbox fires `zoom` every frame of a zoom animation — cap onMapMove frequency. */
@@ -33,7 +28,7 @@ export type ParticlesAtlasLayerInterface = mapboxgl.CustomLayerInterface & {
     legendRange: [number, number],
   ) => Promise<void>;
   setVisible: (visible: boolean) => void;
-  updateConfig: (config: Partial<CustomizableParticleConfig>) => void;
+  updateConfig: (config: Partial<ParticleConfig>) => void;
   updatePalette: (patch: PalettePatch) => void;
   onMoveStart: () => void;
   onMoveEnd: () => void;
@@ -108,7 +103,7 @@ export function particlesAtlasLayer(
       }
     },
 
-    updateConfig(config: Partial<CustomizableParticleConfig>) {
+    updateConfig(config: Partial<ParticleConfig>) {
       this.field?.updateConfig(config);
     },
 

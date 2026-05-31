@@ -562,7 +562,7 @@ startAnimation(): void
 stopAnimation(): void
 draw(): void
 resize(): void
-updateConfig(config: Partial<CustomizableParticleConfig>): void
+updateConfig(config: Partial<ParticleConfig>): void
 updatePalette(patch: PalettePatch): void
 onMapMove(bounds: LngLatBounds, zoom: number): void
 destroy(): void                            // stop the rAF loop and free GPU resources

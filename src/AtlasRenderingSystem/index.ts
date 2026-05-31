@@ -11,9 +11,9 @@ export type {
 } from './types';
 
 // ── Particle config (types, default values, and slider ranges) ────────────────
-export type { ParticleConfig, CustomizableParticleConfig } from './config/particleConfig';
+export type { ParticleConfig } from './config/particleConfig';
 export {
-  INITIAL_PARTICLE_CONFIG,
+  DEFAULT_PARTICLE_CONFIG,
   FADE_OPACITY_RANGE,
   SPEED_FACTOR_RANGE,
   DROP_RATE_RANGE,

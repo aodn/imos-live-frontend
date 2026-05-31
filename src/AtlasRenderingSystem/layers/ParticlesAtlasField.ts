@@ -16,13 +16,8 @@
 
 import * as twgl from 'twgl.js';
 
-import type {
-  CustomizableParticleConfig,
-  ProductManifest,
-  ColorPalette,
-  PalettePatch,
-} from '../types';
-import { INITIAL_PARTICLE_CONFIG } from '../types';
+import type { ParticleConfig, ProductManifest, ColorPalette, PalettePatch } from '../types';
+import { DEFAULT_PARTICLE_CONFIG } from '../types';
 import { getColorRamp } from '../utils';
 import type { AtlasManagerAPI, ChunkSchedulerAPI } from '../webgl';
 import {
@@ -60,7 +55,7 @@ export type ParticlesAtlasFieldAPI = {
   stopAnimation: () => void;
   draw: () => void;
   resize: () => void;
-  updateConfig: (config: Partial<CustomizableParticleConfig>) => void;
+  updateConfig: (config: Partial<ParticleConfig>) => void;
   updatePalette: (patch: PalettePatch) => void;
   onMapMove: (bounds: mapboxgl.LngLatBounds, zoom: number) => void;
   /** Stop the animation loop and release all GPU resources. Call from the layer's onRemove. */
@@ -79,8 +74,8 @@ export function createParticlesAtlasField(
 
   // Mutable config — updated in place by updateConfig so the draw loop
   // always reads current values without a closure update.
-  const config: CustomizableParticleConfig = {
-    ...INITIAL_PARTICLE_CONFIG,
+  const config: ParticleConfig = {
+    ...DEFAULT_PARTICLE_CONFIG,
   };
   let currentPalette: ColorPalette = palette;
 
@@ -545,7 +540,7 @@ export function createParticlesAtlasField(
     initScreenTextures();
   }
 
-  function updateConfig(newConfig: Partial<CustomizableParticleConfig>) {
+  function updateConfig(newConfig: Partial<ParticleConfig>) {
     const countChanged =
       newConfig.nParticles !== undefined && newConfig.nParticles !== config.nParticles;
     Object.assign(config, newConfig);

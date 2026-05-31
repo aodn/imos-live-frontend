@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import type { CustomizableParticleConfig, ParticleConfig } from '@/AtlasRenderingSystem';
-import { INITIAL_PARTICLE_CONFIG } from '@/AtlasRenderingSystem';
+import type { ParticleConfig } from '@/AtlasRenderingSystem';
 import {
   DATE_RANGE,
   INITIAL_CENTER,
@@ -9,9 +7,13 @@ import {
   INITIAL_STYLE,
   INITIAL_WORLD_BOUNDARIES_ENABLED,
   INITIAL_ZOOM,
+  INITIAL_PARTICLE_CONFIG,
+  TILES_GROUP,
+  PRODUCTLEGENDS,
+  INITIAL_PRODUCT_ENABLED,
+  PRODUCT,
 } from '@/constants';
 import type { LegendArgs, ProductType, TilesProduct } from '@/constants';
-import { PRODUCT, TILES_GROUP, PRODUCTLEGENDS } from '@/constants';
 import type { StyleTitle } from '@/styles';
 import { type LngLat } from 'mapbox-gl';
 import { create } from 'zustand';
@@ -45,7 +47,7 @@ export type MapUIState = {
   setCenter: (center: LngLat) => void;
   setZoom: (zoom: number) => void;
   setStyle: (style: StyleTitle) => void;
-  setParticleConfig: (config: Partial<CustomizableParticleConfig>) => void;
+  setParticleConfig: (config: Partial<ParticleConfig>) => void;
   setDistanceMeasurementEnabled: (v: boolean) => void;
   setWorldBoundariesEnabled: (v: boolean) => void;
   setDate: (d: string) => void;
@@ -90,6 +92,7 @@ const storageOptions = {
   //select fields intended to sync in url
   partialize: (state: MapUIState) => {
     //filter out dates, productError, productLoading, and jumpToDate to sync in url
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { dates, productError, productLoading, jumpToDate, ...rest } = state;
 
     return rest as MapUIState;
@@ -107,14 +110,7 @@ export const useMapUIStore = create(
       worldBoundariesEnabled: INITIAL_WORLD_BOUNDARIES_ENABLED,
       dates: DATE_RANGE,
       date: INITIAL_DATE,
-      productEnabled: {
-        [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: false,
-        [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: false,
-        [PRODUCT.WAVE_BUOYS]: true,
-        [PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC]: false,
-        [PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC]: false,
-        [PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY]: false,
-      },
+      productEnabled: INITIAL_PRODUCT_ENABLED,
       productError: {
         [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: false,
         [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: false,

@@ -28,7 +28,9 @@ export function customSelectionPanelRenderer({
       >
         <ChevronLeftIcon className="w-4 h-4 text-gray-700" />
       </button>
-      <span className="text-sm font-semibold text-gray-900 flex-1 text-center">{dateLabel}</span>
+      <span className="text-sm font-semibold text-gray-900 flex-1 text-center whitespace-nowrap">
+        {dateLabel}
+      </span>
       <button
         onClick={toNextDate}
         className="p-1 hover:bg-blue-50 rounded transition-colors shrink-0 cursor-pointer"

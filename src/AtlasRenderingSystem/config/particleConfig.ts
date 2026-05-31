@@ -1,5 +1,3 @@
-import { generateValueByPercentage } from '@/utils';
-
 export type ParticleConfig = {
   nParticles: number;
   fadeOpacity: number;
@@ -8,8 +6,6 @@ export type ParticleConfig = {
   dropRateBump: number;
   pointSize: number;
 };
-
-export type CustomizableParticleConfig = ParticleConfig;
 
 export const FADE_OPACITY_RANGE = {
   min: 0.9,
@@ -20,42 +16,32 @@ export const SPEED_FACTOR_RANGE = {
   min: 1.0,
   max: 8.0,
 } as const;
+
 export const DROP_RATE_RANGE = {
   min: 0.0001,
   max: 0.02,
 } as const;
+
 export const DROP_RATE_BUMP_RANGE = {
   min: 0.0,
   max: 0.1,
 } as const;
+
 export const POINT_SIZE_RANGE = {
   min: 0.5,
   max: 5.0,
 } as const;
 
-export const INITIAL_PARTICLE_CONFIG: CustomizableParticleConfig = {
+export const DEFAULT_PARTICLE_CONFIG: ParticleConfig = {
   nParticles: 30000,
-
   // opacity of background screen, leading to fading of trails, related to trail length.
-  fadeOpacity: generateValueByPercentage({
-    percentage: 0.9,
-    range: FADE_OPACITY_RANGE,
-    decimals: 2,
-  }),
-
-  speedFactor: generateValueByPercentage({
-    percentage: 0.5,
-    range: SPEED_FACTOR_RANGE,
-    decimals: 1,
-  }),
-
+  fadeOpacity: 0.98,
+  speedFactor: 4.5,
   // chance per frame that a particle will be deleted and moved to a new position
   dropRate: 0.002,
-
   // prevents faster moving regions from visually dominating
   dropRateBump: 0.05,
-
-  pointSize: generateValueByPercentage({ percentage: 0.1, range: POINT_SIZE_RANGE, decimals: 1 }),
+  pointSize: 0.9,
 };
 
 /**

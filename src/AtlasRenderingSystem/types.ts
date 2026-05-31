@@ -49,9 +49,9 @@ export type PalettePatch = Partial<ColorPalette>;
 // default values). Re-exported here so the rest of the package can keep
 // importing from `./types` without churn.
 
-import type { ParticleConfig, CustomizableParticleConfig } from './config/particleConfig';
-export type { ParticleConfig, CustomizableParticleConfig };
-export { INITIAL_PARTICLE_CONFIG } from './config/particleConfig';
+import type { ParticleConfig } from './config/particleConfig';
+export type { ParticleConfig };
+export { DEFAULT_PARTICLE_CONFIG } from './config/particleConfig';
 
 // ── Handle types (Phase 4 factory return value) ───────────────────────────────
 

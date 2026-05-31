@@ -24,7 +24,7 @@ export const Primary: Story = {
     icon: null,
     description:
       'm ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.m ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-    addToMap: undefined,
+    addToMap: () => {},
     visible: false,
     layerId: 'test layerid',
     legend: undefined,
