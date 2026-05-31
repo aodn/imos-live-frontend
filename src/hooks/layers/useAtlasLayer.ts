@@ -67,14 +67,14 @@ export function useAtlasLayer<H extends AtlasLayerHandle>({
     })),
   );
 
-  const { isDateAvailable } = useProductDateAvailabilitySync(product, date);
+  const { isDateAvailable, manifestLoaded } = useProductDateAvailabilitySync(product, date);
 
   const legendRange = PRODUCTLEGENDS[product].range as [number, number];
 
   const handleRef = useRef<H | null>(null);
 
   const loadData = useCallback(async () => {
-    if (!handleRef.current) return;
+    if (!handleRef.current || !manifestLoaded) return;
     setProductErrorByProduct(product, false);
     if (!isDateAvailable) {
       setProductErrorByProduct(product, true);
@@ -85,7 +85,7 @@ export function useAtlasLayer<H extends AtlasLayerHandle>({
       setProductErrorByProduct(product, true);
     });
     setProductLoadingByProduct(product, false);
-  }, [date, isDateAvailable, product]);
+  }, [date, isDateAvailable, manifestLoaded, product]);
 
   const setupLayer = useCallback(async () => {
     handleRef.current?.destroy();
@@ -128,11 +128,10 @@ export function useAtlasLayer<H extends AtlasLayerHandle>({
     handleRef.current?.setVisible(enabled && !isError && !isLoading);
   }, [loadComplete, enabled, isError, isLoading]);
 
-  // Date change
   useDidMountEffect(() => {
-    if (!loadComplete || !enabled) return;
+    if (!loadComplete || !enabled || !manifestLoaded) return;
     loadData();
-  }, [loadComplete, enabled, date]);
+  }, [loadComplete, enabled, manifestLoaded, date]);
 
   // Colour key change
   useDidMountEffect(() => {
