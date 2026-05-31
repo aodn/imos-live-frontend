@@ -192,6 +192,22 @@ const currentDate = new Date('2025-08-01T00:00:00.000Z');
 const defaultDaySelected = '2025-07-01';
 const nextDaySelected = '2025-07-02';
 
+// Pin the product baseline these tests were written against — only Wave Buoys
+// enabled — via the URL, so the suite is independent of INITIAL_PRODUCT_ENABLED
+// (which now enables several products by default). The select/deselect helpers
+// below assume Ocean Current + Anomaly start hidden and Wave Buoys starts shown.
+const ONLY_WAVE_BUOYS_ENABLED = encodeURIComponent(
+  JSON.stringify({
+    [GSLA_PARTICLE_PRODUCT]: false,
+    [GSLA_ANOMALY_PRODUCT]: false,
+    [PRODUCT.WAVE_BUOYS]: true,
+    [PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC]: false,
+    [PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC]: false,
+    [PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY]: false,
+  }),
+);
+const defaultDayURL = `/?date=${defaultDaySelected}&productEnabled=${ONLY_WAVE_BUOYS_ENABLED}`;
+
 // Minimal manifests the atlas system accepts: one 256×256 LOD1 tile covering
 // the Australasian bounds the dev data uses. Tile PNGs are aborted by a
 // separate route — the layer flips to error state, which is fine for these
@@ -211,6 +227,32 @@ const SCALAR_MANIFEST = {
   lods: {
     '1': { grid: [1, 1], storedPx: [256, 256], chunkPx: [256, 256], padding: 0 },
   },
+};
+
+// Top-level metadata manifest (`/data_tiles/manifest`). Layer hooks gate their
+// first tile load on this resolving (via `manifestLoaded`) and validate the
+// selected date against `available_dates`, so every tiles product must list the
+// dates these tests exercise (default day, the +1 day, and the deep-link day).
+const AVAILABLE_DATES = [defaultDaySelected, nextDaySelected, '2025-07-15'];
+const METADATA_MANIFEST = {
+  cache_version: 'test',
+  products: Object.fromEntries(
+    (
+      [
+        GSLA_PARTICLE_PRODUCT,
+        GSLA_ANOMALY_PRODUCT,
+        PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC,
+        PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC,
+        PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY,
+      ] as const
+    ).map(product => [
+      product,
+      {
+        available_dates: AVAILABLE_DATES,
+        full_date_range: { start: AVAILABLE_DATES[0], end: AVAILABLE_DATES.at(-1)! },
+      },
+    ]),
+  ),
 };
 
 // u=N, v=0 gives a due-east vector with speed N and Cartesian degree 0 — keeps
@@ -244,6 +286,12 @@ function parseDateFromTileUrl(url: string): string | undefined {
 
 test.beforeEach(async ({ page }) => {
   await page.clock.install({ time: currentDate });
+
+  // Top-level metadata manifest powering per-product date availability. Anchored
+  // to `/manifest` (no `.json`) so it doesn't clash with the per-date route below.
+  await page.route(/\/data_tiles\/manifest(?:$|\?)/, async (route: Route) => {
+    await route.fulfill({ json: METADATA_MANIFEST });
+  });
 
   // Tile manifests — return product-shape-appropriate stubs.
   await page.route('**/data_tiles/**/manifest.json', async (route: Route) => {
@@ -409,9 +457,9 @@ test.beforeEach(async ({ page }) => {
 
 test.describe('Ocean Current', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(`/?date=${defaultDaySelected}`);
-    // Only Wave Buoys is enabled by default — switch the selection over to
-    // Ocean Current for these tests.
+    await page.goto(defaultDayURL);
+    // `defaultDayURL` pins the baseline to only Wave Buoys enabled — switch the
+    // selection over to Ocean Current for these tests.
     await sidebarComponent.selectProduct(page, 'GSLA Ocean geostrophic current product');
     await sidebarComponent.deselectProduct(page, 'Wave buoys product');
     await mapComponent.waitUntilLayerLoaded(page, GSLA_PARTICLE_LAYER_ID);
@@ -464,7 +512,7 @@ test.describe('Ocean Current', () => {
 
 test.describe('Anomaly sea levels and Ocean Current', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(`/?date=${defaultDaySelected}`);
+    await page.goto(defaultDayURL);
     await sidebarComponent.selectProduct(page, 'GSLA Ocean geostrophic current product');
     await sidebarComponent.selectProduct(page, 'GSLA sea level anomaly product');
     await sidebarComponent.deselectProduct(page, 'Wave buoys product');
@@ -560,7 +608,7 @@ test.describe('Style switching', () => {
   // keep one E2E to guard the re-registration path.
 
   test.beforeEach(async ({ page }) => {
-    await page.goto(`/?date=${defaultDaySelected}`);
+    await page.goto(defaultDayURL);
   });
 
   test('Wave buoys layer survives a map style change', async ({ page }) => {
@@ -610,7 +658,7 @@ test.describe('Measurement', () => {
 
 test.describe('Ocean Current, Anomaly sea levels and Wave Buoys', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(`/?date=${defaultDaySelected}`);
+    await page.goto(defaultDayURL);
   });
 
   test('User can deselect all the products', async ({ page }) => {
@@ -618,8 +666,9 @@ test.describe('Ocean Current, Anomaly sea levels and Wave Buoys', () => {
     await mapComponent.waitUntilLayerLoaded(page, GSLA_ANOMALY_LAYER_ID);
     await mapComponent.waitUntilLayerLoaded(page, WAVE_BUOYS_LAYER_ID);
 
-    // Default URL only enables Wave Buoys, so opt the other two in first to
-    // verify the deselect flow takes each one back down to hidden.
+    // `defaultDayURL` pins the baseline to only Wave Buoys enabled, so opt the
+    // other two in first to verify the deselect flow takes each one back down to
+    // hidden.
     await sidebarComponent.selectProduct(page, 'GSLA Ocean geostrophic current product');
     await sidebarComponent.selectProduct(page, 'GSLA sea level anomaly product');
 

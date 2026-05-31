@@ -18,11 +18,14 @@ beforeEach(() => {
 });
 
 describe('product enabled state', () => {
-  it('Wave Buoys is enabled by default; other products are not', () => {
+  it('GSLA current, GSLA anomaly sea levels, and Wave Buoys are enabled by default; the heatwave scalar products are not', () => {
     const { productEnabled } = useMapUIStore.getState();
+    expect(productEnabled[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]).toBe(true);
+    expect(productEnabled[PRODUCT.GSLA_ANOMALY_SEA_LEVELS]).toBe(true);
     expect(productEnabled[PRODUCT.WAVE_BUOYS]).toBe(true);
-    expect(productEnabled[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]).toBe(false);
-    expect(productEnabled[PRODUCT.GSLA_ANOMALY_SEA_LEVELS]).toBe(false);
+    expect(productEnabled[PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC]).toBe(false);
+    expect(productEnabled[PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC]).toBe(false);
+    expect(productEnabled[PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY]).toBe(false);
   });
 
   it('toggling a non-SCALAR_TILES_GROUP product leaves others untouched', () => {
