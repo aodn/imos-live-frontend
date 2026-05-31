@@ -2,8 +2,16 @@
 // becomes part of the public constants surface.
 
 // Products
-export { PRODUCT, PRODUCTS, MAX_VECTOR_SPEED, TILES_GROUP } from './products';
-export type { ProductType, TilesProduct, ProductName, BuoyLayer, BuoySource } from './products';
+export { PRODUCT, PRODUCTS, MAX_VECTOR_SPEED, TILES_GROUP, SCALAR_TILES_GROUP } from './products';
+export type {
+  ProductType,
+  TilesProduct,
+  ParticleTilesProduct,
+  ScalarTilesProduct,
+  ProductName,
+  BuoyLayer,
+  BuoySource,
+} from './products';
 
 // Legends
 export { PRODUCTLEGENDS, HW_CATEGORY_LOOKUP, HW_CATEGORY_LEGEND_SCALES } from './legends';

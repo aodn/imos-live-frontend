@@ -4,7 +4,7 @@
 // module init.
 
 import { beforeEach, describe, expect, it } from 'vitest';
-import { PRODUCT, PRODUCTLEGENDS, TILES_GROUP } from '@/constants';
+import { PRODUCT, PRODUCTLEGENDS, SCALAR_TILES_GROUP } from '@/constants';
 import type { TilesProduct } from '@/constants';
 import { useMapUIStore } from './useMapUIStore';
 
@@ -25,7 +25,7 @@ describe('product enabled state', () => {
     expect(productEnabled[PRODUCT.GSLA_ANOMALY_SEA_LEVELS]).toBe(false);
   });
 
-  it('toggling a non-TILES_GROUP product leaves others untouched', () => {
+  it('toggling a non-SCALAR_TILES_GROUP product leaves others untouched', () => {
     const { setProductEnabledByProduct } = useMapUIStore.getState();
     setProductEnabledByProduct(PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT, true);
 
@@ -34,7 +34,7 @@ describe('product enabled state', () => {
     expect(after[PRODUCT.WAVE_BUOYS]).toBe(true);
   });
 
-  it('enabling a TILES_GROUP product disables every other tile product (mutually exclusive)', () => {
+  it('enabling a SCALAR_TILES_GROUP product disables every other tile product (mutually exclusive)', () => {
     const { setProductEnabledByProduct } = useMapUIStore.getState();
     // First turn on SST mosaic, then switch to MCS category — only the latter should remain on.
     setProductEnabledByProduct(PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC, true);
@@ -47,13 +47,13 @@ describe('product enabled state', () => {
     expect(after[PRODUCT.GSLA_ANOMALY_SEA_LEVELS]).toBe(false);
   });
 
-  it('disabling a TILES_GROUP product clears it without enabling others', () => {
+  it('disabling a SCALAR_TILES_GROUP product clears it without enabling others', () => {
     const { setProductEnabledByProduct } = useMapUIStore.getState();
     setProductEnabledByProduct(PRODUCT.GSLA_ANOMALY_SEA_LEVELS, true);
     setProductEnabledByProduct(PRODUCT.GSLA_ANOMALY_SEA_LEVELS, false);
 
     const after = useMapUIStore.getState().productEnabled;
-    for (const p of TILES_GROUP) {
+    for (const p of SCALAR_TILES_GROUP) {
       expect(after[p]).toBe(false);
     }
   });

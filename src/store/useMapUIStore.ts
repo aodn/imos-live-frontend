@@ -8,10 +8,10 @@ import {
   INITIAL_WORLD_BOUNDARIES_ENABLED,
   INITIAL_ZOOM,
   INITIAL_PARTICLE_CONFIG,
-  TILES_GROUP,
   PRODUCTLEGENDS,
   INITIAL_PRODUCT_ENABLED,
   PRODUCT,
+  SCALAR_TILES_GROUP,
 } from '@/constants';
 import type { LegendArgs, ProductType, TilesProduct } from '@/constants';
 import type { StyleTitle } from '@/styles';
@@ -149,8 +149,8 @@ export const useMapUIStore = create(
       setProductEnabledByProduct: (product, enabled) => {
         set(prev => {
           const next = { ...prev.productEnabled };
-          if ((TILES_GROUP as readonly ProductType[]).includes(product)) {
-            for (const p of TILES_GROUP) next[p] = p === product && enabled;
+          if ((SCALAR_TILES_GROUP as readonly ProductType[]).includes(product)) {
+            for (const p of SCALAR_TILES_GROUP) next[p] = p === product && enabled;
           } else {
             next[product] = enabled;
           }

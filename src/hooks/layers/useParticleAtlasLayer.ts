@@ -1,14 +1,14 @@
-import type { TilesProduct } from '@/constants';
 import { createParticleAtlasLayer } from '@/AtlasRenderingSystem';
 import type { ParticleAtlasLayerHandle, ScalarAtlasLayerOptions } from '@/AtlasRenderingSystem';
 import { useMapUIStore } from '@/store';
 import { useCallback, useEffect } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { useAtlasLayer } from './useAtlasLayer';
+import type { ParticleTilesProduct } from '@/constants';
 
 type UseParticleAtlasLayer = {
   map: React.RefObject<mapboxgl.Map | null>;
-  product: TilesProduct;
+  product: ParticleTilesProduct;
 };
 
 export function useParticleAtlasLayer({ map, product }: UseParticleAtlasLayer) {

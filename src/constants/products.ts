@@ -14,17 +14,20 @@ export const PRODUCT = {
 } as const;
 
 export type ProductType = (typeof PRODUCT)[keyof typeof PRODUCT];
-
 export type TilesProduct = Exclude<ProductType, typeof PRODUCT.WAVE_BUOYS>;
+export type ParticleTilesProduct = Extract<
+  TilesProduct,
+  typeof PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT
+>;
+export type ScalarTilesProduct = Exclude<TilesProduct, ParticleTilesProduct>;
+export type WaveBuoysProduct = Extract<ProductType, typeof PRODUCT.WAVE_BUOYS>;
 
 type ProductValue = {
   name: string;
   layerId: string;
   sourceId: string;
   variables?: string[];
-  /** User-facing description shown on the product card in the sidebar. */
   description: string;
-  /** External AODN portal/catalogue link for "More details". */
   portalLink: string;
 };
 
@@ -105,8 +108,13 @@ export type BuoyLayer = (typeof PRODUCTS)[typeof PRODUCT.WAVE_BUOYS]['layerId'];
 export type BuoySource = (typeof PRODUCTS)[typeof PRODUCT.WAVE_BUOYS]['sourceId'];
 
 export const TILES_GROUP = [
+  PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT,
   PRODUCT.GSLA_ANOMALY_SEA_LEVELS,
   PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC,
   PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC,
   PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY,
 ] as const satisfies TilesProduct[];
+
+export const SCALAR_TILES_GROUP = TILES_GROUP.filter(
+  p => p !== PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT,
+) as ScalarTilesProduct[];

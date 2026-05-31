@@ -1,10 +1,10 @@
-import type { TilesProduct } from '@/constants';
+import type { ScalarTilesProduct } from '@/constants';
 import { createScalarAtlasLayer } from '@/AtlasRenderingSystem';
 import { useAtlasLayer } from './useAtlasLayer';
 
 type UseScalarAtlasLayer = {
   map: React.RefObject<mapboxgl.Map | null>;
-  product: TilesProduct;
+  product: ScalarTilesProduct;
 };
 
 export function useScalarAtlasLayer({ map, product }: UseScalarAtlasLayer) {

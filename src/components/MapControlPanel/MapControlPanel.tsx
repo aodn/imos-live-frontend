@@ -13,7 +13,7 @@ import { useIsMapDragging, useIsMapZooming, useMapCanvasWidth } from '@/hooks';
 import { setSidebarOpen, useMapUIStore, useSidebarStore } from '@/store';
 import { exportMapImage } from '@/helpers';
 import { useShallow } from 'zustand/shallow';
-import { TILES_GROUP, PRODUCTS } from '@/constants';
+import { SCALAR_TILES_GROUP, PRODUCTS } from '@/constants';
 import { CategoryColorScaleBar, LinearColorScaleBar, LogColorScaleBar } from '../ColorScaleBar';
 
 export function MapControlPanel({
@@ -35,7 +35,7 @@ export function MapControlPanel({
     })),
   );
 
-  const activeProduct = TILES_GROUP.find(p => productEnabled[p]);
+  const activeProduct = SCALAR_TILES_GROUP.find(p => productEnabled[p]);
 
   const isMapOnOperation = isDragging || isZooming;
   const isMapTooNarrow = mapCanvasWidth > 0 && mapCanvasWidth < MIN_EXPORT_MAP_WIDTH;
