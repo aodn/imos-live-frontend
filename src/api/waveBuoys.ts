@@ -1,4 +1,4 @@
-import type { WaveBuoyDetailsFeature, WaveBuoyPositionFeatureCollection } from '@/types';
+import type { WaveBuoyDetailsFeature, WaveBuoySiteFeatureCollection } from '@/types';
 import { normalizeWaveBuoyDates } from '@/helpers';
 import { utcToLocalDateTime, localToUTC } from '@/utils';
 import axios from 'axios';
@@ -37,16 +37,16 @@ export const getWaveBuoyDetails = async (
 // date in request is converted to UTC string, but in response, it's converted back to local date string, which is what the app displays
 export const getWaveBuoySitesByDate = async (
   localDate: string,
-): Promise<WaveBuoyPositionFeatureCollection> => {
-  const wavebuoysSites = await axios.get<WaveBuoyPositionFeatureCollection>(
+): Promise<WaveBuoySiteFeatureCollection> => {
+  const wavebuoysSites = await axios.get<WaveBuoySiteFeatureCollection>(
     `${WAVE_BUOY_COLLECTION_URL}/wave_buoy_first_data_available?datetime=${localToUTC(localDate)}`,
   );
   return normalizeWaveBuoyDates(wavebuoysSites.data);
 };
 
 //This is to get all buoy sites with their latest available observation
-export const getLatestWaveBuoySites = async (): Promise<WaveBuoyPositionFeatureCollection> => {
-  const wavebuoysSites = await axios.get<WaveBuoyPositionFeatureCollection>(
+export const getLatestWaveBuoySites = async (): Promise<WaveBuoySiteFeatureCollection> => {
+  const wavebuoysSites = await axios.get<WaveBuoySiteFeatureCollection>(
     `${WAVE_BUOY_COLLECTION_URL}/wave_buoy_all`,
   );
   return normalizeWaveBuoyDates(wavebuoysSites.data);

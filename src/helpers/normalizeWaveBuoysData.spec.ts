@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { GeoJSONFeature } from 'mapbox-gl';
-import type { WaveBuoyPositionFeatureCollection } from '@/types';
+import type { WaveBuoySiteFeatureCollection } from '@/types';
 import {
   normalizeWaveBuoyDates,
   normalizeWaveBuoysData,
@@ -9,7 +9,7 @@ import {
 
 function featureCollection(
   entries: { date: string; buoy: string; coords?: [number, number] }[],
-): WaveBuoyPositionFeatureCollection {
+): WaveBuoySiteFeatureCollection {
   return {
     type: 'FeatureCollection',
     features: entries.map(({ date, buoy, coords = [150, -30] }) => ({

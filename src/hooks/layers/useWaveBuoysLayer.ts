@@ -24,7 +24,7 @@ import { useDidMountEffect } from '../useDidMountEffect';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
 import allWaveBuoySitesBackup from '@/assets/wave_buoy_all_sites.json';
-import type { WaveBuoyPositionFeatureCollection } from '@/types';
+import type { WaveBuoySiteFeatureCollection } from '@/types';
 
 type UseWaveBuoysLayer = {
   map: React.RefObject<mapboxgl.Map | null>;
@@ -52,11 +52,11 @@ export function useWaveBuoysLayer({ map, product }: UseWaveBuoysLayer) {
 
   const allWaveBuoySitesQuery = useQuery({
     queryKey: ['wave_buoy_sites_all'],
-    queryFn: async (): Promise<WaveBuoyPositionFeatureCollection> => {
+    queryFn: async (): Promise<WaveBuoySiteFeatureCollection> => {
       try {
         return await getLatestWaveBuoySites();
       } catch {
-        return normalizeWaveBuoyDates(allWaveBuoySitesBackup as WaveBuoyPositionFeatureCollection);
+        return normalizeWaveBuoyDates(allWaveBuoySitesBackup as WaveBuoySiteFeatureCollection);
       }
     },
     enabled: enabled,

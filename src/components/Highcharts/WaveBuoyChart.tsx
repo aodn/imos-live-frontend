@@ -2,7 +2,7 @@ import logoUrl from '@/assets/imos_logo_with_title.png';
 import { getWaveBuoyDetails, getWaveBuoyLatestDate } from '@/api';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
-import type { WaveBuoyPositionFeature } from '@/types';
+import type { WaveBuoySiteFeature } from '@/types';
 import { toWaveBuoyChartData } from '@/helpers';
 import { formatLatLngToDirectional, toCompactDate, utcToLocalDateTime, today } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
@@ -31,7 +31,7 @@ dayjs.extend(utc);
 export const WAVE_BUOY_MIN_DATE = 30;
 
 type WaveBuoyChartProps = {
-  waveBuoysData: Omit<WaveBuoyPositionFeature, 'type'>[];
+  waveBuoysData: Omit<WaveBuoySiteFeature, 'type'>[];
   showDirection?: boolean;
 };
 

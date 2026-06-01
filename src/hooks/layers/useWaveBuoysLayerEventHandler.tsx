@@ -1,6 +1,6 @@
 import { createMapEventPriority } from '@/helpers';
 import { useDrawerStore, openBottomDrawer } from '@/store';
-import type { WaveBuoyPositionFeature } from '@/types';
+import type { WaveBuoySiteFeature } from '@/types';
 import { useEffect, useMemo, useState } from 'react';
 import {
   useWaveBuoysClusterClick,
@@ -18,7 +18,7 @@ export function useWaveBuoysLayerEventHandler(
 ) {
   const bottomDrawer = useDrawerStore(s => s.bottomDrawer);
   const [clickedPointData, setClickedPointData] = useState<
-    Omit<WaveBuoyPositionFeature, 'type'>[] | null
+    Omit<WaveBuoySiteFeature, 'type'>[] | null
   >(null);
 
   const { shouldHandleMapClick } = useMemo(

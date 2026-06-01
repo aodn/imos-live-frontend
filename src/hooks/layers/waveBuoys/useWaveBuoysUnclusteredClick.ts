@@ -1,5 +1,5 @@
 import { UNCLUSTERED_WAVE_BUOYS_LAYER_ID } from '@/constants';
-import type { WaveBuoyPositionFeature } from '@/types';
+import type { WaveBuoySiteFeature } from '@/types';
 import { normalizeWaveBuoysData } from '@/helpers';
 import { useEffect } from 'react';
 
@@ -12,7 +12,7 @@ export function useWaveBuoysUnclusteredClick(
   enabled: boolean,
   shouldHandle: () => boolean,
   selectFeature: (featureId: string | number) => void,
-  setClickedPointData: (data: Omit<WaveBuoyPositionFeature, 'type'>[] | null) => void,
+  setClickedPointData: (data: Omit<WaveBuoySiteFeature, 'type'>[] | null) => void,
 ) {
   useEffect(() => {
     if (!map.current || !enabled || !shouldHandle()) return;

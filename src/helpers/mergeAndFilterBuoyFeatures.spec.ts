@@ -4,12 +4,12 @@
 // at module init. `src/test/setup.ts` polyfills `matchMedia` for jsdom.
 
 import { describe, expect, it } from 'vitest';
-import type { WaveBuoyPositionFeatureCollection } from '@/types';
+import type { WaveBuoySiteFeatureCollection } from '@/types';
 import { mergeAndFilterBuoyFeatures } from './mergeAndFilterBuoyFeatures';
 
 function fc(
   entries: { date: string; buoy: string; coords?: [number, number] }[],
-): WaveBuoyPositionFeatureCollection {
+): WaveBuoySiteFeatureCollection {
   return {
     type: 'FeatureCollection',
     features: entries.map(({ date, buoy, coords = [150, -30] }) => ({
@@ -23,7 +23,7 @@ function fc(
 const selectedDate = '2026-05-29';
 
 // The helper attaches `hasDataForDate` at runtime but the source type
-// `WaveBuoyPositionProperties` doesn't declare it — narrow locally so the
+// `WaveBuoySiteProperties` doesn't declare it — narrow locally so the
 // assertions type-check.
 type WithFlag = { properties: { buoy: string; date: string; hasDataForDate: boolean } };
 
