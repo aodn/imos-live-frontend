@@ -90,4 +90,4 @@ Layer paint/layout config belongs in `src/constants/layerSpecs.ts`. Always add l
 
 ## WebGL Particle Engine
 
-`src/AtlasRenderingSystem/layers/ParticlesAtlasField.ts` and `src/AtlasRenderingSystem/webgl/particlesShader.ts` implement the ping-pong texture particle system — be cautious modifying them. Particle settings (count, speed, fade, size) are configurable via `src/AtlasRenderingSystem/config/particleConfig.ts`. The atlas renderer is a self-contained package; see `src/AtlasRenderingSystem/README.md` for its full architecture and API.
+`src/AtlasRenderingSystem/layers/ParticlesAtlasField.ts` and `src/AtlasRenderingSystem/webgl/particlesShader.ts` implement the ping-pong texture particle system — be cautious modifying them. Particle settings (count, speed, fade, size) are configurable via `src/AtlasRenderingSystem/config/particleConfig.ts`. The atlas renderer is a self-contained package, driven only through its public factories `createScalarAtlasLayer` / `createParticleAtlasLayer` (`src/AtlasRenderingSystem/index.ts`) — the `use*AtlasLayer` hooks are the host-app glue around them; see `src/AtlasRenderingSystem/README.md` for its full architecture and API.

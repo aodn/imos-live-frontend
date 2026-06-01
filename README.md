@@ -22,6 +22,20 @@ The platform visualises daily oceanographic data as a WebGL-accelerated particle
 
 - [Atlas Rendering System](./src/AtlasRenderingSystem/README.md) — WebGL atlas infrastructure, shader coordinate lookup, LOD blending, API reference
 
+## Adding a New Product
+
+A product is _rendered_ by the Atlas Rendering System but _defined_ and _wired_ in the host app. The package's input contract (tiles, `manifest.json`, `ColorPalette`, the `createScalarAtlasLayer` / `createParticleAtlasLayer` factories) is documented in [Integrating a Product](./src/AtlasRenderingSystem/README.md#integrating-a-product); the IMOS-specific wiring is below. Touch these files in order:
+
+1. **`src/constants/products.ts`** — add an entry to `PRODUCT` and `PRODUCTS` (`name`, `layerId`, `sourceId`, optional `variables`, `description`, `portalLink`). For a scalar/particle tiles product, also add the slug to `TILES_GROUP`.
+2. **`src/constants/legends.ts`** — add a `PRODUCTLEGENDS` entry whose `colorKey` selects a palette from `COLOR_OPTIONS` (`src/constants/colors.ts`). `buildProductPalette` (`src/helpers/buildProductPalette.ts`) converts the legend into the `ColorPalette` the WebGL layer uploads.
+3. **`src/hooks/layers/use<ProductName>Layer.ts`** — create a dedicated layer hook reusing the shared layer hooks (`useMapboxLayerSetup`, `useDidMountEffect`, and `useMapboxLayerVisibility` for non-WebGL layers). Scalar and particle products call `createScalarAtlasLayer` / `createParticleAtlasLayer` from the package.
+4. **`src/components/MapComponent/MapComponent.tsx`** — register the new hook.
+5. **`src/constants/layerOrder.ts`** — register the layer id in `LAYERS_ORDER` (the last entry is the top-most layer); always add layers via `addLayerInOrder`, not Mapbox's `addLayer` directly.
+6. **`src/components/MainSidebar/products.tsx`** — add a `featuredPresentation` entry (`product`, `title`, `image`, `icon`); `featuredDataset` derives `description`/`portalLink`/`layerId` from `PRODUCTS`.
+7. **`src/pages/Map.tsx`** — add the product icon entry to `LayersIndicator`.
+
+Layer paint/layout config lives in `src/constants/layerSpecs.ts`.
+
 ## Setup and Usage
 
 ### Prerequisites

@@ -1,55 +1,75 @@
 # Atlas Rendering System
 
-The Atlas Rendering System is the shared GPU infrastructure that backs all chunked, LOD-aware map overlays in IMOS Live. It powers two product types:
+The Atlas Rendering System is shared GPU infrastructure for chunked, LOD-aware map overlays. It powers two product types:
 
 - **Scalar overlays** — full-viewport quad coloured by a decoded 24-bit scalar value (sea level anomaly, SST anomaly)
 - **Particle animations** — GPU ping-pong particles that sample velocity from the atlas (ocean current)
 
 Both share the same `AtlasManager` and `ChunkScheduler` primitives.
 
-The package under `src/AtlasRenderingSystem/` is **self-contained and framework-agnostic** — it imports nothing from the host app (no `@/` paths) and depends only on `mapbox-gl` and `twgl.js`. Its public entry point is `index.ts` (`createScalarAtlasLayer` / `createParticleAtlasLayer` + types). The React/Zustand/React-Query glue listed below lives in the host app (`src/hooks/layers/*`, `src/api/*`), not in the package.
+This package is **self-contained and framework-agnostic** — it imports nothing from the host app (no `@/` paths) and depends only on `mapbox-gl` and `twgl.js`. Its public entry point is `index.ts` (`createScalarAtlasLayer` / `createParticleAtlasLayer` + types). To reuse it in another project, copy the package folder and drive it through that public API — see [Integrating a Product](#integrating-a-product). The host-app glue (UI state, data fetching, layer ordering) lives outside the package and is not part of it.
 
 ### Tech stack
 
-| Component     | Technology            | Where                             |
-| ------------- | --------------------- | --------------------------------- |
-| Map           | Mapbox GL JS          | package                           |
-| Rendering     | WebGL 2 (hand-rolled) | package                           |
-| Shaders       | GLSL ES 3.00          | package                           |
-| UI            | React + Zustand       | host app (`src/hooks`, store)     |
-| Data fetching | React Query           | host app (`src/hooks`, `src/api`) |
+| Component     | Technology                      | Where    |
+| ------------- | ------------------------------- | -------- |
+| Map           | Mapbox GL JS                    | package  |
+| Rendering     | WebGL 2 (hand-rolled)           | package  |
+| Shaders       | GLSL ES 3.00                    | package  |
+| UI / state    | Host framework                  | host app |
+| Data fetching | Host (provides `fetchManifest`) | host app |
 
 ---
 
-## Adding a New Product
+## Integrating a Product
 
-1. **Generate tiles** — produce `manifest.json` + PNG files named `{lod}/{cx}/{cy}.png`. See [Tile & LOD configuration](#tile--lod-configuration-manifestjson) for all manifest fields.
+The package is driven entirely through the two factory functions exported from `index.ts`. The host owns product definitions, UI, and data fetching; the package owns the GPU rendering. Integrating a product takes four steps — none of them touch atlas, shader, or scheduler code.
 
-2. **`src/constants/`** — add entries to `PRODUCT` and `PRODUCTS` in `products.ts`, plus a `PRODUCTLEGENDS` entry in `legends.ts`. The legend's `colorKey` selects a palette from `COLOR_OPTIONS` (`src/constants/colors.ts`); `buildProductPalette` (`src/helpers/buildProductPalette.ts`) assembles the `ColorPalette` the layer uploads. See [Visual appearance](#visual-appearance) for what each controls.
+1. **Generate tiles** — produce a `manifest.json` plus PNG tiles named `{lod}/{cx}/{cy}.png`. The manifest is the package's primary input contract; see [Tile & LOD configuration](#tile--lod-configuration-manifestjson) for every field.
 
-3. **`MapComponent.tsx`** — wire the hook:
+2. **Build a `ColorPalette`** — the package uploads this as the colour-ramp texture. It is a plain object (the `ColorPalette` type is exported from `types.ts`); the host constructs it from whatever legend/colour config it uses. See [Visual appearance](#visual-appearance) for what `legendRange` vs the manifest's `valueRange` control, and the categorical notes below for discrete products.
 
-   ```tsx
+3. **Create the layer** — call the factory for the product type, passing a Mapbox map, a layer id, a `fetchManifest(date)` callback, a `tileBaseUrl`, the `colorPalette`, and a `legendRange`:
+
+   ```ts
+   import { createScalarAtlasLayer, createParticleAtlasLayer } from './AtlasRenderingSystem';
+
    // scalar overlay (heatmap)
-   useScalarAtlasLayer({
-     map,
-     layerId: PRODUCTS[PRODUCT.MY_PRODUCT].layerId,
-     product: PRODUCT.MY_PRODUCT,
+   const handle = createScalarAtlasLayer({
+     map, // mapbox-gl Map
+     layerId: 'my-product',
+     fetchManifest, // (date: string) => Promise<ProductManifest>
+     tileBaseUrl, // tiles resolved as `${tileBaseUrl}/${date}/{lod}/{cx}/{cy}.png`
+     colorPalette,
+     legendRange: [min, max],
+     beforeLayerId, // optional — Mapbox layer to insert beneath
    });
 
    // particle animation
-   useParticleAtlasLayer({
+   const particleHandle = createParticleAtlasLayer({
      map,
-     layerId: PRODUCTS[PRODUCT.MY_PRODUCT].layerId,
-     product: PRODUCT.MY_PRODUCT,
+     layerId,
+     fetchManifest,
+     tileBaseUrl,
+     colorPalette,
+     legendRange,
+     particleConfig, // optional — see Particle behaviour
    });
    ```
 
-4. **`src/constants/layerOrder.ts`** — add the layer ID to `LAYERS_ORDER`.
+   Each factory calls `map.addLayer(layer, beforeLayerId)` internally — layer ordering is the host's responsibility via `beforeLayerId`; the package imposes none.
 
-5. **`src/components/MainSidebar/products.tsx`** — add the sidebar entry.
+4. **Drive the handle** — load data and respond to UI:
 
-No changes to atlas, shader, or scheduler code are needed unless the new product exceeds 4 LODs or a total virtual chunk count > 256. Atlas dimensions are auto-computed from the manifest — see [System limits](#system-limits-srcatlasrenderingsystemwebglatlasmanagerts) if you need to raise the VRAM cap.
+   ```ts
+   await handle.setSource(date); // fetch manifest + load tiles for that date
+   handle.setVisible(visible);
+   handle.updatePalette(patch); // legendRange / rawColors / scale
+   handle.updateConfig(config); // particles only
+   handle.destroy(); // call on layer removal to free GPU resources
+   ```
+
+No changes to atlas, shader, or scheduler code are needed unless the new product exceeds 4 LODs or a total virtual chunk count > 256. Atlas dimensions are auto-computed from the manifest — see [System limits](#system-limits-webglatlasmanagerts) if you need to raise the VRAM cap.
 
 ---
 
@@ -107,7 +127,7 @@ When `flagValues` is present, `HeatmapAtlasField` switches into categorical mode
 - The shader decodes the raw value, rounds it to its index in `flagValues` (assumed sequential integers spanning `valueRange[0]..valueRange[1]`), and samples the ramp at the centre of that texel.
 - LOD blending: like every product, the finer LOD pops in fully on residency (progressive, no crossfade). For categorical data a hard replace is doubly required — interpolating RGB-encoded categorical scalars would invent intermediate categories that aren't in the data.
 
-In the host app, the matching `PRODUCTLEGENDS` entry should set `scale: 'category'` and supply N colours under its `colorKey`. `buildProductPalette` then produces a `ColorPalette` with `scale: 'category'` and rawColors aligned 1:1 with `flagValues` from the manifest. See `AUSTEMP_HEATWAVE_MCS_CATEGORY` in `src/constants/products.ts` for a worked example.
+The host supplies a matching `ColorPalette` with `scale: 'category'` whose `rawColors` align 1:1 with the manifest's `flagValues` (same order). Categorical mode is triggered by the manifest alone — the presence of `flagValues` flips `HeatmapAtlasField` to NEAREST filtering and the N-texel ramp automatically; no extra option is needed at the factory level.
 
 LOD keys are sorted numerically at runtime — insertion order in the JSON does not matter. Up to `MAX_LODS = 4` LODs are supported.
 
@@ -134,18 +154,22 @@ Switching to 256×256 `chunkPx` (258×258 `storedPx`) auto-sizes to 4096×4096 �
 
 ### Visual appearance
 
-| Constant                                      | What it controls                                                                                                 |
-| --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `PRODUCTLEGENDS` (`src/constants/legends.ts`) | Legend `label`, colour scale type (`linear`/`log`), `[min, max]` display `range`, and a `colorKey`               |
-| `COLOR_OPTIONS` (`src/constants/colors.ts`)   | Maps each `colorKey` to its raw RGB tuples; `buildProductPalette` converts them into the uploaded `ColorPalette` |
+Two host-supplied inputs control colour; the package consumes both:
 
-`u_value_range` (from manifest) and `u_legend_range` (from `PRODUCTLEGENDS`) are intentionally separate — the colour ramp can be narrowed for visual emphasis without changing the stored data encoding.
+| Input          | What it controls                                                                                              |
+| -------------- | ------------------------------------------------------------------------------------------------------------- |
+| `colorPalette` | The palette uploaded as the colour-ramp texture — its `rawColors` and `scale` (`linear` / `log` / `category`) |
+| `legendRange`  | `[legendMin, legendMax]` — the value window the colour ramp spans                                             |
+
+The package's `utils/colorScaleUtils.ts` and `utils/getColorRamp.ts` build the ramp texture from the palette.
+
+`u_value_range` (from the manifest) and `u_legend_range` (the `legendRange` option) are intentionally separate — the colour ramp can be narrowed for visual emphasis without changing the stored data encoding.
 
 ---
 
-### Particle behaviour (`src/AtlasRenderingSystem/config/particleConfig.ts`)
+### Particle behaviour (`config/particleConfig.ts`)
 
-Applies only to the ocean current particle layer.
+Applies only to the ocean current particle layer. Pass overrides via the `particleConfig` option, or at runtime via `handle.updateConfig(...)`.
 
 | Parameter      | Default | Effect                                         |
 | -------------- | ------- | ---------------------------------------------- |
@@ -158,7 +182,7 @@ Applies only to the ocean current particle layer.
 
 ---
 
-### System limits (`src/AtlasRenderingSystem/webgl/AtlasManager.ts`)
+### System limits (`webgl/AtlasManager.ts`)
 
 These are code constants. Change them only if your product genuinely exceeds the current bounds.
 
@@ -439,9 +463,9 @@ The particle layer runs a second rendering loop on top of the atlas lookup. Six 
 manifest.json
     │
     ▼
-useScalarAtlasLayer / useParticleAtlasLayer
-    │  fetches manifest, calls handle.setSource(date)
-    │  → factory resolves manifest then calls layer.setSource(manifest, baseUrl, legendRange)
+host binding → createScalarAtlasLayer / createParticleAtlasLayer
+    │  handle.setSource(date) calls fetchManifest(date), then
+    │  layer.setSource(manifest, `${tileBaseUrl}/${date}`, legendRange)
     ▼
 HeatmapAtlasField / ParticlesAtlasField  (setSource)
     │  1. sort manifest.lods numerically
@@ -489,7 +513,7 @@ Screen
 
 ### AtlasManager
 
-**File:** `src/AtlasRenderingSystem/webgl/AtlasManager.ts`
+**File:** `webgl/AtlasManager.ts`
 
 Manages the GPU texture and the virtual→physical slot mapping.
 
@@ -533,7 +557,7 @@ When a LOD2+ chunk is uploaded and the pool is full, the chunk with the oldest `
 
 ### HeatmapAtlasField
 
-**File:** `src/AtlasRenderingSystem/layers/HeatmapAtlasField.ts`
+**File:** `layers/HeatmapAtlasField.ts`
 
 Orchestrates the atlas, schedulers, and LOD controller for scalar overlay products.
 
@@ -554,7 +578,7 @@ A `fetchGeneration` counter discards stale upload callbacks if `setSource` is ca
 
 ### ParticlesAtlasField
 
-**File:** `src/AtlasRenderingSystem/layers/ParticlesAtlasField.ts`
+**File:** `layers/ParticlesAtlasField.ts`
 
 Orchestrates the atlas, schedulers, and LOD controller for the ocean current particle product.
 
@@ -578,7 +602,7 @@ A `fetchGeneration` counter discards stale upload callbacks and aborts scheduler
 
 ### ChunkScheduler
 
-**File:** `src/AtlasRenderingSystem/webgl/ChunkScheduler.ts`
+**File:** `webgl/ChunkScheduler.ts`
 
 One instance per on-demand LOD. Manages the fetch queue for that LOD.
 
@@ -630,12 +654,12 @@ Shader source is generated by factory functions (`makeScalarAtlasFs(totalSlots, 
 
 ### Scalar-specific (heatmapShader)
 
-| Uniform            | Type        | Description                                                                                |
-| ------------------ | ----------- | ------------------------------------------------------------------------------------------ |
-| `u_value_range`    | `vec2`      | `[rawMin, rawMax]` from manifest — decodes RGB24 to physical units                         |
-| `u_legend_range`   | `vec2`      | `[legendMin, legendMax]` from `PRODUCTLEGENDS` — colour ramp clamp range (continuous only) |
-| `u_color_ramp`     | `sampler2D` | Continuous: 256×1 ramp (LINEAR). Categorical: N×1 ramp (NEAREST, one texel per flag)       |
-| `u_num_categories` | `int`       | `0` = continuous data, `N>0` = categorical with N flag values                              |
+| Uniform            | Type        | Description                                                                                        |
+| ------------------ | ----------- | -------------------------------------------------------------------------------------------------- |
+| `u_value_range`    | `vec2`      | `[rawMin, rawMax]` from manifest — decodes RGB24 to physical units                                 |
+| `u_legend_range`   | `vec2`      | `[legendMin, legendMax]` from the `legendRange` option — colour ramp clamp range (continuous only) |
+| `u_color_ramp`     | `sampler2D` | Continuous: 256×1 ramp (LINEAR). Categorical: N×1 ramp (NEAREST, one texel per flag)               |
+| `u_num_categories` | `int`       | `0` = continuous data, `N>0` = categorical with N flag values                                      |
 
 ### Uniform component budget
 
@@ -653,7 +677,9 @@ that bisects where: **upload** (the slot bytes are wrong) vs **draw/sampling**
 (the slot is correct but rendered wrong).
 
 Enable it by setting `VITE_ATLAS_DIAG=true` in `.env` (or `.env.local`) and
-restarting the dev server. When on, every `AtlasManager` slot upload is read
+restarting the dev server. The flag is read via `import.meta.env`, so it assumes
+a Vite-style build — adapt the read in `webgl/atlasUploadDiagnostics.ts` if your
+bundler differs. When on, every `AtlasManager` slot upload is read
 back from the texture via a scratch framebuffer and the mean horizontal `|ΔR|`
 of the high byte (R = the scalar's MSB) is logged per chunk:
 
@@ -675,36 +701,34 @@ outside debugging. It is a no-op when disabled (one cached boolean check).
 
 ## Module Map
 
+The tree below is the package itself. Host bindings (UI framework hooks, data
+fetching, the `fetchManifest` implementation, layer ordering) live outside the
+package and are not shown.
+
 ```
-src/
-  AtlasRenderingSystem/
-    index.ts                — public API: createScalarAtlasLayer, createParticleAtlasLayer, types
-    types.ts                — shared types (ProductManifest, AtlasLayerHandle, ColorPalette, …)
-    webgl/
-      AtlasManager.ts       — GPU texture + slot pool + LRU eviction
-      ChunkScheduler.ts     — on-demand fetch queue per LOD
-      atlasUploadDiagnostics.ts — opt-in upload readback check (VITE_ATLAS_DIAG)
-      atlasGlsl.ts          — shared GLSL (uniforms + Mercator/atlas lookup + bilinear sampler)
-      heatmapShader.ts      — scalarAtlasVs + makeScalarAtlasFs() factory
-      particlesShader.ts    — makeOceanCurrentAtlasFsParticle/Update() factories
-    layers/
-      HeatmapAtlasField.ts  — orchestrates atlas for scalar products
-      HeatmapAtlasLayer.ts  — Mapbox CustomLayerInterface wrapper (scalar)
-      ParticlesAtlasField.ts — orchestrates atlas for particle products
-      ParticlesAtlasLayer.ts — Mapbox CustomLayerInterface wrapper (particles)
-      atlasFieldShared.ts   — shared field logic (manifest parsing, LOD1 preload, scheduler wiring, zoom-gated active LOD count)
-    utils/
-      colorScaleUtils.ts    — colour ramp conversion (linear/log)
-      getColorRamp.ts       — colour ramp builder
-      rgbToHex.ts           — hex conversion helper
-      throttle.ts           — leading+trailing throttle (caps the zoom event)
-
-  hooks/layers/
-    useScalarAtlasLayer.ts  — React hook: wires createScalarAtlasLayer to Zustand store
-    useParticleAtlasLayer.ts — React hook: wires createParticleAtlasLayer to Zustand store
-
-  api/
-    tiles.ts                — getProductManifest (ProductManifest type re-exported from the package's types.ts)
+AtlasRenderingSystem/
+  index.ts                — public API: createScalarAtlasLayer, createParticleAtlasLayer, types
+  types.ts                — shared types (ProductManifest, AtlasLayerHandle, ColorPalette, …)
+  config/
+    particleConfig.ts     — particle defaults (ParticleConfig) + slider ranges
+  webgl/
+    AtlasManager.ts       — GPU texture + slot pool + LRU eviction
+    ChunkScheduler.ts     — on-demand fetch queue per LOD
+    atlasUploadDiagnostics.ts — opt-in upload readback check (VITE_ATLAS_DIAG)
+    atlasGlsl.ts          — shared GLSL (uniforms + Mercator/atlas lookup + bilinear sampler)
+    heatmapShader.ts      — scalarAtlasVs + makeScalarAtlasFs() factory
+    particlesShader.ts    — makeOceanCurrentAtlasFsParticle/Update() factories
+  layers/
+    HeatmapAtlasField.ts  — orchestrates atlas for scalar products
+    HeatmapAtlasLayer.ts  — Mapbox CustomLayerInterface wrapper (scalar)
+    ParticlesAtlasField.ts — orchestrates atlas for particle products
+    ParticlesAtlasLayer.ts — Mapbox CustomLayerInterface wrapper (particles)
+    atlasFieldShared.ts   — shared field logic (manifest parsing, LOD1 preload, scheduler wiring, zoom-gated active LOD count)
+  utils/
+    colorScaleUtils.ts    — colour ramp conversion (linear/log)
+    getColorRamp.ts       — colour ramp builder
+    rgbToHex.ts           — hex conversion helper
+    throttle.ts           — leading+trailing throttle (caps the zoom event)
 ```
 
 ---
@@ -715,3 +739,6 @@ src/
 | --------------------------------------------------------------- | -------------------------------------------------------------------- |
 | LOD4 (480 tiles) exceeds `MAX_ATLAS_SIZE` pool at any tile size | Atlas sizes to cap; LRU handles overflow — or raise `MAX_ATLAS_SIZE` |
 | LOD4 pushes uniform budget past the WebGL2 minimum of 1024      | Runtime check throws before upload; works fine on desktop (4096+)    |
+
+</content>
+</invoke>
