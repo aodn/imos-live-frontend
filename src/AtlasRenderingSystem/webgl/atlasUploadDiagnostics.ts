@@ -26,8 +26,10 @@
  * deliberately heavy (a GPU sync) — it's a diagnostic, not production code.
  */
 
-/** True when `VITE_ATLAS_DIAG=true` is set in the environment. */
-const ATLAS_DIAG_ENABLED = import.meta.env.VITE_ATLAS_DIAG === 'true';
+/** True when `VITE_ATLAS_DIAG=true` is set in the environment. `import.meta.env`
+ *  is only populated under Vite — guard it so non-Vite runners (e.g. Playwright,
+ *  plain node) that import this module don't throw on the missing object. */
+const ATLAS_DIAG_ENABLED = import.meta.env?.VITE_ATLAS_DIAG === 'true';
 
 if (ATLAS_DIAG_ENABLED) {
   console.info(

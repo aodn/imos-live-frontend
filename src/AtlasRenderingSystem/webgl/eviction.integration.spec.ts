@@ -15,6 +15,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createAtlasManager } from './AtlasManager';
 import { createChunkScheduler, type ChunkRegion } from './ChunkScheduler';
 
+// The opt-in upload diagnostic (gated by VITE_ATLAS_DIAG) does a GPU readback and
+// is dev-only tooling. Keep this integration test independent of the developer's
+// local `.env` by forcing it off — otherwise the readback runs against the
+// minimal GL mock below (which has no framebuffer methods) and throws.
+vi.mock('./atlasUploadDiagnostics', () => ({
+  isAtlasDiagEnabled: () => false,
+  verifyUpload: () => {},
+}));
+
 // Region tiled by the LOD2 grid: 12 cols × 10 rows over 60°×40°, so each chunk
 // is 5° lon × 4° lat. cy=0 is northernmost (lat 36..40).
 const REGION: ChunkRegion = {

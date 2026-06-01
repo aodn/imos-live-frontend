@@ -1,6 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MAX_LODS, createAtlasManager, parseChunkId } from './AtlasManager';
 
+// The opt-in upload diagnostic (gated by VITE_ATLAS_DIAG) does a GPU readback and
+// is dev-only tooling. Keep these slot-mapping unit tests independent of the
+// developer's local `.env` by forcing it off — otherwise the readback runs
+// against the minimal GL mock below (which has no framebuffer methods) and throws.
+vi.mock('./atlasUploadDiagnostics', () => ({
+  isAtlasDiagEnabled: () => false,
+  verifyUpload: () => {},
+}));
+
 // ── Minimal WebGL2RenderingContext mock ─────────────────────────────────────
 // AtlasManager only consumes a handful of WebGL methods: createTexture,
 // bindTexture, texImage2D, texSubImage2D, texParameteri, deleteTexture, and
