@@ -21,7 +21,6 @@ The platform visualises daily oceanographic data as a WebGL-accelerated particle
 ## Documentation
 
 - [Atlas Rendering System](./src/AtlasRenderingSystem/README.md) — WebGL atlas infrastructure, shader coordinate lookup, LOD blending, API reference
-- [Data Processing](./docs/DataProcessing.md) — Python scripts that generate chunked PNG tiles from IMOS S3 data
 
 ## Setup and Usage
 

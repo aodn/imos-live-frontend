@@ -227,6 +227,8 @@ tile.png  →  fetch()  →  createImageBitmap()  →  texSubImage2D()  →  atl
 
 `createImageBitmap()` decompresses the PNG on the CPU (off main thread). `texSubImage2D()` copies the raw pixels into the slot's pixel region in VRAM. The `ImageBitmap` is then discarded — it was only needed as a staging buffer for the transfer.
 
+The decode uses `{ premultiplyAlpha: 'none', colorSpaceConversion: 'none' }`: these PNGs pack a **24-bit scalar value** in RGB, not a colour, so any alpha-premultiplication or gamma/ICC remapping would corrupt the decoded value. See [Debugging](#debugging) for the `VITE_ATLAS_DIAG` flag that verifies upload integrity.
+
 ---
 
 ### Geographic Chunks → Atlas Slots
@@ -641,6 +643,36 @@ WebGL2 guarantees `MAX_FRAGMENT_UNIFORM_COMPONENTS ≥ 1024`. The heatmap shader
 
 ---
 
+## Debugging
+
+### Upload integrity (`VITE_ATLAS_DIAG`)
+
+Scalar tiles decode to a smooth field on the server, so any on-screen "speckle"
+is introduced client-side. `atlasUploadDiagnostics.ts` provides an opt-in check
+that bisects where: **upload** (the slot bytes are wrong) vs **draw/sampling**
+(the slot is correct but rendered wrong).
+
+Enable it by setting `VITE_ATLAS_DIAG=true` in `.env` (or `.env.local`) and
+restarting the dev server. When on, every `AtlasManager` slot upload is read
+back from the texture via a scratch framebuffer and the mean horizontal `|ΔR|`
+of the high byte (R = the scalar's MSB) is logged per chunk:
+
+- **`slot OK (mean|ΔR|=…)`** — R is smooth (correct upload). Healthy tiles
+  measure ≈ 1.8–8.2.
+- **`CORRUPT SLOT … readback R is SCRAMBLED`** — the texture itself holds noise
+  (mean `|ΔR|` ≳ 20). The bug is in the **upload path**, and the line logs the
+  inherited GL state at upload time (`flipY`, `premultiply`, `colorspace`,
+  `unpackAlignment`, `unpackRowLength`, `unpackSkipPixels`, `fbWasBound`,
+  `glErr*`) so the cause can be identified.
+
+If the slot reads back clean while the screen still shows speckle, the upload is
+fine and the fault is downstream in the shader/sampling instead.
+
+The readback is a GPU sync (deliberately heavy) — leave the flag **unset**
+outside debugging. It is a no-op when disabled (one cached boolean check).
+
+---
+
 ## Module Map
 
 ```
@@ -651,6 +683,7 @@ src/
     webgl/
       AtlasManager.ts       — GPU texture + slot pool + LRU eviction
       ChunkScheduler.ts     — on-demand fetch queue per LOD
+      atlasUploadDiagnostics.ts — opt-in upload readback check (VITE_ATLAS_DIAG)
       atlasGlsl.ts          — shared GLSL (uniforms + Mercator/atlas lookup + bilinear sampler)
       heatmapShader.ts      — scalarAtlasVs + makeScalarAtlasFs() factory
       particlesShader.ts    — makeOceanCurrentAtlasFsParticle/Update() factories
