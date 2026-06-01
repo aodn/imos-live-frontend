@@ -184,7 +184,10 @@ export function preloadLod1(params: {
       (async () => {
         try {
           const blob = await fetch(`${tileBaseUrl}/${id}.png`).then(r => r.blob());
-          const img = await createImageBitmap(blob, { premultiplyAlpha: 'none' });
+          const img = await createImageBitmap(blob, {
+            premultiplyAlpha: 'none',
+            colorSpaceConversion: 'none',
+          });
           // Superseded — unwind without uploading rather than leaving a pending promise.
           if (isStale()) return resolveOnce();
           atlas.upload(id, img);
@@ -223,7 +226,10 @@ export async function preloadAllLod1(params: {
   await Promise.all(
     lod1Ids.map(async id => {
       const blob = await fetch(`${tileBaseUrl}/${id}.png`).then(r => r.blob());
-      const img = await createImageBitmap(blob, { premultiplyAlpha: 'none' });
+      const img = await createImageBitmap(blob, {
+        premultiplyAlpha: 'none',
+        colorSpaceConversion: 'none',
+      });
       if (isStale()) return; // superseded — don't upload to a torn-down atlas
       atlas.upload(id, img);
     }),

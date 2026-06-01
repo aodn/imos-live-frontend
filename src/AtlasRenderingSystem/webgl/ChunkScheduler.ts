@@ -102,7 +102,9 @@ async function fetchChunk(url: string, signal: AbortSignal): Promise<ImageBitmap
   // premultiplyAlpha:'none' — A channel is always 255 in our PNGs so this is
   // a no-op, but it's defensive: prevents the browser from corrupting R/G/B
   // values if A were ever less than 255.
-  return createImageBitmap(blob, { premultiplyAlpha: 'none' });
+  // colorSpaceConversion:'none' — the RGB bytes pack a 24-bit scalar value, not
+  // a colour, so any gamma/ICC profile remapping would corrupt the decoded data.
+  return createImageBitmap(blob, { premultiplyAlpha: 'none', colorSpaceConversion: 'none' });
 }
 
 // Factory

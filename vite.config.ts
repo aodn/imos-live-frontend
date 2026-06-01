@@ -11,14 +11,14 @@ import { visualizer } from 'rollup-plugin-visualizer';
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
-  const { VITE_STATS_ENABLED } = env;
+  const { VITE_STATS_ENABLED, VITE_GA_MEASUREMENT_ID } = env;
 
   const plugins: UserConfig['plugins'] = [
     react(),
     tailwindcss(),
     svgr(),
     mockServerPlugin(),
-    googleAnalyticsPlugin(mode),
+    googleAnalyticsPlugin(VITE_GA_MEASUREMENT_ID),
   ];
 
   // In dev, proxy the wave-buoy REST endpoint through the portal so the browser
@@ -121,19 +121,18 @@ const mockServerPlugin = (): Plugin => {
   };
 };
 
-const googleAnalyticsPlugin = (mode: string) => {
-  const { VITE_GA_MEASUREMENT_ID } = loadEnv(mode, process.cwd(), '');
+const googleAnalyticsPlugin = (measurementId?: string): Plugin => {
   return {
     name: 'vite-plugin-google-analytics',
     transformIndexHtml(html: string) {
-      if (!VITE_GA_MEASUREMENT_ID) return html;
+      if (!measurementId) return html;
       const gaScript = `
-          <script async src="https://www.googletagmanager.com/gtag/js?id=${VITE_GA_MEASUREMENT_ID}"></script>
+          <script async src="https://www.googletagmanager.com/gtag/js?id=${measurementId}"></script>
           <script>
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', '${VITE_GA_MEASUREMENT_ID}');
+            gtag('config', '${measurementId}');
           </script>
         `;
       return html.replace('<!-- google-analytics-js -->', gaScript);

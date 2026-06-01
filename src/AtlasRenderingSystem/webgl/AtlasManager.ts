@@ -29,6 +29,8 @@
  * ChunkId convention: "{lod}/{cx}/{cy}"  e.g. "1/0/0", "2/3/2", "3/5/4"
  */
 
+import { isAtlasDiagEnabled, verifyUpload } from './atlasUploadDiagnostics';
+
 /** Maximum number of LODs the shader supports. Drives the GLSL array sizes. */
 export const MAX_LODS = 4;
 
@@ -227,12 +229,18 @@ export function createAtlasManager(
 
   // ── Private helpers ────────────────────────────────────────────────────────
 
-  function writeToSlot(physSlot: number, img: ImageBitmap): void {
+  function writeToSlot(physSlot: number, img: ImageBitmap, chunkId?: string): void {
     const col = physSlot % atlasCols;
     const row = Math.floor(physSlot / atlasCols);
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texSubImage2D(gl.TEXTURE_2D, 0, col * slotW, row * slotH, gl.RGBA, gl.UNSIGNED_BYTE, img);
     gl.bindTexture(gl.TEXTURE_2D, null);
+
+    // Opt-in diagnostic: read the slot back and confirm it matches the source.
+    // Bisects upload-corruption vs draw-corruption. No-op unless enabled.
+    if (chunkId && isAtlasDiagEnabled()) {
+      verifyUpload(gl, chunkId, { texture, x: col * slotW, y: row * slotH, slotW, slotH });
+    }
   }
 
   /** Evict the least-recently-used pool slot and return its physical index. */
@@ -283,7 +291,7 @@ export function createAtlasManager(
       slotToChunk.set(physSlot, chunkId);
     }
 
-    writeToSlot(physSlot, img);
+    writeToSlot(physSlot, img, chunkId);
     chunkSlots[virtIdx] = physSlot;
     chunkToSlot.set(chunkId, physSlot);
   }

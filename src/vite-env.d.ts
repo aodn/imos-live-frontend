@@ -5,4 +5,5 @@ interface ImportMetaEnv {
   readonly VITE_AUTOMATED_TEST_RUNNING: boolean;
   readonly VITE_MAPBOX_KEY: string;
   readonly VITE_TILE_BASE_URL: string;
+  readonly VITE_ATLAS_DIAG: string;
 }
