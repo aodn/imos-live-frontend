@@ -50,6 +50,11 @@ function makeGl(maxTextureSize: number): WebGL2RenderingContext {
     CLAMP_TO_EDGE: 0x812f,
     MAX_TEXTURE_SIZE: 0x0d33,
     MAX_FRAGMENT_UNIFORM_COMPONENTS: 0x8b49,
+    UNPACK_FLIP_Y_WEBGL: 0x9240,
+    UNPACK_PREMULTIPLY_ALPHA_WEBGL: 0x9241,
+    UNPACK_COLORSPACE_CONVERSION_WEBGL: 0x9243,
+    NONE: 0,
+    pixelStorei: () => {},
     getParameter: (p: number) => {
       if (p === 0x0d33) return maxTextureSize;
       if (p === 0x8b49) return 4096;

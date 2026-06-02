@@ -44,6 +44,11 @@ function makeGl(opts?: { maxTextureSize?: number; maxFragmentUniformComponents?:
     CLAMP_TO_EDGE: 0x812f,
     MAX_TEXTURE_SIZE: 0x0d33,
     MAX_FRAGMENT_UNIFORM_COMPONENTS: 0x8b49,
+    UNPACK_FLIP_Y_WEBGL: 0x9240,
+    UNPACK_PREMULTIPLY_ALPHA_WEBGL: 0x9241,
+    UNPACK_COLORSPACE_CONVERSION_WEBGL: 0x9243,
+    NONE: 0,
+    pixelStorei: vi.fn(),
     getParameter: vi.fn((p: number) => {
       if (p === 0x0d33) return opts?.maxTextureSize ?? 4096;
       if (p === 0x8b49) return opts?.maxFragmentUniformComponents ?? 4096;
@@ -143,6 +148,29 @@ describe('createAtlasManager — sizing & uniforms', () => {
       lods: [{ grid: [3, 3] }],
     });
     expect(m.filterMode).toBe((m.gl as unknown as { LINEAR: number }).LINEAR);
+  });
+
+  it('resets inherited pixel-store unpack state on every upload', () => {
+    // The GL context is shared with Mapbox; our async tile uploads must not
+    // inherit Mapbox's flipY/premultiply/colorspace flags or the RGB-packed
+    // scalar gets corrupted. Each upload must reset all three.
+    const m = makeGl();
+    const g = m.gl as unknown as {
+      pixelStorei: ReturnType<typeof vi.fn>;
+      UNPACK_FLIP_Y_WEBGL: number;
+      UNPACK_PREMULTIPLY_ALPHA_WEBGL: number;
+      UNPACK_COLORSPACE_CONVERSION_WEBGL: number;
+      NONE: number;
+    };
+    const atlas = createAtlasManager(m.gl, { slotPx: [242, 194], lods: [{ grid: [3, 3] }] });
+    g.pixelStorei.mockClear();
+
+    atlas.upload('1/0/0', FAKE_IMG);
+
+    const calls = g.pixelStorei.mock.calls;
+    expect(calls).toContainEqual([g.UNPACK_FLIP_Y_WEBGL, false]);
+    expect(calls).toContainEqual([g.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false]);
+    expect(calls).toContainEqual([g.UNPACK_COLORSPACE_CONVERSION_WEBGL, g.NONE]);
   });
 
   it('lodOffsets is padded to MAX_LODS and accumulates chunk counts', () => {

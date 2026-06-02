@@ -233,6 +233,16 @@ export function createAtlasManager(
     const col = physSlot % atlasCols;
     const row = Math.floor(physSlot / atlasCols);
     gl.bindTexture(gl.TEXTURE_2D, texture);
+    // Pixel-store unpack state is GLOBAL to the GL context, which we share with
+    // Mapbox. Our uploads run in async fetch().then() callbacks that interleave
+    // unpredictably with Mapbox's own texture uploads, so without resetting here
+    // a tile can inherit Mapbox's flipY/premultiply/colorspace flags and get
+    // corrupted on the way into the slot — these PNGs pack a 24-bit scalar in
+    // RGB, so any flip/premultiply/gamma remap scrambles the decoded value
+    // (the intermittent, per-tile "speckle"). Reset on every upload, not once.
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+    gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE);
     gl.texSubImage2D(gl.TEXTURE_2D, 0, col * slotW, row * slotH, gl.RGBA, gl.UNSIGNED_BYTE, img);
     gl.bindTexture(gl.TEXTURE_2D, null);
 
