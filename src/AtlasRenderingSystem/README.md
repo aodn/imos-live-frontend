@@ -697,14 +697,6 @@ fine and the fault is downstream in the shader/sampling instead.
 The readback is a GPU sync (deliberately heavy) — leave the flag **unset**
 outside debugging. It is a no-op when disabled (one cached boolean check).
 
-### Solved: intermittent rainbow-speckle corruption
-
-A long-standing intermittent speckle bug — fixed by toggling dates or "Disable
-cache", which made it look data/cache-dependent — was traced to `AtlasManager`
-uploading tiles without resetting the GL pixel-store unpack state it shares with
-Mapbox. Full investigation, ruled-out hypotheses, root cause, and fix:
-[`docs/tile-speckle-pixel-store-postmortem.md`](./docs/tile-speckle-pixel-store-postmortem.md).
-
 ---
 
 ## Module Map

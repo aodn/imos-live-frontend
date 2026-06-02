@@ -7,8 +7,6 @@
       "Bash(npx playwright test:*)",
       "WebFetch(domain:api.mapbox.com)",
       "Bash(pnpm import:*)",
-      "Bash(pnpm add:*)",
-      "Bash(grep -E \"\\\\.\\(ts|js|tsx\\)$\")",
       "Bash(pnpm test *)",
       "Bash(pnpm vitest *)",
       "Bash(pnpm exec *)",
@@ -16,7 +14,8 @@
       "Bash(npx vitest *)",
       "Bash(pnpm lint *)",
       "Bash(npx tsc *)",
-      "Bash(curl *)"
+      "Bash(curl *)",
+      "Bash(npx playwright *)"
     ],
     "deny": [],
     "ask": []
