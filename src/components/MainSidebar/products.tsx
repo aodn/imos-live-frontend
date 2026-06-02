@@ -34,44 +34,53 @@ type FeaturedPresentation = {
   icon: ReactNode;
 };
 
-const featuredPresentation: FeaturedPresentation[] = [
-  {
-    product: PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT,
-    title: 'GSLA Ocean geostrophic current',
-    image: { src: oceanCurrentImage, alt: 'GSLA Ocean geostrophic current' },
-    icon: <WaveIcon size="lg" />,
-  },
-  {
-    product: PRODUCT.GSLA_ANOMALY_SEA_LEVELS,
-    title: 'GSLA sea level anomaly',
-    image: { src: anomalySeaLevelImage, alt: 'GSLA sea level anomaly' },
-    icon: <WaterSurfaceIcon size="lg" />,
-  },
-  {
-    product: PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC,
-    title: 'Marine heatwave sea surface temperature anomaly (SSTA) mosaic',
-    image: { src: sstImage, alt: 'Marine heatwave SSTA Mosaic' },
-    icon: <ThermometerIcon size="lg" />,
-  },
-  {
-    product: PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC,
-    title: 'Marine heatwave sea surface temperature (SST) Mosaic',
-    image: { src: sstImage, alt: 'Marine heatwave SST Mosaic' },
-    icon: <ThermometerIcon size="lg" />,
-  },
-  {
-    product: PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY,
-    title: 'Marine heatwave sea surface temperature MCS Category',
-    image: { src: sstImage, alt: 'Marine heatwave MCS Category' },
-    icon: <ThermometerIcon size="lg" />,
-  },
-  {
-    product: PRODUCT.WAVE_BUOYS,
-    title: 'Wave buoys',
-    image: { src: waveBuoysImage, alt: 'Wave buoys' },
-    icon: <WaveBuoyIcon size="lg" />,
-  },
-];
+const featuredPresentation: FeaturedPresentation[] = ((products: ProductType[]) => {
+  return [
+    {
+      product: PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT,
+      title: 'GSLA Ocean geostrophic current',
+      image: { src: oceanCurrentImage, alt: 'GSLA Ocean geostrophic current' },
+      icon: <WaveIcon size="lg" />,
+    },
+    {
+      product: PRODUCT.GSLA_ANOMALY_SEA_LEVELS,
+      title: 'GSLA sea level anomaly',
+      image: { src: anomalySeaLevelImage, alt: 'GSLA sea level anomaly' },
+      icon: <WaterSurfaceIcon size="lg" />,
+    },
+    {
+      product: PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC,
+      title: 'Marine heatwave sea surface temperature anomaly (SSTA) mosaic',
+      image: { src: sstImage, alt: 'Marine heatwave SSTA Mosaic' },
+      icon: <ThermometerIcon size="lg" />,
+    },
+    {
+      product: PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC,
+      title: 'Marine heatwave sea surface temperature (SST) Mosaic',
+      image: { src: sstImage, alt: 'Marine heatwave SST Mosaic' },
+      icon: <ThermometerIcon size="lg" />,
+    },
+    {
+      product: PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY,
+      title: 'Marine heatwave sea surface temperature MCS Category',
+      image: { src: sstImage, alt: 'Marine heatwave MCS Category' },
+      icon: <ThermometerIcon size="lg" />,
+    },
+    {
+      product: PRODUCT.WAVE_BUOYS,
+      title: 'Wave buoys',
+      image: { src: waveBuoysImage, alt: 'Wave buoys' },
+      icon: <WaveBuoyIcon size="lg" />,
+    },
+  ].filter(({ product }) => products.includes(product));
+})([
+  PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT,
+  PRODUCT.GSLA_ANOMALY_SEA_LEVELS,
+  PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC,
+  PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC,
+  // PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY,
+  PRODUCT.WAVE_BUOYS,
+]);
 
 export const featuredDataset: LayersDataset[] = featuredPresentation.map(
   ({ product, title, image, icon }) => ({
