@@ -21,7 +21,7 @@ export type MetaDataManifest = {
  * pipeline work.
  */
 export const TILE_BASE_URL: string =
-  import.meta.env.VITE_TILE_BASE_URL || 'http://3.106.121.209/data_tiles';
+  import.meta.env.VITE_TILE_BASE_URL || 'https://dhxbyhlmab1yr.cloudfront.net/data_tiles';
 
 export const getMetaDataManifest = async (): Promise<MetaDataManifest> => {
   const response = await axios.get<MetaDataManifest>(`${TILE_BASE_URL}/manifest`);
