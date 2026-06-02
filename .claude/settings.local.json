@@ -14,7 +14,8 @@
       "Bash(pnpm exec *)",
       "Bash(pnpm typecheck *)",
       "Bash(npx vitest *)",
-      "Bash(pnpm lint *)"
+      "Bash(pnpm lint *)",
+      "Bash(npx tsc *)"
     ],
     "deny": [],
     "ask": []
