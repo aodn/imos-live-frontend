@@ -62,9 +62,11 @@ void main() {
 }
 `;
 
-// Atlas helpers (uniforms + Mercator/lookup) come from makeAtlasGlsl; the
-// particle shaders additionally need the bilinear RG sampler from
-// makeBilinearSamplerGlsl. Both are concatenated into each fragment shader below.
+/**
+ * Atlas helpers (uniforms + Mercator/lookup) come from makeAtlasGlsl; the
+ * particle shaders additionally need the bilinear RG sampler from
+ * makeBilinearSamplerGlsl. Both are concatenated into each fragment shader below.
+ */
 function makeSharedGlsl(
   totalSlots: number,
   totalVirtualChunks: number,

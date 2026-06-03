@@ -55,3 +55,10 @@ export const INITIAL_PRODUCT_ENABLED = {
   [PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY]: false,
   [PRODUCT.WAVE_BUOYS]: true,
 } as const satisfies ProductEnabled;
+
+function buildProductBooleanMap(value: boolean): ProductEnabled {
+  return Object.fromEntries(Object.values(PRODUCT).map(p => [p, value])) as ProductEnabled;
+}
+
+export const INITIAL_PRODUCT_ERROR = buildProductBooleanMap(false);
+export const INITIAL_PRODUCT_LOADING = buildProductBooleanMap(false);

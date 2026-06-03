@@ -6,7 +6,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { PRODUCT, PRODUCTLEGENDS, SCALAR_TILES_GROUP } from '@/constants';
 import type { TilesProduct } from '@/constants';
-import { useMapUIStore } from './useMapUIStore';
+import { getProductLegend, useMapUIStore } from './useMapUIStore';
 
 // Snapshot the initial store state so each test starts from a known baseline.
 // Zustand stores live for the lifetime of the module, so we have to reset
@@ -109,7 +109,7 @@ describe('product legends', () => {
   it('getProductLegend reflects the latest set', () => {
     const product = PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC as TilesProduct;
     useMapUIStore.getState().setProductLegend(product, { range: [-3, 3] });
-    expect(useMapUIStore.getState().getProductLegend(product).range).toEqual([-3, 3]);
+    expect(getProductLegend(product).range).toEqual([-3, 3]);
   });
 });
 

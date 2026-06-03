@@ -10,7 +10,8 @@ import {
   INITIAL_PARTICLE_CONFIG,
   PRODUCTLEGENDS,
   INITIAL_PRODUCT_ENABLED,
-  PRODUCT,
+  INITIAL_PRODUCT_ERROR,
+  INITIAL_PRODUCT_LOADING,
   SCALAR_TILES_GROUP,
 } from '@/constants';
 import type { LegendArgs, ProductType, TilesProduct } from '@/constants';
@@ -56,16 +57,33 @@ export type MapUIState = {
   setProductLoadingByProduct: (product: ProductType, loading: boolean) => void;
   setProductEnabledByProduct: (product: ProductType, enabled: boolean) => void;
   setProductLegend: (product: TilesProduct, legend: Partial<LegendArgs>) => void;
-  getProductLegend: (product: TilesProduct) => LegendArgs;
   setJumpToDate: (date: string) => void;
   clearJumpToDate: () => void;
 };
 
+// The store keys synced to the URL — single source of truth for both reading
+// params back in (`getItem`) and writing them out (`partialize`), so the two
+// can't drift. Foreign query params (utm_*, OAuth callbacks, etc.) are ignored.
+const URL_SYNCED_KEYS = [
+  'center',
+  'zoom',
+  'style',
+  'particleConfig',
+  'distanceMeasurementEnabled',
+  'worldBoundariesEnabled',
+  'date',
+  'productEnabled',
+  'productLegends',
+] as const satisfies readonly (keyof MapUIState)[];
+
+const URL_SYNCED_KEY_SET = new Set<string>(URL_SYNCED_KEYS);
+
 const hashStorage: StateStorage = {
   getItem: () => {
     const url = new URL(location.href);
-    const restoredState: Record<string, any> = {};
+    const restoredState: Record<string, unknown> = {};
     for (const [key, value] of url.searchParams.entries()) {
+      if (!URL_SYNCED_KEY_SET.has(key)) continue;
       restoredState[key] = deserialize(value);
     }
 
@@ -89,19 +107,20 @@ const hashStorage: StateStorage = {
 const storageOptions = {
   name: 'url-sync',
   storage: createJSONStorage<MapUIState>(() => hashStorage),
-  //select fields intended to sync in url
+  // Sync only the URL_SYNCED_KEYS subset to the URL (excludes transient state:
+  // dates, productError, productLoading, jumpToDate).
   partialize: (state: MapUIState) => {
-    //filter out dates, productError, productLoading, and jumpToDate to sync in url
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { dates, productError, productLoading, jumpToDate, ...rest } = state;
-
-    return rest as MapUIState;
+    const synced = {} as MapUIState;
+    for (const k of URL_SYNCED_KEYS) {
+      (synced as Record<string, unknown>)[k] = state[k];
+    }
+    return synced;
   },
 };
 
 export const useMapUIStore = create(
   persist<MapUIState>(
-    (set, get) => ({
+    set => ({
       center: INITIAL_CENTER,
       zoom: INITIAL_ZOOM,
       style: INITIAL_STYLE,
@@ -111,22 +130,8 @@ export const useMapUIStore = create(
       dates: DATE_RANGE,
       date: INITIAL_DATE,
       productEnabled: INITIAL_PRODUCT_ENABLED,
-      productError: {
-        [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: false,
-        [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: false,
-        [PRODUCT.WAVE_BUOYS]: false,
-        [PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC]: false,
-        [PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC]: false,
-        [PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY]: false,
-      },
-      productLoading: {
-        [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: false,
-        [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: false,
-        [PRODUCT.WAVE_BUOYS]: false,
-        [PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC]: false,
-        [PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC]: false,
-        [PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY]: false,
-      },
+      productError: INITIAL_PRODUCT_ERROR,
+      productLoading: INITIAL_PRODUCT_LOADING,
       productLegends: Object.fromEntries(
         Object.entries(PRODUCTLEGENDS).map(([k, v]) => [k, { ...v }]),
       ) as Record<TilesProduct, LegendArgs>,
@@ -142,10 +147,7 @@ export const useMapUIStore = create(
         set({ distanceMeasurementEnabled }),
       setWorldBoundariesEnabled: worldBoundariesEnabled => set({ worldBoundariesEnabled }),
       setDate: date => set({ date }),
-      refreshDates: () => {
-        const newDates = DATE_RANGE;
-        set(prev => ({ ...prev, dates: newDates }));
-      },
+      refreshDates: () => set({ dates: DATE_RANGE }),
       setProductEnabledByProduct: (product, enabled) => {
         set(prev => {
           const next = { ...prev.productEnabled };
@@ -154,12 +156,11 @@ export const useMapUIStore = create(
           } else {
             next[product] = enabled;
           }
-          return { ...prev, productEnabled: next };
+          return { productEnabled: next };
         });
       },
       setProductErrorByProduct: (product, error) => {
         set(prev => ({
-          ...prev,
           productError: {
             ...prev.productError,
             [product]: error,
@@ -168,7 +169,6 @@ export const useMapUIStore = create(
       },
       setProductLoadingByProduct: (product, loading) => {
         set(prev => ({
-          ...prev,
           productLoading: {
             ...prev.productLoading,
             [product]: loading,
@@ -182,7 +182,6 @@ export const useMapUIStore = create(
             [product]: { ...prev.productLegends[product], ...legend },
           },
         })),
-      getProductLegend: product => get().productLegends[product],
       setJumpToDate: date => set({ jumpToDate: { date, trigger: Date.now() } }),
       clearJumpToDate: () => set({ jumpToDate: null }),
     }),
@@ -204,7 +203,10 @@ export const {
   setProductLoadingByProduct,
   setProductEnabledByProduct,
   setProductLegend,
-  getProductLegend,
   setJumpToDate,
   clearJumpToDate,
 } = useMapUIStore.getState();
+
+export function getProductLegend(product: TilesProduct): LegendArgs {
+  return useMapUIStore.getState().productLegends[product];
+}
