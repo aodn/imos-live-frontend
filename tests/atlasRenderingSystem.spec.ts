@@ -19,6 +19,7 @@
  *   - rapid date changes resolve cleanly (fetchGeneration guard)
  */
 import { PRODUCT, PRODUCTS } from '@/constants';
+import { serialize } from '@/store/serialization';
 import type { Page, Route } from '@playwright/test';
 import { expect, test } from '@playwright/test';
 import type { Map } from 'mapbox-gl';
@@ -36,15 +37,16 @@ const nextDaySelected = '2025-07-02';
 // independent of INITIAL_PRODUCT_ENABLED (which enables several products by
 // default). Each test then enables exactly the one product it exercises via the
 // sidebar, which assumes that product starts hidden.
-const NO_PRODUCTS_ENABLED = encodeURIComponent(
-  JSON.stringify({
+const NO_PRODUCTS_ENABLED = serialize(
+  {
     [GSLA_PARTICLE_PRODUCT]: false,
     [GSLA_ANOMALY_PRODUCT]: false,
     [PRODUCT.WAVE_BUOYS]: false,
     [PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC]: false,
     [PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC]: false,
     [PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY]: false,
-  }),
+  },
+  'productEnabled',
 );
 const defaultDayURL = `/?date=${defaultDaySelected}&productEnabled=${NO_PRODUCTS_ENABLED}`;
 

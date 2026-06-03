@@ -4,6 +4,7 @@ import {
   PRODUCTS,
   UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
 } from '@/constants';
+import { serialize } from '@/store/serialization';
 import type { Page, Route } from '@playwright/test';
 import { expect, test } from '@playwright/test';
 import { type Map } from 'mapbox-gl';
@@ -196,15 +197,16 @@ const nextDaySelected = '2025-07-02';
 // enabled — via the URL, so the suite is independent of INITIAL_PRODUCT_ENABLED
 // (which now enables several products by default). The select/deselect helpers
 // below assume Ocean Current + Anomaly start hidden and Wave Buoys starts shown.
-const ONLY_WAVE_BUOYS_ENABLED = encodeURIComponent(
-  JSON.stringify({
+const ONLY_WAVE_BUOYS_ENABLED = serialize(
+  {
     [GSLA_PARTICLE_PRODUCT]: false,
     [GSLA_ANOMALY_PRODUCT]: false,
     [PRODUCT.WAVE_BUOYS]: true,
     [PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC]: false,
     [PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC]: false,
     [PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY]: false,
-  }),
+  },
+  'productEnabled',
 );
 const defaultDayURL = `/?date=${defaultDaySelected}&productEnabled=${ONLY_WAVE_BUOYS_ENABLED}`;
 
@@ -559,25 +561,27 @@ test.describe('URL state restore', () => {
     await sliderHandle.waitFor({ state: 'visible' });
 
     // The slider auto-scrolls to position over the persisted date; the URL should
-    // continue to reflect the restored value after hydration. Match across either
-    // the bare or URL-encoded type tag (`s:` vs `s%3A`).
-    await expect(page).toHaveURL(new RegExp(`date=(?:s(?::|%3A))?${deepLinkDate}`));
+    // continue to reflect the restored value after hydration. `date` is stored
+    // verbatim (no type tag) and always kept in the URL (see urlSync.ts).
+    await expect(page).toHaveURL(new RegExp(`date=${deepLinkDate}`));
   });
 
   test('restores `productEnabled` from the URL on load (only sea-level anomaly enabled)', async ({
     page,
   }) => {
-    // Legacy bare-JSON form is accepted by deserialize() — see serialization.ts's
-    // legacy fallback branch. Using it here keeps the URL human-readable.
-    const productEnabled = {
-      [GSLA_PARTICLE_PRODUCT]: false,
-      [GSLA_ANOMALY_PRODUCT]: true,
-      [PRODUCT.WAVE_BUOYS]: false,
-      [PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC]: false,
-      [PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC]: false,
-      [PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY]: false,
-    };
-    const encoded = encodeURIComponent(JSON.stringify(productEnabled));
+    // Encode with the app's own codec so the URL matches what the store reads
+    // back (productEnabled is a per-product bit string — see serialization.ts).
+    const encoded = serialize(
+      {
+        [GSLA_PARTICLE_PRODUCT]: false,
+        [GSLA_ANOMALY_PRODUCT]: true,
+        [PRODUCT.WAVE_BUOYS]: false,
+        [PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC]: false,
+        [PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC]: false,
+        [PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY]: false,
+      },
+      'productEnabled',
+    );
     await page.goto(`/?date=${defaultDaySelected}&productEnabled=${encoded}`);
 
     await mapComponent.waitUntilLayerLoaded(page, GSLA_ANOMALY_LAYER_ID);
