@@ -130,7 +130,7 @@ export function useAtlasLayer<H extends AtlasLayerHandle>({
 
   useDidMountEffect(() => {
     if (!loadComplete || !enabled || !manifestLoaded) return;
-    loadData();
+    void loadData();
   }, [loadComplete, enabled, manifestLoaded, date]);
 
   // Colour key change

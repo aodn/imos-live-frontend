@@ -87,33 +87,37 @@ const mockServerPlugin = (): Plugin => {
     name: 'configure-preview-server',
     configureServer(server) {
       return () => {
-        server.middlewares.use(async (req, res, next) => {
-          const url = req.originalUrl || req.url;
+        server.middlewares.use((req, res, next) => {
+          // Connect expects a void-returning handler; run the async body as a
+          // fire-and-forget IIFE.
+          void (async () => {
+            const url = req.originalUrl || req.url;
 
-          if (!url || (!url.startsWith('/data') && !url.startsWith('/api'))) return next();
+            if (!url || (!url.startsWith('/data') && !url.startsWith('/api'))) return next();
 
-          if (url.endsWith('png')) res.writeHead(200, { 'Content-Type': 'image/png' });
-          else res.writeHead(200, { 'Content-Type': 'application/json' });
+            if (url.endsWith('png')) res.writeHead(200, { 'Content-Type': 'image/png' });
+            else res.writeHead(200, { 'Content-Type': 'application/json' });
 
-          if (url.endsWith('gsla_meta.json')) res.end(JSON.stringify(meta()));
-          if (url.endsWith('gsla_data.json')) res.end(JSON.stringify(gslaData()));
+            if (url.endsWith('gsla_meta.json')) res.end(JSON.stringify(meta()));
+            if (url.endsWith('gsla_data.json')) res.end(JSON.stringify(gslaData()));
 
-          if (url.includes('items/first_data_available')) {
-            res.end(JSON.stringify(locations()));
-          }
-          if (url.includes('items/timeseries')) {
-            const timeseriesURL = new URL(url, `http://${req.headers.host}`);
-            const buoyName = timeseriesURL.searchParams.get('waveBuoy') ?? '';
-            const [from, to] = timeseriesURL.searchParams.get('datetime')?.split('/') || [];
-            res.end(
-              JSON.stringify(
-                genBuoyRandomData({ name: buoyName, from: new Date(from), to: new Date(to) }),
-              ),
-            );
-          }
+            if (url.includes('items/first_data_available')) {
+              res.end(JSON.stringify(locations()));
+            }
+            if (url.includes('items/timeseries')) {
+              const timeseriesURL = new URL(url, `http://${req.headers.host}`);
+              const buoyName = timeseriesURL.searchParams.get('waveBuoy') ?? '';
+              const [from, to] = timeseriesURL.searchParams.get('datetime')?.split('/') || [];
+              res.end(
+                JSON.stringify(
+                  genBuoyRandomData({ name: buoyName, from: new Date(from), to: new Date(to) }),
+                ),
+              );
+            }
 
-          if (url.endsWith('gsla_overlay.png')) res.end(await rasterBitmap());
-          if (url.endsWith('gsla_input.png')) res.end(await inputBitmap());
+            if (url.endsWith('gsla_overlay.png')) res.end(await rasterBitmap());
+            if (url.endsWith('gsla_input.png')) res.end(await inputBitmap());
+          })();
         });
       };
     },

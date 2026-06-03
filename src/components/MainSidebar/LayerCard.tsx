@@ -41,7 +41,8 @@ export function LayerCard({
   const handleClick = () => {
     if (addToMap) addToMap(product, !visible);
     if (layerId === PRODUCTS[PRODUCT.WAVE_BUOYS].layerId) {
-      import('../Highcharts/WaveBuoyChart');
+      // Fire-and-forget prefetch of the chart chunk.
+      void import('../Highcharts/WaveBuoyChart');
     }
   };
 

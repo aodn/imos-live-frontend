@@ -38,7 +38,7 @@ export function useTilesLayersEventHandlers({
   );
 
   const handleMapClick = useCallback(
-    async (e: mapboxgl.MapMouseEvent) => {
+    (e: mapboxgl.MapMouseEvent) => {
       if (!map?.current || (!oceanCurrentEnabled && !heatmapEnabled)) return;
 
       if (!shouldHandleMapClick(e)) return;

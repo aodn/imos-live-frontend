@@ -185,7 +185,7 @@ export function createChunkScheduler(
     // letting drain() start more than CONCURRENCY concurrent fetches.
   }
 
-  async function drain() {
+  function drain() {
     // Highest priority (lowest number) first. Nothing is enqueued during the
     // synchronous loop below, so sort once here rather than on every iteration.
     queue.sort((a, b) => a.priority - b.priority);

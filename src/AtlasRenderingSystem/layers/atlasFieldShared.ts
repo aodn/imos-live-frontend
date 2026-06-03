@@ -181,7 +181,7 @@ export function preloadLod1(params: {
     };
 
     for (const id of lod1Ids) {
-      (async () => {
+      void (async () => {
         try {
           const blob = await fetch(`${tileBaseUrl}/${id}.png`).then(r => r.blob());
           const img = await createImageBitmap(blob, {

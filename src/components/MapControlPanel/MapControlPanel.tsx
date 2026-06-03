@@ -81,7 +81,7 @@ export function MapControlPanel({
       : undefined;
 
     mapRef.current.once('render', () => {
-      exportMapImage(mapRef.current!.getCanvas(), date, productArg, bounds);
+      void exportMapImage(mapRef.current!.getCanvas(), date, productArg, bounds);
     });
 
     mapRef.current.triggerRepaint();

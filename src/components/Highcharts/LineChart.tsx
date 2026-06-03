@@ -1,4 +1,5 @@
-import React, { useRef, useImperativeHandle, useMemo, memo } from 'react';
+import type React from 'react';
+import { useRef, useImperativeHandle, useMemo, memo } from 'react';
 import Highcharts from 'highcharts/highstock';
 import HighchartsReact from 'highcharts-react-official';
 import type { LineChartProps } from './type';

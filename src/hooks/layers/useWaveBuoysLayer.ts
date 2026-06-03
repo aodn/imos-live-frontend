@@ -146,7 +146,7 @@ export function useWaveBuoysLayer({ map, product }: UseWaveBuoysLayer) {
     });
     buoyLayers.forEach(layer => addLayerInOrder(map, layer));
     if (enabled) {
-      setDataByDataset();
+      void setDataByDataset();
     }
   }, [buoyLayers, enabled, map, setDataByDataset, sourceId]);
 
@@ -161,6 +161,6 @@ export function useWaveBuoysLayer({ map, product }: UseWaveBuoysLayer) {
 
   useDidMountEffect(() => {
     if (!map.current || !loadComplete || !enabled) return;
-    setDataByDataset();
+    void setDataByDataset();
   }, [loadComplete, date, enabled]);
 }

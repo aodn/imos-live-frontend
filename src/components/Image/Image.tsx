@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import type React from 'react';
+import { useState, useEffect } from 'react';
 import { cn } from '@/utils';
 import { Skeleton } from '../Skeleton';
 import { ImageErrorIcon } from '../Icons';

@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react';
+import type React from 'react';
+import { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { ArrowIcon, CloseIcon } from '../Icons';
 import { cn } from '@/utils';

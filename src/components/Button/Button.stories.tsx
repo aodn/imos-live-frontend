@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/rules-of-hooks */
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import type { Meta, StoryObj } from '@storybook/react';
 import { Button } from './Button';

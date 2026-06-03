@@ -39,11 +39,15 @@ describe('useIsScrolling', () => {
     document.body.appendChild(target);
     const { result } = renderHook(() => useIsScrolling(target, 200));
 
-    act(() => target.dispatchEvent(new Event('scroll')));
+    act(() => {
+      target.dispatchEvent(new Event('scroll'));
+    });
     act(() => {
       vi.advanceTimersByTime(150);
     });
-    act(() => target.dispatchEvent(new Event('scroll')));
+    act(() => {
+      target.dispatchEvent(new Event('scroll'));
+    });
     act(() => {
       vi.advanceTimersByTime(150);
     });
@@ -56,7 +60,9 @@ describe('useIsScrolling', () => {
 
   it('attaches to document when passed window', () => {
     const { result } = renderHook(() => useIsScrolling(window, 100));
-    act(() => document.dispatchEvent(new Event('scroll')));
+    act(() => {
+      document.dispatchEvent(new Event('scroll'));
+    });
     expect(result.current).toBe(true);
   });
 
