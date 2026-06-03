@@ -1,7 +1,7 @@
 import { TriangleIcon } from '../Icons';
 import { clearJumpToDate, setDate, useMapUIStore } from '@/store';
 import { memo, useCallback, useEffect, useRef } from 'react';
-import { useQueryParamsByKey, useDateSliderDates } from '@/hooks';
+import { useDateSliderDates, useHasInitialQueryParam } from '@/hooks';
 import {
   DateSlider,
   type SliderExposedMethod,
@@ -22,7 +22,8 @@ export const DateSelectionBar = memo(function DateSelectionBar({
   className,
 }: DateSelectionBarProps) {
   const { date, startDate, endDate } = useDateSliderDates();
-  const { isExisted: isDateInQueryParams } = useQueryParamsByKey('date');
+  // Does date in url (Snapshot at mount, beacuse history.replaceState used when set date, which doesn't trigger popstate, so React Router doesn't see the update. See store/urlSync.ts)
+  const isDateInQueryParams = useHasInitialQueryParam('date');
   const { jumpTrigger, jumpDate } = useMapUIStore(
     useShallow(s => ({
       jumpTrigger: s.jumpToDate?.trigger,

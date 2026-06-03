@@ -159,3 +159,27 @@ describe('miscellaneous setters', () => {
     expect(after.nParticles).toBe(before.nParticles);
   });
 });
+
+describe('URL sync carries only non-default state', () => {
+  it('omits params equal to the initial state', () => {
+    // beforeEach reset the store to its initial state, which clears the URL.
+    const params = new URLSearchParams(location.search);
+    expect(params.has('zoom')).toBe(false);
+    expect(params.has('productEnabled')).toBe(false);
+  });
+
+  it('writes a param once it differs from initial, then drops it on reset', () => {
+    useMapUIStore.getState().setZoom(INITIAL_STATE.zoom + 4);
+    expect(new URLSearchParams(location.search).get('zoom')).toBe(String(INITIAL_STATE.zoom + 4));
+
+    useMapUIStore.getState().setZoom(INITIAL_STATE.zoom);
+    expect(new URLSearchParams(location.search).has('zoom')).toBe(false);
+  });
+
+  it('always keeps date in the URL, even when it equals the initial date', () => {
+    // date is exempt from default-omit: its absence means "jump to latest", so a
+    // shared link must carry it even when it happens to equal INITIAL_DATE.
+    useMapUIStore.getState().setDate(INITIAL_STATE.date);
+    expect(new URLSearchParams(location.search).get('date')).toBe(INITIAL_STATE.date);
+  });
+});

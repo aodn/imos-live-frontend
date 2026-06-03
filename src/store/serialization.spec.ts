@@ -1,77 +1,83 @@
 import { describe, expect, it } from 'vitest';
+import { PRODUCT } from '@/constants';
 import { deserialize, serialize } from './serialization';
 
-describe('serialize/deserialize round-trip', () => {
-  const cases: { name: string; value: unknown }[] = [
-    { name: 'string', value: 'Streets' },
-    { name: 'date string', value: '2026-05-28' },
-    { name: 'string that looks like a number', value: '3' },
-    { name: 'string that looks like a negative number', value: '-1.5' },
-    { name: 'string "0"', value: '0' },
-    { name: 'string "1"', value: '1' },
-    { name: 'string starting with {', value: '{not json' },
-    { name: 'empty string', value: '' },
-    { name: 'integer', value: 3 },
-    { name: 'negative float', value: -1.25 },
-    { name: 'zero', value: 0 },
-    { name: 'boolean true', value: true },
-    { name: 'boolean false', value: false },
-    { name: 'object', value: { lng: 133.7751, lat: -25.2744 } },
-    { name: 'array', value: [1, 2, 3] },
-    { name: 'nested object', value: { a: { b: [1, 'two', true] } } },
-    { name: 'null', value: null },
+describe('per-key round-trip', () => {
+  const cases: { key: string; value: unknown }[] = [
+    { key: 'center', value: { lng: 133.7751, lat: -25.2744 } },
+    { key: 'zoom', value: 3 },
+    { key: 'zoom', value: 5.5 },
+    { key: 'style', value: 'Streets' },
+    { key: 'date', value: '2026-05-31' },
+    { key: 'worldBoundariesEnabled', value: true },
+    { key: 'worldBoundariesEnabled', value: false },
+    {
+      key: 'particleConfig',
+      value: {
+        nParticles: 30000,
+        fadeOpacity: 0.98,
+        speedFactor: 4.5,
+        dropRate: 0.002,
+        dropRateBump: 0.05,
+        pointSize: 0.9,
+      },
+    },
+    {
+      key: 'productEnabled',
+      value: {
+        [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: true,
+        [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: true,
+        [PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC]: false,
+        [PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC]: false,
+        [PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY]: false,
+        [PRODUCT.WAVE_BUOYS]: true,
+      },
+    },
   ];
 
-  for (const { name, value } of cases) {
-    it(`preserves ${name}`, () => {
-      expect(deserialize(serialize(value))).toEqual(value);
+  for (const { key, value } of cases) {
+    it(`preserves ${key}: ${JSON.stringify(value)}`, () => {
+      expect(deserialize(serialize(value, key), key)).toEqual(value);
     });
   }
 });
 
-describe('legacy URL fallback', () => {
-  it('decodes bare "1" as boolean true', () => {
-    expect(deserialize('1')).toBe(true);
+describe('compact output format (no type tags, no JSON noise)', () => {
+  it('writes center as lng*lat', () => {
+    expect(serialize({ lng: 133.7751, lat: -25.2744 }, 'center')).toBe('133.7751*-25.2744');
   });
 
-  it('decodes bare "0" as boolean false', () => {
-    expect(deserialize('0')).toBe(false);
+  it('writes numbers and strings bare', () => {
+    expect(serialize(3, 'zoom')).toBe('3');
+    expect(serialize('Streets', 'style')).toBe('Streets');
   });
 
-  it('decodes bare digits as a number', () => {
-    expect(deserialize('42')).toBe(42);
-    expect(deserialize('-1.5')).toBe(-1.5);
+  it('writes booleans as 1/0', () => {
+    expect(serialize(true, 'worldBoundariesEnabled')).toBe('1');
+    expect(serialize(false, 'worldBoundariesEnabled')).toBe('0');
   });
 
-  it('decodes bare JSON object as object', () => {
-    expect(deserialize('{"lng":1,"lat":2}')).toEqual({ lng: 1, lat: 2 });
+  it('writes particleConfig as *-joined values', () => {
+    const config = {
+      nParticles: 30000,
+      fadeOpacity: 0.98,
+      speedFactor: 4.5,
+      dropRate: 0.002,
+      dropRateBump: 0.05,
+      pointSize: 0.9,
+    };
+    expect(serialize(config, 'particleConfig')).toBe('30000*0.98*4.5*0.002*0.05*0.9');
   });
 
-  it('decodes other bare values as strings', () => {
-    expect(deserialize('Streets')).toBe('Streets');
-    expect(deserialize('2026-05-28')).toBe('2026-05-28');
-  });
-});
-
-describe('typed encoding format', () => {
-  it('tags strings with s:', () => {
-    expect(serialize('Streets')).toBe('s:Streets');
-  });
-
-  it('tags numbers with n:', () => {
-    expect(serialize(3)).toBe('n:3');
-  });
-
-  it('tags booleans with b:', () => {
-    expect(serialize(true)).toBe('b:1');
-    expect(serialize(false)).toBe('b:0');
-  });
-
-  it('tags objects with j:', () => {
-    expect(serialize({ a: 1 })).toBe('j:{"a":1}');
-  });
-
-  it('survives malformed j: payload by returning the raw payload', () => {
-    expect(deserialize('j:not-json')).toBe('not-json');
+  it('writes productEnabled as a bit string', () => {
+    const enabled = {
+      [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: true,
+      [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: true,
+      [PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC]: false,
+      [PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC]: false,
+      [PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY]: false,
+      [PRODUCT.WAVE_BUOYS]: true,
+    };
+    expect(serialize(enabled, 'productEnabled')).toBe('110001');
   });
 });

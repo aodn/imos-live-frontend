@@ -1,65 +1,100 @@
 /**
- * Typed URL-state encoder. Each persisted value is tagged with a one-char
- * type prefix so the round-trip is lossless regardless of the underlying
- * JavaScript value.
+ * URL-state codec
  *
- *   string   → `s:<value>`
- *   number   → `n:<value>`
- *   boolean  → `b:1` | `b:0`
- *   object   → `j:<json>`   (covers null, arrays, plain objects)
+ *   center         → `<lng>*<lat>`            e.g. `133.7751*-25.2744`
+ *   zoom           → `<number>`               e.g. `3`
+ *   style / date   → `<string>`               e.g. `Streets`, `2026-05-31`
+ *   *Enabled flags → `1` | `0`
+ *   particleConfig → `<n1>*<n2>*…`            values in `PARTICLE_FIELDS` order
+ *   productEnabled → `1101…`                  one bit per product, `PRODUCT` order
  *
- * Decoding accepts the tagged form *and* the legacy heuristic format
- * (boolean as bare `1`/`0`, number as bare digits, object/array as bare
- * JSON, anything else as a bare string) so existing bookmarked URLs keep
- * working. New writes always emit the tagged form.
+ * `*` is the structural separator because `URLSearchParams` leaves only
+ * `* - . _` and alphanumerics un-escaped, and our values already use `-`/`.`/`_`.
  */
+import { PRODUCT } from '@/constants';
 
 type Encoded = string;
+type KeyCodec = {
+  encode: (value: unknown) => Encoded;
+  decode: (encoded: Encoded) => unknown;
+};
 
-const TYPE_TAG_PREFIX = /^([snbj]):(.*)$/s;
+const LIST_SEP = '*';
 
-export function serialize(value: unknown): Encoded {
-  if (typeof value === 'string') return `s:${value}`;
-  if (typeof value === 'number') return `n:${value}`;
-  if (typeof value === 'boolean') return `b:${value ? '1' : '0'}`;
-  // Covers null, arrays, plain objects. `undefined` deliberately not supported
-  // — Zustand's persist pipeline never emits it for our partialised state.
-  return `j:${JSON.stringify(value)}`;
+// Field order for `particleConfig` — values are emitted/read positionally.
+const PARTICLE_FIELDS = [
+  'nParticles',
+  'fadeOpacity',
+  'speedFactor',
+  'dropRate',
+  'dropRateBump',
+  'pointSize',
+] as const;
+
+// Stable product order for the `productEnabled` bit string. Encode and decode
+// share this array, so the round-trip is order-independent by construction.
+const PRODUCT_ORDER = Object.values(PRODUCT);
+
+const numCodec: KeyCodec = { encode: v => String(v), decode: s => Number(s) };
+const strCodec: KeyCodec = { encode: v => String(v), decode: s => s };
+const boolCodec: KeyCodec = { encode: v => (v ? '1' : '0'), decode: s => s === '1' };
+
+const centerCodec: KeyCodec = {
+  encode: v => {
+    const c = v as { lng: number; lat: number };
+    return `${c.lng}${LIST_SEP}${c.lat}`;
+  },
+  decode: s => {
+    const [lng, lat] = s.split(LIST_SEP);
+    return { lng: Number(lng), lat: Number(lat) };
+  },
+};
+
+const particleCodec: KeyCodec = {
+  encode: v => {
+    const config = v as Record<string, unknown>;
+    return PARTICLE_FIELDS.map(field => config[field]).join(LIST_SEP);
+  },
+  decode: s => {
+    const parts = s.split(LIST_SEP);
+    const config: Record<string, number> = {};
+    PARTICLE_FIELDS.forEach((field, i) => {
+      config[field] = Number(parts[i]);
+    });
+    return config;
+  },
+};
+
+const productEnabledCodec: KeyCodec = {
+  encode: v => {
+    const enabled = v as Record<string, boolean>;
+    return PRODUCT_ORDER.map(product => (enabled[product] ? '1' : '0')).join('');
+  },
+  decode: s => {
+    const enabled: Record<string, boolean> = {};
+    PRODUCT_ORDER.forEach((product, i) => {
+      enabled[product] = s[i] === '1';
+    });
+    return enabled;
+  },
+};
+
+const KEY_CODECS: Record<string, KeyCodec> = {
+  center: centerCodec,
+  zoom: numCodec,
+  style: strCodec,
+  date: strCodec,
+  worldBoundariesEnabled: boolCodec,
+  particleConfig: particleCodec,
+  productEnabled: productEnabledCodec,
+};
+
+export function serialize(value: unknown, key?: string): Encoded {
+  const codec = key === undefined ? undefined : KEY_CODECS[key];
+  return codec ? codec.encode(value) : String(value);
 }
 
-export function deserialize(encoded: Encoded): unknown {
-  // Tagged form (new writes)
-  const match = TYPE_TAG_PREFIX.exec(encoded);
-  if (match) {
-    const [, tag, payload] = match;
-    switch (tag) {
-      case 's':
-        return payload;
-      case 'n': {
-        const n = Number(payload);
-        return Number.isNaN(n) ? payload : n;
-      }
-      case 'b':
-        return payload === '1';
-      case 'j':
-        try {
-          return JSON.parse(payload);
-        } catch {
-          return payload;
-        }
-    }
-  }
-
-  // Legacy form (old URLs, written before the typed scheme)
-  if (encoded === '1') return true;
-  if (encoded === '0') return false;
-  if (/^-?\d+(\.\d+)?$/.test(encoded.trim())) return Number(encoded);
-  if (encoded.startsWith('{') || encoded.startsWith('[')) {
-    try {
-      return JSON.parse(encoded);
-    } catch {
-      return encoded;
-    }
-  }
-  return encoded;
+export function deserialize(encoded: Encoded, key?: string): unknown {
+  const codec = key === undefined ? undefined : KEY_CODECS[key];
+  return codec ? codec.decode(encoded) : encoded;
 }

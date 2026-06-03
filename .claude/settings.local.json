@@ -15,7 +15,9 @@
       "Bash(pnpm lint *)",
       "Bash(npx tsc *)",
       "Bash(curl *)",
-      "Bash(npx playwright *)"
+      "Bash(npx playwright *)",
+      "Bash(echo \"tsc exit:$?\")",
+      "Bash(npx eslint *)"
     ],
     "deny": [],
     "ask": []

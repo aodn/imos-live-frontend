@@ -18,13 +18,13 @@ import type { LegendArgs, ProductType, TilesProduct } from '@/constants';
 import type { StyleTitle } from '@/styles';
 import { type LngLat } from 'mapbox-gl';
 import { create } from 'zustand';
-import type { StateStorage } from 'zustand/middleware';
-import { createJSONStorage, persist } from 'zustand/middleware';
-import { deserialize, serialize } from './serialization';
+import { persist } from 'zustand/middleware';
+import { storageOptions } from './urlSync';
 
 type ProductError = Record<ProductType, boolean>;
 type ProductLoading = Record<ProductType, boolean>;
 export type ProductEnabled = Record<ProductType, boolean>;
+export type ProductLegend = Record<TilesProduct, LegendArgs>;
 
 export type JumpToDate = {
   date: string;
@@ -43,7 +43,7 @@ export type MapUIState = {
   productEnabled: ProductEnabled;
   productError: ProductError;
   productLoading: ProductLoading;
-  productLegends: Record<TilesProduct, LegendArgs>;
+  productLegends: ProductLegend;
   jumpToDate: JumpToDate | null;
   setCenter: (center: LngLat) => void;
   setZoom: (zoom: number) => void;
@@ -59,63 +59,6 @@ export type MapUIState = {
   setProductLegend: (product: TilesProduct, legend: Partial<LegendArgs>) => void;
   setJumpToDate: (date: string) => void;
   clearJumpToDate: () => void;
-};
-
-// The store keys synced to the URL — single source of truth for both reading
-// params back in (`getItem`) and writing them out (`partialize`), so the two
-// can't drift. Foreign query params (utm_*, OAuth callbacks, etc.) are ignored.
-const URL_SYNCED_KEYS = [
-  'center',
-  'zoom',
-  'style',
-  'particleConfig',
-  'distanceMeasurementEnabled',
-  'worldBoundariesEnabled',
-  'date',
-  'productEnabled',
-  'productLegends',
-] as const satisfies readonly (keyof MapUIState)[];
-
-const URL_SYNCED_KEY_SET = new Set<string>(URL_SYNCED_KEYS);
-
-const hashStorage: StateStorage = {
-  getItem: () => {
-    const url = new URL(location.href);
-    const restoredState: Record<string, unknown> = {};
-    for (const [key, value] of url.searchParams.entries()) {
-      if (!URL_SYNCED_KEY_SET.has(key)) continue;
-      restoredState[key] = deserialize(value);
-    }
-
-    return JSON.stringify({ state: restoredState });
-  },
-  setItem: (_key, newValue) => {
-    const { state } = JSON.parse(newValue);
-    const url = new URL(location.href);
-    for (const [k, v] of Object.entries(state)) {
-      url.searchParams.set(k, serialize(v));
-    }
-    window.history.replaceState({}, '', url.toString());
-  },
-  removeItem: key => {
-    const url = new URL(location.href);
-    url.searchParams.delete(key);
-    window.history.replaceState({}, '', url.toString());
-  },
-};
-
-const storageOptions = {
-  name: 'url-sync',
-  storage: createJSONStorage<MapUIState>(() => hashStorage),
-  // Sync only the URL_SYNCED_KEYS subset to the URL (excludes transient state:
-  // dates, productError, productLoading, jumpToDate).
-  partialize: (state: MapUIState) => {
-    const synced = {} as MapUIState;
-    for (const k of URL_SYNCED_KEYS) {
-      (synced as Record<string, unknown>)[k] = state[k];
-    }
-    return synced;
-  },
 };
 
 export const useMapUIStore = create(

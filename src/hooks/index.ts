@@ -13,4 +13,4 @@ export * from './useRAFDFn';
 export * from './useViewPortSize';
 export * from './useCurrentPage';
 export * from './useDateSliderDates';
-export * from './useQueryParamsByKey';
+export * from './useHasInitialQueryParam';
