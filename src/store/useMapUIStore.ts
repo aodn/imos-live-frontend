@@ -23,8 +23,9 @@ import { storageOptions } from './urlSync';
 
 type ProductError = Record<ProductType, boolean>;
 type ProductLoading = Record<ProductType, boolean>;
+type ProductLegend = Record<TilesProduct, LegendArgs>;
+
 export type ProductEnabled = Record<ProductType, boolean>;
-export type ProductLegend = Record<TilesProduct, LegendArgs>;
 
 export type JumpToDate = {
   date: string;

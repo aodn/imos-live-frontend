@@ -7,17 +7,17 @@ The Atlas Rendering System is shared GPU infrastructure for chunked, LOD-aware m
 
 Both share the same `AtlasManager` and `ChunkScheduler` primitives.
 
-This package is **self-contained and framework-agnostic** — it imports nothing from the host app (no `@/` paths) and depends only on `mapbox-gl` and `twgl.js`. Its public entry point is `index.ts` (`createScalarAtlasLayer` / `createParticleAtlasLayer` + types). To reuse it in another project, copy the package folder and drive it through that public API — see [Integrating a Product](#integrating-a-product). The host-app glue (UI state, data fetching, layer ordering) lives outside the package and is not part of it.
+This package is **self-contained and UI-framework-agnostic** (but Mapbox-specific) — it imports nothing from the host app (no `@/` paths) and depends only on `mapbox-gl` and `twgl.js`. It plugs in as a Mapbox `CustomLayerInterface` and uses `mapbox-gl`'s `MercatorCoordinate` math at runtime, so it works with any UI framework but is not portable to other map libraries without an adapter. Its public entry point is `index.ts` (`createScalarAtlasLayer` / `createParticleAtlasLayer` + types). To reuse it in another project, copy the package folder and drive it through that public API — see [Integrating a Product](#integrating-a-product). The host-app glue (UI state, data fetching, layer ordering) lives outside the package and is not part of it.
 
 ### Tech stack
 
-| Component     | Technology                      | Where    |
-| ------------- | ------------------------------- | -------- |
-| Map           | Mapbox GL JS                    | package  |
-| Rendering     | WebGL 2 (hand-rolled)           | package  |
-| Shaders       | GLSL ES 3.00                    | package  |
-| UI / state    | Host framework                  | host app |
-| Data fetching | Host (provides `fetchManifest`) | host app |
+| Component | Technology                  | Where   |
+| --------- | --------------------------- | ------- |
+| Map       | Mapbox GL JS                | package |
+| Rendering | WebGL 2 via twgl.js         | package |
+| Shaders   | GLSL ES 3.00 (hand-written) | package |
+
+> **Not in scope** — UI/state and data fetching are the host's responsibility. The host provides a `fetchManifest(date)` callback and owns all UI, product definitions, and layer ordering (see [Integrating a Product](#integrating-a-product)).
 
 ---
 

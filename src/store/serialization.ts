@@ -11,7 +11,8 @@
  * `*` is the structural separator because `URLSearchParams` leaves only
  * `* - . _` and alphanumerics un-escaped, and our values already use `-`/`.`/`_`.
  */
-import { PRODUCT } from '@/constants';
+import { INITIAL_PARTICLE_CONFIG, PRODUCT } from '@/constants';
+import type { ParticleConfig } from '@/AtlasRenderingSystem';
 
 type Encoded = string;
 type KeyCodec = {
@@ -22,14 +23,7 @@ type KeyCodec = {
 const LIST_SEP = '*';
 
 // Field order for `particleConfig` — values are emitted/read positionally.
-const PARTICLE_FIELDS = [
-  'nParticles',
-  'fadeOpacity',
-  'speedFactor',
-  'dropRate',
-  'dropRateBump',
-  'pointSize',
-] as const;
+const PARTICLE_FIELDS = Object.keys(INITIAL_PARTICLE_CONFIG) as (keyof ParticleConfig)[];
 
 // Stable product order for the `productEnabled` bit string. Encode and decode
 // share this array, so the round-trip is order-independent by construction.
@@ -52,12 +46,12 @@ const centerCodec: KeyCodec = {
 
 const particleCodec: KeyCodec = {
   encode: v => {
-    const config = v as Record<string, unknown>;
+    const config = v as ParticleConfig;
     return PARTICLE_FIELDS.map(field => config[field]).join(LIST_SEP);
   },
   decode: s => {
     const parts = s.split(LIST_SEP);
-    const config: Record<string, number> = {};
+    const config: ParticleConfig = {} as ParticleConfig;
     PARTICLE_FIELDS.forEach((field, i) => {
       config[field] = Number(parts[i]);
     });
