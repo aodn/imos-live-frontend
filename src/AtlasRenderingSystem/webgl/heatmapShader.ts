@@ -28,6 +28,34 @@
 
 import { makeAtlasGlsl } from './atlasGlsl';
 
+// Value→colour math, shared verbatim between the production shader and the
+// pixel-readback test (tests/scalarColor.spec.ts) so the test can't drift from
+// the real source. Depends on the u_value_range / u_legend_range /
+// u_num_categories uniforms being declared by the embedding shader.
+export const scalarDecodeGlsl = /* glsl */ `
+// Decode the 24-bit RGB scalar to its raw value in u_value_range units.
+float decodeRaw(vec3 rgb) {
+    vec3 bytes = rgb * 255.0;
+    float decoded = (bytes.r * 65536.0 + bytes.g * 256.0 + bytes.b) / 16777215.0;
+    return decoded * (u_value_range.y - u_value_range.x) + u_value_range.x;
+}
+
+// Map a raw value to the [0, 1] colour-ramp lookup coordinate.
+// Continuous: clamp into the legend range.
+// Categorical: snap to the nearest flag index (assumed sequential ints starting
+// at u_value_range.x) and return the texel-centre coord for an N×1 ramp.
+float rawToRampCoord(float rawValue) {
+    if (u_num_categories > 0) {
+        float n = float(u_num_categories);
+        float idx = clamp(floor(rawValue - u_value_range.x + 0.5), 0.0, n - 1.0);
+        return (idx + 0.5) / n;
+    }
+    return clamp(
+        (rawValue - u_legend_range.x) / (u_legend_range.y - u_legend_range.x),
+        0.0, 1.0
+    );
+}`;
+
 // Full-viewport quad vertex shader.
 // a_pos is in [0,1]×[0,1] with (0,0)=bottom-left, (1,1)=top-right in clip space.
 // v_screen_pos is flipped in Y so (0,0)=top-left matches the u_bounds NW convention.
@@ -59,29 +87,7 @@ in  vec2 v_screen_pos;
 out vec4 fragColor;
 
 ${makeAtlasGlsl(totalSlots, totalVirtualChunks)}
-
-// Decode the 24-bit RGB scalar to its raw value in u_value_range units.
-float decodeRaw(vec3 rgb) {
-    vec3 bytes = rgb * 255.0;
-    float decoded = (bytes.r * 65536.0 + bytes.g * 256.0 + bytes.b) / 16777215.0;
-    return decoded * (u_value_range.y - u_value_range.x) + u_value_range.x;
-}
-
-// Map a raw value to the [0, 1] colour-ramp lookup coordinate.
-// Continuous: clamp into the legend range.
-// Categorical: snap to the nearest flag index (assumed sequential ints starting
-// at u_value_range.x) and return the texel-centre coord for an N×1 ramp.
-float rawToRampCoord(float rawValue) {
-    if (u_num_categories > 0) {
-        float n = float(u_num_categories);
-        float idx = clamp(floor(rawValue - u_value_range.x + 0.5), 0.0, n - 1.0);
-        return (idx + 0.5) / n;
-    }
-    return clamp(
-        (rawValue - u_legend_range.x) / (u_legend_range.y - u_legend_range.x),
-        0.0, 1.0
-    );
-}
+${scalarDecodeGlsl}
 
 void main() {
     float x_domain = abs(u_bounds.x - u_bounds.z);

@@ -55,7 +55,6 @@ export default defineConfig({
     url: imosLiveBaseURL,
     env: {
       VITE_AUTOMATED_TEST_RUNNING: 'true',
-      MOCKDATA: 'true',
       TZ: 'Australia/Sydney',
     },
   },

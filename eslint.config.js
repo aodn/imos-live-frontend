@@ -34,12 +34,7 @@ export default defineConfig(
         // vite.config.ts). allowDefaultProject covers loose config/fixture
         // files that aren't part of any tsconfig program.
         projectService: {
-          allowDefaultProject: [
-            '.storybook/*.ts',
-            '.storybook/*.tsx',
-            'playwright.config.ts',
-            'test-data/*.ts',
-          ],
+          allowDefaultProject: ['.storybook/*.ts', '.storybook/*.tsx', 'playwright.config.ts'],
         },
         tsconfigRootDir: import.meta.dirname,
       },

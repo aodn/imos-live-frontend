@@ -4,7 +4,6 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev:mock": "MOCKDATA=true vite",
     "dev": "vite",
     "test": "vitest run --reporter=verbose",
     "test:coverage": "vitest run --coverage",

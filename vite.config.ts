@@ -4,8 +4,6 @@ import path from 'path';
 import type { Plugin, UserConfig } from 'vite';
 import { defineConfig, loadEnv } from 'vite';
 import svgr from 'vite-plugin-svgr';
-import { meta, genRandomData as gslaData, inputBitmap, rasterBitmap } from './test-data/gsla';
-import { locations, genBuoyRandomData } from './test-data/buoy';
 import { visualizer } from 'rollup-plugin-visualizer';
 
 // https://vite.dev/config/
@@ -17,17 +15,17 @@ export default defineConfig(({ mode }) => {
     react(),
     tailwindcss(),
     svgr(),
-    mockServerPlugin(),
     googleAnalyticsPlugin(VITE_GA_MEASUREMENT_ID),
   ];
 
   // In dev, proxy the wave-buoy REST endpoint through the portal so the browser
-  // can call it as a same-origin `/api/...` URL. `MOCKDATA=true` shuts the
-  // proxy off and the mock middleware below serves canned responses instead.
-  // Tile / manifest traffic uses an absolute URL configured via
-  // `VITE_TILE_BASE_URL` (see `.env.example`), so no proxy is needed for it.
+  // can call it as a same-origin `/api/...` URL. Disabled under automated tests
+  // so runs stay hermetic — e2e specs stub every request via Playwright
+  // `page.route`, so an un-stubbed `/api` call should fail rather than reach the
+  // live portal. Tile / manifest traffic uses an absolute `VITE_TILE_BASE_URL`
+  // (see `.env.example`), so it needs no proxy.
   const server: UserConfig['server'] =
-    mode === 'development' && !process.env['MOCKDATA']
+    mode === 'development' && !process.env['VITE_AUTOMATED_TEST_RUNNING']
       ? {
           proxy: {
             '/api': {
@@ -80,50 +78,6 @@ export default defineConfig(({ mode }) => {
     },
   };
 });
-
-const mockServerPlugin = (): Plugin => {
-  if (!process.env['MOCKDATA']) return { name: 'configure-preview-server' };
-  return {
-    name: 'configure-preview-server',
-    configureServer(server) {
-      return () => {
-        server.middlewares.use((req, res, next) => {
-          // Connect expects a void-returning handler; run the async body as a
-          // fire-and-forget IIFE.
-          void (async () => {
-            const url = req.originalUrl || req.url;
-
-            if (!url || (!url.startsWith('/data') && !url.startsWith('/api'))) return next();
-
-            if (url.endsWith('png')) res.writeHead(200, { 'Content-Type': 'image/png' });
-            else res.writeHead(200, { 'Content-Type': 'application/json' });
-
-            if (url.endsWith('gsla_meta.json')) res.end(JSON.stringify(meta()));
-            if (url.endsWith('gsla_data.json')) res.end(JSON.stringify(gslaData()));
-
-            if (url.includes('items/first_data_available')) {
-              res.end(JSON.stringify(locations()));
-            }
-            if (url.includes('items/timeseries')) {
-              const timeseriesURL = new URL(url, `http://${req.headers.host}`);
-              const buoyName = timeseriesURL.searchParams.get('waveBuoy') ?? '';
-              const [from, to] = timeseriesURL.searchParams.get('datetime')?.split('/') || [];
-              res.end(
-                JSON.stringify(
-                  genBuoyRandomData({ name: buoyName, from: new Date(from), to: new Date(to) }),
-                ),
-              );
-            }
-
-            if (url.endsWith('gsla_overlay.png')) res.end(await rasterBitmap());
-            if (url.endsWith('gsla_input.png')) res.end(await inputBitmap());
-          })();
-        });
-      };
-    },
-    apply: 'serve',
-  };
-};
 
 const googleAnalyticsPlugin = (measurementId?: string): Plugin => {
   return {
