@@ -59,7 +59,6 @@ export type ExportConfig = {
   filename?: string | (() => string);
   formats?: ('png' | 'jpeg' | 'pdf' | 'svg' | 'csv' | 'xls')[];
   buttons?: Highcharts.ExportingButtonsOptions;
-  watermarkUrl?: string;
   selectedDate?: string;
 };
 

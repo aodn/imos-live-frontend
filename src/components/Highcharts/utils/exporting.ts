@@ -11,7 +11,17 @@ import 'highcharts/modules/offline-exporting';
 import { ExportPanel } from '@/components';
 import { canvasRootGenerator, pinExportLogoImg } from '@/helpers';
 import { doubleRAF } from '@/utils';
+import imosLogo from '@/assets/imos_logo_with_title.png';
 import type { ExportConfig } from '../type';
+
+/** Decodes the IMOS logo into the browser cache so the ExportPanel's `<img>` is
+ *  `complete` the moment it mounts. Otherwise `pinExportLogoImg` sees offsetWidth=0
+ *  (the `w-auto` image hasn't loaded) and snapdom captures the logo at zero width. */
+function preloadLogo(): Promise<void> {
+  const img = new Image();
+  img.src = imosLogo;
+  return img.decode().catch(() => undefined);
+}
 
 /** `getSVG` / `downloadCSV` / `downloadXLS` come from the exporting and
  *  export-data modules via prototype extension, so they aren't visible on
@@ -81,6 +91,10 @@ function makeDownloadHandler(
       const py = 12;
       const { root, container } = canvasRootGenerator();
 
+      // Decode the logo before first render so the ExportPanel's `<img>` is complete
+      // on mount — without this the logo is captured at zero width and goes missing.
+      await preloadLogo();
+
       // First render to measure dimensions — two doubleRAF calls so the logo PNG has
       // time to load from cache before cssW is captured. Without this, `w-auto`
       // resolves to 0 on an unloaded image, making cssW too small and squishing the
@@ -115,6 +129,7 @@ function makeDownloadHandler(
       // Re-render with frosted background.
       root.render(createElement(ExportPanel, { date: selectedDate, compact: true, frostedBgSrc }));
       await doubleRAF();
+      await doubleRAF(); // extra pass so the re-rendered logo img is committed before snapping
 
       pinExportLogoImg(el);
       const snap = await snapdom(el, { embedFonts: false });

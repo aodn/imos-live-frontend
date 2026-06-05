@@ -1,4 +1,3 @@
-import logoUrl from '@/assets/imos_logo_with_title.png';
 import { getWaveBuoyDetails, getWaveBuoyLatestDate } from '@/api';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
@@ -340,7 +339,6 @@ export function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartPro
         legend={{ enabled: false }}
         exporting={{
           enabled: true,
-          watermarkUrl: logoUrl,
           selectedDate,
           filename: () => {
             const { min, max } = visibleRangeRef.current ?? {};
