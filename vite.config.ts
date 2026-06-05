@@ -18,23 +18,17 @@ export default defineConfig(({ mode }) => {
     googleAnalyticsPlugin(VITE_GA_MEASUREMENT_ID),
   ];
 
-  // In dev, proxy the wave-buoy REST endpoint through the portal so the browser
-  // can call it as a same-origin `/api/...` URL. Disabled under automated tests
-  // so runs stay hermetic — e2e specs stub every request via Playwright
-  // `page.route`, so an un-stubbed `/api` call should fail rather than reach the
-  // live portal. Tile / manifest traffic uses an absolute `VITE_TILE_BASE_URL`
-  // (see `.env.example`), so it needs no proxy.
-  const server: UserConfig['server'] =
-    mode === 'development' && !process.env['VITE_AUTOMATED_TEST_RUNNING']
-      ? {
-          proxy: {
-            '/api': {
-              target: 'https://portal.edge.aodn.org.au',
-              changeOrigin: true,
-            },
+  const server: UserConfig['server'] = {
+    ...(mode === 'development' &&
+      !process.env['VITE_AUTOMATED_TEST_RUNNING'] && {
+        proxy: {
+          '/api': {
+            target: 'https://portal.edge.aodn.org.au',
+            changeOrigin: true,
           },
-        }
-      : {};
+        },
+      }),
+  };
 
   if (VITE_STATS_ENABLED === 'true') {
     plugins.push(

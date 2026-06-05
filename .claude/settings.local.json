@@ -21,5 +21,6 @@
     ],
     "deny": [],
     "ask": []
-  }
+  },
+  "enabledMcpjsonServers": ["codegraph"]
 }

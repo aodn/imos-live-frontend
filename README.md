@@ -42,7 +42,7 @@ Layer paint/layout config lives in `src/constants/layerSpecs.ts`.
 
 - Node.js >= 22.0.0
 - pnpm >= 10
-- Mapbox API key (set as `VITE_MAPBOX_KEY` environment variable)
+- A Mapbox API key
 
 ### Installation
 
@@ -52,22 +52,16 @@ Layer paint/layout config lives in `src/constants/layerSpecs.ts`.
    pnpm install
    ```
 
-1. Set required environment variables:
+1. Configure environment variables. Copy [`.env.example`](.env.example) to `.env` (or `.env.local`) and fill in the values — at minimum `VITE_MAPBOX_KEY` (your Mapbox access token) and `VITE_TILE_BASE_URL` (the tile / manifest origin). See `.env.example` for the full list of supported variables.
 
    ```
-   VITE_MAPBOX_KEY=your_mapbox_key_here
+   cp .env.example .env
    ```
 
 1. Run the app:
 
    ```
    pnpm dev
-   ```
-
-   You can run the frontend using mock data instead of a live data source. To start the application with randomly generated local data, use:
-
-   ```
-   pnpm dev:mock
    ```
 
 ## API Routing
@@ -80,9 +74,3 @@ The application currently makes two kinds of HTTP calls:
 - **Tile / manifest data** — absolute URL built from the `VITE_TILE_BASE_URL`
   environment variable (see [`.env.example`](.env.example)). No proxy is
   needed because the URL is fully-qualified.
-
-The production CloudFront distribution may still define additional path
-patterns (`/data/*`, `/tiles/*`, `/legends/*`, `/thredds/*`) for historical
-or future use, but the application no longer calls them, so the dev proxy
-does not mirror them either. `pnpm dev:mock` intercepts `/api` with a local
-Vite middleware serving randomly generated data.

@@ -24,16 +24,89 @@ avoid.
 
 ## Public surface
 
-External callers import from the package root:
+`index.ts` is the **only door** — a curated allowlist, not a wildcard. External
+callers import from the package root:
 
 ```ts
-import { DateSlider } from '@/components';
-// or, directly:
-import { DateSlider } from '@/components/DateSlider';
+import { DateSlider, type SliderProps } from '@/components/DateSlider';
 ```
 
-Types are re-exported from `./index.ts`. Internal implementation files in
-`./components/`, `./hooks/`, `./utils/` are not part of the public surface.
+> Note: DateSlider is **not** re-exported from the `@/components` barrel — import
+> it from `@/components/DateSlider` (or a relative path to that folder).
+
+`index.ts` re-exports exactly one component (`DateSlider`), the default renderers
+(`customDateLabelRenderer`, `customSelectionPanelRenderer`,
+`customTimeUnitSelectionRenderer`), and the public types. The internal
+building-block components (`SliderTrack`, `SliderHandle`, `SelectionPanel`,
+`ScalesUnitLabels`, `TimeUnitSelection`) and everything under `./hooks/` and
+`./utils/` are deliberately **not** exported. The barrel enforces this — it lists
+named exports rather than `export *`, so adding a public symbol is a conscious
+edit here.
+
+## Usage
+
+```tsx
+import { DateSlider, type SliderExposedMethod, type PointValue } from '@/components/DateSlider';
+
+const ref = useRef<SliderExposedMethod>(null);
+
+<DateSlider
+  mode="point"
+  min={startDate} // UTC Date
+  max={endDate} // UTC Date
+  value={{ point: date }}
+  initialTimeUnit="day"
+  imperativeRef={ref}
+  onChange={v => setDate((v as PointValue).point)}
+  layout={{ width: 'fill', height: 64, selectionPanelEnabled: true }}
+  behavior={{ scrollable: true }}
+/>;
+
+// Imperative control (e.g. "jump to latest available date")
+ref.current?.setDateTime(new Date('2024-06-15'));
+```
+
+> **All dates are UTC.** `min`, `max`, `value`, and everything `onChange` returns are UTC `Date`s — pass UTC in, expect UTC out.
+
+## API
+
+### Mode (discriminated union on `mode`)
+
+`SliderProps` is a union — `mode` selects the variant and constrains `value` and `icons`:
+
+| `mode`       | `value` shape                             | Icons used        |
+| ------------ | ----------------------------------------- | ----------------- |
+| `'point'`    | `{ point: Date }`                         | `point`           |
+| `'range'`    | `{ start: Date; end: Date }`              | `range`           |
+| `'combined'` | `{ point: Date; start: Date; end: Date }` | `point` + `range` |
+
+`value` is optional in every mode (defaults to `min`/`max`). `onChange` receives the matching `SliderValue`.
+
+### Common props
+
+| Prop                | Type                                   | Notes                                                     |
+| ------------------- | -------------------------------------- | --------------------------------------------------------- |
+| `min` / `max`       | `Date` (UTC, required)                 | Bounds of the timeline                                    |
+| `initialTimeUnit`   | `'hour' \| 'day' \| 'month' \| 'year'` | Initial zoom granularity                                  |
+| `onChange`          | `(value: SliderValue) => void`         | Fires on selection change                                 |
+| `imperativeRef`     | `Ref<SliderExposedMethod>`             | External control — see below                              |
+| `classNames`        | `DateSliderClassNames`                 | Per-element Tailwind overrides                            |
+| `behavior`          | `BehaviorConfig`                       | Scrolling, step, label persistence, free track selection  |
+| `layout`            | `LayoutConfig`                         | Width/height, padding, which sub-components render        |
+| `renderProps`       | `RenderPropsConfig`                    | Custom date-label / selection-panel / time-unit renderers |
+| `dateFormat`        | `DateFormat`                           | dayjs format tokens for scale marks vs handle labels      |
+| `locale`            | `string` (default `'en'`)              | Requires `import 'dayjs/locale/<code>'` first             |
+| `scaleTypeResolver` | `ScaleTypeResolver`                    | Custom short/medium/long classification of scale marks    |
+
+### Imperative API (`SliderExposedMethod`)
+
+Reach the handle via `imperativeRef`:
+
+| Method                           | Purpose                                                              |
+| -------------------------------- | -------------------------------------------------------------------- |
+| `setDateTime(date, target?)`     | Set a handle to a UTC date (`target`: `'start' \| 'end' \| 'point'`) |
+| `moveByStep(direction, target?)` | Move by the configured `behavior.step`                               |
+| `focusHandle(handleType)`        | Programmatically focus a handle                                      |
 
 ## Layout
 

@@ -20,3 +20,4 @@ createRoot(document.getElementById('root')!).render(
     </HelmetProvider>
   </React.StrictMode>,
 );
+// TODO fix: export wave buoy chart image fails to have imos logo image in the exported image.
