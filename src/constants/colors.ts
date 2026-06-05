@@ -157,11 +157,11 @@ export const x_sst: { colors: [number, number, number][] } = {
 // `flag_values` on the product manifest; `validateCategoricalManifest` compares
 // the two at load time and warns in dev if the lengths drift apart.
 export const MHW_CATEGORY_LEGEND_COLORS = [
-  '#8c0000', // none
-  '#ff9701', // moderate
-  '#67ff96', // strong
-  '#007bff', // severe
   '#00078f', // extreme
+  '#007bff', // severe
+  '#67ff96', // strong
+  '#ff9701', // moderate
+  '#8c0000', // none
 ];
 
 export const CONTINOUS_PRODUCT_COLOR_OPTIONS = {
