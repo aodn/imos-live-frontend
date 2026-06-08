@@ -1,4 +1,4 @@
-import { hexToRgbArray } from '@/utils';
+import { hexToRgbArray } from '@/utils/rgbToHex';
 
 // ncWMS color palettes: https://github.com/Reading-eScience-Centre/edal-java/tree/master/graphics/src/main/resources/palettes
 
