@@ -26,6 +26,22 @@ export const VariantReadableName = {
   WPFM: 'wave period',
 };
 
+// Long name + units per buoy variant, used by the Latest Observations table.
+export const variantDescription: Record<BuoyDataVariants, { long_name: string; units: string }> = {
+  SSWMD: { long_name: 'spectral sea surface wave mean direction', units: 'Degrees' },
+  WPFM: { long_name: 'sea surface wave spectral mean period', units: 's' },
+  WPMH: { long_name: 'average upcross wave period', units: 's' },
+  WSSH: { long_name: 'sea surface wave significant height', units: 'm' },
+  WHTH: { long_name: 'sea surface wave significant height', units: 'm' },
+};
+
+// When a buoy reports the same measurement under two variant codes, keep the
+// preferred one and drop the redundant: WPFM over WPMH, WSSH over WHTH.
+export const preferredVariant: Partial<Record<BuoyDataVariants, BuoyDataVariants>> = {
+  WPMH: 'WPFM',
+  WHTH: 'WSSH',
+};
+
 // Map a buoy variant code (e.g. 'SSWMD') to a human-readable name for legends and tooltips.
 // Falls back to the raw variant if not in VariantReadableName.
 export function readableVariantName(variant: string): string {

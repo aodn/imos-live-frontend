@@ -71,6 +71,7 @@ export function Map() {
               { Icon: WaveBuoyIcon, product: PRODUCT.WAVE_BUOYS },
               { Icon: ThermometerIcon, product: PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC },
               { Icon: ThermometerIcon, product: PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC },
+              { Icon: ThermometerIcon, product: PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY },
             ]}
           />
           <MapComponent key={isSmallScreen ? 'mobile' : 'desktop'} />

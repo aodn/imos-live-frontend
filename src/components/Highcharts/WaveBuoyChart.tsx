@@ -15,7 +15,7 @@ import {
 } from './config';
 import { LatestObservation } from './LatestObservation';
 import { LineChart } from './LineChart';
-import type { SeriesData, TooltipFormatterContext } from './type';
+import type { RangeSelectorConfig, SeriesData, TooltipFormatterContext } from './type';
 import {
   calculateDataRange,
   generateDynamicButtons,
@@ -51,6 +51,115 @@ function BuoyTitleHeading({ buoy, lng, lat }: { buoy: string; lng: number; lat: 
     </h2>
   );
 }
+
+// HTML string for the shared tooltip. The direction series shows direction + period
+// (period pulled from the indexed map); every other series shows wave height.
+function buildBuoyTooltipHTML(
+  context: TooltipFormatterContext,
+  wavePeriodByTime: Map<number, number>,
+): string {
+  const { point } = context;
+  const datetime = utcToLocalDateTime(point.x as number);
+
+  let html = `<div style="font-size: 12px;"><b>Time:</b> ${datetime}<br/>`;
+
+  if (point.series.name === VariantReadableName[buoyDataDirectionVariant]) {
+    const wavePeriod = wavePeriodByTime.get(point.x as number) ?? null;
+    const direction = (point.options as { direction?: number }).direction ?? point.y;
+    html += `<span style="color:${point.color}">●</span> <b>${VariantReadableName.SSWMD}:</b> ${direction?.toFixed(1)}° (to)<br/><span style="color:${point.color}">●</span> <b>${VariantReadableName.WPFM}:</b> ${wavePeriod} s<br/>`;
+  } else {
+    html += `<span style="color:${point.color}">●</span> <b>${VariantReadableName.WSSH}:</b> ${point.y?.toFixed(2)} m<br/>`;
+  }
+
+  return html + '</div>';
+}
+
+// Primary wave-height axis. When arrows are shown it shrinks to 85% and a hidden
+// strip axis is appended at the bottom to position the direction arrows.
+function buildWaveYAxisConfig(showDirection?: boolean): Highcharts.YAxisOptions[] {
+  const primary: Highcharts.YAxisOptions = {
+    gridLineWidth: 1,
+    lineWidth: 0,
+    tickWidth: 0,
+    title: { text: 'Wave Height (m)' },
+    labels: { style: { fontSize: '12px' } },
+    offset: 0,
+    ...(showDirection ? { height: '85%', top: '5%' } : {}),
+  };
+
+  if (!showDirection) return [primary];
+
+  const arrowAxis: Highcharts.YAxisOptions = {
+    title: { text: undefined },
+    labels: { enabled: false },
+    gridLineWidth: 0,
+    lineWidth: 0,
+    tickWidth: 0,
+    visible: false,
+    height: '10%',
+    top: '90%',
+    min: -1, // Fixed range for arrow positioning
+    max: 1,
+    offset: 0,
+  };
+
+  return [primary, arrowAxis];
+}
+
+// X axis with the dashed plot line marking the selected date.
+function buildBuoyXAxisConfig(selectedDate: string): Highcharts.XAxisOptions {
+  return {
+    type: 'datetime',
+    labels: { format: '{value:%b %e %H:%M}' },
+    offset: 0,
+    // When no xAxis.minRange is set, Highcharts Stock auto-computes it as roughly 5× the data point interval for the loaded series.
+    // For buoys that report every 3–6 hours, this gives a minRange of ~15–30 hours — larger than 6H or 12H, so Highcharts silently
+    // rejects those zoom levels. Buoys with hourly or sub-hourly data land below 24H, so all buttons work. Therefore, we set this as 1 hour.
+    minRange: 3600 * 1000,
+    plotLines: [
+      {
+        value: dayjs(selectedDate).valueOf(),
+        color: PRIMARY_COLOR,
+        width: 2,
+        dashStyle: 'Dash',
+        zIndex: 5,
+        label: {
+          text: dayjs(selectedDate).format('D MMM YYYY'),
+          rotation: 0,
+          align: 'center',
+          verticalAlign: 'top',
+          y: -6,
+          style: { color: PRIMARY_COLOR, fontWeight: 'bold', fontSize: '12px' },
+        },
+      },
+    ],
+  };
+}
+
+// Static range-selector chrome; `selected` and `buttons` are filled in per render.
+const BUOY_RANGE_SELECTOR: Omit<RangeSelectorConfig, 'selected' | 'buttons'> = {
+  enabled: true,
+  buttonPosition: { align: 'left', x: 0, y: 0 },
+  inputPosition: { align: 'right', x: 0, y: 0 },
+  inputBoxBorderColor: '#cccccc',
+  inputBoxWidth: 120,
+  inputBoxHeight: 20,
+  inputStyle: {
+    color: '#333333',
+    fontSize: '12px',
+    fontFamily: 'Arial, sans-serif',
+    background: 'white',
+    border: '1px solid #cccccc',
+    zIndex: 10,
+    opacity: 1,
+    textAlign: 'center',
+    padding: '2px 4px',
+  },
+  inputDateFormat: '%Y-%m-%d',
+  inputEditDateFormat: '%Y-%m-%d',
+  floating: false,
+  y: -32,
+};
 
 export function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartProps) {
   // toWaveBuoyChartData throws on empty input. Compute defensively so hooks below
@@ -149,60 +258,13 @@ export function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartPro
   }, [feature?.properties.WPFM]);
 
   const tooltipFormatter = useCallback(
-    (context: TooltipFormatterContext) => {
-      const point = context.point;
-      const datetime = utcToLocalDateTime(point.x as number);
-
-      let tooltipHTML = `<div style="font-size: 12px;"><b>Time:</b> ${datetime}<br/>`;
-
-      if (point.series.name === VariantReadableName[buoyDataDirectionVariant]) {
-        // display wave direction and period
-        const wavePeriod = wavePeriodByTime.get(point.x as number) ?? null;
-
-        const direction = (point.options as { direction?: number }).direction ?? point.y;
-        tooltipHTML += `<span style="color:${point.color}">●</span> <b>${VariantReadableName.SSWMD}:</b> ${direction?.toFixed(1)}° (to)<br/><span style="color:${point.color}">●</span> <b>${VariantReadableName.WPFM}:</b> ${wavePeriod} s<br/>`;
-      } else {
-        // display wave height
-        tooltipHTML += `<span style="color:${point.color}">●</span> <b>${VariantReadableName.WSSH}:</b> ${point.y?.toFixed(2)} m<br/>`;
-      }
-
-      tooltipHTML += '</div>';
-      return tooltipHTML;
-    },
+    (context: TooltipFormatterContext) => buildBuoyTooltipHTML(context, wavePeriodByTime),
     [wavePeriodByTime],
   );
 
-  const yAxisConfig = useMemo(() => {
-    // Primary axis for wave data — shrinks to 85% when an arrow axis is added below.
-    const primary = {
-      gridLineWidth: 1,
-      lineWidth: 0,
-      tickWidth: 0,
-      title: { text: 'Wave Height (m)' },
-      labels: { style: { fontSize: '12px' } },
-      offset: 0,
-      ...(showDirection ? { height: '85%', top: '5%' } : {}),
-    };
+  const yAxisConfig = useMemo(() => buildWaveYAxisConfig(showDirection), [showDirection]);
 
-    if (!showDirection) return [primary];
-
-    // Secondary axis for arrows (small strip at the bottom of the chart).
-    const arrowAxis = {
-      title: { text: undefined },
-      labels: { enabled: false },
-      gridLineWidth: 0,
-      lineWidth: 0,
-      tickWidth: 0,
-      visible: false,
-      height: '10%',
-      top: '90%',
-      min: -1, // Fixed range for arrow positioning
-      max: 1,
-      offset: 0,
-    };
-
-    return [primary, arrowAxis];
-  }, [showDirection]);
+  const xAxisConfig = useMemo(() => buildBuoyXAxisConfig(selectedDate), [selectedDate]);
 
   const updateVisibleRange = useCallback((min: number, max: number) => {
     visibleRangeRef.current = {
@@ -255,36 +317,8 @@ export function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartPro
         onChartLoad={handleChartLoad}
         onRangeSelect={updateVisibleRange}
         rangeSelector={{
-          enabled: true,
+          ...BUOY_RANGE_SELECTOR,
           selected: defaultSelected,
-          buttonPosition: {
-            align: 'left',
-            x: 0,
-            y: 0,
-          },
-          inputPosition: {
-            align: 'right',
-            x: 0,
-            y: 0,
-          },
-          inputBoxBorderColor: '#cccccc',
-          inputBoxWidth: 120,
-          inputBoxHeight: 20,
-          inputStyle: {
-            color: '#333333',
-            fontSize: '12px',
-            fontFamily: 'Arial, sans-serif',
-            background: 'white',
-            border: '1px solid #cccccc',
-            zIndex: 10,
-            opacity: 1,
-            textAlign: 'center',
-            padding: '2px 4px',
-          },
-          inputDateFormat: '%Y-%m-%d',
-          inputEditDateFormat: '%Y-%m-%d',
-          floating: false,
-          y: -32,
           buttons: dynamicButtons,
         }}
         navigator={{
@@ -299,36 +333,7 @@ export function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartPro
         }}
         scrollbar={{ enabled: true, height: 20 }}
         responsive={true}
-        xAxis={{
-          type: 'datetime',
-          labels: { format: '{value:%b %e %H:%M}' },
-          offset: 0,
-          // When no xAxis.minRange is set, Highcharts Stock auto-computes it as roughly 5× the data point interval for the loaded series.
-          // For buoys that report every 3–6 hours, this gives a minRange of ~15–30 hours — larger than 6H or 12H, so Highcharts silently
-          // rejects those zoom levels. Buoys with hourly or sub-hourly data land below 24H, so all buttons work. Therefore, we set this as 1 hour.
-          minRange: 3600 * 1000,
-          plotLines: [
-            {
-              value: dayjs(selectedDate).valueOf(),
-              color: PRIMARY_COLOR,
-              width: 2,
-              dashStyle: 'Dash',
-              zIndex: 5,
-              label: {
-                text: dayjs(selectedDate).format('D MMM YYYY'),
-                rotation: 0,
-                align: 'center',
-                verticalAlign: 'top',
-                y: -6,
-                style: {
-                  color: PRIMARY_COLOR,
-                  fontWeight: 'bold',
-                  fontSize: '12px',
-                },
-              },
-            },
-          ],
-        }}
+        xAxis={xAxisConfig}
         yAxis={yAxisConfig}
         plotOptions={{
           series: {

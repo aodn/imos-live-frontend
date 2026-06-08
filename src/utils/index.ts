@@ -3,7 +3,6 @@ export * from './dateUtils';
 export * from './debounce';
 export * from './getScaledDimensions';
 export * from './clamp';
-export * from './checkDateDuration';
 export * from './queryIncludingSelf';
 export * from './cn';
 export * from './isScrollableElement';
