@@ -25,6 +25,7 @@ jobs:
         run: pnpm exec playwright test
         env:
           CI: true
+          VITE_MAPBOX_KEY: ${{ secrets.VITE_MAPBOX_KEY }}
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
