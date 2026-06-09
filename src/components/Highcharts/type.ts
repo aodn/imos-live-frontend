@@ -40,16 +40,25 @@ export type AnimationConfig = {
   easing?: string;
 };
 
-export type TooltipConfig = Highcharts.TooltipOptions & {
-  customFormatter?: (point: Highcharts.Point) => string;
+// Highcharts 12 dropped the public `TooltipFormatterContextObject` type, but the runtime
+// context for `shared: true` tooltips still carries `.point` (legacy shape). Match that.
+export type TooltipFormatterContext = {
+  point: Highcharts.Point;
+  points?: Highcharts.Point[];
+  x?: number;
+  y?: number;
 };
 
-type ExportConfig = {
+export type TooltipConfig = Highcharts.TooltipOptions & {
+  // Called with the Highcharts tooltip formatter context (the original `this` from formatter()).
+  customFormatter?: (context: TooltipFormatterContext) => string;
+};
+
+export type ExportConfig = {
   enabled?: boolean;
   filename?: string | (() => string);
   formats?: ('png' | 'jpeg' | 'pdf' | 'svg' | 'csv' | 'xls')[];
   buttons?: Highcharts.ExportingButtonsOptions;
-  watermarkUrl?: string;
   selectedDate?: string;
 };
 

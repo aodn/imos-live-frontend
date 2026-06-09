@@ -1,15 +1,19 @@
 import {
   MEASURE_POINTS_LAYER_ID,
-  GSLA_RASTER_LAYER_ID,
-  GSLA_PARTICLE_LAYER_ID,
+  PRODUCT,
+  PRODUCTS,
   UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
-  WAVE_BUOYS_LAYER_ID,
 } from '@/constants';
-import type { VectoryLayerInterface } from '@/layers';
-import type { Page } from '@playwright/test';
+import { serialize } from '@/store/serialization';
+import type { Page, Route } from '@playwright/test';
 import { expect, test } from '@playwright/test';
 import { type Map } from 'mapbox-gl';
-import { genData, toCompassStandard } from '../test-data/gsla';
+
+const GSLA_PARTICLE_PRODUCT = PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT;
+const GSLA_ANOMALY_PRODUCT = PRODUCT.GSLA_ANOMALY_SEA_LEVELS;
+const GSLA_ANOMALY_LAYER_ID = PRODUCTS[GSLA_ANOMALY_PRODUCT].layerId;
+const GSLA_PARTICLE_LAYER_ID = PRODUCTS[GSLA_PARTICLE_PRODUCT].layerId;
+const WAVE_BUOYS_LAYER_ID = PRODUCTS[PRODUCT.WAVE_BUOYS].layerId;
 
 type LngLat = [number, number];
 
@@ -21,7 +25,7 @@ type Product =
 type OceanCurrentPopupContent = {
   speed: string;
   direction: string;
-  bearing: string;
+  degree: string;
 };
 
 type SeaLevelAnomalyPopupContent = {
@@ -32,6 +36,11 @@ type PopupContent =
   | OceanCurrentPopupContent
   | SeaLevelAnomalyPopupContent
   | (OceanCurrentPopupContent & SeaLevelAnomalyPopupContent);
+
+// aria-labels emitted by ClickedMapPopupContent are derived from PRODUCTLEGENDS[product].label
+// — keep these in sync if the legend labels change.
+const OCEAN_CURRENT_POPUP_LABEL = 'ocean current speed (m/s) details';
+const SEA_LEVEL_ANOMALY_POPUP_LABEL = 'sea level anomaly (m) details';
 
 const mapComponent = {
   waitUntilIdle: async (page: Page) => {
@@ -45,7 +54,7 @@ const mapComponent = {
       .poll(() =>
         page.waitForFunction(layerID => {
           const map = (window as any).map as Map | undefined;
-          const layer = map?.getLayer(layerID) as VectoryLayerInterface;
+          const layer = map?.getLayer(layerID);
           return layer;
         }, layerID),
       )
@@ -58,8 +67,14 @@ const mapComponent = {
           const map = (window as any).map as Map | undefined;
           const layer = map?.getLayer(layerID);
           if (!layer) return true;
+
+          // Atlas CustomLayerInterface wrappers expose `visible` on the layer or
+          // on the `.implementation` Mapbox attaches when registering the layer.
           if ('visible' in layer) {
-            return layer.visible === false;
+            return (layer as any).visible === false;
+          }
+          if ('implementation' in layer && 'visible' in (layer as any).implementation) {
+            return (layer as any).implementation.visible === false;
           }
           if ('layout' in layer && layer.layout && 'visibility' in layer.layout) {
             return layer.layout.visibility === 'none';
@@ -69,53 +84,6 @@ const mapComponent = {
         }, layerID),
       )
       .toBeTruthy();
-  },
-  getSourceURL: async (page: Page, layerID: string): Promise<string | undefined> => {
-    return page.evaluate(
-      ({ layerID }) => {
-        const map = (window as any).map as Map | undefined;
-        if (!map) throw new Error('Map not found');
-        const layer = map.getLayer(layerID);
-        if (!layer) throw new Error('Layer not found');
-
-        // In Mapbox GL v3, custom layers are wrapped in CustomStyleLayer;
-        // the original CustomLayerInterface is at .implementation
-        const sourceId =
-          (layer as any).implementation?.sourceId ??
-          (layer as any).sourceId ??
-          (layer as any).source;
-
-        let url: string | undefined;
-        if (sourceId) {
-          const source = map.getSource(sourceId as string);
-          if (source) url = (source as any).url as string | undefined;
-        }
-        return url;
-      },
-      { layerID },
-    );
-  },
-  getTilesURL: async (page: Page, layerID: string): Promise<string | undefined> => {
-    return page.evaluate(
-      ({ layerID }) => {
-        const map = (window as any).map as Map | undefined;
-        if (!map) throw new Error('Map not found');
-        const layer = map.getLayer(layerID);
-        if (!layer) throw new Error('Layer not found');
-
-        const sourceId =
-          (layer as any).implementation?.sourceId ??
-          (layer as any).sourceId ??
-          (layer as any).source;
-
-        let url: string | undefined;
-        if (sourceId) {
-          url = (map.getSource(sourceId as string) as any).tiles?.[0] as string | undefined;
-        }
-        return url;
-      },
-      { layerID },
-    );
   },
   openPopup: async (page: Page, coordinates?: LngLat) => {
     await expect(async () => {
@@ -148,16 +116,16 @@ const mapComponent = {
   expectPopupToHaveContent: async (page: Page, content: PopupContent) => {
     await mapComponent.openPopup(page);
     if ('speed' in content) {
-      await expect(page.getByLabel('Ocean surface current details')).toBeVisible();
-      await expect(page.getByLabel('Ocean surface current details')).toContainText(
-        `Ocean geostrophic current direction:${content.bearing}° (${content.direction}) @ ${content.speed} m/s`,
+      const oceanCurrent = page.getByLabel(OCEAN_CURRENT_POPUP_LABEL);
+      await expect(oceanCurrent).toBeVisible();
+      await expect(oceanCurrent).toContainText(
+        `${content.degree}° (${content.direction}) @ ${content.speed} m/s`,
       );
     }
     if ('gsla' in content) {
-      await expect(page.getByLabel('Sea level anomaly details')).toBeVisible();
-      await expect(page.getByLabel('Sea level anomaly details')).toContainText(
-        `Sea level anomaly:${content.gsla} m`,
-      );
+      const seaLevel = page.getByLabel(SEA_LEVEL_ANOMALY_POPUP_LABEL);
+      await expect(seaLevel).toBeVisible();
+      await expect(seaLevel).toContainText(`${content.gsla} m`);
     }
 
     await mapComponent.closePopup(page);
@@ -190,6 +158,15 @@ const mapComponent = {
 };
 
 const sidebarComponent = {
+  selectProduct: async (page: Page, productName: Product) => {
+    await page.getByLabel(productName).getByRole('button', { name: 'Add to map' }).click();
+    await expect(
+      page.getByLabel(productName).getByRole('button', { name: 'Add to map' }),
+    ).not.toBeVisible();
+    await expect(
+      page.getByLabel(productName).getByRole('button', { name: 'Remove from map' }),
+    ).toBeVisible();
+  },
   deselectProduct: async (page: Page, productName: Product) => {
     await page.getByLabel(productName).getByRole('button', { name: 'Remove from map' }).click();
     await expect(
@@ -213,111 +190,222 @@ const buoys = {
 };
 
 const currentDate = new Date('2025-08-01T00:00:00.000Z');
-const defaultDaySelected = '2025-07-02';
-const nextDaySelected = '2025-07-03';
+const defaultDaySelected = '2025-07-01';
+const nextDaySelected = '2025-07-02';
+
+// Pin the product baseline these tests were written against — only Wave Buoys
+// enabled — via the URL, so the suite is independent of INITIAL_PRODUCT_ENABLED
+// (which now enables several products by default). The select/deselect helpers
+// below assume Ocean Current + Anomaly start hidden and Wave Buoys starts shown.
+const ONLY_WAVE_BUOYS_ENABLED = serialize(
+  {
+    [GSLA_PARTICLE_PRODUCT]: false,
+    [GSLA_ANOMALY_PRODUCT]: false,
+    [PRODUCT.WAVE_BUOYS]: true,
+    [PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC]: false,
+    [PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC]: false,
+    [PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY]: false,
+  },
+  'productEnabled',
+);
+const defaultDayURL = `/?date=${defaultDaySelected}&productEnabled=${ONLY_WAVE_BUOYS_ENABLED}`;
+
+// Minimal manifests the atlas system accepts: one 256×256 LOD1 tile covering
+// the Australasian bounds the dev data uses. Tile PNGs are aborted by a
+// separate route — the layer flips to error state, which is fine for these
+// tests since they only assert layer registration and popup data flow.
+const PARTICLE_MANIFEST = {
+  bounds: { lonMin: 109.9, lonMax: 170.1, latMin: -50.1, latMax: 0.1 },
+  uRange: [-1, 1],
+  vRange: [-1, 1],
+  lods: {
+    '1': { grid: [1, 1], storedPx: [256, 256], chunkPx: [256, 256], padding: 0 },
+  },
+};
+
+const SCALAR_MANIFEST = {
+  bounds: { lonMin: 109.9, lonMax: 170.1, latMin: -50.1, latMax: 0.1 },
+  valueRange: [-1.2, 1.2],
+  lods: {
+    '1': { grid: [1, 1], storedPx: [256, 256], chunkPx: [256, 256], padding: 0 },
+  },
+};
+
+// Top-level metadata manifest (`/data_tiles/manifest`). Layer hooks gate their
+// first tile load on this resolving (via `manifestLoaded`) and validate the
+// selected date against `available_dates`, so every tiles product must list the
+// dates these tests exercise (default day, the +1 day, and the deep-link day).
+const AVAILABLE_DATES = [defaultDaySelected, nextDaySelected, '2025-07-15'];
+const METADATA_MANIFEST = {
+  cache_version: 'test',
+  products: Object.fromEntries(
+    (
+      [
+        GSLA_PARTICLE_PRODUCT,
+        GSLA_ANOMALY_PRODUCT,
+        PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC,
+        PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC,
+        PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY,
+      ] as const
+    ).map(product => [
+      product,
+      {
+        available_dates: AVAILABLE_DATES,
+        full_date_range: { start: AVAILABLE_DATES[0], end: AVAILABLE_DATES.at(-1)! },
+      },
+    ]),
+  ),
+};
+
+// u=N, v=0 gives a due-east vector with speed N and Cartesian degree 0 — keeps
+// the test expectations trivial to read.
+function particlePointForDate(date: string) {
+  const speed = date === defaultDaySelected ? 1 : 2;
+  return {
+    lat: -30,
+    lon: 150,
+    variables: {
+      UCUR: { value: speed, units: 'm/s' },
+      VCUR: { value: 0, units: 'm/s' },
+    },
+  };
+}
+
+function gslaPointForDate(date: string) {
+  const value = date === defaultDaySelected ? 3 : 4;
+  return {
+    lat: -30,
+    lon: 150,
+    variables: {
+      GSLA: { value, units: 'm' },
+    },
+  };
+}
+
+function parseDateFromTileUrl(url: string): string | undefined {
+  return url.match(/\/(\d{4}-\d{2}-\d{2})\//)?.[1];
+}
 
 test.beforeEach(async ({ page }) => {
   await page.clock.install({ time: currentDate });
 
-  await page.route('**/*', async route => {
-    const url = new URL(route.request().url());
-    if (url.searchParams.get('REQUEST') === 'GetFeatureInfo') {
-      if (url.pathname.includes('OceanCurrent_HV_20250702')) {
-        await route.fulfill({
-          body: `
-          <FeatureInfoResponse>
-          <longitude>165.45967031250007</longitude>
-          <latitude>4.687731976914243</latitude>
-          <Feature>
-          <layer>GSLA</layer>
-          <FeatureInfo>
-          <id>GSLA</id>
-          <value>3.00</value>
-          </FeatureInfo>
-          </Feature>
-          </FeatureInfoResponse>
-          `,
-        });
-      } else {
-        await route.fulfill({
-          body: `
-          <FeatureInfoResponse>
-          <longitude>165.45967031250007</longitude>
-          <latitude>4.687731976914243</latitude>
-          <Feature>
-          <layer>GSLA</layer>
-          <FeatureInfo>
-          <id>GSLA</id>
-          <value>4.00</value>
-          </FeatureInfo>
-          </Feature>
-          </FeatureInfoResponse>
-          `,
-        });
-      }
+  // Top-level metadata manifest powering per-product date availability. Anchored
+  // to `/manifest` (no `.json`) so it doesn't clash with the per-date route below.
+  await page.route(/\/data_tiles\/manifest(?:$|\?)/, async (route: Route) => {
+    await route.fulfill({ json: METADATA_MANIFEST });
+  });
+
+  // Tile manifests — return product-shape-appropriate stubs.
+  await page.route('**/data_tiles/**/manifest.json', async (route: Route) => {
+    const url = route.request().url();
+    if (url.includes(GSLA_PARTICLE_PRODUCT)) {
+      await route.fulfill({ json: PARTICLE_MANIFEST });
     } else {
-      await route.continue();
+      await route.fulfill({ json: SCALAR_MANIFEST });
     }
   });
 
-  await page.route('*/**/GSLA/' + defaultDaySelected + '/gsla_data.json*', async route => {
-    await route.fulfill({ json: genData([1, 2, 3]) });
-  });
-  await page.route('*/**/GSLA/' + nextDaySelected + '/gsla_data.json*', async route => {
-    await route.fulfill({ json: genData([2, 3, 4]) });
+  // Tile PNGs aren't needed for these tests — abort so the atlas falls into
+  // error state quickly rather than retrying against the unreachable origin.
+  await page.route(/data_tiles\/.+\/\d+\/\d+\/\d+\.png$/, route => route.abort());
+
+  // Per-point lookup powering the click popup.
+  await page.route('**/data_tiles/**/point*', async (route: Route) => {
+    const url = route.request().url();
+    const date = parseDateFromTileUrl(url) ?? defaultDaySelected;
+    if (url.includes(GSLA_PARTICLE_PRODUCT)) {
+      await route.fulfill({ json: particlePointForDate(date) });
+    } else if (url.includes(GSLA_ANOMALY_PRODUCT)) {
+      await route.fulfill({ json: gslaPointForDate(date) });
+    } else {
+      // Other tile products (SST mosaic, MCS category) aren't exercised here.
+      await route.fulfill({ json: { lat: -30, lon: 150, variables: {} } });
+    }
   });
 
+  // The frontend serialises `datetime` in nanosecond UTC format
+  // (`localToUTC` → `YYYY-MM-DDTHH:mm:ss.000000000Z`), so we match by glob on the
+  // ISO date prefix rather than pinning the exact suffix. Whatever local day the
+  // app converts maps to one of two UTC days (Sydney is +10/+11), so we serve the
+  // HOBARITO feature for `2025-06-30` (= 2025-07-01 local) and DARWIN for
+  // `2025-07-01` (= 2025-07-02 local).
   await page.route(
-    '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items/wave_buoy_first_data_available?datetime=2025-07-01T14:00:00.000000000Z',
+    /\/api\/.+\/items\/wave_buoy_first_data_available\?datetime=2025-06-30T/,
     async route => {
-      const buoyLocations = {
+      await route.fulfill({
+        json: {
+          type: 'FeatureCollection',
+          metadata: {},
+          features: [
+            {
+              type: 'Feature',
+              properties: {
+                date: defaultDaySelected,
+                buoy: buoys.HOBARITO.name,
+                year: 2025,
+                timestamp: defaultDaySelected + 'T00:10:00',
+              },
+              geometry: { coordinates: buoys.HOBARITO.coordinates, type: 'Point' },
+            },
+          ],
+        },
+      });
+    },
+  );
+
+  await page.route(
+    /\/api\/.+\/items\/wave_buoy_first_data_available\?datetime=2025-07-01T/,
+    async route => {
+      await route.fulfill({
+        json: {
+          type: 'FeatureCollection',
+          metadata: {},
+          features: [
+            {
+              type: 'Feature',
+              properties: {
+                date: nextDaySelected,
+                buoy: buoys.DARWIN.name,
+                year: 2025,
+                timestamp: nextDaySelected + 'T00:10:00',
+              },
+              geometry: { coordinates: buoys.DARWIN.coordinates, type: 'Point' },
+            },
+          ],
+        },
+      });
+    },
+  );
+
+  // WaveBuoyChart gates its timeseries fetch on `wave_buoy_latest_date` resolving.
+  // Without this, the chart stays in "Loading..." forever in tests.
+  await page.route(/\/api\/.+\/items\/wave_buoy_latest_date(?:\?|$)/, async route => {
+    await route.fulfill({ json: defaultDaySelected + 'T00:00:00.000000000Z' });
+  });
+
+  // `getLatestWaveBuoySites` powers the "all sites" base layer used by
+  // mergeAndFilterBuoyFeatures. Serve a list that includes both test buoys so
+  // either one can be present after the merge.
+  await page.route(/\/api\/.+\/items\/wave_buoy_all(?:\?|$)/, async route => {
+    await route.fulfill({
+      json: {
         type: 'FeatureCollection',
         metadata: {},
         features: [
           {
             type: 'Feature',
-            properties: {
-              date: defaultDaySelected,
-              buoy: buoys.HOBARITO.name,
-              year: 2025,
-              timestamp: defaultDaySelected + 'T00:10:00',
-            },
-            geometry: {
-              coordinates: buoys.HOBARITO.coordinates,
-              type: 'Point',
-            },
+            properties: { date: defaultDaySelected, buoy: buoys.HOBARITO.name, year: 2025 },
+            geometry: { coordinates: buoys.HOBARITO.coordinates, type: 'Point' },
           },
-        ],
-      };
-      await route.fulfill({ json: buoyLocations });
-    },
-  );
-
-  await page.route(
-    '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items/wave_buoy_first_data_available?datetime=2025-07-02T14:00:00.000000000Z',
-    async route => {
-      const buoyLocations = {
-        type: 'FeatureCollection',
-        metadata: {},
-        features: [
           {
             type: 'Feature',
-            properties: {
-              date: nextDaySelected,
-              buoy: buoys.DARWIN.name,
-              year: 2025,
-              timestamp: nextDaySelected + 'T00:10:00',
-            },
-            geometry: {
-              coordinates: buoys.DARWIN.coordinates,
-              type: 'Point',
-            },
+            properties: { date: nextDaySelected, buoy: buoys.DARWIN.name, year: 2025 },
+            geometry: { coordinates: buoys.DARWIN.coordinates, type: 'Point' },
           },
         ],
-      };
-      await route.fulfill({ json: buoyLocations });
-    },
-  );
+      },
+    });
+  });
 
   await page.route(
     '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items/wave_buoy_timeseries*',
@@ -371,32 +459,40 @@ test.beforeEach(async ({ page }) => {
 
 test.describe('Ocean Current', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(`/?date=${defaultDaySelected}`);
-    await sidebarComponent.deselectProduct(page, 'GSLA sea level anomaly product');
+    await page.goto(defaultDayURL);
+    // `defaultDayURL` pins the baseline to only Wave Buoys enabled — switch the
+    // selection over to Ocean Current for these tests.
+    await sidebarComponent.selectProduct(page, 'GSLA Ocean geostrophic current product');
     await sidebarComponent.deselectProduct(page, 'Wave buoys product');
     await mapComponent.waitUntilLayerLoaded(page, GSLA_PARTICLE_LAYER_ID);
   });
 
   test('User can see particle patterns of different days', async ({ page }) => {
-    await expect
-      .poll(() => mapComponent.getSourceURL(page, GSLA_PARTICLE_LAYER_ID))
-      .toContain(`/${defaultDaySelected}/`);
+    // The atlas particle layer is a Mapbox CustomLayerInterface (no source), so
+    // the date-change behaviour is verified via the manifest fetch the layer
+    // hook fires when the date changes. The initial load is already covered by
+    // `waitUntilLayerLoaded` + `selectProduct` in beforeEach.
+
     // Wait for auto-scroll to complete and slider to be stable
     const sliderHandle = page.getByRole('slider', { name: 'point handle' });
     await sliderHandle.waitFor({ state: 'visible' });
     await page.waitForTimeout(1000);
+
+    const nextDateManifest = page.waitForRequest(
+      req =>
+        req.url().includes(GSLA_PARTICLE_PRODUCT) &&
+        req.url().includes(`/${nextDaySelected}/manifest.json`),
+    );
     await sliderHandle.focus();
     await page.keyboard.press('ArrowRight');
-    await expect
-      .poll(() => mapComponent.getSourceURL(page, GSLA_PARTICLE_LAYER_ID))
-      .toContain(`/${nextDaySelected}/`);
+    await nextDateManifest;
   });
 
   test('User can see the current value from a map particle of different days', async ({ page }) => {
     await mapComponent.expectPopupToHaveContent(page, {
       speed: '1.00',
       direction: 'E',
-      bearing: `${toCompassStandard(2.0).toFixed(0)}`,
+      degree: '0',
     });
 
     // Wait for auto-scroll to complete and slider to be stable
@@ -407,29 +503,30 @@ test.describe('Ocean Current', () => {
     await page.keyboard.press('ArrowRight');
 
     await mapComponent.waitUntilIdle(page);
-    await mapComponent.openPopup(page);
 
     await mapComponent.expectPopupToHaveContent(page, {
       speed: '2.00',
       direction: 'E',
-      bearing: `${toCompassStandard(3.0).toFixed(0)}`,
+      degree: '0',
     });
   });
 });
 
 test.describe('Anomaly sea levels and Ocean Current', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(`/?date=${defaultDaySelected}`);
+    await page.goto(defaultDayURL);
+    await sidebarComponent.selectProduct(page, 'GSLA Ocean geostrophic current product');
+    await sidebarComponent.selectProduct(page, 'GSLA sea level anomaly product');
     await sidebarComponent.deselectProduct(page, 'Wave buoys product');
   });
 
   test('User can see the current value from a map particle of different days', async ({ page }) => {
-    await mapComponent.waitUntilLayerLoaded(page, GSLA_RASTER_LAYER_ID);
+    await mapComponent.waitUntilLayerLoaded(page, GSLA_ANOMALY_LAYER_ID);
     await mapComponent.expectPopupToHaveContent(page, {
       gsla: '3.00',
       speed: '1.00',
       direction: 'E',
-      bearing: `${toCompassStandard(2.0).toFixed(0)}`,
+      degree: '0',
     });
 
     // Wait for auto-scroll to complete and slider to be stable
@@ -440,37 +537,95 @@ test.describe('Anomaly sea levels and Ocean Current', () => {
     await page.keyboard.press('ArrowRight');
 
     await mapComponent.waitUntilIdle(page);
-    await mapComponent.openPopup(page);
 
     await mapComponent.expectPopupToHaveContent(page, {
       gsla: '4.00',
       speed: '2.00',
       direction: 'E',
-      bearing: `${toCompassStandard(3.0).toFixed(0)}`,
+      degree: '0',
     });
   });
 });
 
-test.describe('Wave Buoys', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto(`/?date=${defaultDaySelected}`);
-    await sidebarComponent.deselectProduct(page, 'GSLA Ocean geostrophic current product');
-    await sidebarComponent.deselectProduct(page, 'GSLA sea level anomaly product');
+test.describe('URL state restore', () => {
+  // The store is persisted via `partialize` + a URL-backed storage adapter
+  // (see src/store/useMapUIStore.ts → hashStorage). Deep-linking with state in
+  // the query string is the only mechanism users have to share map views, so
+  // it gets its own regression test outside the unit-level serialization spec.
+
+  test('restores `date` from the URL on load', async ({ page }) => {
+    const deepLinkDate = '2025-07-15';
+    await page.goto(`/?date=${deepLinkDate}`);
+
+    const sliderHandle = page.getByRole('slider', { name: 'point handle' });
+    await sliderHandle.waitFor({ state: 'visible' });
+
+    // The slider auto-scrolls to position over the persisted date; the URL should
+    // continue to reflect the restored value after hydration. `date` is stored
+    // verbatim (no type tag) and always kept in the URL (see urlSync.ts).
+    await expect(page).toHaveURL(new RegExp(`date=${deepLinkDate}`));
   });
 
-  test.skip('User can read the latest observation of a specific buoy', async ({ page }) => {
+  test('restores `productEnabled` from the URL on load (only sea-level anomaly enabled)', async ({
+    page,
+  }) => {
+    // Encode with the app's own codec so the URL matches what the store reads
+    // back (productEnabled is a per-product bit string — see serialization.ts).
+    const encoded = serialize(
+      {
+        [GSLA_PARTICLE_PRODUCT]: false,
+        [GSLA_ANOMALY_PRODUCT]: true,
+        [PRODUCT.WAVE_BUOYS]: false,
+        [PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC]: false,
+        [PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC]: false,
+        [PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY]: false,
+      },
+      'productEnabled',
+    );
+    await page.goto(`/?date=${defaultDaySelected}&productEnabled=${encoded}`);
+
+    await mapComponent.waitUntilLayerLoaded(page, GSLA_ANOMALY_LAYER_ID);
+
+    // The sidebar should reflect the restored state — Add/Remove buttons swap
+    // based on `productEnabled`, so this is a single end-to-end assertion that
+    // the store hydrated from the URL.
+    await expect(
+      page
+        .getByLabel('GSLA sea level anomaly product')
+        .getByRole('button', { name: 'Remove from map' }),
+    ).toBeVisible();
+    await expect(
+      page
+        .getByLabel('GSLA Ocean geostrophic current product')
+        .getByRole('button', { name: 'Add to map' }),
+    ).toBeVisible();
+    await expect(
+      page.getByLabel('Wave buoys product').getByRole('button', { name: 'Add to map' }),
+    ).toBeVisible();
+  });
+});
+
+test.describe('Style switching', () => {
+  // `setStyle` triggers a full Mapbox style reload — every source and layer is
+  // torn down, and the layer hooks must re-register them via their style.load
+  // listeners. This is a well-known regression hotspot in Mapbox apps, so we
+  // keep one E2E to guard the re-registration path.
+
+  test.beforeEach(async ({ page }) => {
+    await page.goto(defaultDayURL);
+  });
+
+  test('Wave buoys layer survives a map style change', async ({ page }) => {
     await mapComponent.waitUntilLayerLoaded(page, WAVE_BUOYS_LAYER_ID);
-    await mapComponent.clickOnBuoy(page, buoys.HOBARITO.name);
 
-    const latestObservation = page.getByTestId('latest-observation-timestamp');
-    await expect(latestObservation).toContainText('7/24/2025, 12:00:00 AM');
+    await page.getByRole('menuitem', { name: 'Maps' }).click();
+    // The dropdown trigger button shows the currently-selected style as its
+    // accessible name ("Streets" by default).
+    await page.getByRole('button', { name: 'Streets' }).click();
+    await page.getByRole('button', { name: 'Dark' }).click();
 
-    await expect(page.getByTestId('latest-observation-label')).toHaveText([
-      'sea surface wave spectral significant height (m)',
-      'spectral sea surface wave mean direction (Degrees)',
-      'sea surface wave spectral mean period (s)',
-    ]);
-    await expect(page.getByTestId('latest-observation-value')).toHaveText(['1', '1', '1']);
+    await mapComponent.waitUntilIdle(page);
+    await mapComponent.waitUntilLayerLoaded(page, WAVE_BUOYS_LAYER_ID);
   });
 });
 
@@ -507,26 +662,26 @@ test.describe('Measurement', () => {
 
 test.describe('Ocean Current, Anomaly sea levels and Wave Buoys', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(`/?date=${defaultDaySelected}`);
-  });
-
-  test('All the products are selected by default', async ({ page }) => {
-    await mapComponent.waitUntilLayerLoaded(page, GSLA_PARTICLE_LAYER_ID);
-    await mapComponent.waitUntilLayerLoaded(page, GSLA_RASTER_LAYER_ID);
-    await mapComponent.waitUntilLayerLoaded(page, WAVE_BUOYS_LAYER_ID);
+    await page.goto(defaultDayURL);
   });
 
   test('User can deselect all the products', async ({ page }) => {
     await mapComponent.waitUntilLayerLoaded(page, GSLA_PARTICLE_LAYER_ID);
-    await mapComponent.waitUntilLayerLoaded(page, GSLA_RASTER_LAYER_ID);
+    await mapComponent.waitUntilLayerLoaded(page, GSLA_ANOMALY_LAYER_ID);
     await mapComponent.waitUntilLayerLoaded(page, WAVE_BUOYS_LAYER_ID);
+
+    // `defaultDayURL` pins the baseline to only Wave Buoys enabled, so opt the
+    // other two in first to verify the deselect flow takes each one back down to
+    // hidden.
+    await sidebarComponent.selectProduct(page, 'GSLA Ocean geostrophic current product');
+    await sidebarComponent.selectProduct(page, 'GSLA sea level anomaly product');
 
     await sidebarComponent.deselectProduct(page, 'GSLA Ocean geostrophic current product');
     await sidebarComponent.deselectProduct(page, 'GSLA sea level anomaly product');
     await sidebarComponent.deselectProduct(page, 'Wave buoys product');
 
     await mapComponent.waitUntilLayerNotLoaded(page, GSLA_PARTICLE_LAYER_ID);
-    await mapComponent.waitUntilLayerNotLoaded(page, GSLA_RASTER_LAYER_ID);
+    await mapComponent.waitUntilLayerNotLoaded(page, GSLA_ANOMALY_LAYER_ID);
     await mapComponent.waitUntilLayerNotLoaded(page, WAVE_BUOYS_LAYER_ID);
   });
 });

@@ -1,7 +1,6 @@
 import type React from 'react';
-import { useCallback, useEffect, useRef, useState } from 'react';
-
-import { clamp } from '@/utils';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { clamp } from '../utils';
 
 type UseDragProps = {
   targetRef?: React.RefObject<HTMLElement | null>;
@@ -30,7 +29,7 @@ type DragState = {
   position: { x: number; y: number };
 };
 
-export const useDrag = ({
+export function useDrag({
   targetRef,
   initialPosition = { x: 0, y: 0 },
   constrainToAxis = 'both',
@@ -40,10 +39,11 @@ export const useDrag = ({
   onDragStart,
   onDragStarted,
   onDragEnd,
-}: UseDragProps = {}) => {
+}: UseDragProps = {}) {
   const [position, setPosition] = useState(initialPosition);
   const [isDragging, setIsDragging] = useState(false);
   const dragStartPositionRef = useRef(initialPosition);
+  const currentPositionRef = useRef(initialPosition);
   const hasStartedDraggingRef = useRef(false);
 
   const [dragState, setDragState] = useState<DragState>({
@@ -96,14 +96,9 @@ export const useDrag = ({
       };
 
       const boundedPosition = applyBounds(rawPosition);
-      setPosition(boundedPosition);
-      setDragState(prev => ({
-        ...prev,
-        deltaX,
-        deltaY,
-        position: boundedPosition,
-      }));
+      currentPositionRef.current = boundedPosition;
 
+      // Only update the DOM during drag — no React state updates
       applyTransform(boundedPosition);
       onDrag?.(boundedPosition, { x: deltaX, y: deltaY });
     },
@@ -120,6 +115,7 @@ export const useDrag = ({
 
       setIsDragging(true);
       dragStartPositionRef.current = { ...position };
+      currentPositionRef.current = { ...position };
       hasStartedDraggingRef.current = false;
 
       setDragState({
@@ -134,23 +130,24 @@ export const useDrag = ({
       onDragStart?.(position);
 
       const handleMouseMove = (e: MouseEvent) => {
-        requestAnimationFrame(() => {
-          const deltaX = e.clientX - startX;
-          const deltaY = e.clientY - startY;
-          updatePosition(deltaX, deltaY);
-        });
+        const deltaX = e.clientX - startX;
+        const deltaY = e.clientY - startY;
+        updatePosition(deltaX, deltaY);
       };
 
       const handleMouseUp = () => {
         if (!targetRef?.current) return;
+        const finalPosition = currentPositionRef.current;
+        setPosition(finalPosition);
         setIsDragging(false);
         hasStartedDraggingRef.current = false;
         setDragState(prev => ({
           ...prev,
           isDragging: false,
+          position: finalPosition,
         }));
 
-        onDragEnd?.(position);
+        onDragEnd?.(finalPosition);
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);
       };
@@ -171,6 +168,7 @@ export const useDrag = ({
 
       setIsDragging(true);
       dragStartPositionRef.current = { ...position };
+      currentPositionRef.current = { ...position };
       hasStartedDraggingRef.current = false;
 
       setDragState({
@@ -186,23 +184,24 @@ export const useDrag = ({
 
       const handleTouchMove = (e: TouchEvent) => {
         e.preventDefault();
-        requestAnimationFrame(() => {
-          const touch = e.touches[0];
-          const deltaX = touch.clientX - startX;
-          const deltaY = touch.clientY - startY;
-          updatePosition(deltaX, deltaY);
-        });
+        const touch = e.touches[0];
+        const deltaX = touch.clientX - startX;
+        const deltaY = touch.clientY - startY;
+        updatePosition(deltaX, deltaY);
       };
 
       const handleTouchEnd = () => {
+        const finalPosition = currentPositionRef.current;
+        setPosition(finalPosition);
         setIsDragging(false);
         hasStartedDraggingRef.current = false;
         setDragState(prev => ({
           ...prev,
           isDragging: false,
+          position: finalPosition,
         }));
 
-        onDragEnd?.(position);
+        onDragEnd?.(finalPosition);
         document.removeEventListener('touchmove', handleTouchMove);
         document.removeEventListener('touchend', handleTouchEnd);
       };
@@ -216,6 +215,7 @@ export const useDrag = ({
   const resetPosition = useCallback(
     (newPosition = initialPosition) => {
       const boundedPosition = applyBounds(newPosition);
+      currentPositionRef.current = boundedPosition;
       setPosition(boundedPosition);
       setDragState(prev => ({
         ...prev,
@@ -244,4 +244,4 @@ export const useDrag = ({
       onTouchStart: handleTouchStart,
     },
   };
-};
+}

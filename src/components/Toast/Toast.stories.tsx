@@ -1,6 +1,6 @@
 // Toast.stories.tsx
 import type { Meta, StoryObj } from '@storybook/react';
-import React from 'react';
+import type React from 'react';
 import { action } from '@storybook/addon-actions';
 import { Heart, Star, Zap } from 'lucide-react';
 import type { ToastData } from './Toast';
@@ -435,7 +435,6 @@ export const MultiplePositions: StoryObj<typeof MultipleToastsStory> = {
 
 export const AnimationShowcase: Story = {
   render: () => {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
     const { showToast, hideAllToasts } = useToast();
 
     const showAnimatedSequence = () => {

@@ -2,19 +2,11 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { ExportPanel } from './ExportPanel';
 import { CategoryColorScaleBar } from '@/components/ColorScaleBar';
 import { LinearColorScaleBar } from '@/components/ColorScaleBar';
-import { MHW_CATEGORY_LEGEND_COLORS, HW_CATEGORY_LEGEND_LABELS } from '@/constants';
+import { HW_CATEGORY_LEGEND_SCALES } from '@/constants';
+import { COLOR_OPTIONS } from '@/constants';
 
-const SST_COLORS = [
-  '#2166ac',
-  '#4393c3',
-  '#92c5de',
-  '#d1e5f0',
-  '#f7f7f7',
-  '#fddbc7',
-  '#f4a582',
-  '#d6604d',
-  '#b2182b',
-];
+const MHW_CATEGORY_LEGEND_COLORS = COLOR_OPTIONS.MHW_CATEGORY_LEGEND_COLORS;
+const SST_COLORS = COLOR_OPTIONS.RdBu_r;
 
 const meta = {
   title: 'components/MapExportPanel',
@@ -40,7 +32,7 @@ export const WithCategoricalLegend: Story = {
       legend: (
         <CategoryColorScaleBar
           colors={MHW_CATEGORY_LEGEND_COLORS}
-          labels={HW_CATEGORY_LEGEND_LABELS}
+          scales={HW_CATEGORY_LEGEND_SCALES}
         />
       ),
     },

@@ -1,8 +1,8 @@
-import { cn } from '@/utils';
 import { memo, useCallback, useState, useEffect, useMemo } from 'react';
 import { useIsScrolling } from '../hooks';
 import type { Scale, ScaleType, SliderTrackProps } from '../type';
 import {
+  cn,
   formatDate,
   getDateFromPercent,
   calculateLabelPosition,
@@ -291,6 +291,10 @@ export const SliderTrack = memo(function SliderTrack({
             label={dateLabel}
             position={labelPosition}
             renderDateLabel={renderDateLabel}
+            // Visibility is driven by the track's own hover state (showDateLabel gate),
+            // so bypass the auto-hide timeout in useDateLabelPersist — otherwise every
+            // label change while moving resets it to hidden and the label flickers away.
+            handleLabelPersistent
           />
         )}
       </>

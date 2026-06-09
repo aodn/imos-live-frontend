@@ -7,7 +7,7 @@ import { useCallback, useMemo } from 'react';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { lineLayer, fillLayer } from '@/layers';
 import { addLayerInOrder, addOrUpdateVectorSource } from '@/helpers';
-import { WORLD_LAND_BORDER_CONFIG, WORLD_LAND_FILL_CONFIG } from '@/config';
+import { WORLD_LAND_BORDER_CONFIG, WORLD_LAND_FILL_CONFIG } from '@/constants';
 import { worldLandStyle } from '@/styles';
 import { useMapUIStore } from '@/store';
 import { useShallow } from 'zustand/shallow';

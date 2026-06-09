@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import type React from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { DragIndicatorIcon, CloseIcon } from '../Icons';
 import { Button } from '../Button';
 

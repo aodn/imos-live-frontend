@@ -1,10 +1,11 @@
-import React, { useState, useRef } from 'react';
+import type React from 'react';
+import { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { ArrowIcon, CloseIcon } from '../Icons';
 import { cn } from '@/utils';
 import { useDropdownOutsideClick, useDropdownPosition } from '@/hooks';
 import type { DropdownProps, DropdownOption } from './type';
-import { DropdownContent } from './DropdoenContent';
+import { DropdownContent } from './DropdownContent';
 
 const SIZE_CLASSES = {
   sm: 'px-2 py-1 text-sm min-h-[32px]',

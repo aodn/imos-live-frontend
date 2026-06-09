@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
+import type React from 'react';
+import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from 'lucide-react';
 import clsx from 'clsx';
 import { useToast } from './useToast';

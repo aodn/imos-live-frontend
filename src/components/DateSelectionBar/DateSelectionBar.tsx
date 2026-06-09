@@ -1,7 +1,7 @@
 import { TriangleIcon } from '../Icons';
 import { clearJumpToDate, setDate, useMapUIStore } from '@/store';
 import { memo, useCallback, useEffect, useRef } from 'react';
-import { useQueryParamsByKey, useDateSliderDates } from '@/hooks';
+import { useDateSliderDates, useHasInitialQueryParam } from '@/hooks';
 import {
   DateSlider,
   type SliderExposedMethod,
@@ -10,13 +10,11 @@ import {
   customDateLabelRenderer,
   customSelectionPanelRenderer,
 } from '../DateSlider';
-import { cn, getLatestFulfilledDate, toISOFromCompact } from '@/utils';
+import { cn, toISODateString } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
-import { fileExist, gslaUrl } from '@/api';
-import { useShallow } from 'zustand/shallow';
-import { QUERY_DATE_RANGE } from '@/config';
+import { metaDataManifestQueryOptions } from '@/api';
 import { PRODUCT } from '@/constants';
-import { toISODateString } from '../DateSlider/utils';
+import { useShallow } from 'zustand/shallow';
 
 type DateSelectionBarProps = { className?: string };
 
@@ -24,7 +22,8 @@ export const DateSelectionBar = memo(function DateSelectionBar({
   className,
 }: DateSelectionBarProps) {
   const { date, startDate, endDate } = useDateSliderDates();
-  const { isExisted: isDateInQueryParams } = useQueryParamsByKey('date');
+  // Does date in url (Snapshot at mount, beacuse history.replaceState used when set date, which doesn't trigger popstate, so React Router doesn't see the update. See store/urlSync.ts)
+  const isDateInQueryParams = useHasInitialQueryParam('date');
   const { jumpTrigger, jumpDate } = useMapUIStore(
     useShallow(s => ({
       jumpTrigger: s.jumpToDate?.trigger,
@@ -34,12 +33,8 @@ export const DateSelectionBar = memo(function DateSelectionBar({
   const imperativeHandlerRef = useRef<SliderExposedMethod>(null);
 
   const { data: latestDate } = useQuery({
-    queryKey: [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT, QUERY_DATE_RANGE],
-    queryFn: () => {
-      const candidates = QUERY_DATE_RANGE.map(d => fileExist(gslaUrl(d), d));
-      return Promise.allSettled(candidates);
-    },
-    select: data => getLatestFulfilledDate(data),
+    ...metaDataManifestQueryOptions(),
+    select: data => data.products[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]?.available_dates.at(-1),
     enabled: !isDateInQueryParams, //if date already selected, stop.
     retry: false,
   });
@@ -47,7 +42,7 @@ export const DateSelectionBar = memo(function DateSelectionBar({
   useEffect(() => {
     //set date to latest available date when user has not selected date. Initial visit website.
     if (!latestDate || isDateInQueryParams) return;
-    imperativeHandlerRef.current?.setDateTime(new Date(toISOFromCompact(latestDate)));
+    imperativeHandlerRef.current?.setDateTime(new Date(latestDate));
   }, [latestDate, isDateInQueryParams]);
 
   useEffect(() => {
@@ -57,7 +52,7 @@ export const DateSelectionBar = memo(function DateSelectionBar({
     clearJumpToDate();
   }, [jumpTrigger, jumpDate]);
 
-  const handleSelect = useCallback(async (v: SelectionResult) => {
+  const handleSelect = useCallback((v: SelectionResult) => {
     setDate(toISODateString((v as PointValue).point));
   }, []);
 
@@ -81,7 +76,7 @@ export const DateSelectionBar = memo(function DateSelectionBar({
           track: 'bg-white/10',
           scaleMark: 'bg-imos-grey',
         }}
-        onChange={handleSelect as (v: SelectionResult) => void}
+        onChange={handleSelect}
         layout={{
           width: 'fill',
           height: 64,
@@ -104,5 +99,3 @@ export const DateSelectionBar = memo(function DateSelectionBar({
     </div>
   );
 });
-
-DateSelectionBar.displayName = 'DateSelectionBar';

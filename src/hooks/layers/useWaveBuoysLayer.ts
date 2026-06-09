@@ -1,17 +1,20 @@
 import { getLatestWaveBuoySites, getWaveBuoySitesByDate } from '@/api';
-import {
-  UNCLUSTERED_WAVE_BUOYS_LAYER_CONFIG,
-  WAVE_BUOY_CLUSTER_LABEL_LAYER_CONFIG,
-  WAVE_BUOYS_LAYER_CONFIG,
-} from '@/config';
 import type { BuoyLayer, BuoySource, ProductType } from '@/constants';
 import {
   PRODUCT,
   PRODUCTS,
+  UNCLUSTERED_WAVE_BUOYS_LAYER_CONFIG,
+  WAVE_BUOY_CLUSTER_LABEL_LAYER_CONFIG,
+  WAVE_BUOYS_LAYER_CONFIG,
   UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
   WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID,
 } from '@/constants';
-import { addLayerInOrder, addOrUpdateGeoJsonSource, mergeAndFilterBuoyFeatures } from '@/helpers';
+import {
+  addLayerInOrder,
+  addOrUpdateGeoJsonSource,
+  mergeAndFilterBuoyFeatures,
+  normalizeWaveBuoyDates,
+} from '@/helpers';
 import { circleLayer, symbolLayer } from '@/layers';
 import { useMapUIStore, setProductErrorByProduct } from '@/store';
 import { useQuery } from '@tanstack/react-query';
@@ -21,8 +24,7 @@ import { useDidMountEffect } from '../useDidMountEffect';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
 import allWaveBuoySitesBackup from '@/assets/wave_buoy_all_sites.json';
-import { normalizeWaveBuoyDates } from '@/utils';
-import type { WaveBuoyPositionFeatureCollection } from '@/types';
+import type { WaveBuoySiteFeatureCollection } from '@/types';
 
 type UseWaveBuoysLayer = {
   map: React.RefObject<mapboxgl.Map | null>;
@@ -50,11 +52,11 @@ export function useWaveBuoysLayer({ map, product }: UseWaveBuoysLayer) {
 
   const allWaveBuoySitesQuery = useQuery({
     queryKey: ['wave_buoy_sites_all'],
-    queryFn: async (): Promise<WaveBuoyPositionFeatureCollection> => {
+    queryFn: async (): Promise<WaveBuoySiteFeatureCollection> => {
       try {
         return await getLatestWaveBuoySites();
       } catch {
-        return normalizeWaveBuoyDates(allWaveBuoySitesBackup as WaveBuoyPositionFeatureCollection);
+        return normalizeWaveBuoyDates(allWaveBuoySitesBackup as WaveBuoySiteFeatureCollection);
       }
     },
     enabled: enabled,
@@ -126,7 +128,7 @@ export function useWaveBuoysLayer({ map, product }: UseWaveBuoysLayer) {
         ...allBuoySites,
         features: mergeAndFilterBuoyFeatures(allBuoySites, buoySites, date),
       },
-      enableCluser: true,
+      enableCluster: true,
       clusterRadius: 40,
     });
   }, [allWaveBuoySitesQuery.promise, buoySiteQuery.promise, date, map, sourceId]);
@@ -139,12 +141,12 @@ export function useWaveBuoysLayer({ map, product }: UseWaveBuoysLayer) {
       map: map.current!,
       id: sourceId,
       data: { type: 'FeatureCollection', features: [] },
-      enableCluser: true,
+      enableCluster: true,
       clusterRadius: 40,
     });
     buoyLayers.forEach(layer => addLayerInOrder(map, layer));
     if (enabled) {
-      setDataByDataset();
+      void setDataByDataset();
     }
   }, [buoyLayers, enabled, map, setDataByDataset, sourceId]);
 
@@ -159,6 +161,6 @@ export function useWaveBuoysLayer({ map, product }: UseWaveBuoysLayer) {
 
   useDidMountEffect(() => {
     if (!map.current || !loadComplete || !enabled) return;
-    setDataByDataset();
+    void setDataByDataset();
   }, [loadComplete, date, enabled]);
 }

@@ -8,8 +8,8 @@ import {
   setDistanceMeasurementEnabled,
 } from '@/store';
 import { useShallow } from 'zustand/shallow';
-import type { CustomizableParticleConfig } from '@/config';
-import { FADE_OPACITY_RANGE, POINT_SIZE_RANGE, SPEED_FACTOR_RANGE } from '@/config';
+import type { ParticleConfig } from '@/AtlasRenderingSystem';
+import { FADE_OPACITY_RANGE, POINT_SIZE_RANGE, SPEED_FACTOR_RANGE } from '@/AtlasRenderingSystem';
 
 // Particle configuration options
 const NUM_PARTICLES_OPTIONS = [10000, 30000, 60000, 100000].map(num => ({
@@ -42,7 +42,7 @@ export function OptionsSection() {
   );
 
   const handleParticleConfigChange =
-    (key: keyof CustomizableParticleConfig) => (value: string | number | (string | number)[]) => {
+    (key: keyof ParticleConfig) => (value: string | number | (string | number)[]) => {
       setParticleConfig({ [key]: value as number });
     };
 

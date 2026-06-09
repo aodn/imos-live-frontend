@@ -1,5 +1,5 @@
-import { CLUSTER_MAX_ZOOM } from '@/config';
-import { WAVE_BUOYS_LAYER_ID, WAVE_BUOYS_SOURCE_ID } from '@/constants';
+import { CLUSTER_MAX_ZOOM } from '@/constants';
+import { PRODUCT, PRODUCTS } from '@/constants';
 import { createZoomLimitPoints } from '@/helpers';
 import { useEffect } from 'react';
 
@@ -18,13 +18,15 @@ export function useWaveBuoysClusterClick(
 
     const handleClick = (e: mapboxgl.MapMouseEvent) => {
       const features = mapInstance.queryRenderedFeatures(e.point, {
-        layers: [WAVE_BUOYS_LAYER_ID],
+        layers: [PRODUCTS[PRODUCT.WAVE_BUOYS].layerId],
       });
       if (!features[0] || !features[0].properties) return;
 
       const clusterId = features[0].properties.cluster_id;
 
-      const source = mapInstance.getSource(WAVE_BUOYS_SOURCE_ID) as mapboxgl.GeoJSONSource;
+      const source = mapInstance.getSource(
+        PRODUCTS[PRODUCT.WAVE_BUOYS].sourceId,
+      ) as mapboxgl.GeoJSONSource;
 
       source.getClusterExpansionZoom(clusterId, (err, zoom) => {
         if (err) return;
@@ -43,9 +45,9 @@ export function useWaveBuoysClusterClick(
       });
     };
 
-    mapInstance.on('click', WAVE_BUOYS_LAYER_ID, handleClick);
+    mapInstance.on('click', PRODUCTS[PRODUCT.WAVE_BUOYS].layerId, handleClick);
     return () => {
-      mapInstance?.off('click', WAVE_BUOYS_LAYER_ID, handleClick);
+      mapInstance?.off('click', PRODUCTS[PRODUCT.WAVE_BUOYS].layerId, handleClick);
     };
   }, [enabled, map, shouldHandle]);
 }

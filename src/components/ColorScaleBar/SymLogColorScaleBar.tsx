@@ -7,8 +7,7 @@ import {
   interpolateColor,
   getSymlogColorPosition,
 } from './utils';
-import anomalySeaLevelColorMap from '@/config/anomaly_sea_level_colormap.json';
-import { cn } from '@/utils';
+import { ocean_to_terrain } from '@/constants';
 
 type SymLogColorScaleBarProps = {
   height?: number;
@@ -32,7 +31,7 @@ export function SymLogColorScaleBar({
   threshold = 0.1,
   compressedRange = 0.2,
   label,
-  colors = anomalySeaLevelColorMap as [number, number, number][],
+  colors = ocean_to_terrain.colors as [number, number, number][],
   intermediateTicks = [2, 5],
 }: SymLogColorScaleBarProps) {
   const gradient = useMemo(() => {
@@ -80,20 +79,6 @@ export function SymLogColorScaleBar({
     ));
   }, [tickPositions]);
 
-  const scaleUnits = useMemo(() => {
-    return tickPositions.map(({ value, position, isEdge }, index) => (
-      <div
-        key={`scale-unit-${value}-${index}`}
-        className={cn('absolute flex flex-col items-center h-full', {
-          hidden: isEdge,
-        })}
-        style={{ left: `${position}%`, transform: 'translateX(-50%)' }}
-      >
-        <span className="h-full bg-black w-0.5" />
-      </div>
-    ));
-  }, [tickPositions]);
-
   return (
     <div className={className}>
       <div className="w-full">
@@ -105,7 +90,6 @@ export function SymLogColorScaleBar({
           }}
         />
 
-        <div className="relative h-1">{scaleUnits}</div>
         <div className="relative h-2 mx-2">{scaleLabels}</div>
       </div>
 

@@ -1,40 +1,43 @@
 import type { WaveBuoyDetailsFeature } from '@/types';
 import { cn, utcToLocalDateTime, prioritizeKey } from '@/utils';
 import { useMemo } from 'react';
-import { obseravtionVariants } from './config';
+import { obseravtionVariants, preferredVariant, variantDescription } from './config';
 
-export type ObservationData = {
+export type ObservationField = {
   timeStamp: string | number | undefined;
   label: string | undefined;
   value: string | number | undefined;
   unit: string | undefined;
-}[];
+};
 
-const productDescription = {
-  SSWMD: {
-    long_name: 'spectral sea surface wave mean direction',
-    units: 'Degrees',
-  },
-  WPFM: {
-    long_name: 'sea surface wave spectral mean period',
-    units: 's',
-  },
-  WPMH: {
-    long_name: 'average upcross wave period',
-    units: 's',
-  },
-  WSSH: {
-    long_name: 'sea surface wave significant height',
-    units: 'm',
-  },
-  WHTH: {
-    long_name: 'sea surface wave significant height',
-    units: 'm',
-  },
-} as const;
+export type ObservationData = ObservationField[];
 
-const gridColsClass = (numOfCols: number) =>
-  ({
+function buildObservationData(feature: WaveBuoyDetailsFeature): ObservationData {
+  const { properties } = feature;
+
+  const fields = obseravtionVariants
+    .filter(key => (properties[key] ?? []).length > 0)
+    // Drop a variant when its preferred counterpart is also present (e.g. hide WHTH when WSSH exists).
+    .filter((key, _index, keys) => {
+      const preferred = preferredVariant[key];
+      return !preferred || !keys.includes(preferred);
+    })
+    .map(key => {
+      const lastData = (properties[key] ?? []).at(-1);
+      const [timeStamp, value] = Array.isArray(lastData) ? lastData : [undefined, undefined];
+      return {
+        timeStamp,
+        label: variantDescription[key].long_name,
+        value,
+        unit: variantDescription[key].units,
+      };
+    });
+
+  return prioritizeKey(fields, 'label', variantDescription.WSSH.long_name);
+}
+
+function gridColsClass(numOfCols: number): string | undefined {
+  return {
     1: 'grid-cols-1',
     2: 'grid-cols-2',
     3: 'grid-cols-3',
@@ -47,80 +50,53 @@ const gridColsClass = (numOfCols: number) =>
     10: 'grid-cols-10',
     11: 'grid-cols-11',
     12: 'grid-cols-12',
-  })[numOfCols];
+  }[numOfCols];
+}
+
+function ObservationCell({ field, isLast }: { field: ObservationField; isLast: boolean }) {
+  return (
+    <div className={cn('col-span-1', { 'border-r': !isLast })}>
+      <div className="px-3 py-2">
+        <div className="text-xs text-gray-600 mb-1" data-testid="latest-observation-label">
+          {field.label} {field.unit && `(${field.unit})`}
+        </div>
+        <div className="text-sm font-medium text-gray-900" data-testid="latest-observation-value">
+          {field.value}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function LatestObservation({ feature }: { feature: WaveBuoyDetailsFeature | undefined }) {
-  const observationData: ObservationData = useMemo(() => {
-    if (!feature || !feature.properties) return [];
+  const observationData = useMemo(
+    () => (feature?.properties ? buildObservationData(feature) : []),
+    [feature],
+  );
 
-    const properties = feature.properties;
-    const keys = obseravtionVariants;
-
-    const data = keys
-      .filter(key => (properties[key] ?? []).length > 0)
-      .filter((key, _index, keys) => key !== 'WPMH' || (key === 'WPMH' && !keys.includes('WPFM')))
-      .filter((key, _index, keys) => key !== 'WHTH' || (key === 'WHTH' && !keys.includes('WSSH')))
-      .map(key => {
-        const data = properties[key] ?? [];
-        const lastData = data.at(-1);
-        let timestamp, value;
-        if (Array.isArray(lastData)) {
-          [timestamp, value] = lastData;
-        } else {
-          timestamp = undefined;
-          value = undefined;
-        }
-
-        return {
-          timeStamp: timestamp,
-          label: productDescription[key].long_name,
-          value,
-          unit: productDescription[key].units,
-        };
-      });
-
-    return prioritizeKey(data, 'label', productDescription.WSSH.long_name);
-  }, [feature]);
+  const latestTimeStamp = observationData[0]?.timeStamp;
 
   return (
     <div className="w-full">
-      <div className="border  border-gray-300 ">
+      <div className="border border-gray-300">
         <div className="bg-gray-50 border-b border-gray-300 px-3 py-2">
           <h2 className="text-sm font-medium text-gray-800">
             <span>Latest Observations</span>
-            {observationData[0]?.timeStamp && (
+            {latestTimeStamp && (
               <span className="text-xs font-light ml-2" data-testid="latest-observation-timestamp">
-                {utcToLocalDateTime(observationData[0].timeStamp)}
+                {utcToLocalDateTime(latestTimeStamp)}
               </span>
             )}
           </h2>
         </div>
 
         <div className={cn('grid w-full', gridColsClass(observationData.length))}>
-          {observationData?.map((field, index, values) => (
-            <div
-              key={field.label || '' + index}
-              className={cn('col-span-1', {
-                'border-r': values.length !== index + 1,
-              })}
-            >
-              {
-                <div className="px-3 py-2">
-                  <div
-                    className="text-xs text-gray-600 mb-1"
-                    data-testid="latest-observation-label"
-                  >
-                    {field.label} {field.unit && `(${field.unit})`}
-                  </div>
-                  <div
-                    className="text-sm font-medium text-gray-900"
-                    data-testid="latest-observation-value"
-                  >
-                    {field.value}
-                  </div>
-                </div>
-              }
-            </div>
+          {observationData.map((field, index) => (
+            <ObservationCell
+              key={field.label ?? index}
+              field={field}
+              isLast={index === observationData.length - 1}
+            />
           ))}
         </div>
       </div>

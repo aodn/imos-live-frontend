@@ -3,18 +3,13 @@ import type { HeaderData } from './MainSidebarContent';
 import { Image } from '../Image';
 import { Button } from '../Button';
 import { MenuIcon } from '../Icons';
-import { openLeftDrawer } from '@/store';
-import { useCallback } from 'react';
-import { MainSidebarContent } from './MainSidebarContent';
 
 export type HeaderProps = {
   className?: string;
+  onMenuClick?: () => void;
 } & HeaderData;
 
-export function Header({ image, title, className }: HeaderProps) {
-  const handleClick = useCallback(() => {
-    openLeftDrawer(<MainSidebarContent />);
-  }, []);
+export function Header({ image, title, className, onMenuClick }: HeaderProps) {
   return (
     <div
       className={cn(
@@ -27,8 +22,8 @@ export function Header({ image, title, className }: HeaderProps) {
           variant="ghost"
           size="icon"
           className="md:hidden"
-          onClick={handleClick}
-          aria-label="open siderbar"
+          onClick={onMenuClick}
+          aria-label="open sidebar"
         >
           <MenuIcon size="xl" />
         </Button>

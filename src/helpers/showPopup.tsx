@@ -1,7 +1,7 @@
 import type { LngLat } from 'mapbox-gl';
 import mapboxgl from 'mapbox-gl';
 import { type Root, createRoot } from 'react-dom/client';
-import { queryClient } from '@/config';
+import { queryClient } from '@/api/queryClient';
 import { QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 

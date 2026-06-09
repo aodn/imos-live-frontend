@@ -1,8 +1,7 @@
-import { debounce } from '@/utils';
 import { useRef, useEffect, useMemo } from 'react';
 import { TIMING } from '../constants';
 import type { SelectionResult, ViewMode } from '../type';
-import { createSelectionResult } from '../utils';
+import { createSelectionResult, debounce } from '../utils';
 
 type UseOnChangeNotifierParams = {
   onChange: (selection: SelectionResult) => void;

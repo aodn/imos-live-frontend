@@ -47,31 +47,40 @@ import { cn } from '@/utils';
 - Use React Query for all remote data fetching — never `useEffect` + fetch combos
 - Don't call Axios directly in components
 - Use `enabled` for conditional fetching, not manual guards inside `queryFn`
-- Global `staleTime`/`gcTime` defaults are in `src/config/reactQueryConfig.ts` — only override per-query when the query has different caching needs
+- Global `staleTime`/`gcTime` defaults are in `src/api/queryClient.ts` — only override per-query when the query has different caching needs
 - Axios instances live in `src/api/` — reuse existing ones where possible; if a new instance is needed, add it there
 
 ## Products & Map Layers
 
-`src/constants/product.ts` is the single source of truth for all products and their `layerId`/`sourceId` — never hardcode layer or source IDs elsewhere.
+Products are defined across three sibling files in `src/constants/` — never hardcode any of the following elsewhere:
 
-Each product is visualized via its own dedicated hook in `src/hooks/`:
+| File          | What it owns                                                                                                                                                           |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `products.ts` | `PRODUCT` slugs and `PRODUCTS[slug] = { name, layerId, sourceId, variables?, description, portalLink }`; also `TILES_GROUP` and `MAX_VECTOR_SPEED`                     |
+| `legends.ts`  | `PRODUCTLEGENDS[slug]` — legend config (label, scale type, min/max range, optional scale tick values, and a `colorKey`) consumed by the sidebar UI and the layer hooks |
+| `colors.ts`   | `COLOR_OPTIONS` — the named palettes a legend's `colorKey` indexes into                                                                                                |
 
-- `useParticleLayer` — GSLA Ocean Geostrophic Current (WebGL particle animation)
-- `useRasterLayer` — GSLA Anomaly Sea Levels and SST Anomaly Mosaic (raster image overlay)
+`buildProductPalette` (`src/helpers/buildProductPalette.ts`) converts a legend into the `ColorPalette` the WebGL layer uploads as its color-ramp texture.
+
+Each product is visualized via its own dedicated hook in `src/hooks/layers/`:
+
+- `useParticleAtlasLayer` — GSLA Ocean Geostrophic Current (WebGL particle animation)
+- `useScalarAtlasLayer` — used by all four scalar tiles products: GSLA Anomaly Sea Levels, Marine Heatwave SST Mosaic, SSTA Mosaic, and MCS Category (WebGL atlas scalar overlay)
 - `useWaveBuoysLayer` — Wave Buoys (clustered circle layer)
 
 When adding a new product, touch these files in order:
 
-1. **`src/constants/product.ts`** — add to `PRODUCT`, `PRODUCTS` (with `layerId`/`sourceId`), and `PRODUCTLEGENDS`
-2. **`src/hooks/use<ProductName>Layer.ts`** — create a dedicated layer hook; reuse the shared layer hooks already used across existing products:
+1. **`src/constants/products.ts`** — add an entry to `PRODUCT` and `PRODUCTS` (with `layerId`/`sourceId` plus the user-facing `description` and `portalLink` — this is the single source of truth for product copy); if it's a scalar/particle tiles product, also add the slug to `TILES_GROUP`
+2. **`src/constants/legends.ts`** — add a `PRODUCTLEGENDS` entry whose `colorKey` selects a palette from `COLOR_OPTIONS` in `src/constants/colors.ts`
+3. **`src/hooks/layers/use<ProductName>Layer.ts`** — create a dedicated layer hook; reuse the shared layer hooks already used across existing products:
    - `useMapboxLayerSetup` — handles layer initialisation lifecycle
-   - `useMapboxLayerVisibility` — handles show/hide based on enabled/error state
    - `useDidMountEffect` — re-fetches data when date changes
-3. **`src/components/MapComponent/MapComponent.tsx`** — register the new hook
-4. **`src/components/MainSidebar/products.tsx`** — add an entry to `featuredDataset` (image, title, description, icon, legend, `dateCheckUrl`, `portalLink`)
-5. **`src/pages/Map.tsx`** — add the product icon entry
+   - `useMapboxLayerVisibility` — handles show/hide based on enabled/error state (used by non-WebGL layers only, e.g. wave buoys)
+4. **`src/components/MapComponent/MapComponent.tsx`** — register the new hook
+5. **`src/components/MainSidebar/products.tsx`** — add an entry to `featuredPresentation` with the sidebar-only presentation (`product`, display `title`, `image`, `icon`); `featuredDataset` is derived from it, pulling `description`/`portalLink`/`layerId` from `PRODUCTS` — don't restate those here
+6. **`src/pages/Map.tsx`** — add the product icon entry to the `LayersIndicator`
 
-Layer paint/layout config belongs in `src/config/layerConfig.ts`. Always add layers to the map via `addLayerInOrder` (not Mapbox's `addLayer` directly) — and register the new layer's ID in `LAYERS_ORDER` in `layerConfig.ts`, where the last entry is the top-most layer.
+Layer paint/layout config belongs in `src/constants/layerSpecs.ts`. Always add layers to the map via `addLayerInOrder` (not Mapbox's `addLayer` directly) — and register the new layer's ID in `LAYERS_ORDER` in `src/constants/layerOrder.ts`, where the last entry is the top-most layer.
 
 ## Performance
 
@@ -81,4 +90,4 @@ Layer paint/layout config belongs in `src/config/layerConfig.ts`. Always add lay
 
 ## WebGL Particle Engine
 
-`src/layers/VectorField.js` uses a ping-pong texture technique for GPU-side computations — be cautious modifying it. Particle settings (count, speed, fade, size) are configurable via `src/config/particleConfig.ts`.
+`src/AtlasRenderingSystem/layers/ParticlesAtlasField.ts` and `src/AtlasRenderingSystem/webgl/particlesShader.ts` implement the ping-pong texture particle system — be cautious modifying them. Particle settings (count, speed, fade, size) are configurable via `src/AtlasRenderingSystem/config/particleConfig.ts`. The atlas renderer is a self-contained package, driven only through its public factories `createScalarAtlasLayer` / `createParticleAtlasLayer` (`src/AtlasRenderingSystem/index.ts`) — the `use*AtlasLayer` hooks are the host-app glue around them; see `src/AtlasRenderingSystem/README.md` for its full architecture and API.

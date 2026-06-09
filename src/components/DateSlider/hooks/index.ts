@@ -1,6 +1,7 @@
 export * from './useDrag';
 export * from './useRAFDFn';
 export * from './useResizeObserver';
+export * from './useViewPortSize';
 export * from './useDragState';
 export * from './useEventHandlers';
 export * from './useFocusManagement';
@@ -8,7 +9,6 @@ export * from './useInitialAutoScrollPosition';
 export * from './usePositionState';
 export * from './useDateLabelPersist';
 export * from './useHandleAutoScrollToVisible';
-export * from './useViewPortSize';
 export * from './useIsScrolling';
 export * from './useSliderConfig';
 export * from './useSliderDimensions';

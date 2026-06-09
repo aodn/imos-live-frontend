@@ -1,5 +1,3 @@
-export * from './oceanCurrent';
-export * from './metaData';
+export * from './tiles';
 export * from './waveBuoys';
-export * from './threddsCatalog';
-export * from './fileExist';
+export * from './queryClient';

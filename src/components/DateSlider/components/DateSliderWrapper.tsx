@@ -1,8 +1,8 @@
-import { cn } from '@/utils';
 import type { ReactNode } from 'react';
 import { LAYOUT, ACCESSIBILITY } from '../constants';
 import type { useSliderConfig } from '../hooks';
 import type { DateSliderClassNames } from '../type';
+import { cn } from '../utils';
 
 /**
  *        Layout Architecture:

@@ -3,7 +3,9 @@ import { useEffect, useState } from 'react';
 
 export function useViewportSize() {
   const [isSmallScreen, setIsSmallScreen] = useState(() =>
-    typeof window !== 'undefined' ? window.innerWidth < 768 : false,
+    typeof window !== 'undefined'
+      ? window.matchMedia(`(max-width: ${BREAKPOINT}px)`).matches
+      : false,
   );
 
   useEffect(() => {

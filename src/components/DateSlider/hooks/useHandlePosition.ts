@@ -1,8 +1,13 @@
 import { useCallback, type MutableRefObject } from 'react';
-import { getPercentFromDate, getDateFromPercent, addTime, clampPercent } from '../utils';
+import {
+  getPercentFromDate,
+  getDateFromPercent,
+  addTime,
+  clampPercent,
+  minusOneUTCDay,
+} from '../utils';
 import { PERCENTAGE } from '../constants';
 import type { DragHandle, ViewMode, Step, StepFn, TimeUnit } from '../type';
-import { minusOneUTCDay } from '@/utils';
 
 type UseHandlePositionParams = {
   minGapPercent: number;

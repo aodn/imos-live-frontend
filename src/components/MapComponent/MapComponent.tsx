@@ -4,9 +4,9 @@ import {
   useMapInitialization,
   useMapResize,
   useMapStyle,
-  useRasterLayer,
-  useParticleLayer,
-  useParticleRasterLayersEventHandlers,
+  useParticleAtlasLayer,
+  useTilesLayersEventHandlers,
+  useScalarAtlasLayer,
   useWaveBuoysLayer,
   useWaveBuoysLayerEventHandler,
   useWorldLandLayer,
@@ -23,8 +23,10 @@ import type { DrawerProps } from '../Drawer';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_KEY;
 
-const WaveBuoyChart = lazy(() => import('../Highcharts/WaveBuoyChart'));
-// LineChart (500px) + LatestObservation (~88px) + drawer py-4 padding (32px).
+const WaveBuoyChart = lazy(() =>
+  import('../Highcharts/WaveBuoyChart').then(m => ({ default: m.WaveBuoyChart })),
+);
+
 const WAVE_BUOY_SNAP_POINTS = (
   isSmallScreen() ? ['70%', '90%'] : [620, 700]
 ) as DrawerProps['snapPoints'];
@@ -32,23 +34,21 @@ const WAVE_BUOY_SNAP_POINTS = (
 export const MapComponent = memo(function MapComponent() {
   const {
     distanceMeasurementEnabled,
-    gslaAnomalySeaLevelsEnabled,
-    sstAnomMosaicEnabled,
-    dhdAnomalMosaicEnabled,
     waveBuoysEnabled,
     oceanCurrentEnabled,
-    mhwCategoryMosaicEnabled,
-    sstMosaicEnabled,
+    gslaAnomalySeaLevelsEnabled,
+    marineHeatwaveSstMosaicEnabled,
+    marineHeatwaveSstaEnabled,
+    marineHeatwaveMcsCategoryEnabled,
   } = useMapUIStore(
     useShallow(s => ({
       distanceMeasurementEnabled: s.distanceMeasurementEnabled,
-      gslaAnomalySeaLevelsEnabled: s.productEnabled[PRODUCT.GSLA_ANOMALY_SEA_LEVELS],
-      sstAnomMosaicEnabled: s.productEnabled[PRODUCT.AUSTEMP_SSTA_MOSAIC],
-      dhdAnomalMosaicEnabled: s.productEnabled[PRODUCT.AUSTEMP_DHD_MOSAIC],
       waveBuoysEnabled: s.productEnabled[PRODUCT.WAVE_BUOYS],
       oceanCurrentEnabled: s.productEnabled[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT],
-      mhwCategoryMosaicEnabled: s.productEnabled[PRODUCT.AUSTEMP_MHW_CATEGORY_MOSAIC],
-      sstMosaicEnabled: s.productEnabled[PRODUCT.AUSTEMP_SST_MOSAIC],
+      gslaAnomalySeaLevelsEnabled: s.productEnabled[PRODUCT.GSLA_ANOMALY_SEA_LEVELS],
+      marineHeatwaveSstMosaicEnabled: s.productEnabled[PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC],
+      marineHeatwaveSstaEnabled: s.productEnabled[PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC],
+      marineHeatwaveMcsCategoryEnabled: s.productEnabled[PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY],
     })),
   );
 
@@ -58,29 +58,25 @@ export const MapComponent = memo(function MapComponent() {
   //2. create layer, set data to layer and add layer to map.
   const { measurePointsGeojson, setMeasurePointsGeojson } = useDistanceMeasurementLayers(map);
   useWorldLandLayer(map);
-  useRasterLayer({
+  useParticleAtlasLayer({
+    map,
+    product: PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT,
+  });
+  useScalarAtlasLayer({
     map,
     product: PRODUCT.GSLA_ANOMALY_SEA_LEVELS,
   });
-  useRasterLayer({
+  useScalarAtlasLayer({
     map,
-    product: PRODUCT.AUSTEMP_SSTA_MOSAIC,
+    product: PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC,
   });
-  useRasterLayer({
+  useScalarAtlasLayer({
     map,
-    product: PRODUCT.AUSTEMP_DHD_MOSAIC,
+    product: PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC,
   });
-  useRasterLayer({
+  useScalarAtlasLayer({
     map,
-    product: PRODUCT.AUSTEMP_SST_MOSAIC,
-  });
-  useRasterLayer({
-    map,
-    product: PRODUCT.AUSTEMP_MHW_CATEGORY_MOSAIC,
-  });
-  useParticleLayer({
-    map,
-    product: PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT,
+    product: PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY,
   });
   useWaveBuoysLayer({
     map,
@@ -91,15 +87,14 @@ export const MapComponent = memo(function MapComponent() {
   const { clickedPointData: waveBuoysLayerClickedPointData, openDrawer } =
     useWaveBuoysLayerEventHandler(map, waveBuoysEnabled, distanceMeasurementEnabled);
 
-  useParticleRasterLayersEventHandlers({
+  useTilesLayersEventHandlers({
     map,
-    raster:
-      gslaAnomalySeaLevelsEnabled ||
-      sstAnomMosaicEnabled ||
-      dhdAnomalMosaicEnabled ||
-      mhwCategoryMosaicEnabled ||
-      sstMosaicEnabled,
     oceanCurrentEnabled,
+    heatmapEnabled:
+      gslaAnomalySeaLevelsEnabled ||
+      marineHeatwaveSstMosaicEnabled ||
+      marineHeatwaveSstaEnabled ||
+      marineHeatwaveMcsCategoryEnabled,
     distanceMeasurementEnabled,
   });
 
