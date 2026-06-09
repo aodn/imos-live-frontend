@@ -12,7 +12,7 @@ import {
 } from '@/store';
 import { useCallback, useEffect, useRef } from 'react';
 import { useShallow } from 'zustand/shallow';
-import { useDidMountEffect } from '../useDidMountEffect';
+import { useDidMountEffect } from '../common';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useProductDateAvailabilitySync } from './useProductDateAvailabilitySync';
 

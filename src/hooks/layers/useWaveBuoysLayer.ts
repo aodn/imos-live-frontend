@@ -20,7 +20,7 @@ import { useMapUIStore, setProductErrorByProduct } from '@/store';
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
-import { useDidMountEffect } from '../useDidMountEffect';
+import { useDidMountEffect } from '../common';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
 import allWaveBuoySitesBackup from '@/assets/wave_buoy_all_sites.json';

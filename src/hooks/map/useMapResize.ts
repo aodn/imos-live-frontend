@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from 'react';
-import { useRAFDFn } from '../useRAFDFn';
+import { useRAFDFn } from '../common';
 
 export function useMapResize(
   map: React.RefObject<mapboxgl.Map | null>,
