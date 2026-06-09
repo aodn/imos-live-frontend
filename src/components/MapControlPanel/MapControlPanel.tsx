@@ -1,5 +1,4 @@
-import { useMemo } from 'react';
-import { Button, featuredDataset } from '@/components';
+import { Button } from '@/components';
 import { cn } from '@/utils';
 import {
   RenewIcon,
@@ -9,28 +8,13 @@ import {
   CloseFullScreenIcon,
   DownloadIcon,
 } from '../Icons';
-import { INITIAL_ZOOM, MIN_EXPORT_MAP_WIDTH } from '@/config';
+import { COLOR_OPTIONS, INITIAL_ZOOM, MIN_EXPORT_MAP_WIDTH } from '@/constants';
 import { useIsMapDragging, useIsMapZooming, useMapCanvasWidth } from '@/hooks';
 import { setSidebarOpen, useMapUIStore, useSidebarStore } from '@/store';
 import { exportMapImage } from '@/helpers';
 import { useShallow } from 'zustand/shallow';
-import { PRODUCT, PRODUCTS, type ProductType } from '@/constants';
-
-const getProductInImpageExport = (
-  gslaAnomalySeaLevelsEnabled: boolean,
-  sstAnomMosaicEnabled: boolean,
-  dhdAnomMosaicEnabled: boolean,
-  sstMosaicEnabled: boolean,
-  mhwCategoryMosaicEnabled: boolean,
-):
-  | Exclude<ProductType, typeof PRODUCT.WAVE_BUOYS | typeof PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT>
-  | undefined => {
-  if (gslaAnomalySeaLevelsEnabled) return PRODUCT.GSLA_ANOMALY_SEA_LEVELS;
-  if (sstAnomMosaicEnabled) return PRODUCT.AUSTEMP_SSTA_MOSAIC;
-  if (dhdAnomMosaicEnabled) return PRODUCT.AUSTEMP_DHD_MOSAIC;
-  if (sstMosaicEnabled) return PRODUCT.AUSTEMP_SST_MOSAIC;
-  if (mhwCategoryMosaicEnabled) return PRODUCT.AUSTEMP_MHW_CATEGORY_MOSAIC;
-};
+import { SCALAR_TILES_GROUP, PRODUCTS } from '@/constants';
+import { CategoryColorScaleBar, LinearColorScaleBar, LogColorScaleBar } from '../ColorScaleBar';
 
 export function MapControlPanel({
   ref: mapRef,
@@ -43,31 +27,15 @@ export function MapControlPanel({
   const isZooming = useIsMapZooming(mapRef);
   const mapCanvasWidth = useMapCanvasWidth(mapRef);
 
-  const {
-    date,
-    gslaAnomalySeaLevelsEnabled,
-    sstAnomMosaicEnabled,
-    dhdAnomMosaicEnabled,
-    mhwCategoryMosaicEnabled,
-    sstMosaicEnabled,
-  } = useMapUIStore(
+  const { date, productEnabled, productLegends } = useMapUIStore(
     useShallow(s => ({
       date: s.date,
-      gslaAnomalySeaLevelsEnabled: s.productEnabled[PRODUCT.GSLA_ANOMALY_SEA_LEVELS],
-      sstAnomMosaicEnabled: s.productEnabled[PRODUCT.AUSTEMP_SSTA_MOSAIC],
-      dhdAnomMosaicEnabled: s.productEnabled[PRODUCT.AUSTEMP_DHD_MOSAIC],
-      mhwCategoryMosaicEnabled: s.productEnabled[PRODUCT.AUSTEMP_MHW_CATEGORY_MOSAIC],
-      sstMosaicEnabled: s.productEnabled[PRODUCT.AUSTEMP_SST_MOSAIC],
+      productEnabled: s.productEnabled,
+      productLegends: s.productLegends,
     })),
   );
 
-  const product = getProductInImpageExport(
-    gslaAnomalySeaLevelsEnabled,
-    sstAnomMosaicEnabled,
-    dhdAnomMosaicEnabled,
-    sstMosaicEnabled,
-    mhwCategoryMosaicEnabled,
-  );
+  const activeProduct = SCALAR_TILES_GROUP.find(p => productEnabled[p]);
 
   const isMapOnOperation = isDragging || isZooming;
   const isMapTooNarrow = mapCanvasWidth > 0 && mapCanvasWidth < MIN_EXPORT_MAP_WIDTH;
@@ -92,17 +60,14 @@ export function MapControlPanel({
     setSidebarOpen(false);
   };
 
-  const productLegend = useMemo(() => {
-    if (!product) return undefined;
-    //TODO: pass each legend component here, pass props for export only.
-    return featuredDataset.find(f => f.product === product)?.legend;
-  }, [product]);
-
   const downloadMapImage = () => {
     if (!mapRef.current) return;
 
-    const productArg = product
-      ? { name: PRODUCTS[product].name, legend: productLegend }
+    const productArg = activeProduct
+      ? {
+          name: PRODUCTS[activeProduct].name,
+          legend: buildExportLegend(productLegends[activeProduct]),
+        }
       : undefined;
 
     const rawBounds = mapRef.current.getBounds();
@@ -116,7 +81,7 @@ export function MapControlPanel({
       : undefined;
 
     mapRef.current.once('render', () => {
-      exportMapImage(mapRef.current!.getCanvas(), date, productArg, bounds);
+      void exportMapImage(mapRef.current!.getCanvas(), date, productArg, bounds);
     });
 
     mapRef.current.triggerRepaint();
@@ -174,5 +139,32 @@ export function MapControlPanel({
         <DownloadIcon className="text-imos-grey" size="lg" />
       </Button>
     </div>
+  );
+}
+
+/** Mirrors LayerCard's legend rendering so the exported PNG shows the same scale bar. */
+function buildExportLegend(legend: {
+  scale: 'log' | 'linear' | 'category';
+  colorKey: keyof typeof COLOR_OPTIONS;
+  range: readonly [number, number];
+  label: string;
+  scales?: readonly (number | string)[];
+}) {
+  const colors = COLOR_OPTIONS[legend.colorKey];
+  const [min, max] = legend.range;
+
+  if (legend.scale === 'log') {
+    return <LogColorScaleBar colors={colors} min={min} max={max} />;
+  }
+  if (legend.scale === 'category') {
+    return <CategoryColorScaleBar colors={colors} scales={legend.scales as string[] | undefined} />;
+  }
+  return (
+    <LinearColorScaleBar
+      colors={colors}
+      min={min}
+      max={max}
+      scales={legend.scales as number[] | undefined}
+    />
   );
 }

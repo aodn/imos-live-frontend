@@ -1,8 +1,7 @@
-import { CLUSTER_MAX_ZOOM } from '@/config';
+import { CLUSTER_MAX_ZOOM } from '@/constants';
 import { ZOOM_LIMIT_TEMP_POINTS_LAYER_ID, ZOOM_LIMIT_TEMP_POINTS_SOURCE_ID } from '@/constants';
-import { removeZoomLimitTempPoints } from '@/helpers';
-import { type WaveBuoyPositionFeature } from '@/types';
-import { normalizeWaveBuouysData } from '@/utils';
+import { normalizeWaveBuoysData, removeZoomLimitTempPoints } from '@/helpers';
+import { type WaveBuoySiteFeature } from '@/types';
 import { useEffect } from 'react';
 
 /**
@@ -13,7 +12,7 @@ export function useWaveBuoysZoomLimitClick(
   map: React.RefObject<mapboxgl.Map | null>,
   enabled: boolean,
   shouldHandle: () => boolean,
-  setClickedPointData: (data: Omit<WaveBuoyPositionFeature, 'type'>[] | null) => void,
+  setClickedPointData: (data: Omit<WaveBuoySiteFeature, 'type'>[] | null) => void,
 ) {
   useEffect(() => {
     if (!map.current || !enabled || !shouldHandle()) return;
@@ -23,7 +22,7 @@ export function useWaveBuoysZoomLimitClick(
       if (!e.features?.length) return;
       if (e.features[0].properties?.hasDataForDate === false) return;
 
-      setClickedPointData(normalizeWaveBuouysData(e.features));
+      setClickedPointData(normalizeWaveBuoysData(e.features));
     };
 
     mapInstance.on('click', ZOOM_LIMIT_TEMP_POINTS_LAYER_ID, handleClick);

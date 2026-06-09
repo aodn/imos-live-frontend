@@ -1,0 +1,302 @@
+/**
+ * ChunkScheduler
+ *
+ * Manages dynamic on-demand chunk fetching for a single LOD level.
+ * LOD1 is preloaded at startup by the caller — one scheduler instance
+ * is created per on-demand LOD (LOD2, LOD3, etc.).
+ *
+ * Responsibilities:
+ *  - On each map move/zoom, compute which chunks for this LOD are needed
+ *    (visible viewport + 1-chunk buffer ring)
+ *  - Skip scheduling if zoom is below this LOD's threshold
+ *  - Abort in-flight requests for chunks that scrolled out of scope
+ *  - Fetch + decode remaining chunks in priority order (viewport first)
+ *  - Retry transient fetch failures with exponential backoff (a 404/network
+ *    blip would otherwise leave that region stuck at the coarser LOD until the
+ *    next map move re-queued it)
+ *  - Upload each decoded ImageBitmap to the AtlasManager
+ *  - Fire onChunkLoaded so the field can repaint and reveal the new chunk
+ *
+ * ChunkId convention: "{lod}/{cx}/{cy}"  e.g. "2/3/2", "3/5/4"
+ * File URL:           "{tileBaseUrl}/{lod}/{cx}/{cy}.png"
+ */
+
+import type { AtlasManagerAPI } from './AtlasManager';
+
+export const DEFAULT_ZOOM_THRESHOLD = 6;
+const CONCURRENCY = 6;
+/** Automatic re-fetch attempts after a transient (non-abort) failure, per view. */
+export const MAX_RETRIES = 3;
+/** Backoff before retry N is RETRY_BASE_MS × 2^(N-1): 500ms, 1s, 2s. */
+const RETRY_BASE_MS = 500;
+
+// ── Types ─────────────────────────────────────────────────────────────────────
+
+export type MapBounds = {
+  west: number;
+  east: number;
+  south: number;
+  north: number;
+};
+
+export type ChunkRegion = {
+  lonMin: number;
+  lonMax: number;
+  latMin: number;
+  latMax: number;
+  cols: number;
+  rows: number;
+};
+
+type QueueEntry = {
+  chunkId: string;
+  priority: number; // 0 = viewport (high), 1 = buffer ring (low)
+};
+
+export type ChunkSchedulerAPI = {
+  /** Call on every map move or zoom change. No-ops if zoom ≤ threshold. */
+  update: (bounds: MapBounds, zoom: number) => void;
+  /** True when every chunk in the current viewport is present in the atlas. */
+  allVisibleLoaded: () => boolean;
+  destroy: () => void;
+};
+
+// Helpers
+
+/** Convert a map bounds + expansion to the set of chunk grid positions that intersect it. */
+function chunksInBounds(
+  bounds: MapBounds,
+  region: ChunkRegion,
+  expandChunks = 0,
+): { cx: number; cy: number }[] {
+  const chunkLon = (region.lonMax - region.lonMin) / region.cols;
+  const chunkLat = (region.latMax - region.latMin) / region.rows;
+
+  const west = bounds.west - expandChunks * chunkLon;
+  const east = bounds.east + expandChunks * chunkLon;
+  const south = bounds.south - expandChunks * chunkLat;
+  const north = bounds.north + expandChunks * chunkLat;
+
+  // cx: west→east, cy: north→south (cy=0 is northernmost, matching chunk generation)
+  const cxMin = Math.max(0, Math.floor((west - region.lonMin) / chunkLon));
+  const cxMax = Math.min(region.cols - 1, Math.floor((east - region.lonMin) / chunkLon));
+  const cyMin = Math.max(0, Math.floor((region.latMax - north) / chunkLat));
+  const cyMax = Math.min(region.rows - 1, Math.floor((region.latMax - south) / chunkLat));
+
+  // Clamp: if viewport is entirely outside the region return empty
+  if (cxMin > cxMax || cyMin > cyMax) return [];
+
+  const positions: { cx: number; cy: number }[] = [];
+  for (let cy = cyMin; cy <= cyMax; cy++) {
+    for (let cx = cxMin; cx <= cxMax; cx++) {
+      positions.push({ cx, cy });
+    }
+  }
+  return positions;
+}
+
+async function fetchChunk(url: string, signal: AbortSignal): Promise<ImageBitmap> {
+  const resp = await fetch(url, { signal });
+  if (!resp.ok) throw new Error(`HTTP ${resp.status} fetching ${url}`);
+  const blob = await resp.blob();
+  // premultiplyAlpha:'none' — A channel is always 255 in our PNGs so this is
+  // a no-op, but it's defensive: prevents the browser from corrupting R/G/B
+  // values if A were ever less than 255.
+  // colorSpaceConversion:'none' — the RGB bytes pack a 24-bit scalar value, not
+  // a colour, so any gamma/ICC profile remapping would corrupt the decoded data.
+  return createImageBitmap(blob, { premultiplyAlpha: 'none', colorSpaceConversion: 'none' });
+}
+
+// Factory
+
+export function createChunkScheduler(
+  atlas: AtlasManagerAPI,
+  tileBaseUrl: string,
+  onChunkLoaded: (chunkId: string) => void,
+  region: ChunkRegion,
+  /** 1-based LOD number this scheduler handles (2 = LOD2, 3 = LOD3, ...). */
+  lod = 2,
+  /** Zoom level below which this LOD is not activated. */
+  zoomThreshold = DEFAULT_ZOOM_THRESHOLD,
+): ChunkSchedulerAPI {
+  let inflight = 0;
+  let queue: QueueEntry[] = [];
+  const loading = new Set<string>();
+  const aborts = new Map<string, AbortController>();
+  let visibleIds: string[] = [];
+  /** Chunks currently in scope (viewport + buffer ring). A pending retry only
+   *  re-fetches if its chunk is still here — so a tile that scrolled away (or a
+   *  LOD that zoomed out of range) is not resurrected by a stale backoff timer. */
+  let neededIds = new Set<string>();
+  /** chunkId → consecutive failed attempts in the current view. Reset on success,
+   *  on scroll-away, and on give-up — so a chunk gets a fresh budget each visit. */
+  const retries = new Map<string, number>();
+  /** chunkId → pending backoff timer, so it can be cancelled. */
+  const retryTimers = new Map<string, ReturnType<typeof setTimeout>>();
+
+  // chunkId format: "${lod}/${cx}/${cy}"
+  function makeChunkId(cx: number, cy: number): string {
+    return `${lod}/${cx}/${cy}`;
+  }
+
+  function chunkUrl(id: string): string {
+    return `${tileBaseUrl}/${id}.png`;
+  }
+
+  function clearRetry(id: string) {
+    const timer = retryTimers.get(id);
+    if (timer !== undefined) {
+      clearTimeout(timer);
+      retryTimers.delete(id);
+    }
+    retries.delete(id);
+  }
+
+  function clearAllRetries() {
+    retryTimers.forEach(timer => clearTimeout(timer));
+    retryTimers.clear();
+    retries.clear();
+  }
+
+  /** Re-enqueue a failed chunk after a backoff, unless it has scrolled out of
+   *  scope or already loaded by the time the timer fires. */
+  function scheduleRetry(id: string, priority: number, attempt: number) {
+    const delay = RETRY_BASE_MS * 2 ** (attempt - 1);
+    const timer = setTimeout(() => {
+      retryTimers.delete(id);
+      if (atlas.has(id) || loading.has(id)) return;
+      if (!neededIds.has(id)) {
+        retries.delete(id); // scrolled away — forget the failure history
+        return;
+      }
+      queue.push({ chunkId: id, priority });
+      drain();
+    }, delay);
+    retryTimers.set(id, timer);
+  }
+
+  function cancelChunk(id: string) {
+    aborts.get(id)?.abort();
+    aborts.delete(id);
+    loading.delete(id);
+    clearRetry(id);
+    // inflight is decremented by the fetch's .finally handler. Decrementing here
+    // too would double-count (the aborted fetch still settles and runs .finally),
+    // letting drain() start more than CONCURRENCY concurrent fetches.
+  }
+
+  function drain() {
+    // Highest priority (lowest number) first. Nothing is enqueued during the
+    // synchronous loop below, so sort once here rather than on every iteration.
+    queue.sort((a, b) => a.priority - b.priority);
+    while (inflight < CONCURRENCY && queue.length > 0) {
+      const entry = queue.shift()!;
+      const { chunkId: id, priority } = entry;
+
+      if (loading.has(id) || atlas.has(id)) continue;
+
+      const ctrl = new AbortController();
+      aborts.set(id, ctrl);
+      loading.add(id);
+      inflight++;
+
+      fetchChunk(chunkUrl(id), ctrl.signal)
+        .then(img => {
+          atlas.upload(id, img);
+          retries.delete(id); // loaded — clear any failure history
+          onChunkLoaded(id);
+        })
+        .catch(err => {
+          // Aborts are intentional (scrolled out of scope) — never a failure.
+          if (err?.name === 'AbortError') return;
+          const attempt = (retries.get(id) ?? 0) + 1;
+          if (attempt <= MAX_RETRIES) {
+            retries.set(id, attempt);
+            scheduleRetry(id, priority, attempt);
+          } else {
+            retries.delete(id); // give up; a later update() re-queues afresh
+            console.warn(`[ChunkScheduler] giving up on ${id} after ${MAX_RETRIES} retries:`, err);
+          }
+        })
+        .finally(() => {
+          // This fetch has settled (resolved, errored, or aborted) — release its
+          // concurrency slot exactly once.
+          inflight = Math.max(0, inflight - 1);
+          // Only clear the id-keyed state if we're still the active controller for
+          // this id. A cancelled chunk that scrolled back into scope may have been
+          // re-queued with a newer controller, which we must not clobber.
+          if (aborts.get(id) === ctrl) {
+            aborts.delete(id);
+            loading.delete(id);
+          }
+          drain();
+        });
+    }
+  }
+
+  function update(bounds: MapBounds, zoom: number) {
+    if (zoom <= zoomThreshold) {
+      // This LOD not active — abort everything and reset, including any pending
+      // retries (a backoff timer must not re-fetch into an inactive LOD).
+      aborts.forEach((_, id) => cancelChunk(id));
+      clearAllRetries();
+      queue = [];
+      visibleIds = [];
+      neededIds = new Set();
+      return;
+    }
+
+    const toIds = (positions: { cx: number; cy: number }[]) =>
+      positions.map(({ cx, cy }) => makeChunkId(cx, cy));
+
+    visibleIds = toIds(chunksInBounds(bounds, region, 0));
+
+    // Refresh LRU timestamp for every visible chunk already in the atlas.
+    for (const id of visibleIds) {
+      if (atlas.has(id)) atlas.touch(id);
+    }
+
+    const buffered = toIds(chunksInBounds(bounds, region, 1)).filter(
+      id => !visibleIds.includes(id),
+    );
+
+    // Cancel requests that are no longer in scope (in-flight fetches and any
+    // pending retries). neededIds gates the retry timers' re-enqueue.
+    neededIds = new Set([...visibleIds, ...buffered]);
+    aborts.forEach((_, id) => {
+      if (!neededIds.has(id)) cancelChunk(id);
+    });
+    retryTimers.forEach((_, id) => {
+      if (!neededIds.has(id)) clearRetry(id);
+    });
+
+    // Build fresh priority queue (skip already-loaded and already-loading)
+    queue = [
+      ...visibleIds
+        .filter(id => !atlas.has(id) && !loading.has(id))
+        .map(id => ({ chunkId: id, priority: 0 })),
+      ...buffered
+        .filter(id => !atlas.has(id) && !loading.has(id))
+        .map(id => ({ chunkId: id, priority: 1 })),
+    ];
+
+    drain();
+  }
+
+  function allVisibleLoaded(): boolean {
+    // Empty visibleIds — either below the zoom threshold or off-region. Treat as
+    // "nothing to wait for" (vacuously true) so the Field's LOD-blend gating
+    // doesn't stall an active LOD waiting on an inactive sibling scheduler.
+    return visibleIds.every(id => atlas.has(id));
+  }
+
+  function destroy() {
+    aborts.forEach((_, id) => cancelChunk(id));
+    clearAllRetries();
+    queue = [];
+    visibleIds = [];
+    neededIds = new Set();
+  }
+
+  return { update, allVisibleLoaded, destroy };
+}

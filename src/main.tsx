@@ -6,7 +6,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { queryClient } from './config/reactQueryConfig.ts';
+import { queryClient } from '@/api/queryClient';
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
@@ -20,3 +20,4 @@ createRoot(document.getElementById('root')!).render(
     </HelmetProvider>
   </React.StrictMode>,
 );
+// TODO fix: export wave buoy chart image fails to have imos logo image in the exported image.

@@ -37,7 +37,6 @@ export const Default: Story = {
     ),
   },
   render: args => {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
     const [state, setState] = useState('');
     return (
       <div>

@@ -4,10 +4,11 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev:mock": "MOCKDATA=true vite",
     "dev": "vite",
     "test": "vitest run --reporter=verbose",
+    "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
+    "typecheck": "tsc -b --noEmit",
     "build": "tsc -b && vite build",
     "build:stats": "VITE_STATS_ENABLED=true pnpm build",
     "lint": "eslint .",
@@ -91,14 +92,12 @@
     "vite-plugin-svgr": "^4.3.0",
     "vitest": "^3.1.3"
   },
-  "eslintConfig": {
-    "extends": [
-      "plugin:storybook/recommended"
-    ]
-  },
   "lint-staged": {
-    "**/*.{js,jsx,ts,tsx}": [
+    "**/*.{ts,tsx}": [
       "eslint --fix",
+      "prettier --write"
+    ],
+    "**/*.{js,jsx}": [
       "prettier --write"
     ],
     "**/*.{json,css,md}": [

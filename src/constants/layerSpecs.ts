@@ -1,0 +1,146 @@
+import type {
+  CircleLayerSpecification,
+  FillLayerSpecification,
+  LineLayerSpecification,
+  SymbolLayerSpecification,
+} from 'mapbox-gl';
+
+export const WAVE_BUOYS_LAYER_CONFIG: Partial<CircleLayerSpecification> = {
+  filter: ['has', 'point_count'], // Only show clustered points
+  paint: {
+    'circle-color': [
+      'step',
+      ['get', 'point_count'],
+      '#51bbd6', // Color for clusters with < 100 points
+      100,
+      '#f1f075', // Color for clusters with 100-750 points
+      750,
+      '#f28cb1', // Color for clusters with > 750 points
+    ],
+    'circle-radius': [
+      'step',
+      ['get', 'point_count'],
+      20, // Radius for clusters with < 100 points
+      100,
+      30, // Radius for clusters with 100-750 points
+      750,
+      40, // Radius for clusters with > 750 points
+    ],
+  },
+} as const;
+
+export const UNCLUSTERED_WAVE_BUOYS_LAYER_CONFIG: Partial<CircleLayerSpecification> = {
+  filter: ['!', ['has', 'point_count']],
+  paint: {
+    'circle-color': [
+      'case',
+      ['boolean', ['feature-state', 'selected'], false],
+      '#ffffff', // selected: white fill
+      ['boolean', ['get', 'hasDataForDate'], true],
+      '#11b4da', // active: blue
+      '#aaaaaa', // inactive: gray
+    ],
+    'circle-opacity': [
+      'case',
+      ['boolean', ['get', 'hasDataForDate'], true],
+      1, // active: solid
+      1, // inactive: ghost — visible but clearly muted
+    ],
+    'circle-radius': [
+      'case',
+      ['boolean', ['feature-state', 'selected'], false],
+      10, // slightly larger when selected
+      8, // normal size
+    ],
+    'circle-stroke-width': [
+      'case',
+      ['boolean', ['feature-state', 'selected'], false],
+      3, // thicker stroke when selected
+      ['boolean', ['get', 'hasDataForDate'], true],
+      2, // active: standard stroke
+      2, // inactive: hairline
+    ],
+    'circle-stroke-color': [
+      'case',
+      ['boolean', ['get', 'hasDataForDate'], true],
+      '#000000', // active: black
+      '#000000', // inactive: muted blue
+    ],
+    'circle-stroke-opacity': ['case', ['boolean', ['get', 'hasDataForDate'], true], 1, 1],
+    // Add smooth transitions
+    'circle-radius-transition': {
+      duration: 200,
+      delay: 0,
+    },
+    'circle-stroke-width-transition': {
+      duration: 200,
+      delay: 0,
+    },
+  },
+} as const;
+
+export const WAVE_BUOY_CLUSTER_LABEL_LAYER_CONFIG: Partial<SymbolLayerSpecification> = {
+  filter: ['has', 'point_count'],
+  layout: {
+    'text-field': '{point_count_abbreviated}',
+    'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+    'text-size': 12,
+  },
+} as const;
+
+export const ZOOM_LIMIT_TEMPPOINT_LAYER_PARTIAL: Partial<CircleLayerSpecification> = {
+  paint: {
+    'circle-color': [
+      'case',
+      ['boolean', ['get', 'hasDataForDate'], true],
+      '#11b4da', // active: blue
+      '#aaaaaa', // inactive: gray
+    ],
+    'circle-radius': 8,
+    'circle-stroke-width': 1,
+    'circle-stroke-color': '#fff',
+  },
+};
+
+export const ZOOM_LIMIT_TEMP_CONNECTION_LINES_LAYER_PARTIAL: Partial<LineLayerSpecification> = {
+  paint: {
+    'line-color': '#666',
+    'line-width': 1,
+    'line-dasharray': [2, 2],
+  },
+} as const;
+
+export const MEASURE_POINT_CONFIG: Partial<CircleLayerSpecification> = {
+  paint: {
+    'circle-radius': 5,
+    'circle-color': '#fff',
+  },
+  filter: ['in', '$type', 'Point'],
+} as const;
+
+export const MEASURE_LINES_CONFIG: Partial<LineLayerSpecification> = {
+  layout: { 'line-cap': 'round', 'line-join': 'round' },
+  paint: {
+    'line-color': '#ff0000',
+    'line-width': 4,
+    'line-opacity': 1,
+  },
+  filter: ['in', '$type', 'LineString'],
+} as const;
+
+export const WORLD_LAND_BORDER_CONFIG: Partial<LineLayerSpecification> = {
+  'source-layer': 'country_boundaries',
+  paint: {
+    'line-color': '#333333',
+    'line-width': 2,
+    'line-blur': 0.5,
+  },
+} as const;
+
+export const WORLD_LAND_FILL_CONFIG: Partial<FillLayerSpecification> = {
+  'source-layer': 'country_boundaries',
+  paint: {
+    'fill-color': 'transparent',
+    'fill-outline-color': 'transparent',
+  },
+} as const;

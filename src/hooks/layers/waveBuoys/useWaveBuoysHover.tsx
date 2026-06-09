@@ -1,8 +1,7 @@
 import { BuoyHoverPopupContent } from '@/components';
 import { UNCLUSTERED_WAVE_BUOYS_LAYER_ID, ZOOM_LIMIT_TEMP_POINTS_LAYER_ID } from '@/constants';
-import { type ClosePopupFn, showPopup } from '@/helpers';
-import type { WaveBuoyGeometry, WaveBuoyPositionProperties } from '@/types';
-import { coordinateToLngLat } from '@/utils';
+import { type ClosePopupFn, coordinateToLngLat, showPopup } from '@/helpers';
+import type { BuoyPoint, WaveBuoySiteProperties } from '@/types';
 import { useEffect, useRef } from 'react';
 
 /**
@@ -21,8 +20,8 @@ export function useWaveBuoysHover(map: React.RefObject<mapboxgl.Map | null>, ena
       if (!e.features?.length) return;
 
       const { geometry, properties } = e.features[0];
-      const { coordinates } = geometry as WaveBuoyGeometry;
-      const { buoy, date } = properties as WaveBuoyPositionProperties;
+      const { coordinates } = geometry as BuoyPoint;
+      const { buoy, date } = properties as WaveBuoySiteProperties;
 
       const lngLat = coordinateToLngLat(coordinates);
 

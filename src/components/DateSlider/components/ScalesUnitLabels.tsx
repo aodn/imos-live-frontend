@@ -1,7 +1,6 @@
-import { cn } from '@/utils';
 import { memo, useCallback, useMemo } from 'react';
 import type { ScalesUnitLabelsProps, TimeLabel } from '../type';
-import { formatDate } from '../utils';
+import { cn, formatDate } from '../utils';
 
 export const ScalesUnitLabels = memo(function ScalesUnitLabels({
   scales,

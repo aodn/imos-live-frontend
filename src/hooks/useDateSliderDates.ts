@@ -1,7 +1,6 @@
-import { toUTCDate, addTime } from '@/components/DateSlider/utils';
-import { DATE_RANGE } from '@/config';
+import { DATE_RANGE } from '@/constants';
 import { useMapUIStore } from '@/store';
-import { minusOneUTCDay } from '@/utils';
+import { toUTCDate, addTime, minusOneUTCDay } from '@/utils';
 import { useMemo } from 'react';
 
 export const useDateSliderDates = () => {

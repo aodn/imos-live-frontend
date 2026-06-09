@@ -1,5 +1,5 @@
 import { MainSidebarContent } from './MainSidebarContent';
-import { headerData, featuredDataset, layerProductsMock } from './products';
+import { headerData, featuredDataset } from './products';
 export default {
   title: 'Components/MainSidebar/MainSidebarContent',
   component: MainSidebarContent,
@@ -21,6 +21,5 @@ export const Default = {
   args: {
     headerData: headerData,
     featuredDatasets: featuredDataset,
-    layerProducts: layerProductsMock,
   },
 };

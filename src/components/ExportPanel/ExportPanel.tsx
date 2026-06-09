@@ -48,7 +48,7 @@ export function ExportPanel({ date, product, compact = false, frostedBgSrc }: Ex
           className={cn('w-auto shrink-0 self-center', compact ? 'h-[30px]' : 'h-[60px]')}
         />
 
-        <div className="flex flex-col justify-between gap-y-1">
+        <div className="flex flex-col justify-between h-full gap-y-1">
           <p
             style={{ lineHeight: 1 }}
             className={cn('font-bold text-[#1a2a3a]', compact ? 'text-[11px]' : 'text-[18px]')}
@@ -80,10 +80,7 @@ export function ExportPanel({ date, product, compact = false, frostedBgSrc }: Ex
               {product.name}
             </p>
             {product.legend && (
-              <div
-                data-export-legend
-                style={{ width: legendW, overflow: 'hidden', maxHeight: compact ? 32 : 40 }}
-              >
+              <div data-export-legend style={{ width: legendW }}>
                 {product.legend}
               </div>
             )}

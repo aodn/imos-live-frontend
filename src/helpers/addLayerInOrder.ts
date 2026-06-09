@@ -1,10 +1,13 @@
-import { LAYERS_ORDER } from '@/config';
-import type { VectoryLayerInterface } from '@/layers';
+import { LAYERS_ORDER } from '@/constants';
+import type {
+  ParticlesAtlasLayerInterface,
+  HeatmapAtlasLayerInterface,
+} from '@/AtlasRenderingSystem';
 import type { Layer } from 'mapbox-gl';
 
 export function addLayerInOrder(
   map: React.RefObject<mapboxgl.Map | null>,
-  layer: Layer | VectoryLayerInterface | null,
+  layer: Layer | ParticlesAtlasLayerInterface | HeatmapAtlasLayerInterface | null,
 ) {
   if (!layer) return;
 

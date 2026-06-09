@@ -4,59 +4,31 @@ import path from 'path';
 import type { Plugin, UserConfig } from 'vite';
 import { defineConfig, loadEnv } from 'vite';
 import svgr from 'vite-plugin-svgr';
-import { meta, genRandomData as gslaData, inputBitmap, rasterBitmap } from './test-data/gsla';
-import { locations, genBuoyRandomData } from './test-data/buoy';
 import { visualizer } from 'rollup-plugin-visualizer';
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
-  const { VITE_STATS_ENABLED } = env;
+  const { VITE_STATS_ENABLED, VITE_GA_MEASUREMENT_ID } = env;
 
   const plugins: UserConfig['plugins'] = [
     react(),
     tailwindcss(),
     svgr(),
-    mockServerPlugin(),
-    googleAnalyticsPlugin(mode),
+    googleAnalyticsPlugin(VITE_GA_MEASUREMENT_ID),
   ];
 
-  let server: UserConfig['server'] = {};
-
-  if (mode === 'development') {
-    server = {
-      proxy: {
-        ...(!process.env['MOCKDATA']
-          ? {
-              '/api': {
-                target: 'https://portal.edge.aodn.org.au',
-                changeOrigin: true,
-              },
-            }
-          : {}),
-        ...(!process.env['MOCKDATA']
-          ? {
-              '/data': {
-                target: 'https://imoslive.edge.aodn.org.au',
-                changeOrigin: true,
-              },
-            }
-          : {}),
-        '/thredds': {
-          target: 'https://imoslive.edge.aodn.org.au',
-          changeOrigin: true,
+  const server: UserConfig['server'] = {
+    ...(mode === 'development' &&
+      !process.env['VITE_AUTOMATED_TEST_RUNNING'] && {
+        proxy: {
+          '/api': {
+            target: 'https://portal.edge.aodn.org.au',
+            changeOrigin: true,
+          },
         },
-        '/tiles': {
-          target: 'https://imoslive.edge.aodn.org.au',
-          changeOrigin: true,
-        },
-        '/legends': {
-          target: 'https://imoslive.edge.aodn.org.au',
-          changeOrigin: true,
-        },
-      },
-    };
-  }
+      }),
+  };
 
   if (VITE_STATS_ENABLED === 'true') {
     plugins.push(
@@ -96,63 +68,23 @@ export default defineConfig(({ mode }) => {
     // define,
     test: {
       include: ['src/**/*.spec.ts', 'src/**/*.spec.tsx'],
+      setupFiles: ['src/test/setup.ts'],
     },
   };
 });
 
-const mockServerPlugin = (): Plugin => {
-  if (!process.env['MOCKDATA']) return { name: 'configure-preview-server' };
-  return {
-    name: 'configure-preview-server',
-    configureServer(server) {
-      return () => {
-        server.middlewares.use(async (req, res, next) => {
-          const url = req.originalUrl || req.url;
-
-          if (!url || (!url.startsWith('/data') && !url.startsWith('/api'))) return next();
-
-          if (url.endsWith('png')) res.writeHead(200, { 'Content-Type': 'image/png' });
-          else res.writeHead(200, { 'Content-Type': 'application/json' });
-
-          if (url.endsWith('gsla_meta.json')) res.end(JSON.stringify(meta()));
-          if (url.endsWith('gsla_data.json')) res.end(JSON.stringify(gslaData()));
-
-          if (url.includes('items/first_data_available')) {
-            res.end(JSON.stringify(locations()));
-          }
-          if (url.includes('items/timeseries')) {
-            const timeseriesURL = new URL(url, `http://${req.headers.host}`);
-            const buoyName = timeseriesURL.searchParams.get('waveBuoy') ?? '';
-            const [from, to] = timeseriesURL.searchParams.get('datetime')?.split('/') || [];
-            res.end(
-              JSON.stringify(
-                genBuoyRandomData({ name: buoyName, from: new Date(from), to: new Date(to) }),
-              ),
-            );
-          }
-
-          if (url.endsWith('gsla_overlay.png')) res.end(await rasterBitmap());
-          if (url.endsWith('gsla_input.png')) res.end(await inputBitmap());
-        });
-      };
-    },
-    apply: 'serve',
-  };
-};
-
-const googleAnalyticsPlugin = (mode: string) => {
-  const { VITE_GA_MEASUREMENT_ID } = loadEnv(mode, process.cwd(), '');
+const googleAnalyticsPlugin = (measurementId?: string): Plugin => {
   return {
     name: 'vite-plugin-google-analytics',
     transformIndexHtml(html: string) {
-      if (!VITE_GA_MEASUREMENT_ID) return html;
+      if (!measurementId) return html;
       const gaScript = `
-          <script async src="https://www.googletagmanager.com/gtag/js?id=${VITE_GA_MEASUREMENT_ID}"></script>
+          <script async src="https://www.googletagmanager.com/gtag/js?id=${measurementId}"></script>
           <script>
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', '${VITE_GA_MEASUREMENT_ID}');
+            gtag('config', '${measurementId}');
           </script>
         `;
       return html.replace('<!-- google-analytics-js -->', gaScript);

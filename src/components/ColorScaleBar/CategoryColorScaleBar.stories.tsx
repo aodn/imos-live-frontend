@@ -1,6 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { CategoryColorScaleBar } from './CategoryColorScaleBar';
-import { MHW_CATEGORY_LEGEND_COLORS, HW_CATEGORY_LEGEND_LABELS } from '@/constants';
+import { HW_CATEGORY_LEGEND_SCALES } from '@/constants';
+import { COLOR_OPTIONS } from '@/constants';
+
+const MHW_CATEGORY_LEGEND_COLORS = COLOR_OPTIONS.MHW_CATEGORY_LEGEND_COLORS;
 
 const meta = {
   title: 'Components/ColorScaleBar/category',
@@ -31,7 +34,7 @@ export const Default: Story = {
 export const WithLabels: Story = {
   args: {
     colors: MHW_CATEGORY_LEGEND_COLORS,
-    labels: HW_CATEGORY_LEGEND_LABELS,
+    scales: HW_CATEGORY_LEGEND_SCALES,
     label: 'MHW category',
     className: 'w-72',
   },

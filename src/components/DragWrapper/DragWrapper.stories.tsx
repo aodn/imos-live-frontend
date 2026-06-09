@@ -301,7 +301,6 @@ export const PositionReset: Story = {
     relative: 'topLeft',
   },
   render: args => {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
     const [isReset, setIsReset] = useState(false);
 
     const handleReset = () => {
@@ -422,7 +421,6 @@ export const ResponsiveBehavior: Story = {
     relative: 'topLeft',
   },
   render: args => {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
     const [containerSize, setContainerSize] = useState<'small' | 'medium' | 'large'>('medium');
 
     const sizes = {

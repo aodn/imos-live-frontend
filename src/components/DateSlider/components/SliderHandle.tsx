@@ -1,8 +1,7 @@
-import { cn } from '@/utils';
 import { useState, useCallback, useLayoutEffect, memo, useMemo } from 'react';
 import { useIsScrolling } from '../hooks';
 import type { SliderHandleProps, RenderSliderHandleProps } from '../type';
-import { handleOutsideVisibleArea, formatDate, getDateFromPercent } from '../utils';
+import { cn, handleOutsideVisibleArea, formatDate, getDateFromPercent } from '../utils';
 import { DateLabel } from './DateLabel';
 
 export function SliderHandle({

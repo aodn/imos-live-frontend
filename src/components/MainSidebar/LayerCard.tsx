@@ -1,24 +1,26 @@
+import type { ProductType, TilesProduct } from '@/constants';
 import {
-  isGeostrophicCurrentProduct,
-  isRasterProduct,
-  isWaveBuoyProduct,
-  WAVE_BUOYS_LAYER_ID,
+  COLOR_OPTIONS,
+  CONTINOUS_PRODUCT_COLOR_OPTIONS,
+  PRODUCT,
+  PRODUCTLEGENDS,
+  PRODUCTS,
 } from '@/constants';
-import { cn, getLatestFulfilledDate, toCompactDate, toISOFromCompact } from '@/utils';
+import { cn, toCompactDate, toISOFromCompact } from '@/utils';
 import type { ReactNode } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { getWaveBuoyLatestDate, metaDataManifestQueryOptions } from '@/api';
+import { setJumpToDate, setProductLegend, useMapUIStore } from '@/store';
 import { Button } from '../Button';
 import type { TriggerArgs } from '../Collapsible';
 import { CollapsibleComponent } from '../Collapsible';
+import { Dropdown } from '../Dropdown';
 import { AddCircleIcon, ArrowIcon, MinusCircleIcon, VectorIcon } from '../Icons';
 import { Image } from '../Image';
+import { CategoryColorScaleBar, LinearColorScaleBar, LogColorScaleBar } from '../ColorScaleBar';
 import type { LayersDataset } from './MainSidebarContent';
-import { useQuery } from '@tanstack/react-query';
-import { fileExist, getWaveBuoyLatestDate } from '@/api';
-import { setJumpToDate } from '@/store';
-import { QUERY_DATE_RANGE } from '@/config';
 
 export type LayerCardProps = LayersDataset & {
-  dateCheckUrl?: (date: string) => string | string[];
   portalLink?: string;
 };
 
@@ -32,47 +34,15 @@ export function LayerCard({
   layerId,
   icon,
   product,
-  legend,
-  dateCheckUrl,
   portalLink,
 }: LayerCardProps) {
-  const isRasterProducts = isRasterProduct(product);
-  const isGeostrophicCurrentProducts = isGeostrophicCurrentProduct(product);
-  const isWaveBuoyProducts = isWaveBuoyProduct(product);
-  // this is a temporary solution to get the latest available raster date. We should have a better way to get the latest date
-  // for each product in the future, like have a json file in s3 bucket that get updated when new data available.
-  const { data: latestRasterDate, isLoading: isRasterDateLoading } = useQuery({
-    queryKey: [product, QUERY_DATE_RANGE],
-    queryFn: () => {
-      const candidates = QUERY_DATE_RANGE.map(d => fileExist(dateCheckUrl!(d), d));
-      return Promise.allSettled(candidates);
-    },
-    select: data => getLatestFulfilledDate(data),
-    enabled: isRasterProducts || isGeostrophicCurrentProducts,
-    retry: false,
-  });
-
-  const { data: latestWaveBuoyDate, isLoading: isWaveBuoyLoading } = useQuery({
-    queryKey: ['wave_buoy_latest_date'],
-    queryFn: getWaveBuoyLatestDate,
-    select: data => toCompactDate(data),
-    enabled: isWaveBuoyProducts,
-  });
+  const isWaveBuoy = product === PRODUCT.WAVE_BUOYS;
 
   const handleClick = () => {
     if (addToMap) addToMap(product, !visible);
-    if (layerId === WAVE_BUOYS_LAYER_ID) import('../Highcharts/WaveBuoyChart'); //preload wavebuoy chart when wavebuoylayer added.
-  };
-
-  const handleJumpToLatestRaster = () => {
-    if (latestRasterDate) {
-      setJumpToDate(toISOFromCompact(latestRasterDate));
-    }
-  };
-
-  const handleJumpToLatestWaveBuoy = () => {
-    if (latestWaveBuoyDate) {
-      setJumpToDate(toISOFromCompact(latestWaveBuoyDate));
+    if (layerId === PRODUCTS[PRODUCT.WAVE_BUOYS].layerId) {
+      // Fire-and-forget prefetch of the chart chunk.
+      void import('../Highcharts/WaveBuoyChart');
     }
   };
 
@@ -80,22 +50,13 @@ export function LayerCard({
     <CollapsibleComponent
       wrapperClassName="md:rounded-lg md:shadow-lg bg-white md:border border-b border-gray-300 md:p-4 pb-4"
       defaultOpen
-      isWidthFiexed
+      isWidthFixed
       overlayEnabled={isError}
-      trigger={({ toggle, open, direction, toggleIconHidden }: TriggerArgs) => (
-        <CardTrigger
-          icon={icon}
-          title={title}
-          open={open}
-          toggle={toggle}
-          direction={direction}
-          toggleIconHidden={toggleIconHidden}
-          isError={isError}
-        />
+      trigger={(args: TriggerArgs) => (
+        <CardTrigger {...args} icon={icon} title={title} isError={isError} />
       )}
     >
       <div className="grid grid-cols-12  gap-4 md:gap-x-6  overflow-hidden">
-        {/* description */}
         <div className="col-span-12 md:col-span-8">
           <div>
             <p className="text-body text-imos-grey line-clamp-5" title={description}>
@@ -104,13 +65,11 @@ export function LayerCard({
           </div>
         </div>
 
-        {/* Image */}
         <div className="col-span-5 md:col-span-4 min-w-30 rounded-md overflow-hidden">
           <Image alt={image.alt} src={image.src} fill imageClassName="object-cover" />
         </div>
 
         <div className="col-span-7 md:col-span-12 flex flex-col md:flex-row gap-y-2 items-start md:items-center justify-between">
-          {/* Buttons group */}
           <div className="flex flex-col md:flex-row gap-2">
             <Button
               onClick={handleClick}
@@ -125,30 +84,11 @@ export function LayerCard({
               {visible ? <MinusCircleIcon color="imos-white" /> : <AddCircleIcon />}
             </Button>
 
-            {(isRasterProducts || isGeostrophicCurrentProducts) && (
-              <Button
-                variant="outline"
-                onClick={handleJumpToLatestRaster}
-                disabled={isRasterDateLoading || !latestRasterDate}
-                className="text-btn-mobile md:text-btn text-imos-grey w-fit relative z-10"
-              >
-                Latest Date
-              </Button>
-            )}
-            {isWaveBuoyProducts && (
-              <Button
-                variant="outline"
-                onClick={handleJumpToLatestWaveBuoy}
-                disabled={isWaveBuoyLoading || !latestWaveBuoyDate}
-                className="text-btn-mobile md:text-btn text-imos-grey w-fit relative z-10"
-              >
-                Latest Date
-              </Button>
-            )}
+            <LatestDateButton product={product} />
           </div>
 
           <Button
-            variant={'outline'}
+            variant="outline"
             asChild
             className="text-btn-mobile md:text-btn text-imos-grey relative z-10"
           >
@@ -159,9 +99,109 @@ export function LayerCard({
           </Button>
         </div>
 
-        {!!legend && <div className="col-span-12">{legend}</div>}
+        {!isWaveBuoy && <TilesLegendSection product={product as TilesProduct} />}
       </div>
     </CollapsibleComponent>
+  );
+}
+
+function useLatestDate(product: ProductType) {
+  const isWaveBuoy = product === PRODUCT.WAVE_BUOYS;
+
+  const { data: tilesDate, isLoading: isTilesLoading } = useQuery({
+    ...metaDataManifestQueryOptions(),
+    select: ({ products }) => products[product as TilesProduct].full_date_range.end,
+    enabled: !isWaveBuoy,
+  });
+
+  const { data: waveBuoyCompact, isLoading: isWaveBuoyLoading } = useQuery({
+    queryKey: ['wave_buoy_latest_date'],
+    queryFn: getWaveBuoyLatestDate,
+    select: toCompactDate,
+    enabled: isWaveBuoy,
+  });
+
+  const date = isWaveBuoy ? waveBuoyCompact && toISOFromCompact(waveBuoyCompact) : tilesDate;
+  const isLoading = isWaveBuoy ? isWaveBuoyLoading : isTilesLoading;
+
+  const jumpToLatest = () => {
+    if (date) setJumpToDate(date);
+  };
+
+  return { date, isLoading, jumpToLatest };
+}
+
+function LatestDateButton({ product }: { product: ProductType }) {
+  const { date, isLoading, jumpToLatest } = useLatestDate(product);
+  return (
+    <Button
+      variant="outline"
+      onClick={jumpToLatest}
+      disabled={isLoading || !date}
+      className="text-btn-mobile md:text-btn text-imos-grey w-fit relative z-10"
+    >
+      Latest Date
+    </Button>
+  );
+}
+
+function TilesLegendSection({ product }: { product: TilesProduct }) {
+  const productLegend = useMapUIStore(s => s.productLegends[product]);
+  const colorKey = productLegend?.colorKey ?? 'RdBu_r';
+  const isCategoryLegend = PRODUCTLEGENDS[product]?.scale === 'category';
+  const colors = COLOR_OPTIONS[colorKey];
+
+  return (
+    <>
+      {!isCategoryLegend && (
+        <div className="col-span-12 flex gap-3">
+          <Dropdown
+            className="flex-1"
+            size="sm"
+            label="Color palette"
+            options={Object.keys(CONTINOUS_PRODUCT_COLOR_OPTIONS).map(key => ({
+              label: key,
+              value: key,
+            }))}
+            initialValue={colorKey}
+            onChange={v => setProductLegend(product, { colorKey: v as keyof typeof COLOR_OPTIONS })}
+            usePortal
+          />
+        </div>
+      )}
+
+      {productLegend && (
+        <div className="col-span-12">
+          {productLegend.scale === 'log' && (
+            <LogColorScaleBar
+              className="w-full"
+              colors={colors}
+              min={productLegend.range[0]}
+              max={productLegend.range[1]}
+              label={productLegend.label}
+            />
+          )}
+          {productLegend.scale === 'linear' && (
+            <LinearColorScaleBar
+              className="w-full"
+              colors={colors}
+              min={productLegend.range[0]}
+              max={productLegend.range[1]}
+              label={productLegend.label}
+              scales={productLegend.scales as number[]}
+            />
+          )}
+          {productLegend.scale === 'category' && (
+            <CategoryColorScaleBar
+              className="w-full"
+              colors={colors}
+              label={productLegend.label}
+              scales={productLegend.scales as string[]}
+            />
+          )}
+        </div>
+      )}
+    </>
   );
 }
 
@@ -179,7 +219,7 @@ function CardTrigger({
     <div className="flex items-center justify-between">
       <div className="flex  gap-x-4">
         {icon}
-        <h3 className={`text-title-sm mb-2`}>{title}</h3>
+        <h3 className="text-title-sm mb-2">{title}</h3>
       </div>
       {!toggleIconHidden && (
         <Button

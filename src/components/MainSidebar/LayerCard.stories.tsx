@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { LayerCard } from './LayerCard';
+import { PRODUCT } from '@/constants';
 
 const meta = {
   title: 'components/MainSidebar/LayerCard',
@@ -23,11 +24,11 @@ export const Primary: Story = {
     icon: null,
     description:
       'm ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.m ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-    addToMap: undefined,
+    addToMap: () => {},
     visible: false,
     layerId: 'test layerid',
     legend: undefined,
     isError: false,
-    product: 'gsla-anomaly-sea-levels',
+    product: PRODUCT.GSLA_ANOMALY_SEA_LEVELS,
   },
 };

@@ -1,4 +1,4 @@
-import { WAVE_BUOYS_SOURCE_ID } from '@/constants';
+import { PRODUCT, PRODUCTS } from '@/constants';
 import { useCallback, useRef } from 'react';
 
 /**
@@ -6,6 +6,7 @@ import { useCallback, useRef } from 'react';
  * Handles selecting/deselecting buoys and maintaining selected feature ID.
  */
 export function useWaveBuoysSelection(map: React.RefObject<mapboxgl.Map | null>) {
+  const WAVE_BUOYS_SOURCE_ID = PRODUCTS[PRODUCT.WAVE_BUOYS].sourceId;
   const selectedFeatureId = useRef<string | number | null>(null);
 
   const selectFeature = useCallback(
@@ -27,7 +28,7 @@ export function useWaveBuoysSelection(map: React.RefObject<mapboxgl.Map | null>)
       );
       selectedFeatureId.current = featureId;
     },
-    [map],
+    [WAVE_BUOYS_SOURCE_ID, map],
   );
 
   const clearSelection = useCallback(() => {
@@ -38,7 +39,7 @@ export function useWaveBuoysSelection(map: React.RefObject<mapboxgl.Map | null>)
       { selected: false },
     );
     selectedFeatureId.current = null;
-  }, [map]);
+  }, [WAVE_BUOYS_SOURCE_ID, map]);
 
   return {
     selectedFeatureId,

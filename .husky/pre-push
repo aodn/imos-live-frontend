@@ -6,3 +6,6 @@ if ! echo "$branch" | grep -Eq '^(feature|fix|hotfix|chore)\/[a-z0-9._-]+$|^(mai
   echo "✅ Use: feature/*, fix/*, hotfix/*, chore/* main, or dev"
   exit 1
 fi
+
+pnpm typecheck
+pnpm test

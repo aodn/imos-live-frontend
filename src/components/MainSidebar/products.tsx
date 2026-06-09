@@ -1,240 +1,98 @@
-import loggImage from '@/assets/imos_logo_with_title.png';
-import occeanCurrentImage from '@/assets/ocean-current.webp';
+import logoImage from '@/assets/imos_logo_with_title.png';
+import oceanCurrentImage from '@/assets/ocean-current.webp';
 import anomalySeaLevelImage from '@/assets/sea-levels.webp';
 import waveBuoysImage from '@/assets/wave-buoys.webp';
 import sstImage from '@/assets/sst.jpg';
-import {
-  GSLA_RASTER_SOURCE_ID,
-  GSLA_RASTER_LAYER_ID,
-  GSLA_PARTICLE_LAYER_ID,
-  AUSTEMP_SSTA_MOSAIC_RASTER_SOURCE_ID,
-  WAVE_BUOYS_LAYER_ID,
-  PRODUCT,
-  AUSTEMP_SSTA_MOSAIC_RASTER_LAYER_ID,
-  PRODUCTLEGENDS,
-  AUSTEMP_DHD_MOSAIC_RASTER_LAYER_ID,
-  AUSTEMP_DHD_MOSAIC_RASTER_SOURCE_ID,
-  AUSTEMP_SST_MOSAIC_RASTER_SOURCE_ID,
-  AUSTEMP_SST_MOSAIC_RASTER_LAYER_ID,
-  AUSTEMP_MHW_CATEGORY_MOSAIC_RASTER_LAYER_ID,
-} from '@/constants';
-import {
-  RadarIcon,
-  SatelliteIcon,
-  ThermometerIcon,
-  WaterSurfaceIcon,
-  WaveBuoyIcon,
-  WaveIcon,
-} from '../Icons';
+import type { ProductType } from '@/constants';
+import { PRODUCT, PRODUCTS } from '@/constants';
+import { ThermometerIcon, WaterSurfaceIcon, WaveBuoyIcon, WaveIcon } from '../Icons';
 import type { LayersDataset } from './MainSidebarContent';
-import { CategoryColorScaleBar, LogColorScaleBar, RasterLegend } from '../ColorScaleBar';
+import type { ImageType } from '@/types';
+import type { ReactNode } from 'react';
 import { setProductEnabledByProduct } from '@/store';
-import { gslaUrl, ausTempUrl } from '@/api/fileExist';
 
 export const headerData = {
   title: 'IMOS Live',
   image: {
-    src: loggImage,
+    src: logoImage,
     alt: 'IMOS Logo',
     height: 63,
     width: 147,
   },
 };
 
-export const featuredDataset: LayersDataset[] = (function (
-  enabledpPoducts: (typeof PRODUCT)[keyof typeof PRODUCT][],
-) {
+/**
+ * Sidebar-specific presentation for each featured product. The factual product
+ * copy (`description`, `portalLink`, `layerId`) is the single source of truth in
+ * `PRODUCTS` (`@/constants`); only the display title, image and icon live here.
+ * The array order is the order cards appear in the sidebar.
+ */
+type FeaturedPresentation = {
+  product: ProductType;
+  title: string;
+  image: ImageType;
+  icon: ReactNode;
+};
+
+const featuredPresentation: FeaturedPresentation[] = ((products: ProductType[]) => {
   return [
     {
-      image: {
-        src: occeanCurrentImage,
-        alt: 'GSLA Ocean geostrophic current',
-      },
-      title: 'GSLA Ocean geostrophic current',
-      icon: <WaveIcon size="lg" />,
-      description:
-        'Gridded sea level (GSL) and surface geostrophic velocity (UCUR,VCUR) for the Australasian region.' +
-        ' GSLA is mapped using optimal interpolation of detided, de-meaned, inverse-barometer-adjusted altimeter' +
-        ' and tidegauge estimates of sea level. GSL is GSLA plus an estimate of the departure of mean sea level from the geoid.' +
-        ' The geostrophic velocities are derived from GSL.',
-      layerId: GSLA_PARTICLE_LAYER_ID,
-      visible: false,
-      isError: false,
       product: PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT,
-      legend: (
-        <LogColorScaleBar
-          className="w-full"
-          {...PRODUCTLEGENDS[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]}
-        />
-      ),
-      addToMap: setProductEnabledByProduct,
-      dateCheckUrl: gslaUrl,
-      portalLink: 'https://portal-beta.aodn.org.au/details/0c9eb39c-9cbe-4c6a-8a10-5867087e703a',
+      title: 'GSLA Ocean geostrophic current',
+      image: { src: oceanCurrentImage, alt: 'GSLA Ocean geostrophic current' },
+      icon: <WaveIcon size="lg" />,
     },
     {
-      image: {
-        src: anomalySeaLevelImage,
-        alt: 'GSLA sea level anomaly',
-      },
-      title: 'GSLA sea level anomaly',
-      icon: <WaterSurfaceIcon size="lg" />,
-      description:
-        'Gridded (adjusted) sea level anomaly (GSLA)' +
-        ' for the Australasian region.' +
-        ' GSLA is mapped using optimal interpolation of detided, de-meaned, inverse-barometer-adjusted altimeter' +
-        ' and tidegauge estimates of sea level. GSL is GSLA plus an estimate of the departure of mean sea level from the geoid.' +
-        ' The geostrophic velocities are derived from GSL.',
-      layerId: GSLA_RASTER_LAYER_ID,
-      visible: false,
-      isError: false,
       product: PRODUCT.GSLA_ANOMALY_SEA_LEVELS,
-      legend: (
-        <RasterLegend
-          rasterSource={GSLA_RASTER_SOURCE_ID}
-          {...PRODUCTLEGENDS[PRODUCT.GSLA_ANOMALY_SEA_LEVELS]}
-        />
-      ),
-      addToMap: setProductEnabledByProduct,
-      dateCheckUrl: gslaUrl,
-      portalLink: 'https://portal-beta.aodn.org.au/details/0c9eb39c-9cbe-4c6a-8a10-5867087e703a',
+      title: 'GSLA sea level anomaly',
+      image: { src: anomalySeaLevelImage, alt: 'GSLA sea level anomaly' },
+      icon: <WaterSurfaceIcon size="lg" />,
     },
     {
-      image: {
-        src: sstImage,
-        alt: 'AUS SSTA TEMP',
-      },
-      title: 'AusTemp Sea surface skin temperature anomaly mosaic',
+      product: PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC,
+      title: 'Marine heatwave sea surface temperature anomaly (SSTA) mosaic',
+      image: { src: sstImage, alt: 'Marine heatwave SSTA Mosaic' },
       icon: <ThermometerIcon size="lg" />,
-      description:
-        'AusTemp is a specialised remote sensing application for the monitoring of SST conditions that lead to coral bleaching. The BOM legacy system was developed in consultation with Great Barrier Reef Marine Park Authority (GBRMPA) reef management and replaces the original CSIRO ReefTemp system (Maynard et al, 2008).',
-      layerId: AUSTEMP_SSTA_MOSAIC_RASTER_LAYER_ID,
-      visible: false,
-      isError: false,
-      product: PRODUCT.AUSTEMP_SSTA_MOSAIC,
-      legend: (
-        <RasterLegend
-          rasterSource={AUSTEMP_SSTA_MOSAIC_RASTER_SOURCE_ID}
-          {...PRODUCTLEGENDS[PRODUCT.AUSTEMP_SSTA_MOSAIC]}
-        />
-      ),
-      addToMap: setProductEnabledByProduct,
-      dateCheckUrl: ausTempUrl,
-      portalLink:
-        'https://catalogue-imos.aodn.org.au/geonetwork/srv/eng/catalog.search#/search?any=IMOS%20-%20AusTemp%20-%20Sea%20Surface%20Temperature',
     },
     {
-      image: {
-        src: sstImage,
-        alt: 'AUS DHD TEMP',
-      },
-      title: 'AusTemp DHD mosaic',
+      product: PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC,
+      title: 'Marine heatwave sea surface temperature (SST) Mosaic',
+      image: { src: sstImage, alt: 'Marine heatwave SST Mosaic' },
       icon: <ThermometerIcon size="lg" />,
-      description:
-        'AusTemp is a specialised remote sensing application for the monitoring of SST conditions that lead to coral bleaching. The BOM legacy system was developed in consultation with Great Barrier Reef Marine Park Authority (GBRMPA) reef management and replaces the original CSIRO ReefTemp system (Maynard et al, 2008).',
-      layerId: AUSTEMP_DHD_MOSAIC_RASTER_LAYER_ID,
-      visible: false,
-      isError: false,
-      product: PRODUCT.AUSTEMP_DHD_MOSAIC,
-      legend: (
-        <RasterLegend
-          rasterSource={AUSTEMP_DHD_MOSAIC_RASTER_SOURCE_ID}
-          {...PRODUCTLEGENDS[PRODUCT.AUSTEMP_DHD_MOSAIC]}
-        />
-      ),
-      addToMap: setProductEnabledByProduct,
-      dateCheckUrl: ausTempUrl,
-      portalLink:
-        'https://catalogue-imos.aodn.org.au/geonetwork/srv/eng/catalog.search#/search?any=IMOS%20-%20AusTemp%20-%20Sea%20Surface%20Temperature',
     },
     {
-      image: {
-        src: sstImage,
-        alt: 'AUS DHD TEMP',
-      },
-      title: 'AusTemp SST mosaic',
+      product: PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY,
+      title: 'Marine heatwave sea surface temperature MCS Category',
+      image: { src: sstImage, alt: 'Marine heatwave MCS Category' },
       icon: <ThermometerIcon size="lg" />,
-      description:
-        'AusTemp is a specialised remote sensing application for the monitoring of SST conditions that lead to coral bleaching. The BOM legacy system was developed in consultation with Great Barrier Reef Marine Park Authority (GBRMPA) reef management and replaces the original CSIRO ReefTemp system (Maynard et al, 2008).',
-      layerId: AUSTEMP_SST_MOSAIC_RASTER_LAYER_ID,
-      visible: false,
-      isError: false,
-      product: PRODUCT.AUSTEMP_SST_MOSAIC,
-      legend: (
-        <RasterLegend
-          rasterSource={AUSTEMP_SST_MOSAIC_RASTER_SOURCE_ID}
-          {...PRODUCTLEGENDS[PRODUCT.AUSTEMP_SST_MOSAIC]}
-        />
-      ),
-      addToMap: setProductEnabledByProduct,
-      dateCheckUrl: ausTempUrl,
-      portalLink:
-        'https://catalogue-imos.aodn.org.au/geonetwork/srv/eng/catalog.search#/search?any=IMOS%20-%20AusTemp%20-%20Sea%20Surface%20Temperature',
     },
     {
-      image: {
-        src: sstImage,
-        alt: 'AUS DHD TEMP',
-      },
-      title: 'AusTemp MHW category mosaic',
-      icon: <ThermometerIcon size="lg" />,
-      description:
-        'AusTemp is a specialised remote sensing application for the monitoring of SST conditions that lead to coral bleaching. The BOM legacy system was developed in consultation with Great Barrier Reef Marine Park Authority (GBRMPA) reef management and replaces the original CSIRO ReefTemp system (Maynard et al, 2008).',
-      layerId: AUSTEMP_MHW_CATEGORY_MOSAIC_RASTER_LAYER_ID,
-      visible: false,
-      isError: false,
-      product: PRODUCT.AUSTEMP_MHW_CATEGORY_MOSAIC,
-      legend: <CategoryColorScaleBar {...PRODUCTLEGENDS[PRODUCT.AUSTEMP_MHW_CATEGORY_MOSAIC]} />,
-      addToMap: setProductEnabledByProduct,
-      dateCheckUrl: ausTempUrl,
-      portalLink:
-        'https://catalogue-imos.aodn.org.au/geonetwork/srv/eng/catalog.search#/search?any=IMOS%20-%20AusTemp%20-%20Sea%20Surface%20Temperature',
-    },
-    {
-      image: {
-        src: waveBuoysImage,
-        alt: 'Wave buoys',
-      },
-      title: 'Wave buoys',
-      icon: <WaveBuoyIcon size="lg" />,
-      description:
-        'Buoys provide integral wave parameters. Buoy data from the following organisations contribute to the National Wave Archive: Manly Hydraulics Laboratory, Bureau of Meteorology, DOT, DES, IMOS, Gippsland Ports, DPE, UWA, Deakin University, Pilbara Ports Authority and Flinders University and SARDI.',
-      layerId: WAVE_BUOYS_LAYER_ID,
-      visible: false,
-      isError: false,
       product: PRODUCT.WAVE_BUOYS,
-      addToMap: setProductEnabledByProduct,
-      portalLink: ' https://portal-beta.aodn.org.au/details/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc',
+      title: 'Wave buoys',
+      image: { src: waveBuoysImage, alt: 'Wave buoys' },
+      icon: <WaveBuoyIcon size="lg" />,
     },
-  ].filter(p => enabledpPoducts.includes(p.product));
+  ].filter(({ product }) => products.includes(product));
 })([
-  // PRODUCT.AUSTEMP_DHD_MOSAIC,
-  // PRODUCT.AUSTEMP_MHW_CATEGORY_MOSAIC,
-  PRODUCT.AUSTEMP_SSTA_MOSAIC,
-  PRODUCT.AUSTEMP_SST_MOSAIC,
-  PRODUCT.GSLA_ANOMALY_SEA_LEVELS,
   PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT,
+  PRODUCT.GSLA_ANOMALY_SEA_LEVELS,
+  PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC,
+  PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC,
+  PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY,
   PRODUCT.WAVE_BUOYS,
 ]);
 
-export const layerProductsMock = [
-  {
-    label: 'Product 1',
-    Icon: WaterSurfaceIcon,
-    fn: () => alert('Product 1 clicked'),
-  },
-  {
-    label: 'Product 2',
-    Icon: RadarIcon,
-    fn: () => alert('Product 2 clicked'),
-  },
-  {
-    label: 'Product 3',
-    Icon: WaveIcon,
-    fn: () => alert('Product 3 clicked'),
-  },
-  {
-    label: 'Product 4',
-    Icon: SatelliteIcon,
-    fn: () => alert('Product 4 clicked'),
-  },
-];
+export const featuredDataset: LayersDataset[] = featuredPresentation.map(
+  ({ product, title, image, icon }) => ({
+    product,
+    title,
+    image,
+    icon,
+    description: PRODUCTS[product].description,
+    portalLink: PRODUCTS[product].portalLink,
+    layerId: PRODUCTS[product].layerId,
+    visible: false,
+    isError: false,
+    addToMap: setProductEnabledByProduct,
+  }),
+);

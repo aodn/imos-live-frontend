@@ -22,5 +22,5 @@ export * from './LayersIndicator';
 export * from './Highcharts';
 export * from './ColorScaleBar';
 export * from './Slider';
-export * from './ExportPanel';
 export * from './MapScaleBar';
+export * from './ExportPanel';

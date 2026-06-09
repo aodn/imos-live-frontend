@@ -19,7 +19,7 @@ import {
 } from '@/components';
 import { PRODUCT } from '@/constants';
 import { useViewportSize } from '@/hooks';
-import { useDrawerStore, refreshDates, closeLeftDrawer } from '@/store';
+import { useDrawerStore, refreshDates, closeLeftDrawer, openLeftDrawer } from '@/store';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useEffect, useMemo } from 'react';
 
@@ -31,6 +31,7 @@ const MODE_TITLE_PREFIX: Record<string, string> = {
 export function Map() {
   const { isSmallScreen } = useViewportSize();
   const leftDrawer = useDrawerStore(s => s.leftDrawer);
+
   useEffect(() => {
     refreshDates();
   }, []);
@@ -40,6 +41,7 @@ export function Map() {
       <div className="h-full w-full flex flex-col">
         <MapHeader
           className="md:hidden"
+          onMenuClick={() => openLeftDrawer(<MainSidebarContent />)}
           image={{
             src: logImage,
             alt: 'IMOS Logo',
@@ -67,7 +69,9 @@ export function Map() {
               { Icon: WaveIcon, product: PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT },
               { Icon: WaterSurfaceIcon, product: PRODUCT.GSLA_ANOMALY_SEA_LEVELS },
               { Icon: WaveBuoyIcon, product: PRODUCT.WAVE_BUOYS },
-              { Icon: ThermometerIcon, product: PRODUCT.AUSTEMP_SSTA_MOSAIC },
+              { Icon: ThermometerIcon, product: PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC },
+              { Icon: ThermometerIcon, product: PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC },
+              { Icon: ThermometerIcon, product: PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY },
             ]}
           />
           <MapComponent key={isSmallScreen ? 'mobile' : 'desktop'} />

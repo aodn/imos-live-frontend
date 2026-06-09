@@ -79,6 +79,12 @@ export const DEFAULTS = {
 } as const;
 
 /**
+ * Viewport breakpoint (px). Below this width, `useViewportSize` reports
+ * `isSmallScreen = true`. Mirrors the app's `md` Tailwind breakpoint.
+ */
+export const BREAKPOINT = 768;
+
+/**
  * Accessibility constants
  */
 export const ACCESSIBILITY = {

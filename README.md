@@ -4,21 +4,37 @@
 
 IMOS Live is an interactive marine data visualisation platform built for Australia's Integrated Marine Observing System. It combines multiple ocean datasets on an interactive Mapbox map, allowing users to explore and analyse current conditions across the Australasian region.
 
-The platform visualises [processed GSLA data](./doc/DataProcessing.md) as a WebGL-accelerated particle field showing geostrophic ocean current patterns, alongside raster overlays for sea level anomalies and sea surface temperature (SST) anomalies. Wave buoy observations are displayed as interactive clustered map points with time-series charts. A temporal date slider lets users navigate through the available data history, and a distance measurement tool is provided for spatial analysis.
+The platform visualises daily oceanographic data as a WebGL-accelerated particle field showing geostrophic ocean current patterns, alongside WebGL scalar overlays for sea level anomalies and AusTEMP marine-heatwave products (SST mosaic, SST-anomaly mosaic, and a discrete marine-heatwave-category layer). Wave buoy observations are displayed as interactive clustered map points with time-series charts. A temporal date slider lets users navigate through the available data history, and a distance measurement tool is provided for spatial analysis.
 
 ## Key Features
 
 - Interactive global map with multiple style options
 - WebGL-accelerated particle animation showing ocean geostrophic current direction and speed
-- GSLA sea level anomaly raster overlay
-- Sea surface temperature (SST) anomaly overlay for coral bleaching monitoring
+- GSLA sea level anomaly WebGL heatmap overlay
+- AusTEMP marine-heatwave overlays: SST mosaic, SST-anomaly (SSTA) mosaic, and a categorical marine-heatwave-category (MCS) layer
 - Wave buoy data with clustered map points and interactive time-series charts
 - Distance measurement tool
 - Customizable particle settings (count, size, speed, fade)
 - Temporal date slider for navigating available data
 - Optional world land boundary overlay
 
-## [Technical Implementation](./doc/TechnicalDoc.md)
+## Documentation
+
+- [Atlas Rendering System](./src/AtlasRenderingSystem/README.md) — WebGL atlas infrastructure, shader coordinate lookup, LOD blending, API reference
+
+## Adding a New Product
+
+A product is _rendered_ by the Atlas Rendering System but _defined_ and _wired_ in the host app. The package's input contract (tiles, `manifest.json`, `ColorPalette`, the `createScalarAtlasLayer` / `createParticleAtlasLayer` factories) is documented in [Integrating a Product](./src/AtlasRenderingSystem/README.md#integrating-a-product); the IMOS-specific wiring is below. Touch these files in order:
+
+1. **`src/constants/products.ts`** — add an entry to `PRODUCT` and `PRODUCTS` (`name`, `layerId`, `sourceId`, optional `variables`, `description`, `portalLink`). For a scalar/particle tiles product, also add the slug to `TILES_GROUP`.
+2. **`src/constants/legends.ts`** — add a `PRODUCTLEGENDS` entry whose `colorKey` selects a palette from `COLOR_OPTIONS` (`src/constants/colors.ts`). `buildProductPalette` (`src/helpers/buildProductPalette.ts`) converts the legend into the `ColorPalette` the WebGL layer uploads.
+3. **`src/hooks/layers/use<ProductName>Layer.ts`** — create a dedicated layer hook reusing the shared layer hooks (`useMapboxLayerSetup`, `useDidMountEffect`, and `useMapboxLayerVisibility` for non-WebGL layers). Scalar and particle products call `createScalarAtlasLayer` / `createParticleAtlasLayer` from the package.
+4. **`src/components/MapComponent/MapComponent.tsx`** — register the new hook.
+5. **`src/constants/layerOrder.ts`** — register the layer id in `LAYERS_ORDER` (the last entry is the top-most layer); always add layers via `addLayerInOrder`, not Mapbox's `addLayer` directly.
+6. **`src/components/MainSidebar/products.tsx`** — add a `featuredPresentation` entry (`product`, `title`, `image`, `icon`); `featuredDataset` derives `description`/`portalLink`/`layerId` from `PRODUCTS`.
+7. **`src/pages/Map.tsx`** — add the product icon entry to `LayersIndicator`.
+
+Layer paint/layout config lives in `src/constants/layerSpecs.ts`.
 
 ## Setup and Usage
 
@@ -26,7 +42,7 @@ The platform visualises [processed GSLA data](./doc/DataProcessing.md) as a WebG
 
 - Node.js >= 22.0.0
 - pnpm >= 10
-- Mapbox API key (set as `VITE_MAPBOX_KEY` environment variable)
+- A Mapbox API key
 
 ### Installation
 
@@ -36,10 +52,10 @@ The platform visualises [processed GSLA data](./doc/DataProcessing.md) as a WebG
    pnpm install
    ```
 
-1. Set required environment variables:
+1. Configure environment variables. Copy [`.env.example`](.env.example) to `.env` (or `.env.local`) and fill in the values — at minimum `VITE_MAPBOX_KEY` (your Mapbox access token) and `VITE_TILE_BASE_URL` (the tile / manifest origin). See `.env.example` for the full list of supported variables.
 
    ```
-   VITE_MAPBOX_KEY=your_mapbox_key_here
+   cp .env.example .env
    ```
 
 1. Run the app:
@@ -48,26 +64,13 @@ The platform visualises [processed GSLA data](./doc/DataProcessing.md) as a WebG
    pnpm dev
    ```
 
-   You can run the frontend using mock data instead of a live data source. To start the application with randomly generated local data, use:
-
-   ```
-   pnpm dev:mock
-   ```
-
 ## API Routing
 
-All API calls use relative paths — no base URL or CORS configuration is required. Routing is handled at the infrastructure level in production, and mirrored locally via the Vite dev proxy.
+The application currently makes two kinds of HTTP calls:
 
-**Production:** A CloudFront distribution routes requests by path pattern to the appropriate backend origin:
-
-| Path pattern    | Origin           |
-| --------------- | ---------------- |
-| `/api/v1/*`     | OGC API          |
-| `/data/*`       | S3 bucket        |
-| `/tiles/*`      | Thredds Server   |
-| `/legends/*`    | Thredds Server   |
-| `/thredds/*`    | Thredds Server   |
-| `/_cf-errors/*` | AODN error pages |
-| `*` (default)   | Frontend app     |
-
-**Development:** `vite.config.ts` proxies the same paths to their respective backends, so the app behaves identically to production without any local configuration. When using `pnpm dev:mock`, `/api` and `/data` are intercepted by a local Vite middleware serving randomly generated data instead.
+- **Wave-buoy REST** — relative path `/api/v1/...`. In production this is
+  routed by CloudFront to the OGC API; in development `vite.config.ts`
+  proxies it to `https://portal.edge.aodn.org.au`.
+- **Tile / manifest data** — absolute URL built from the `VITE_TILE_BASE_URL`
+  environment variable (see [`.env.example`](.env.example)). No proxy is
+  needed because the URL is fully-qualified.
