@@ -1,9 +1,9 @@
 branch="$(git symbolic-ref --short HEAD)"
 
-# Accept: feature/*, fix/*, hotfix/*, main/dev
-if ! echo "$branch" | grep -Eq '^(feature|fix|hotfix|chore)\/[a-z0-9._-]+$|^(main|dev)$'; then
+# Accept: <type>/* where <type> matches commitlint type-enum, plus main/dev
+if ! echo "$branch" | grep -Eq '^(feature|fix|docs|style|refactor|test|chore|backup)\/[a-z0-9._-]+$|^(main|dev)$'; then
   echo "❌ Invalid branch name: '$branch'"
-  echo "✅ Use: feature/*, fix/*, hotfix/*, chore/* main, or dev"
+  echo "✅ Use: feature/*, fix/*, docs/*, style/*, refactor/*, test/*, chore/*, backup/*, main, or dev"
   exit 1
 fi
 
