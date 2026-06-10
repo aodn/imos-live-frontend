@@ -5,8 +5,8 @@ import { DEFAULT_THEME, processSeries } from './utils';
 
 export const useChartMethods = (
   chartRef: React.RefObject<HighchartsReact.RefObject | null>,
-  onPointClick?: (point: any) => void,
-  onSeriesClick?: (series: any) => void,
+  onPointClick?: (point: Highcharts.Point) => void,
+  onSeriesClick?: (series: Highcharts.Series) => void,
 ) => {
   // Existing methods...
   const updateData = useCallback(
@@ -92,7 +92,7 @@ export const useChartMethods = (
             animation: animationConfig.enabled
               ? {
                   duration: animationConfig.duration || 1000,
-                  easing: animationConfig.easing as any,
+                  easing: animationConfig.easing,
                 }
               : false,
           },
@@ -184,8 +184,11 @@ export const useChartMethods = (
   const selectRangeButton = useCallback(
     (buttonIndex: number) => {
       const chart = chartRef.current?.chart;
-      if (chart && (chart as any).rangeSelector) {
-        (chart as any).rangeSelector.clickButton(buttonIndex);
+      const chartWithRangeSelector = chart as
+        | (Highcharts.Chart & { rangeSelector?: { clickButton: (index: number) => void } })
+        | undefined;
+      if (chartWithRangeSelector?.rangeSelector) {
+        chartWithRangeSelector.rangeSelector.clickButton(buttonIndex);
       }
     },
     [chartRef],

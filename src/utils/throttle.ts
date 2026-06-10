@@ -1,11 +1,11 @@
-export function throttle<T extends (...args: any[]) => void>(
-  fn: T,
+export function throttle<A extends unknown[]>(
+  fn: (...args: A) => void,
   wait: number,
-): (...args: Parameters<T>) => void {
+): (...args: A) => void {
   let lastTime = 0;
   let timeout: ReturnType<typeof setTimeout> | null = null;
 
-  return function (...args: Parameters<T>) {
+  return function (...args: A) {
     const now = Date.now();
     const remaining = wait - (now - lastTime);
 

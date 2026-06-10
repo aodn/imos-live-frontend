@@ -9,7 +9,7 @@ export function useIsScrolling(target: Target, delay = 150) {
   useEffect(() => {
     if (!target) return;
 
-    const element: any = target === window ? document : target;
+    const element: Window | Document | HTMLElement = target === window ? document : target;
 
     function onScroll() {
       setIsScrolling(true);

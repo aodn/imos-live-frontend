@@ -7,7 +7,7 @@ export type DataPoint = {
   color?: string;
   marker?: Highcharts.PointMarkerOptionsObject;
   dataLabels?: Highcharts.DataLabelsOptions;
-  [key: string]: any;
+  [key: string]: unknown;
 };
 
 export type SeriesData = {
@@ -23,7 +23,7 @@ export type SeriesData = {
   yAxis: number;
   zIndex?: number;
   tooltip?: Highcharts.TooltipOptions;
-  [key: string]: any;
+  [key: string]: unknown;
 };
 
 export type ThemeConfig = {

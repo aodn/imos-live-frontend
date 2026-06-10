@@ -1,6 +1,7 @@
 import { CLUSTER_MAX_ZOOM } from '@/constants';
 import { PRODUCT, PRODUCTS } from '@/constants';
 import { createZoomLimitPoints } from '@/helpers';
+import type { Point } from 'geojson';
 import { useEffect } from 'react';
 
 /**
@@ -23,6 +24,7 @@ export function useWaveBuoysClusterClick(
       if (!features[0] || !features[0].properties) return;
 
       const clusterId = features[0].properties.cluster_id;
+      const center = (features[0].geometry as Point).coordinates as [number, number];
 
       const source = mapInstance.getSource(
         PRODUCTS[PRODUCT.WAVE_BUOYS].sourceId,
@@ -33,13 +35,13 @@ export function useWaveBuoysClusterClick(
 
         if (typeof zoom === 'number' && zoom <= CLUSTER_MAX_ZOOM) {
           mapInstance.easeTo({
-            center: (features[0].geometry as any).coordinates,
+            center,
             zoom: zoom,
           });
         } else {
           source.getClusterLeaves(clusterId, Infinity, 0, (err, leaves) => {
             if (err || !leaves) return;
-            createZoomLimitPoints(map, leaves, (features[0].geometry as any).coordinates);
+            createZoomLimitPoints(map, leaves, center);
           });
         }
       });

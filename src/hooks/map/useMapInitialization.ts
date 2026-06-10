@@ -42,7 +42,7 @@ export function useMapInitialization() {
     map.current.setZoom(zoom);
     map.current.setCenter(center);
 
-    if (import.meta.env.VITE_AUTOMATED_TEST_RUNNING) (window as any).map = map.current;
+    if (import.meta.env.VITE_AUTOMATED_TEST_RUNNING) window.map = map.current;
 
     const handleMapMove = () => {
       setCenter(map.current!.getCenter());

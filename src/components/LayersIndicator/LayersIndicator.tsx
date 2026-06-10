@@ -3,11 +3,12 @@ import { cn } from '@/utils';
 import { useShallow } from 'zustand/shallow';
 import { Button } from '../Button';
 import { CloseIcon } from '../Icons';
+import type { IconProps } from '../Icons';
 import type { ProductType } from '@/constants';
 
 type LayersIndicatorProps = {
   layers: {
-    Icon: React.ComponentType<any>;
+    Icon: React.ComponentType<IconProps>;
     product: ProductType;
   }[];
   className?: string;
