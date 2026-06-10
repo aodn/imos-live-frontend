@@ -10,7 +10,7 @@ import type { GeoJsonProperties, Geometry, Feature } from 'geojson';
 import { removeZoomLimitTempPoints } from './removeZoomLimitTempPoints';
 
 type PointProperties = {
-  [key: string]: any;
+  [key: string]: unknown;
 };
 
 type FeaturePoint = {

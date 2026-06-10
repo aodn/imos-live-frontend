@@ -9,7 +9,6 @@ export type IconProps = React.SVGProps<SVGSVGElement> & {
   size?: IconSize;
   color?: Color;
   className?: string;
-  [key: string]: any;
 };
 
 const SIZE_MAP: Record<IconSize, string> = {

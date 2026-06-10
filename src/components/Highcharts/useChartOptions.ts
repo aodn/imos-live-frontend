@@ -132,7 +132,10 @@ export const useChartOptions = (props: LineChartProps) => {
       if (!xAxisConfig.events) xAxisConfig.events = {};
 
       if (onRangeSelect) {
-        xAxisConfig.events.afterSetExtremes = function (this: any, event: any) {
+        xAxisConfig.events.afterSetExtremes = function (
+          this: Highcharts.Axis,
+          event: Highcharts.AxisSetExtremesEventObject,
+        ) {
           if (event.min !== undefined && event.max !== undefined) {
             onRangeSelect(event.min, event.max);
           }

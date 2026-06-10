@@ -52,7 +52,6 @@ export default defineConfig(
       ...reactHooks.configs.recommended.rules,
       ...jsxA11y.configs.recommended.rules,
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
-      '@typescript-eslint/no-explicit-any': 'off',
       // Type-aware promise-safety rules (require parserOptions.projectService).
       '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/no-misused-promises': 'error',
@@ -89,4 +88,12 @@ export default defineConfig(
     },
   },
   ...storybook.configs['flat/recommended'],
+  {
+    // Test and story files routinely use `any` for partial mocks, test doubles,
+    // and story args where full typings add noise without real safety.
+    files: ['**/*.{spec,test}.{ts,tsx}', '**/*.stories.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+    },
+  },
 );

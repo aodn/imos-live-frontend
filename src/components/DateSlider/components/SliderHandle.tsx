@@ -54,7 +54,6 @@ export function SliderHandle({
     };
 
     updatePosition();
-
     window.addEventListener('scroll', handleScroll, { passive: true });
 
     return () => {

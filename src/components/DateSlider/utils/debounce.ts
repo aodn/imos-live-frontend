@@ -5,13 +5,13 @@
  * the last call to the debounced function. Useful for search input, resize,
  * and click-spam scenarios.
  */
-export function debounce<T extends (...args: any[]) => void>(
-  func: T,
+export function debounce<A extends unknown[]>(
+  func: (...args: A) => void,
   wait: number,
-): (...args: Parameters<T>) => void {
+): (...args: A) => void {
   let timeout: ReturnType<typeof setTimeout>;
 
-  return (...args: Parameters<T>) => {
+  return (...args: A) => {
     clearTimeout(timeout);
     timeout = setTimeout(() => func(...args), wait);
   };
