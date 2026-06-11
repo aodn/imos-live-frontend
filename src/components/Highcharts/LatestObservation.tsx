@@ -1,4 +1,4 @@
-import type { WaveBuoyDetailsFeature } from '@/types';
+import type { BuoyItem, SiteDetailsFeature } from '@/types';
 import { cn, utcToLocalDateTime, prioritizeKey } from '@/utils';
 import { useMemo } from 'react';
 import { obseravtionVariants, preferredVariant, variantDescription } from './config';
@@ -12,7 +12,7 @@ export type ObservationField = {
 
 export type ObservationData = ObservationField[];
 
-function buildObservationData(feature: WaveBuoyDetailsFeature): ObservationData {
+function buildObservationData(feature: SiteDetailsFeature<BuoyItem>): ObservationData {
   const { properties } = feature;
 
   const fields = obseravtionVariants
@@ -68,7 +68,11 @@ function ObservationCell({ field, isLast }: { field: ObservationField; isLast: b
   );
 }
 
-export function LatestObservation({ feature }: { feature: WaveBuoyDetailsFeature | undefined }) {
+export function LatestObservation({
+  feature,
+}: {
+  feature: SiteDetailsFeature<BuoyItem> | undefined;
+}) {
   const observationData = useMemo(
     () => (feature?.properties ? buildObservationData(feature) : []),
     [feature],

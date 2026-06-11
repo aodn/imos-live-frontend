@@ -1,4 +1,4 @@
-import type { WaveBuoyDetailsFeature, WaveBuoySiteFeatureCollection } from '@/types';
+import type { BuoyItem, SiteDetailsFeature, RawSiteFeatureCollection } from '@/types';
 import { normalizeWaveBuoyDates } from '@/helpers';
 import { utcToLocalDateTime, localToUTC } from '@/utils';
 import axios from 'axios';
@@ -24,11 +24,11 @@ export const getWaveBuoyDetails = async (
   from: Date,
   to: Date,
   buoy: string,
-): Promise<WaveBuoyDetailsFeature> => {
+): Promise<SiteDetailsFeature<BuoyItem>> => {
   const searchParams = new URLSearchParams();
   searchParams.append('datetime', `${localToUTC(from)}/${localToUTC(to)}`);
   searchParams.append('waveBuoy', buoy);
-  const waveDetails = await axios.get<WaveBuoyDetailsFeature>(
+  const waveDetails = await axios.get<SiteDetailsFeature<BuoyItem>>(
     `${WAVE_BUOY_COLLECTION_URL}/wave_buoy_timeseries?${searchParams.toString()}`,
   );
   return waveDetails.data;
@@ -37,16 +37,16 @@ export const getWaveBuoyDetails = async (
 // date in request is converted to UTC string, but in response, it's converted back to local date string, which is what the app displays
 export const getWaveBuoySitesByDate = async (
   localDate: string,
-): Promise<WaveBuoySiteFeatureCollection> => {
-  const wavebuoysSites = await axios.get<WaveBuoySiteFeatureCollection>(
+): Promise<RawSiteFeatureCollection> => {
+  const wavebuoysSites = await axios.get<RawSiteFeatureCollection>(
     `${WAVE_BUOY_COLLECTION_URL}/wave_buoy_first_data_available?datetime=${localToUTC(localDate)}`,
   );
   return normalizeWaveBuoyDates(wavebuoysSites.data);
 };
 
 //This is to get all buoy sites with their latest available observation
-export const getLatestWaveBuoySites = async (): Promise<WaveBuoySiteFeatureCollection> => {
-  const wavebuoysSites = await axios.get<WaveBuoySiteFeatureCollection>(
+export const getLatestWaveBuoySites = async (): Promise<RawSiteFeatureCollection> => {
+  const wavebuoysSites = await axios.get<RawSiteFeatureCollection>(
     `${WAVE_BUOY_COLLECTION_URL}/wave_buoy_all`,
   );
   return normalizeWaveBuoyDates(wavebuoysSites.data);

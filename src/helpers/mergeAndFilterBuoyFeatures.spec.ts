@@ -4,12 +4,12 @@
 // at module init. `src/test/setup.ts` polyfills `matchMedia` for jsdom.
 
 import { describe, expect, it } from 'vitest';
-import type { WaveBuoySiteFeatureCollection } from '@/types';
+import type { SiteFeatureCollection } from '@/types';
 import { mergeAndFilterBuoyFeatures } from './mergeAndFilterBuoyFeatures';
 
 function fc(
   entries: { date: string; buoy: string; coords?: [number, number] }[],
-): WaveBuoySiteFeatureCollection {
+): SiteFeatureCollection {
   return {
     type: 'FeatureCollection',
     features: entries.map(({ date, buoy, coords = [150, -30] }) => ({

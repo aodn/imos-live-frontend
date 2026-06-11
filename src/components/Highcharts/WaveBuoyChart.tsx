@@ -1,7 +1,7 @@
 import { getWaveBuoyDetails, getWaveBuoyLatestDate } from '@/api';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
-import type { WaveBuoySiteFeature } from '@/types';
+import type { SiteFeature } from '@/types';
 import { toWaveBuoyChartData } from '@/helpers';
 import { formatLatLngToDirectional, toCompactDate, utcToLocalDateTime, today } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
@@ -30,7 +30,7 @@ dayjs.extend(utc);
 export const WAVE_BUOY_MIN_DATE = 30;
 
 type WaveBuoyChartProps = {
-  waveBuoysData: Omit<WaveBuoySiteFeature, 'type'>[];
+  waveBuoysData: Omit<SiteFeature, 'type'>[];
   showDirection?: boolean;
 };
 
