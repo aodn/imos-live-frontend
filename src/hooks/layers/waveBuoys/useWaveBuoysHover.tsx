@@ -21,7 +21,7 @@ export function useWaveBuoysHover(map: React.RefObject<mapboxgl.Map | null>, ena
 
       const { geometry, properties } = e.features[0];
       const { coordinates } = geometry as SitePoint;
-      const { buoy, date } = properties as SiteProperties;
+      const { site, date } = properties as SiteProperties;
 
       const lngLat = coordinateToLngLat(coordinates);
 
@@ -39,7 +39,7 @@ export function useWaveBuoysHover(map: React.RefObject<mapboxgl.Map | null>, ena
         map,
         lngLat,
         PopupContent: (closeFn: ClosePopupFn) => (
-          <BuoyHoverPopupContent buoy={buoy || ''} date={date} onClose={closeFn} />
+          <BuoyHoverPopupContent site={site || ''} date={date} onClose={closeFn} />
         ),
       });
 

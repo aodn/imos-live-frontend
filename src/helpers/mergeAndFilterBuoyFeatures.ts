@@ -12,11 +12,11 @@ export const mergeAndFilterBuoyFeatures = (
   buoySites: RawSiteFeatureCollection,
   selectedDate: Date | string,
 ): RawSiteFeatureCollection['features'] => {
-  const activeBuoysByName = new Map(buoySites.features.map(f => [f.properties.buoy, f]));
+  const activeBuoysByName = new Map(buoySites.features.map(f => [f.properties.site, f]));
   // Active buoys in allBuoySites now get their feature replaced wholesale from buoySites (so date and other properties reflect the selected date)
   return allBuoySites.features
     .map(f => {
-      const activeSite = activeBuoysByName.get(f.properties.buoy);
+      const activeSite = activeBuoysByName.get(f.properties.site);
       if (activeSite) {
         return {
           ...activeSite,

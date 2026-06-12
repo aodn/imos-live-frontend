@@ -168,7 +168,7 @@ export function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartPro
     () => (waveBuoysData.length > 0 ? toWaveBuoyChartData(waveBuoysData) : null),
     [waveBuoysData],
   );
-  const buoy = buoyChartData?.buoy ?? '';
+  const buoy = buoyChartData?.site ?? '';
   const selectedDate = useMapUIStore(s => s.date);
   const visibleRangeRef = useRef<{ min: string; max: string } | null>(null);
 
@@ -197,7 +197,7 @@ export function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartPro
     // fire once with the today() fallback and refetch when the date resolves.
     enabled: !!buoy && !isLatestWaveBuoyDateLoading,
   });
-
+  console.log('WaveBuoyChart render', { buoy, from, to, isLoading, isError, feature });
   const isFeatureEmpty = !feature || !feature.properties;
 
   const seriesData: SeriesData[] = useMemo(() => {

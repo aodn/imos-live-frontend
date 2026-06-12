@@ -1,12 +1,12 @@
 import type { ClosePopupFn } from '@/helpers';
 
 export type BuoyHoverPopupContentProps = {
-  buoy: string;
+  site: string;
   date: string;
   onClose?: ClosePopupFn;
 };
 
-export function BuoyHoverPopupContent({ buoy, date }: BuoyHoverPopupContentProps) {
+export function BuoyHoverPopupContent({ site, date }: BuoyHoverPopupContentProps) {
   return (
     <div
       className="w-40 min-h-10 relative bg-white rounded-lg shadow-lg overflow-hidden p-2"
@@ -24,7 +24,7 @@ export function BuoyHoverPopupContent({ buoy, date }: BuoyHoverPopupContentProps
 
       <div>
         <p>
-          <strong>Buoy: </strong> {buoy}
+          <strong>Buoy: </strong> {site}
         </p>
         <p>
           <strong>Date: </strong> {date}

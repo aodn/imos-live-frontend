@@ -24,7 +24,7 @@ export function normalizeWaveBuoysData(features: GeoJSONFeature[]): Omit<SiteFea
 type WaveBuoyData = {
   date: Date;
   geometry: SiteFeature['geometry'];
-  buoy: string;
+  site: string;
 };
 
 export function toWaveBuoyChartData(waveBuoys: Omit<SiteFeature, 'type'>[]): WaveBuoyData {
@@ -35,6 +35,6 @@ export function toWaveBuoyChartData(waveBuoys: Omit<SiteFeature, 'type'>[]): Wav
   return {
     geometry: waveBuoys[0].geometry,
     date: new Date(waveBuoys[0].properties.date),
-    buoy: waveBuoys[0].properties.buoy || '',
+    site: waveBuoys[0].properties.site || '',
   };
 }

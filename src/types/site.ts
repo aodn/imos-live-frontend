@@ -7,8 +7,6 @@ export type SitePoint = Point & { coordinates: [number, number] };
 // Shape as returned by the API — no synthetic `_id` yet.
 export type RawSiteProperties = {
   date: string;
-  //Temporary allow both buoy and site, but eventually only allow site. This needs serverside fixing.
-  buoy?: string;
   site?: string;
 };
 // After `addIdToFeatures` injects the synthetic `_id` used for Mapbox feature-state / clustering.
@@ -43,16 +41,10 @@ export type SiteDetailsFeature<T> = {
 export type SiteItemContent = [number, number][];
 export type BuoyDataVariants = 'SSWMD' | 'WPFM' | 'WSSH' | 'WHTH' | 'WPMH';
 export type BuoyItem = Record<BuoyDataVariants, SiteItemContent>;
-export type WaveBuoySiteDetailsFeatureCollection = {
-  type: 'FeatureCollection';
-  features: SiteDetailsFeature<BuoyItem>[];
-};
+export type WaveBuoySiteDetailsFeature = SiteDetailsFeature<BuoyItem>;
 
 export type NominalDepthVariant = `NOMINAL_DEPTH_${number}`;
 export type MooringDataVariants = 'TEMP';
 export type MooringItemContent = Record<MooringDataVariants, SiteItemContent>;
 export type MooringItem = Record<NominalDepthVariant, MooringItemContent>;
-export type MooringSiteDetailsFeatureCollection = {
-  type: 'FeatureCollection';
-  features: SiteDetailsFeature<MooringItem>[];
-};
+export type MooringSiteDetailsFeature = SiteDetailsFeature<MooringItem>[];

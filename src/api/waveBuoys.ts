@@ -16,8 +16,8 @@ import axios from 'axios';
  * Because data sources are all in UTC, and in this application, we display local datetime to user.
  */
 
-const WAVE_BUOY_COLLECTION_URL =
-  '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items';
+// const WAVE_BUOY_COLLECTION_URL =
+//   '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items';
 
 // date in this response is timestamp in ms, which is what Highcharts accepts, so we don't convert to local date string here, which will be processed in wavebuoy chart component
 export const getWaveBuoyDetails = async (
@@ -29,8 +29,9 @@ export const getWaveBuoyDetails = async (
   searchParams.append('datetime', `${localToUTC(from)}/${localToUTC(to)}`);
   searchParams.append('waveBuoy', buoy);
   const waveDetails = await axios.get<SiteDetailsFeature<BuoyItem>>(
-    `${WAVE_BUOY_COLLECTION_URL}/wave_buoy_timeseries?${searchParams.toString()}`,
+    `http://127.0.0.1:8000/wave-buoy/sites/${buoy}/details?start=${localToUTC(from)}&end=${localToUTC(to)}`,
   );
+  console.log('getWaveBuoyDetails', waveDetails.data);
   return waveDetails.data;
 };
 
@@ -39,21 +40,23 @@ export const getWaveBuoySitesByDate = async (
   localDate: string,
 ): Promise<RawSiteFeatureCollection> => {
   const wavebuoysSites = await axios.get<RawSiteFeatureCollection>(
-    `${WAVE_BUOY_COLLECTION_URL}/wave_buoy_first_data_available?datetime=${localToUTC(localDate)}`,
+    `http://127.0.0.1:8000/wave-buoy/sites?start=${localToUTC(localDate)}`,
   );
+  console.log('getWaveBuoySitesByDate', wavebuoysSites.data);
   return normalizeWaveBuoyDates(wavebuoysSites.data);
 };
 
 //This is to get all buoy sites with their latest available observation
 export const getLatestWaveBuoySites = async (): Promise<RawSiteFeatureCollection> => {
   const wavebuoysSites = await axios.get<RawSiteFeatureCollection>(
-    `${WAVE_BUOY_COLLECTION_URL}/wave_buoy_all`,
+    `http://127.0.0.1:8000/wave-buoy/sites`,
   );
+  console.log('getLatestWaveBuoySites', wavebuoysSites.data);
   return normalizeWaveBuoyDates(wavebuoysSites.data);
 };
 
 // date in this response is converted to local date string, which is what the app displays
 export const getWaveBuoyLatestDate = async (): Promise<string> => {
-  const latestDate = await axios.get(`${WAVE_BUOY_COLLECTION_URL}/wave_buoy_latest_date`);
-  return utcToLocalDateTime(latestDate.data, 'YYYY-MM-DD');
+  const latestDate = await axios.get(`http://127.0.0.1:8000/wave-buoy/latest-time`);
+  return utcToLocalDateTime(latestDate.data.time, 'YYYY-MM-DD');
 };
