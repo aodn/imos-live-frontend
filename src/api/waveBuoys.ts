@@ -2,6 +2,7 @@ import type { BuoyItem, SiteDetailsFeature, RawSiteFeatureCollection } from '@/t
 import { normalizeWaveBuoyDates } from '@/helpers';
 import { utcToLocalDateTime, localToUTC } from '@/utils';
 import axios from 'axios';
+import dayjs from 'dayjs';
 
 /**
  * Date convention for all wave buoy APIs:
@@ -25,24 +26,25 @@ export const getWaveBuoyDetails = async (
   to: Date,
   buoy: string,
 ): Promise<SiteDetailsFeature<BuoyItem>> => {
-  const searchParams = new URLSearchParams();
-  searchParams.append('datetime', `${localToUTC(from)}/${localToUTC(to)}`);
-  searchParams.append('waveBuoy', buoy);
   const waveDetails = await axios.get<SiteDetailsFeature<BuoyItem>>(
-    `http://127.0.0.1:8000/wave-buoy/sites/${buoy}/details?start=${localToUTC(from)}&end=${localToUTC(to)}`,
+    `http://127.0.0.1:8000/wave-buoy/sites/${buoy}?start=${localToUTC(from)}&end=${localToUTC(to)}`,
   );
-  console.log('getWaveBuoyDetails', waveDetails.data);
+  console.log({ from, to });
   return waveDetails.data;
 };
 
-// date in request is converted to UTC string, but in response, it's converted back to local date string, which is what the app displays
+// Bound the query to the selected *local* day (converted to UTC) so a buoy counts as
+// "active" only when it reported on that date — not merely any time before it. Marks the
+// active set the merge uses for hasDataForDate. Dates in the response are converted back
+// to local date strings for display.
 export const getWaveBuoySitesByDate = async (
   localDate: string,
 ): Promise<RawSiteFeatureCollection> => {
+  const start = localToUTC(dayjs(localDate).startOf('day').toDate());
+  const end = localToUTC(dayjs(localDate).endOf('day').toDate());
   const wavebuoysSites = await axios.get<RawSiteFeatureCollection>(
-    `http://127.0.0.1:8000/wave-buoy/sites?start=${localToUTC(localDate)}`,
+    `http://127.0.0.1:8000/wave-buoy/sites?start=${start}&end=${end}`,
   );
-  console.log('getWaveBuoySitesByDate', wavebuoysSites.data);
   return normalizeWaveBuoyDates(wavebuoysSites.data);
 };
 
@@ -51,7 +53,6 @@ export const getLatestWaveBuoySites = async (): Promise<RawSiteFeatureCollection
   const wavebuoysSites = await axios.get<RawSiteFeatureCollection>(
     `http://127.0.0.1:8000/wave-buoy/sites`,
   );
-  console.log('getLatestWaveBuoySites', wavebuoysSites.data);
   return normalizeWaveBuoyDates(wavebuoysSites.data);
 };
 
