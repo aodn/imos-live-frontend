@@ -1,16 +1,18 @@
 import type { ClosePopupFn } from '@/helpers';
 
-export type BuoyHoverPopupContentProps = {
+export type SiteHoverPopupContentProps = {
   site: string;
   date: string;
+  // Label for the site row (e.g. "Buoy", "Mooring"). Defaults to "Buoy".
+  label?: string;
   onClose?: ClosePopupFn;
 };
 
-export function BuoyHoverPopupContent({ site, date }: BuoyHoverPopupContentProps) {
+export function SiteHoverPopupContent({ site, date, label = 'Buoy' }: SiteHoverPopupContentProps) {
   return (
     <div
       className="w-40 min-h-10 relative bg-white rounded-lg shadow-lg overflow-hidden p-2"
-      aria-label="Current buoy information"
+      aria-label={`Current ${label.toLowerCase()} information`}
     >
       {/* {onClose && (
         <button
@@ -24,7 +26,7 @@ export function BuoyHoverPopupContent({ site, date }: BuoyHoverPopupContentProps
 
       <div>
         <p>
-          <strong>Buoy: </strong> {site}
+          <strong>{label}: </strong> {site}
         </p>
         <p>
           <strong>Date: </strong> {date}

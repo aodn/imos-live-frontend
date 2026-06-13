@@ -1,4 +1,4 @@
-import { BuoyHoverPopupContent } from '@/components';
+import { SiteHoverPopupContent } from '@/components';
 import { ZOOM_LIMIT_TEMP_POINTS_LAYER_ID } from '@/constants';
 import { type ClosePopupFn, coordinateToLngLat, showPopup } from '@/helpers';
 import type { SitePoint, SiteProperties } from '@/types';
@@ -13,6 +13,8 @@ export function useSiteHover(
   map: React.RefObject<mapboxgl.Map | null>,
   enabled: boolean,
   unclusteredLayerId: string,
+  // Label for the popup's site row (e.g. "Buoy", "Mooring").
+  label?: string,
 ) {
   const hoverPopupRef = useRef<mapboxgl.Popup | null>(null);
   const popupCloseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -44,7 +46,7 @@ export function useSiteHover(
         map,
         lngLat,
         PopupContent: (closeFn: ClosePopupFn) => (
-          <BuoyHoverPopupContent site={site || ''} date={date} onClose={closeFn} />
+          <SiteHoverPopupContent site={site || ''} date={date} label={label} onClose={closeFn} />
         ),
       });
 
@@ -111,5 +113,5 @@ export function useSiteHover(
         hoverPopupRef.current = null;
       }
     };
-  }, [enabled, map, unclusteredLayerId]);
+  }, [enabled, map, unclusteredLayerId, label]);
 }

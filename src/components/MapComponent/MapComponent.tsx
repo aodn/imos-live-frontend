@@ -17,8 +17,7 @@ import {
   getMooringSitesByDate,
   getWaveBuoySitesByDate,
 } from '@/api';
-import { normalizeWaveBuoyDates } from '@/helpers';
-import { useMapUIStore } from '@/store';
+import { useMapUIStore, openBottomDrawer } from '@/store';
 import { cn, isSmallScreen } from '@/utils';
 import mapboxgl from 'mapbox-gl';
 import { lazy, memo, Suspense, useEffect } from 'react';
@@ -35,9 +34,7 @@ import {
   UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
   WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID,
 } from '@/constants';
-import allWaveBuoySitesBackup from '@/assets/wave_buoy_all_sites.json';
 import type { DrawerProps } from '../Drawer';
-import type { RawSiteFeatureCollection } from '@/types';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_KEY;
 
@@ -109,7 +106,6 @@ export const MapComponent = memo(function MapComponent() {
     clusterLabelLayerId: WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID,
     getSitesByDate: getWaveBuoySitesByDate,
     getLatestSites: getLatestWaveBuoySites,
-    fallbackData: () => normalizeWaveBuoyDates(allWaveBuoySitesBackup as RawSiteFeatureCollection),
   });
   useSiteLayer({
     map,
@@ -123,18 +119,17 @@ export const MapComponent = memo(function MapComponent() {
   });
 
   //3. add click event listners to map and layers.
-  const { clickedPointData: waveBuoysClickedPointData, openDrawer } = useSiteLayerEventHandler(
-    map,
-    {
-      enabled: waveBuoysEnabled,
-      distanceMeasurementEnabled,
-      clusterLayerId: PRODUCTS[PRODUCT.WAVE_BUOYS].layerId,
-      unclusteredLayerId: UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
-      sourceId: PRODUCTS[PRODUCT.WAVE_BUOYS].sourceId,
-    },
-  );
+  const { clickedPointData: waveBuoysClickedPointData } = useSiteLayerEventHandler(map, {
+    product: PRODUCT.WAVE_BUOYS,
+    enabled: waveBuoysEnabled,
+    distanceMeasurementEnabled,
+    clusterLayerId: PRODUCTS[PRODUCT.WAVE_BUOYS].layerId,
+    unclusteredLayerId: UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
+    sourceId: PRODUCTS[PRODUCT.WAVE_BUOYS].sourceId,
+  });
 
   const { clickedPointData: mooringClickedPointData } = useSiteLayerEventHandler(map, {
+    product: PRODUCT.MOORING_TIMESERIES_REALTIME,
     enabled: mooringEnabled,
     distanceMeasurementEnabled,
     clusterLayerId: PRODUCTS[PRODUCT.MOORING_TIMESERIES_REALTIME].layerId,
@@ -162,25 +157,25 @@ export const MapComponent = memo(function MapComponent() {
 
   useEffect(() => {
     if (waveBuoysClickedPointData) {
-      openDrawer(
+      openBottomDrawer(
         <Suspense fallback={<div>Loading...</div>}>
           <WaveBuoyChart waveBuoysData={waveBuoysClickedPointData} showDirection />
         </Suspense>,
         SITE_SNAP_POINTS,
       );
     }
-  }, [waveBuoysClickedPointData, openDrawer]);
+  }, [waveBuoysClickedPointData]);
 
   useEffect(() => {
     if (mooringClickedPointData) {
-      openDrawer(
+      openBottomDrawer(
         <Suspense fallback={<div>Loading...</div>}>
           <MooringChart mooringData={mooringClickedPointData} />
         </Suspense>,
         SITE_SNAP_POINTS,
       );
     }
-  }, [mooringClickedPointData, openDrawer]);
+  }, [mooringClickedPointData]);
 
   //4. enable to toggle style.
   useMapStyle(map);

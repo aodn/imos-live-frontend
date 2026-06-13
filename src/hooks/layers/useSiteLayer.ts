@@ -28,8 +28,6 @@ type UseSiteLayer = {
   getSitesByDate: (localDate: string) => Promise<RawSiteFeatureCollection>;
   // Returns all sites with their latest observation (the base set the date merge fills in).
   getLatestSites: () => Promise<RawSiteFeatureCollection>;
-  // Optional offline fallback when getLatestSites fails (already date-normalized).
-  fallbackData?: () => RawSiteFeatureCollection;
   // Per-product paint/layout so site products are visually distinguishable.
   // Default to the wave-buoy styling.
   clusterConfig?: Partial<CircleLayerSpecification>;
@@ -54,7 +52,6 @@ export function useSiteLayer({
   clusterLabelLayerId,
   getSitesByDate,
   getLatestSites,
-  fallbackData,
   clusterConfig = WAVE_BUOYS_LAYER_CONFIG,
   unclusteredConfig = UNCLUSTERED_WAVE_BUOYS_LAYER_CONFIG,
   clusterLabelConfig = WAVE_BUOY_CLUSTER_LABEL_LAYER_CONFIG,
@@ -76,14 +73,7 @@ export function useSiteLayer({
 
   const allSitesQuery = useQuery({
     queryKey: ['site_sites_all', product],
-    queryFn: async (): Promise<RawSiteFeatureCollection> => {
-      try {
-        return await getLatestSites();
-      } catch (err) {
-        if (fallbackData) return fallbackData();
-        throw err;
-      }
-    },
+    queryFn: getLatestSites,
     enabled: enabled,
   });
 

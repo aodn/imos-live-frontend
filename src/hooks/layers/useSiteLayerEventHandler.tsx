@@ -1,5 +1,6 @@
 import { createMapEventPriority } from '@/helpers';
-import { useDrawerStore, openBottomDrawer } from '@/store';
+import { useDrawerStore } from '@/store';
+import { PRODUCT, type SiteProduct } from '@/constants';
 import type { SiteFeature } from '@/types';
 import { useEffect, useMemo, useState } from 'react';
 import {
@@ -12,11 +13,18 @@ import {
 } from './siteLayers';
 
 type SiteLayerEventConfig = {
+  product: SiteProduct;
   enabled: boolean;
   distanceMeasurementEnabled: boolean;
   clusterLayerId: string;
   unclusteredLayerId: string;
   sourceId: string;
+};
+
+// Hover popup site-row label per site product.
+const SITE_HOVER_LABEL: Record<SiteProduct, string> = {
+  [PRODUCT.WAVE_BUOYS]: 'Buoy',
+  [PRODUCT.MOORING_TIMESERIES_REALTIME]: 'Mooring',
 };
 
 /**
@@ -28,6 +36,7 @@ type SiteLayerEventConfig = {
 export function useSiteLayerEventHandler(
   map: React.RefObject<mapboxgl.Map | null>,
   {
+    product,
     enabled,
     distanceMeasurementEnabled,
     clusterLayerId,
@@ -64,7 +73,7 @@ export function useSiteLayerEventHandler(
     unclusteredLayerId,
   );
 
-  useSiteHover(map, enabled, unclusteredLayerId);
+  useSiteHover(map, enabled, unclusteredLayerId, SITE_HOVER_LABEL[product]);
 
   useSiteZoomLimitClick(map, enabled, shouldHandleMapClick, setClickedPointData);
 
@@ -77,7 +86,6 @@ export function useSiteLayerEventHandler(
 
   return {
     clickedPointData,
-    openDrawer: openBottomDrawer,
     clearSelection,
   };
 }

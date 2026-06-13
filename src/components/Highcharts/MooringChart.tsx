@@ -170,9 +170,13 @@ export function MooringChart({ mooringData }: MooringChartProps) {
         return [
           {
             name: `${depthValue(key)} m`,
-            data: temp,
+            // Sort ascending by timestamp — Highcharts Stock silently refuses to draw
+            // the main line for unsorted data (the navigator renders regardless).
+            data: [...temp].sort((a, b) => a[0] - b[0]),
             color: colors[i % colors.length],
             type: 'line',
+            lineWidth: 2,
+            marker: { enabled: true, radius: 2, symbol: 'circle' },
             yAxis: 0,
           },
         ];
