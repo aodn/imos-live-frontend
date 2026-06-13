@@ -4,12 +4,11 @@ import {
   CONTINOUS_PRODUCT_COLOR_OPTIONS,
   PRODUCT,
   PRODUCTLEGENDS,
-  PRODUCTS,
 } from '@/constants';
 import { cn, toCompactDate, toISOFromCompact } from '@/utils';
 import type { ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getWaveBuoyLatestDate, metaDataManifestQueryOptions } from '@/api';
+import { getMooringLatestDate, getWaveBuoyLatestDate, metaDataManifestQueryOptions } from '@/api';
 import { setJumpToDate, setProductLegend, useMapUIStore } from '@/store';
 import { Button } from '../Button';
 import type { TriggerArgs } from '../Collapsible';
@@ -31,18 +30,20 @@ export function LayerCard({
   addToMap,
   visible,
   isError,
-  layerId,
   icon,
   product,
   portalLink,
 }: LayerCardProps) {
-  const isWaveBuoy = product === PRODUCT.WAVE_BUOYS;
+  const isSiteProduct =
+    product === PRODUCT.WAVE_BUOYS || product === PRODUCT.MOORING_TIMESERIES_REALTIME;
 
   const handleClick = () => {
     if (addToMap) addToMap(product, !visible);
-    if (layerId === PRODUCTS[PRODUCT.WAVE_BUOYS].layerId) {
-      // Fire-and-forget prefetch of the chart chunk.
+    // Fire-and-forget prefetch of the matching drawer chart chunk.
+    if (product === PRODUCT.WAVE_BUOYS) {
       void import('../Highcharts/WaveBuoyChart');
+    } else if (product === PRODUCT.MOORING_TIMESERIES_REALTIME) {
+      void import('../Highcharts/MooringChart');
     }
   };
 
@@ -99,30 +100,33 @@ export function LayerCard({
           </Button>
         </div>
 
-        {!isWaveBuoy && <TilesLegendSection product={product as TilesProduct} />}
+        {!isSiteProduct && <TilesLegendSection product={product as TilesProduct} />}
       </div>
     </CollapsibleComponent>
   );
 }
 
 function useLatestDate(product: ProductType) {
-  const isWaveBuoy = product === PRODUCT.WAVE_BUOYS;
+  const isMooring = product === PRODUCT.MOORING_TIMESERIES_REALTIME;
+  const isSiteProduct = product === PRODUCT.WAVE_BUOYS || isMooring;
 
   const { data: tilesDate, isLoading: isTilesLoading } = useQuery({
     ...metaDataManifestQueryOptions(),
     select: ({ products }) => products[product as TilesProduct].full_date_range.end,
-    enabled: !isWaveBuoy,
+    enabled: !isSiteProduct,
   });
 
-  const { data: waveBuoyCompact, isLoading: isWaveBuoyLoading } = useQuery({
-    queryKey: ['wave_buoy_latest_date'],
-    queryFn: getWaveBuoyLatestDate,
+  // Site products expose their own latest-time endpoint. Keep the query keys aligned
+  // with the drawer charts (WaveBuoyChart/MooringChart) so the cache is shared.
+  const { data: siteCompact, isLoading: isSiteLoading } = useQuery({
+    queryKey: [isMooring ? 'mooring_latest_date' : 'wave_buoy_latest_date'],
+    queryFn: isMooring ? getMooringLatestDate : getWaveBuoyLatestDate,
     select: toCompactDate,
-    enabled: isWaveBuoy,
+    enabled: isSiteProduct,
   });
 
-  const date = isWaveBuoy ? waveBuoyCompact && toISOFromCompact(waveBuoyCompact) : tilesDate;
-  const isLoading = isWaveBuoy ? isWaveBuoyLoading : isTilesLoading;
+  const date = isSiteProduct ? siteCompact && toISOFromCompact(siteCompact) : tilesDate;
+  const isLoading = isSiteProduct ? isSiteLoading : isTilesLoading;
 
   const jumpToLatest = () => {
     if (date) setJumpToDate(date);

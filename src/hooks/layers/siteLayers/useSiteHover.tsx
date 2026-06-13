@@ -1,14 +1,19 @@
 import { BuoyHoverPopupContent } from '@/components';
-import { UNCLUSTERED_WAVE_BUOYS_LAYER_ID, ZOOM_LIMIT_TEMP_POINTS_LAYER_ID } from '@/constants';
+import { ZOOM_LIMIT_TEMP_POINTS_LAYER_ID } from '@/constants';
 import { type ClosePopupFn, coordinateToLngLat, showPopup } from '@/helpers';
 import type { SitePoint, SiteProperties } from '@/types';
 import { useEffect, useRef } from 'react';
 
 /**
- * Handles hover events on wave buoy points, showing a popup with buoy info.
- * Manages popup lifecycle including delays for better UX.
+ * Handles hover events on unclustered site points (and the shared zoom-limit
+ * temp points), showing a popup with the site name + date. Manages popup
+ * lifecycle including delays for better UX.
  */
-export function useWaveBuoysHover(map: React.RefObject<mapboxgl.Map | null>, enabled: boolean) {
+export function useSiteHover(
+  map: React.RefObject<mapboxgl.Map | null>,
+  enabled: boolean,
+  unclusteredLayerId: string,
+) {
   const hoverPopupRef = useRef<mapboxgl.Popup | null>(null);
   const popupCloseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -85,14 +90,14 @@ export function useWaveBuoysHover(map: React.RefObject<mapboxgl.Map | null>, ena
       }, 200);
     };
 
-    mapInstance.on('mouseenter', UNCLUSTERED_WAVE_BUOYS_LAYER_ID, handleMouseEnter);
-    mapInstance.on('mouseleave', UNCLUSTERED_WAVE_BUOYS_LAYER_ID, handleMouseLeave);
+    mapInstance.on('mouseenter', unclusteredLayerId, handleMouseEnter);
+    mapInstance.on('mouseleave', unclusteredLayerId, handleMouseLeave);
     mapInstance.on('mouseenter', ZOOM_LIMIT_TEMP_POINTS_LAYER_ID, handleMouseEnter);
     mapInstance.on('mouseleave', ZOOM_LIMIT_TEMP_POINTS_LAYER_ID, handleMouseLeave);
 
     return () => {
-      mapInstance?.off('mouseenter', UNCLUSTERED_WAVE_BUOYS_LAYER_ID, handleMouseEnter);
-      mapInstance?.off('mouseleave', UNCLUSTERED_WAVE_BUOYS_LAYER_ID, handleMouseLeave);
+      mapInstance?.off('mouseenter', unclusteredLayerId, handleMouseEnter);
+      mapInstance?.off('mouseleave', unclusteredLayerId, handleMouseLeave);
       mapInstance.off('mouseenter', ZOOM_LIMIT_TEMP_POINTS_LAYER_ID, handleMouseEnter);
       mapInstance.off('mouseleave', ZOOM_LIMIT_TEMP_POINTS_LAYER_ID, handleMouseLeave);
 
@@ -106,5 +111,5 @@ export function useWaveBuoysHover(map: React.RefObject<mapboxgl.Map | null>, ena
         hoverPopupRef.current = null;
       }
     };
-  }, [enabled, map]);
+  }, [enabled, map, unclusteredLayerId]);
 }

@@ -47,4 +47,4 @@ export type NominalDepthVariant = `NOMINAL_DEPTH_${number}`;
 export type MooringDataVariants = 'TEMP';
 export type MooringItemContent = Record<MooringDataVariants, SiteItemContent>;
 export type MooringItem = Record<NominalDepthVariant, MooringItemContent>;
-export type MooringSiteDetailsFeature = SiteDetailsFeature<MooringItem>[];
+export type MooringSiteDetailsFeature = SiteDetailsFeature<MooringItem>;

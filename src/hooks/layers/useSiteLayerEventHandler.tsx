@@ -3,18 +3,37 @@ import { useDrawerStore, openBottomDrawer } from '@/store';
 import type { SiteFeature } from '@/types';
 import { useEffect, useMemo, useState } from 'react';
 import {
-  useWaveBuoysClusterClick,
-  useWaveBuoysCursorStyle,
-  useWaveBuoysHover,
-  useWaveBuoysSelection,
-  useWaveBuoysUnclusteredClick,
-  useWaveBuoysZoomLimitClick,
-} from './waveBuoys';
+  useSiteClusterClick,
+  useSiteCursorStyle,
+  useSiteHover,
+  useSiteSelection,
+  useSiteUnclusteredClick,
+  useSiteZoomLimitClick,
+} from './siteLayers';
 
-export function useWaveBuoysLayerEventHandler(
+type SiteLayerEventConfig = {
+  enabled: boolean;
+  distanceMeasurementEnabled: boolean;
+  clusterLayerId: string;
+  unclusteredLayerId: string;
+  sourceId: string;
+};
+
+/**
+ * Shared map-interaction wiring for clustered site products (wave buoys,
+ * moorings, …): cluster click (zoom / fan-out), unclustered click → selection +
+ * clicked data, hover popup, cursor style, and zoom-limit handling. Parameterized
+ * by the product's layer/source IDs so every site product reuses it.
+ */
+export function useSiteLayerEventHandler(
   map: React.RefObject<mapboxgl.Map | null>,
-  waveBuoyEnabled: boolean,
-  distanceMeasurementEnabled: boolean,
+  {
+    enabled,
+    distanceMeasurementEnabled,
+    clusterLayerId,
+    unclusteredLayerId,
+    sourceId,
+  }: SiteLayerEventConfig,
 ) {
   const bottomDrawer = useDrawerStore(s => s.bottomDrawer);
   const [clickedPointData, setClickedPointData] = useState<Omit<SiteFeature, 'type'>[] | null>(
@@ -30,25 +49,26 @@ export function useWaveBuoysLayerEventHandler(
     [map, distanceMeasurementEnabled],
   );
 
-  const { selectFeature, clearSelection } = useWaveBuoysSelection(map);
+  const { selectFeature, clearSelection } = useSiteSelection(map, sourceId);
 
-  useWaveBuoysCursorStyle(map, waveBuoyEnabled);
+  useSiteCursorStyle(map, enabled, clusterLayerId, unclusteredLayerId);
 
-  useWaveBuoysClusterClick(map, waveBuoyEnabled, shouldHandleMapClick);
+  useSiteClusterClick(map, enabled, shouldHandleMapClick, clusterLayerId, sourceId);
 
-  useWaveBuoysUnclusteredClick(
+  useSiteUnclusteredClick(
     map,
-    waveBuoyEnabled,
+    enabled,
     shouldHandleMapClick,
     selectFeature,
     setClickedPointData,
+    unclusteredLayerId,
   );
 
-  useWaveBuoysHover(map, waveBuoyEnabled);
+  useSiteHover(map, enabled, unclusteredLayerId);
 
-  useWaveBuoysZoomLimitClick(map, waveBuoyEnabled, shouldHandleMapClick, setClickedPointData);
+  useSiteZoomLimitClick(map, enabled, shouldHandleMapClick, setClickedPointData);
 
-  // Clear unclustered waveBuoyEnabled selection when drawer closed.
+  // Clear selection when the drawer closes.
   useEffect(() => {
     if (!bottomDrawer.isOpen) {
       clearSelection();

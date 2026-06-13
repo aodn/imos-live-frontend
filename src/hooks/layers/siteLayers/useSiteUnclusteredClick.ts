@@ -1,18 +1,18 @@
-import { UNCLUSTERED_WAVE_BUOYS_LAYER_ID } from '@/constants';
 import type { SiteFeature } from '@/types';
 import { normalizeWaveBuoysData } from '@/helpers';
 import { useEffect } from 'react';
 
 /**
- * Handles click events on unclustered wave buoy points.
+ * Handles click events on unclustered site points.
  * Manages selection state and clicked point data.
  */
-export function useWaveBuoysUnclusteredClick(
+export function useSiteUnclusteredClick(
   map: React.RefObject<mapboxgl.Map | null>,
   enabled: boolean,
   shouldHandle: () => boolean,
   selectFeature: (featureId: string | number) => void,
   setClickedPointData: (data: Omit<SiteFeature, 'type'>[] | null) => void,
+  unclusteredLayerId: string,
 ) {
   useEffect(() => {
     if (!map.current || !enabled || !shouldHandle()) return;
@@ -31,9 +31,9 @@ export function useWaveBuoysUnclusteredClick(
       setClickedPointData(normalizeWaveBuoysData(e.features));
     };
 
-    mapInstance.on('click', UNCLUSTERED_WAVE_BUOYS_LAYER_ID, handleClick);
+    mapInstance.on('click', unclusteredLayerId, handleClick);
     return () => {
-      mapInstance?.off('click', UNCLUSTERED_WAVE_BUOYS_LAYER_ID, handleClick);
+      mapInstance?.off('click', unclusteredLayerId, handleClick);
     };
-  }, [enabled, map, shouldHandle, selectFeature, setClickedPointData]);
+  }, [enabled, map, shouldHandle, selectFeature, setClickedPointData, unclusteredLayerId]);
 }

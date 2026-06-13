@@ -5,10 +5,10 @@ import { type SiteFeature } from '@/types';
 import { useEffect } from 'react';
 
 /**
- * Handles click events on zoom limit temp points layer.
+ * Handles click events on the shared zoom-limit temp points layer.
  * These are temporary points created when clusters can't be expanded further.
  */
-export function useWaveBuoysZoomLimitClick(
+export function useSiteZoomLimitClick(
   map: React.RefObject<mapboxgl.Map | null>,
   enabled: boolean,
   shouldHandle: () => boolean,

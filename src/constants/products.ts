@@ -11,16 +11,23 @@ export const PRODUCT = {
   AUSTEMP_HEATWAVE_SST_MOSAIC: 'satellite_austemp_heatwave_8day_sst_mosaic',
   AUSTEMP_HEATWAVE_MCS_CATEGORY: 'satellite_austemp_heatwave_8day_mcs_category',
   WAVE_BUOYS: 'wave-buoys',
+  MOORING_TIMESERIES_REALTIME: 'mooring_timeseries_realtime',
 } as const;
 
 export type ProductType = (typeof PRODUCT)[keyof typeof PRODUCT];
-export type TilesProduct = Exclude<ProductType, typeof PRODUCT.WAVE_BUOYS>;
+export type TilesProduct = Exclude<
+  ProductType,
+  typeof PRODUCT.WAVE_BUOYS | typeof PRODUCT.MOORING_TIMESERIES_REALTIME
+>;
 export type ParticleTilesProduct = Extract<
   TilesProduct,
   typeof PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT
 >;
 export type ScalarTilesProduct = Exclude<TilesProduct, ParticleTilesProduct>;
-export type WaveBuoysProduct = Extract<ProductType, typeof PRODUCT.WAVE_BUOYS>;
+export type SiteProduct = Extract<
+  ProductType,
+  typeof PRODUCT.WAVE_BUOYS | typeof PRODUCT.MOORING_TIMESERIES_REALTIME
+>;
 
 type ProductValue = {
   name: string;
@@ -37,6 +44,8 @@ const GSLA_PORTAL_LINK =
   'https://portal-beta.aodn.org.au/details/0c9eb39c-9cbe-4c6a-8a10-5867087e703a';
 const WAVE_BUOYS_PORTAL_LINK =
   'https://portal-beta.aodn.org.au/details/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc';
+const MOORING_TIMESERIES_REALTIME_PORTAL_LINK =
+  'https://portal-beta.aodn.org.au/details/mooring-timeseries-realtime';
 
 export const PRODUCTS = {
   [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: {
@@ -99,6 +108,14 @@ export const PRODUCTS = {
       'Marine Cold Spell / Marine Heatwave (MCS) category mosaic for the Australasian region, classifying sea surface temperature anomalies into severity categories.',
     portalLink: AUSTEMP_HEATWAVE_PORTAL_LINK,
   },
+  [PRODUCT.MOORING_TIMESERIES_REALTIME]: {
+    name: 'Mooring Timeseries Realtime',
+    layerId: 'mooring-timeseries-realtime-layer',
+    sourceId: 'mooring-timeseries-realtime-source',
+    description:
+      'Mooring timeseries data in near real-time. Moorings provide point measurements of oceanographic parameters such as temperature, salinity, and currents at fixed locations.',
+    portalLink: MOORING_TIMESERIES_REALTIME_PORTAL_LINK,
+  },
 } as const satisfies Record<ProductType, ProductValue>;
 
 export const MAX_VECTOR_SPEED = 3.0 as const;
@@ -106,6 +123,9 @@ export const MAX_VECTOR_SPEED = 3.0 as const;
 export type ProductName = (typeof PRODUCTS)[ProductType]['name'];
 export type BuoyLayer = (typeof PRODUCTS)[typeof PRODUCT.WAVE_BUOYS]['layerId'];
 export type BuoySource = (typeof PRODUCTS)[typeof PRODUCT.WAVE_BUOYS]['sourceId'];
+export type MooringLayer = (typeof PRODUCTS)[typeof PRODUCT.MOORING_TIMESERIES_REALTIME]['layerId'];
+export type MooringSource =
+  (typeof PRODUCTS)[typeof PRODUCT.MOORING_TIMESERIES_REALTIME]['sourceId'];
 
 export const TILES_GROUP = [
   PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT,

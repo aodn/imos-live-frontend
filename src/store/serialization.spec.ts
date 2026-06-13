@@ -31,6 +31,7 @@ describe('per-key round-trip', () => {
         [PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC]: false,
         [PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY]: false,
         [PRODUCT.WAVE_BUOYS]: true,
+        [PRODUCT.MOORING_TIMESERIES_REALTIME]: false,
       },
     },
   ];
@@ -77,7 +78,8 @@ describe('compact output format (no type tags, no JSON noise)', () => {
       [PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC]: false,
       [PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY]: false,
       [PRODUCT.WAVE_BUOYS]: true,
+      [PRODUCT.MOORING_TIMESERIES_REALTIME]: false,
     };
-    expect(serialize(enabled, 'productEnabled')).toBe('110001');
+    expect(serialize(enabled, 'productEnabled')).toBe('1100010');
   });
 });

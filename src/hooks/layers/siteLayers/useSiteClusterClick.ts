@@ -1,17 +1,18 @@
 import { CLUSTER_MAX_ZOOM } from '@/constants';
-import { PRODUCT, PRODUCTS } from '@/constants';
 import { createZoomLimitPoints } from '@/helpers';
 import type { Point } from 'geojson';
 import { useEffect } from 'react';
 
 /**
- * Handles click events on clustered wave buoys.
- * Zooms into cluster or creates zoom limit temp points if max zoom reached.
+ * Handles click events on a clustered site layer.
+ * Zooms into the cluster or creates zoom-limit temp points if max zoom is reached.
  */
-export function useWaveBuoysClusterClick(
+export function useSiteClusterClick(
   map: React.RefObject<mapboxgl.Map | null>,
   enabled: boolean,
   shouldHandle: () => boolean,
+  clusterLayerId: string,
+  sourceId: string,
 ) {
   useEffect(() => {
     if (!map.current || !enabled || !shouldHandle()) return;
@@ -19,16 +20,14 @@ export function useWaveBuoysClusterClick(
 
     const handleClick = (e: mapboxgl.MapMouseEvent) => {
       const features = mapInstance.queryRenderedFeatures(e.point, {
-        layers: [PRODUCTS[PRODUCT.WAVE_BUOYS].layerId],
+        layers: [clusterLayerId],
       });
       if (!features[0] || !features[0].properties) return;
 
       const clusterId = features[0].properties.cluster_id;
       const center = (features[0].geometry as Point).coordinates as [number, number];
 
-      const source = mapInstance.getSource(
-        PRODUCTS[PRODUCT.WAVE_BUOYS].sourceId,
-      ) as mapboxgl.GeoJSONSource;
+      const source = mapInstance.getSource(sourceId) as mapboxgl.GeoJSONSource;
 
       source.getClusterExpansionZoom(clusterId, (err, zoom) => {
         if (err) return;
@@ -47,9 +46,9 @@ export function useWaveBuoysClusterClick(
       });
     };
 
-    mapInstance.on('click', PRODUCTS[PRODUCT.WAVE_BUOYS].layerId, handleClick);
+    mapInstance.on('click', clusterLayerId, handleClick);
     return () => {
-      mapInstance?.off('click', PRODUCTS[PRODUCT.WAVE_BUOYS].layerId, handleClick);
+      mapInstance?.off('click', clusterLayerId, handleClick);
     };
-  }, [enabled, map, shouldHandle]);
+  }, [enabled, map, shouldHandle, clusterLayerId, sourceId]);
 }

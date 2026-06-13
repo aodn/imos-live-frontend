@@ -27,7 +27,9 @@ export function ClickedMapPopupContent({ onClose, lngLat }: ClickedMapPopupConte
       const products = s.productEnabled;
       return Object.keys(products)
         .filter(p => products[p as keyof typeof products] === true)
-        .filter(p => p !== PRODUCT.WAVE_BUOYS) as TilesProduct[];
+        .filter(
+          p => p !== PRODUCT.WAVE_BUOYS && p !== PRODUCT.MOORING_TIMESERIES_REALTIME,
+        ) as TilesProduct[];
     }),
   );
   const date = useMapUIStore(s => s.date);
