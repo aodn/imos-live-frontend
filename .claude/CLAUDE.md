@@ -1,6 +1,6 @@
 # CLAUDE.md — IMOS Live Frontend
 
-IMOS Live is a geospatial oceanography visualization platform rendering real-time ocean data (SST, currents, wave buoys) on an interactive Mapbox map with WebGL-accelerated particle animations.
+IMOS Live is a geospatial oceanography visualization platform rendering real-time ocean data (SST, currents, wave buoys, moorings) on an interactive Mapbox map with WebGL-accelerated particle animations.
 
 ## Before You Write Code
 
@@ -62,21 +62,20 @@ Products are defined across three sibling files in `src/constants/` — never ha
 
 `buildProductPalette` (`src/helpers/buildProductPalette.ts`) converts a legend into the `ColorPalette` the WebGL layer uploads as its color-ramp texture.
 
-Each product is visualized via its own dedicated hook in `src/hooks/layers/`:
+Each product is visualized via a layer hook in `src/hooks/layers/`:
 
 - `useParticleAtlasLayer` — GSLA Ocean Geostrophic Current (WebGL particle animation)
 - `useScalarAtlasLayer` — used by all four scalar tiles products: GSLA Anomaly Sea Levels, Marine Heatwave SST Mosaic, SSTA Mosaic, and MCS Category (WebGL atlas scalar overlay)
-- `useWaveBuoysLayer` — Wave Buoys (clustered circle layer)
+- `useSiteLayer` — shared by the clustered-point **site products** (Wave Buoys, Mooring Timeseries Realtime). Parameterized by `product`, the by-date/latest fetch fns, the intermediate layer IDs, and optional per-product paint configs. Paired with `useSiteLayerEventHandler` (cluster/hover/click/selection), which wraps the per-interaction hooks in `src/hooks/layers/siteLayers/` and is keyed by `product` for product-specific bits like the hover-popup label
 
 When adding a new product, touch these files in order:
 
 1. **`src/constants/products.ts`** — add an entry to `PRODUCT` and `PRODUCTS` (with `layerId`/`sourceId` plus the user-facing `description` and `portalLink` — this is the single source of truth for product copy); if it's a scalar/particle tiles product, also add the slug to `TILES_GROUP`
 2. **`src/constants/legends.ts`** — add a `PRODUCTLEGENDS` entry whose `colorKey` selects a palette from `COLOR_OPTIONS` in `src/constants/colors.ts`
-3. **`src/hooks/layers/use<ProductName>Layer.ts`** — create a dedicated layer hook; reuse the shared layer hooks already used across existing products:
-   - `useMapboxLayerSetup` — handles layer initialisation lifecycle
-   - `useDidMountEffect` — re-fetches data when date changes
-   - `useMapboxLayerVisibility` — handles show/hide based on enabled/error state (used by non-WebGL layers only, e.g. wave buoys)
-4. **`src/components/MapComponent/MapComponent.tsx`** — register the new hook
+3. **`src/hooks/layers/`** — wire the layer:
+   - **Tiles products** (scalar/particle) — create a dedicated `use<ProductName>Layer.ts` that calls `createScalarAtlasLayer` / `createParticleAtlasLayer`, reusing `useMapboxLayerSetup` (init lifecycle) and `useDidMountEffect` (re-fetch on date change).
+   - **Site products** (clustered points like wave buoys & moorings) — don't write a new hook. Register the shared `useSiteLayer` + `useSiteLayerEventHandler`, both parameterized by `product`/fetch fns/intermediate layer IDs (these reuse `useMapboxLayerVisibility` for show/hide). Add the product's three layer IDs (cluster, unclustered, cluster-label) to `src/constants/layerIds.ts`, and its point styling to `src/constants/layerSpecs.ts`.
+4. **`src/components/MapComponent/MapComponent.tsx`** — register the hook(s)
 5. **`src/components/MainSidebar/products.tsx`** — add an entry to `featuredPresentation` with the sidebar-only presentation (`product`, display `title`, `image`, `icon`); `featuredDataset` is derived from it, pulling `description`/`portalLink`/`layerId` from `PRODUCTS` — don't restate those here
 6. **`src/pages/Map.tsx`** — add the product icon entry to the `LayersIndicator`
 
