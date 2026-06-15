@@ -44,7 +44,7 @@ export type BuoyItem = Record<BuoyDataVariants, SiteItemContent>;
 export type WaveBuoySiteDetailsFeature = SiteDetailsFeature<BuoyItem>;
 
 export type NominalDepthVariant = `NOMINAL_DEPTH_${number}`;
-export type MooringDataVariants = 'TEMP';
+export type MooringDataVariants = 'TEMP' | 'PSAL' | 'DOX1';
 export type MooringItemContent = Record<MooringDataVariants, SiteItemContent>;
 export type MooringItem = Record<NominalDepthVariant, MooringItemContent>;
 export type MooringSiteDetailsFeature = SiteDetailsFeature<MooringItem>;

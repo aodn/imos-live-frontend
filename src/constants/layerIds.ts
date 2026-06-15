@@ -2,7 +2,7 @@
 export const WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID = 'wave-buoys-cluster-label-layer';
 export const UNCLUSTERED_WAVE_BUOYS_LAYER_ID = 'unclustered_wave-buoys-layer';
 
-// mooring intermediate layers (mirror the wave-buoy ones; same circle/symbol specs)
+// mooring intermediate layers
 export const MOORING_CLUSTER_LABEL_LAYER_ID = 'mooring-cluster-label-layer';
 export const UNCLUSTERED_MOORING_LAYER_ID = 'unclustered_mooring-layer';
 

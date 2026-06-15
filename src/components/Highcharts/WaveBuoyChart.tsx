@@ -4,6 +4,7 @@ import utc from 'dayjs/plugin/utc.js';
 import type { SiteFeature } from '@/types';
 import { toWaveBuoyChartData } from '@/helpers';
 import { formatLatLngToDirectional, toCompactDate, utcToLocalDateTime, today } from '@/utils';
+import { useDidMountEffect } from '@/hooks';
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useMemo, useRef } from 'react';
 import {
@@ -15,7 +16,12 @@ import {
 } from './config';
 import { LatestObservation } from './LatestObservation';
 import { LineChart } from './LineChart';
-import type { RangeSelectorConfig, SeriesData, TooltipFormatterContext } from './type';
+import type {
+  LineChartExposedMethods,
+  RangeSelectorConfig,
+  SeriesData,
+  TooltipFormatterContext,
+} from './type';
 import {
   calculateDataRange,
   generateDynamicButtons,
@@ -106,6 +112,26 @@ function buildWaveYAxisConfig(showDirection?: boolean): Highcharts.YAxisOptions[
   return [primary, arrowAxis];
 }
 
+// Dashed plot line marking the selected date — shared by the initial x-axis config
+// and the imperative date update (see useDidMountEffect on selectedDate).
+function buildBuoyDatePlotLine(selectedDate: string): Highcharts.XAxisPlotLinesOptions {
+  return {
+    value: dayjs(selectedDate).valueOf(),
+    color: PRIMARY_COLOR,
+    width: 2,
+    dashStyle: 'Dash',
+    zIndex: 5,
+    label: {
+      text: dayjs(selectedDate).format('D MMM YYYY'),
+      rotation: 0,
+      align: 'center',
+      verticalAlign: 'top',
+      y: -6,
+      style: { color: PRIMARY_COLOR, fontWeight: 'bold', fontSize: '12px' },
+    },
+  };
+}
+
 // X axis with the dashed plot line marking the selected date.
 function buildBuoyXAxisConfig(selectedDate: string): Highcharts.XAxisOptions {
   return {
@@ -116,23 +142,7 @@ function buildBuoyXAxisConfig(selectedDate: string): Highcharts.XAxisOptions {
     // For buoys that report every 3–6 hours, this gives a minRange of ~15–30 hours — larger than 6H or 12H, so Highcharts silently
     // rejects those zoom levels. Buoys with hourly or sub-hourly data land below 24H, so all buttons work. Therefore, we set this as 1 hour.
     minRange: 3600 * 1000,
-    plotLines: [
-      {
-        value: dayjs(selectedDate).valueOf(),
-        color: PRIMARY_COLOR,
-        width: 2,
-        dashStyle: 'Dash',
-        zIndex: 5,
-        label: {
-          text: dayjs(selectedDate).format('D MMM YYYY'),
-          rotation: 0,
-          align: 'center',
-          verticalAlign: 'top',
-          y: -6,
-          style: { color: PRIMARY_COLOR, fontWeight: 'bold', fontSize: '12px' },
-        },
-      },
-    ],
+    plotLines: [buildBuoyDatePlotLine(selectedDate)],
   };
 }
 
@@ -171,6 +181,7 @@ export function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartPro
   const buoy = buoyChartData?.site ?? '';
   const selectedDate = useMapUIStore(s => s.date);
   const visibleRangeRef = useRef<{ min: string; max: string } | null>(null);
+  const chartRef = useRef<LineChartExposedMethods>(null);
 
   const { data: latestWaveBuoyDate, isLoading: isLatestWaveBuoyDateLoading } = useQuery({
     queryKey: ['wave_buoy_latest_date'],
@@ -256,15 +267,28 @@ export function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartPro
     });
     return map;
   }, [feature?.properties.WPFM]);
+  // Latest map for the tooltip formatter, which is installed once at mount (allowChartUpdate is off).
+  const wavePeriodByTimeRef = useRef(wavePeriodByTime);
+  wavePeriodByTimeRef.current = wavePeriodByTime;
 
   const tooltipFormatter = useCallback(
-    (context: TooltipFormatterContext) => buildBuoyTooltipHTML(context, wavePeriodByTime),
-    [wavePeriodByTime],
+    (context: TooltipFormatterContext) =>
+      buildBuoyTooltipHTML(context, wavePeriodByTimeRef.current),
+    [],
   );
 
   const yAxisConfig = useMemo(() => buildWaveYAxisConfig(showDirection), [showDirection]);
 
   const xAxisConfig = useMemo(() => buildBuoyXAxisConfig(selectedDate), [selectedDate]);
+
+  useDidMountEffect(() => {
+    chartRef.current?.updateSeries(seriesData);
+  }, [seriesData]);
+
+  useDidMountEffect(() => {
+    const chart = chartRef.current?.getChartInstance();
+    chart?.xAxis[0]?.update({ plotLines: [buildBuoyDatePlotLine(selectedDate)] });
+  }, [selectedDate]);
 
   const updateVisibleRange = useCallback((min: number, max: number) => {
     visibleRangeRef.current = {
@@ -309,6 +333,11 @@ export function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartPro
   return (
     <div className="w-full">
       <LineChart
+        ref={chartRef}
+        // Drive updates imperatively via the ref (see useDidMountEffect above) instead of
+        // re-rendering from props: an in-place chart.update after a series swap leaves the
+        // range-selector buttons unresponsive and resets the zoom.
+        allowChartUpdate={false}
         width={'100%'}
         height={500}
         series={seriesData}

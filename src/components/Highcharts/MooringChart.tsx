@@ -1,14 +1,21 @@
 import { getMooringDetails, getMooringLatestDate } from '@/api';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
-import type { NominalDepthVariant, SiteFeature } from '@/types';
+import type { MooringDataVariants, NominalDepthVariant, SiteFeature } from '@/types';
 import { toWaveBuoyChartData } from '@/helpers';
 import { formatLatLngToDirectional, toCompactDate, utcToLocalDateTime, today } from '@/utils';
+import { Button } from '@/components/Button';
+import { useDidMountEffect } from '@/hooks';
 import { useQuery } from '@tanstack/react-query';
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { colors, PRIMARY_COLOR } from './config';
 import { LineChart } from './LineChart';
-import type { RangeSelectorConfig, SeriesData, TooltipFormatterContext } from './type';
+import type {
+  LineChartExposedMethods,
+  RangeSelectorConfig,
+  SeriesData,
+  TooltipFormatterContext,
+} from './type';
 import { calculateDataRange, generateDynamicButtons } from './utils';
 import { useMapUIStore } from '@/store';
 import type Highcharts from 'highcharts/highstock';
@@ -16,6 +23,13 @@ import type Highcharts from 'highcharts/highstock';
 dayjs.extend(utc);
 
 export const MOORING_MIN_DATE = 30;
+
+type MooringVariableMeta = { key: MooringDataVariants; label: string; unit: string };
+const MOORING_VARIABLES: readonly MooringVariableMeta[] = [
+  { key: 'TEMP', label: 'Temperature', unit: '°C' },
+  { key: 'PSAL', label: 'Salinity', unit: '' },
+  { key: 'DOX1', label: 'Dissolved O₂', unit: 'µmol L⁻¹' },
+];
 
 type MooringChartProps = {
   mooringData: Omit<SiteFeature, 'type'>[];
@@ -44,16 +58,38 @@ function MooringTitleHeading({ site, lng, lat }: { site: string; lng: number; la
   );
 }
 
-// Shared tooltip: one row per depth series showing the temperature at the hovered time.
-function buildMooringTooltipHTML(context: TooltipFormatterContext): string {
+// Shared tooltip for the active variable: one row per depth, values labelled with
+// the variable's unit.
+function buildMooringTooltipHTML(context: TooltipFormatterContext, unit: string): string {
   const points = context.points ?? [context.point];
   const datetime = utcToLocalDateTime((points[0]?.x ?? context.point.x) as number);
 
   let html = `<div style="font-size: 12px;"><b>Time:</b> ${datetime}<br/>`;
   for (const point of points) {
-    html += `<span style="color:${point.color}">●</span> <b>${point.series.name}:</b> ${point.y?.toFixed(2)} °C<br/>`;
+    const value = point.y?.toFixed(2) ?? '–';
+    html += `<span style="color:${point.color}">●</span> ${point.series.name}: <b>${value}${unit ? ` ${unit}` : ''}</b><br/>`;
   }
   return html + '</div>';
+}
+
+// Dashed plot line marking the selected date — shared by the initial x-axis config
+// and the imperative date update (see useDidMountEffect on selectedDate).
+function buildMooringDatePlotLine(selectedDate: string): Highcharts.XAxisPlotLinesOptions {
+  return {
+    value: dayjs(selectedDate).valueOf(),
+    color: PRIMARY_COLOR,
+    width: 2,
+    dashStyle: 'Dash',
+    zIndex: 5,
+    label: {
+      text: dayjs(selectedDate).format('D MMM YYYY'),
+      rotation: 0,
+      align: 'center',
+      verticalAlign: 'top',
+      y: -6,
+      style: { color: PRIMARY_COLOR, fontWeight: 'bold', fontSize: '12px' },
+    },
+  };
 }
 
 // X axis with the dashed plot line marking the selected date.
@@ -63,36 +99,29 @@ function buildMooringXAxisConfig(selectedDate: string): Highcharts.XAxisOptions 
     labels: { format: '{value:%b %e %H:%M}' },
     offset: 0,
     minRange: 3600 * 1000,
-    plotLines: [
-      {
-        value: dayjs(selectedDate).valueOf(),
-        color: PRIMARY_COLOR,
-        width: 2,
-        dashStyle: 'Dash',
-        zIndex: 5,
-        label: {
-          text: dayjs(selectedDate).format('D MMM YYYY'),
-          rotation: 0,
-          align: 'center',
-          verticalAlign: 'top',
-          y: -6,
-          style: { color: PRIMARY_COLOR, fontWeight: 'bold', fontSize: '12px' },
-        },
-      },
-    ],
+    plotLines: [buildMooringDatePlotLine(selectedDate)],
   };
 }
 
-const MOORING_Y_AXIS: Highcharts.YAxisOptions[] = [
-  {
-    gridLineWidth: 1,
-    lineWidth: 0,
-    tickWidth: 0,
-    title: { text: 'Temperature (°C)' },
-    labels: { style: { fontSize: '12px' } },
-    offset: 0,
-  },
-];
+// Y-axis title for a variable, e.g. "Temperature (°C)" (no unit for salinity).
+function mooringYAxisTitle(variable: MooringVariableMeta): string {
+  return variable.unit ? `${variable.label} (${variable.unit})` : variable.label;
+}
+
+// Single Y-axis titled with the active variable's unit.
+function buildMooringYAxis(variable?: MooringVariableMeta): Highcharts.YAxisOptions[] {
+  if (!variable) return [];
+  return [
+    {
+      gridLineWidth: 1,
+      lineWidth: 0,
+      tickWidth: 0,
+      title: { text: mooringYAxisTitle(variable) },
+      labels: { style: { fontSize: '12px' } },
+      offset: 0,
+    },
+  ];
+}
 
 // Static range-selector chrome; `selected` and `buttons` are filled in per render.
 const MOORING_RANGE_SELECTOR: Omit<RangeSelectorConfig, 'selected' | 'buttons'> = {
@@ -120,8 +149,6 @@ const MOORING_RANGE_SELECTOR: Omit<RangeSelectorConfig, 'selected' | 'buttons'> 
 };
 
 export function MooringChart({ mooringData }: MooringChartProps) {
-  // toWaveBuoyChartData throws on empty input. Compute defensively so hooks below
-  // stay in the same order across renders; render-time guard happens after the hooks.
   const mooringChartData = useMemo(
     () => (mooringData.length > 0 ? toWaveBuoyChartData(mooringData) : null),
     [mooringData],
@@ -129,6 +156,9 @@ export function MooringChart({ mooringData }: MooringChartProps) {
   const site = mooringChartData?.site ?? '';
   const selectedDate = useMapUIStore(s => s.date);
   const visibleRangeRef = useRef<{ min: string; max: string } | null>(null);
+  const chartRef = useRef<LineChartExposedMethods>(null);
+  // The single variable currently shown; defaults to temperature.
+  const [selectedVar, setSelectedVar] = useState<MooringDataVariants>('TEMP');
 
   const { data: latestMooringDate, isLoading: isLatestMooringDateLoading } = useQuery({
     queryKey: ['mooring_latest_date'],
@@ -155,33 +185,53 @@ export function MooringChart({ mooringData }: MooringChartProps) {
 
   const isFeatureEmpty = !feature || !feature.properties;
 
-  // One temperature series per nominal depth, ordered shallow → deep so the
-  // legend and color assignment are stable.
-  const seriesData: SeriesData[] = useMemo(() => {
+  const depthKeys = useMemo(() => {
     if (isFeatureEmpty) return [];
-    const properties = feature.properties;
-
-    return Object.keys(properties)
+    return Object.keys(feature.properties)
       .filter(key => key.startsWith('NOMINAL_DEPTH_'))
-      .sort((a, b) => depthValue(a) - depthValue(b))
-      .flatMap((key, i): SeriesData[] => {
-        const temp = properties[key as NominalDepthVariant]?.TEMP ?? [];
-        if (temp.length === 0) return [];
-        return [
-          {
-            name: `${depthValue(key)} m`,
-            // Sort ascending by timestamp — Highcharts Stock silently refuses to draw
-            // the main line for unsorted data (the navigator renders regardless).
-            data: [...temp].sort((a, b) => a[0] - b[0]),
-            color: colors[i % colors.length],
-            type: 'line',
-            lineWidth: 2,
-            marker: { enabled: true, radius: 2, symbol: 'circle' },
-            yAxis: 0,
-          },
-        ];
-      });
+      .sort((a, b) => depthValue(a) - depthValue(b)) as NominalDepthVariant[];
   }, [feature?.properties, isFeatureEmpty]);
+
+  // Variables that actually have data at some depth — only these get a selector button.
+  const availableVars = useMemo(() => {
+    if (isFeatureEmpty) return [];
+    return MOORING_VARIABLES.filter(v =>
+      depthKeys.some(key => (feature.properties[key]?.[v.key]?.length ?? 0) > 0),
+    );
+  }, [feature?.properties, isFeatureEmpty, depthKeys]);
+
+  // The chart shows one variable at a time; fall back to the first available one
+  // if the chosen variable has no data for this mooring.
+  const activeVar = useMemo(
+    () => availableVars.find(v => v.key === selectedVar) ?? availableVars[0],
+    [availableVars, selectedVar],
+  );
+  // Latest active variable for callbacks/effects that run against the long-lived
+  // (allowChartUpdate={false}) chart and must see the current value, not a stale closure.
+  const activeVarRef = useRef(activeVar);
+  activeVarRef.current = activeVar;
+
+  const seriesData: SeriesData[] = useMemo(() => {
+    if (isFeatureEmpty || !activeVar) return [];
+    return depthKeys.flatMap((key, i): SeriesData[] => {
+      const depth = depthValue(key);
+      const raw = feature.properties[key]?.[activeVar.key] ?? [];
+      if (raw.length === 0) return [];
+      return [
+        {
+          name: `${depth} m`,
+          data: [...raw].sort((a, b) => a[0] - b[0]),
+          color: colors[i % colors.length],
+          type: 'line',
+          lineWidth: 2,
+          marker: { enabled: true, radius: 2, symbol: 'circle' },
+          yAxis: 0,
+        },
+      ];
+    });
+  }, [feature?.properties, isFeatureEmpty, depthKeys, activeVar]);
+
+  const yAxisConfig = useMemo(() => buildMooringYAxis(activeVar), [activeVar]);
 
   const dynamicButtons = useMemo(() => {
     const dataRange = calculateDataRange(seriesData);
@@ -204,11 +254,24 @@ export function MooringChart({ mooringData }: MooringChartProps) {
     : '';
 
   const tooltipFormatter = useCallback(
-    (context: TooltipFormatterContext) => buildMooringTooltipHTML(context),
+    (context: TooltipFormatterContext) =>
+      buildMooringTooltipHTML(context, activeVarRef.current?.unit ?? ''),
     [],
   );
 
   const xAxisConfig = useMemo(() => buildMooringXAxisConfig(selectedDate), [selectedDate]);
+
+  useDidMountEffect(() => {
+    const chart = chartRef.current?.getChartInstance();
+    if (!chart || !activeVar) return;
+    chart.yAxis[0]?.setTitle({ text: mooringYAxisTitle(activeVar) });
+    chartRef.current?.updateSeries(seriesData);
+  }, [seriesData]);
+
+  useDidMountEffect(() => {
+    const chart = chartRef.current?.getChartInstance();
+    chart?.xAxis[0]?.update({ plotLines: [buildMooringDatePlotLine(selectedDate)] });
+  }, [selectedDate]);
 
   const updateVisibleRange = useCallback((min: number, max: number) => {
     visibleRangeRef.current = {
@@ -252,7 +315,30 @@ export function MooringChart({ mooringData }: MooringChartProps) {
 
   return (
     <div className="w-full">
+      {availableVars.length > 1 && (
+        <div className="mb-2 flex flex-wrap items-center justify-center gap-2">
+          {availableVars.map(v => {
+            const isActive = activeVar?.key === v.key;
+            return (
+              <Button
+                key={v.key}
+                size="sm"
+                variant={isActive ? 'default' : 'outline'}
+                isActive={isActive}
+                onClick={() => setSelectedVar(v.key)}
+              >
+                {v.label}
+              </Button>
+            );
+          })}
+        </div>
+      )}
       <LineChart
+        ref={chartRef}
+        // Drive updates imperatively via the ref (see useDidMountEffect above) instead of
+        // re-rendering from props: an in-place chart.update after a series swap leaves the
+        // range-selector buttons unresponsive and resets the zoom.
+        allowChartUpdate={false}
         width={'100%'}
         height={500}
         series={seriesData}
@@ -278,7 +364,7 @@ export function MooringChart({ mooringData }: MooringChartProps) {
         scrollbar={{ enabled: true, height: 20 }}
         responsive={true}
         xAxis={xAxisConfig}
-        yAxis={MOORING_Y_AXIS}
+        yAxis={yAxisConfig}
         plotOptions={{
           series: {
             clip: true,
@@ -291,7 +377,7 @@ export function MooringChart({ mooringData }: MooringChartProps) {
           selectedDate,
           filename: () => {
             const { min, max } = visibleRangeRef.current ?? {};
-            return min && max ? `${site}-temperature_${min}_${max}` : `${site}-temperature`;
+            return min && max ? `${site}_${min}_${max}` : `${site}`;
           },
           formats: ['png', 'csv', 'xls'],
         }}

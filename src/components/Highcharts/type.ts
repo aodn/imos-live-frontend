@@ -139,7 +139,7 @@ export type ScrollbarConfig = {
 };
 
 // UPDATED: LineChartExposedMethods (add range selector methods)
-type LineChartExposedMethods = {
+export type LineChartExposedMethods = {
   // State-based updates (Highcharts recommended approach)
   updateData: (seriesIndex: number, newData: number[] | DataPoint[]) => void;
   updateTitle: (newTitle: string) => void;
@@ -200,6 +200,9 @@ export type LineChartProps = {
   zoomType?: 'x' | 'y' | 'xy';
   panKey?: 'alt' | 'ctrl' | 'meta' | 'shift';
   panning?: boolean;
+  // When false, the chart is not re-rendered from prop changes after mount; the
+  // caller drives updates imperatively via the exposed `ref` methods. Defaults to true.
+  allowChartUpdate?: boolean;
 
   // NEW: Range selector and navigator
   rangeSelector?: RangeSelectorConfig;
@@ -227,5 +230,5 @@ export type LineChartProps = {
   accessibility?: Highcharts.AccessibilityOptions;
 
   // Ref for exposed methods
-  ref?: RefObject<LineChartExposedMethods>;
+  ref?: RefObject<LineChartExposedMethods | null>;
 };
