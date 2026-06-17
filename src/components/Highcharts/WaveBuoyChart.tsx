@@ -149,6 +149,7 @@ function buildBuoyXAxisConfig(selectedDate: string): Highcharts.XAxisOptions {
 // Static range-selector chrome; `selected` and `buttons` are filled in per render.
 const BUOY_RANGE_SELECTOR: Omit<RangeSelectorConfig, 'selected' | 'buttons'> = {
   enabled: true,
+  inputEnabled: false,
   buttonPosition: { align: 'left', x: 0, y: 0 },
   inputPosition: { align: 'right', x: 0, y: 0 },
   inputBoxBorderColor: '#cccccc',

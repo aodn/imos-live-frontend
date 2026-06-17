@@ -4,7 +4,7 @@ import utc from 'dayjs/plugin/utc.js';
 import type { MooringDataVariants, NominalDepthVariant, SiteFeature } from '@/types';
 import { toWaveBuoyChartData } from '@/helpers';
 import { formatLatLngToDirectional, toCompactDate, utcToLocalDateTime, today } from '@/utils';
-import { Button } from '@/components/Button';
+import { Dropdown } from '@/components/Dropdown';
 import { useDidMountEffect } from '@/hooks';
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useMemo, useRef, useState } from 'react';
@@ -17,6 +17,7 @@ import type {
   TooltipFormatterContext,
 } from './type';
 import { calculateDataRange, generateDynamicButtons } from './utils';
+import { ObservationPanel, type ObservationData } from './LatestObservation';
 import { useMapUIStore } from '@/store';
 import type Highcharts from 'highcharts/highstock';
 
@@ -126,6 +127,7 @@ function buildMooringYAxis(variable?: MooringVariableMeta): Highcharts.YAxisOpti
 // Static range-selector chrome; `selected` and `buttons` are filled in per render.
 const MOORING_RANGE_SELECTOR: Omit<RangeSelectorConfig, 'selected' | 'buttons'> = {
   enabled: true,
+  inputEnabled: false,
   buttonPosition: { align: 'left', x: 0, y: 0 },
   inputPosition: { align: 'right', x: 0, y: 0 },
   inputBoxBorderColor: '#cccccc',
@@ -231,6 +233,24 @@ export function MooringChart({ mooringData }: MooringChartProps) {
     });
   }, [feature?.properties, isFeatureEmpty, depthKeys, activeVar]);
 
+  // Latest reading of the active variable at each depth — one cell per depth.
+  const observationData: ObservationData = useMemo(() => {
+    if (isFeatureEmpty || !activeVar) return [];
+    return depthKeys.flatMap((key): ObservationData => {
+      const last = (feature.properties[key]?.[activeVar.key] ?? []).at(-1);
+      if (!Array.isArray(last)) return [];
+      const [timeStamp, value] = last;
+      return [
+        {
+          timeStamp,
+          label: `${depthValue(key)} m`,
+          value: value?.toFixed(2),
+          unit: activeVar.unit,
+        },
+      ];
+    });
+  }, [feature?.properties, isFeatureEmpty, depthKeys, activeVar]);
+
   const yAxisConfig = useMemo(() => buildMooringYAxis(activeVar), [activeVar]);
 
   const dynamicButtons = useMemo(() => {
@@ -314,23 +334,17 @@ export function MooringChart({ mooringData }: MooringChartProps) {
     );
 
   return (
-    <div className="w-full">
+    <div className="relative w-full">
       {availableVars.length > 1 && (
-        <div className="mb-2 flex flex-wrap items-center justify-center gap-2">
-          {availableVars.map(v => {
-            const isActive = activeVar?.key === v.key;
-            return (
-              <Button
-                key={v.key}
-                size="sm"
-                variant={isActive ? 'default' : 'outline'}
-                isActive={isActive}
-                onClick={() => setSelectedVar(v.key)}
-              >
-                {v.label}
-              </Button>
-            );
-          })}
+        <div className="absolute right-10 top-6 z-10">
+          <Dropdown
+            key={activeVar?.key}
+            size="sm"
+            className="w-32"
+            options={availableVars.map(v => ({ value: v.key, label: v.label }))}
+            initialValue={activeVar?.key}
+            onChange={value => setSelectedVar(value as MooringDataVariants)}
+          />
         </div>
       )}
       <LineChart
@@ -388,6 +402,7 @@ export function MooringChart({ mooringData }: MooringChartProps) {
           customFormatter: tooltipFormatter,
         }}
       />
+      <ObservationPanel observationData={observationData} />
     </div>
   );
 }

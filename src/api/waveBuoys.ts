@@ -17,10 +17,8 @@ import dayjs from 'dayjs';
  * Because data sources are all in UTC, and in this application, we display local datetime to user.
  */
 
-const WAVE_BUOY_COLLECTION_URL =
-  '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items';
+const WAVE_BUOY_COLLECTION_URL = '/api/v1/ogc/collections/dummy_collection_id_satisfying_api/items';
 
-// date in this response is timestamp in ms, which is what Highcharts accepts, so we don't convert to local date string here, which will be processed in wavebuoy chart component
 export const getWaveBuoyDetails = async (
   from: Date,
   to: Date,
@@ -62,3 +60,11 @@ export const getWaveBuoyLatestDate = async (): Promise<string> => {
   );
   return utcToLocalDateTime(latestDate.data.time, 'YYYY-MM-DD');
 };
+
+/**
+ * datetime: either a date-time or an interval, open or closed. Date and time expressions adhere to RFC 3339. Open intervals are expressed using double-dots.
+ * Examples:
+ * * A date-time: \"2018-02-12T23:20:50Z\"
+ * * A closed interval: \"2018-02-12T00:00:00Z/2018-03-18T12:31:12Z\"
+ * * Open intervals: \"2018-02-12T00:00:00Z/..\" or \"../2018-03-18T12:31:12Z\"
+ */

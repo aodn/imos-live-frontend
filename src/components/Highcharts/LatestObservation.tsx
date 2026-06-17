@@ -68,16 +68,9 @@ function ObservationCell({ field, isLast }: { field: ObservationField; isLast: b
   );
 }
 
-export function LatestObservation({
-  feature,
-}: {
-  feature: SiteDetailsFeature<BuoyItem> | undefined;
-}) {
-  const observationData = useMemo(
-    () => (feature?.properties ? buildObservationData(feature) : []),
-    [feature],
-  );
-
+// Presentational panel shared by the buoy and mooring charts; callers pass in their
+// own pre-built observation data (built differently per data shape).
+export function ObservationPanel({ observationData }: { observationData: ObservationData }) {
   const latestTimeStamp = observationData[0]?.timeStamp;
 
   return (
@@ -106,4 +99,17 @@ export function LatestObservation({
       </div>
     </div>
   );
+}
+
+export function LatestObservation({
+  feature,
+}: {
+  feature: SiteDetailsFeature<BuoyItem> | undefined;
+}) {
+  const observationData = useMemo(
+    () => (feature?.properties ? buildObservationData(feature) : []),
+    [feature],
+  );
+
+  return <ObservationPanel observationData={observationData} />;
 }
