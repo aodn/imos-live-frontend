@@ -17,8 +17,7 @@ import dayjs from 'dayjs';
  * Because data sources are all in UTC, and in this application, we display local datetime to user.
  */
 
-// const WAVE_BUOY_COLLECTION_URL =
-//   '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items';
+const MOORING_COLLECTION_URL = '/api/v1/ogc/collections/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc/items';
 
 // date in this response is timestamp in ms, which is what Highcharts accepts, so we don't convert to local date string here, which will be processed in wavebuoy chart component
 export const getMooringDetails = async (
@@ -27,7 +26,7 @@ export const getMooringDetails = async (
   mooring: string,
 ): Promise<MooringSiteDetailsFeature> => {
   const mooringDetails = await axios.get<MooringSiteDetailsFeature>(
-    `http://127.0.0.1:8000/mooring/sites/${mooring}?start=${localToUTC(from)}&end=${localToUTC(to)}`,
+    `${MOORING_COLLECTION_URL}/mooring_details_between_dates?mooring=${mooring}&datetime=${localToUTC(from)}/${localToUTC(to)}`,
   );
   return mooringDetails.data;
 };
@@ -42,7 +41,7 @@ export const getMooringSitesByDate = async (
   const start = localToUTC(dayjs(localDate).startOf('day').toDate());
   const end = localToUTC(dayjs(localDate).endOf('day').toDate());
   const mooringSites = await axios.get<RawSiteFeatureCollection>(
-    `http://127.0.0.1:8000/mooring/sites?start=${start}&end=${end}`,
+    `${MOORING_COLLECTION_URL}/moorings_between_dates?datetime=${start}/${end}`,
   );
   return normalizeWaveBuoyDates(mooringSites.data);
 };
@@ -50,13 +49,13 @@ export const getMooringSitesByDate = async (
 //This is to get all buoy sites with their latest available observation
 export const getLatestMooringSites = async (): Promise<RawSiteFeatureCollection> => {
   const mooringSites = await axios.get<RawSiteFeatureCollection>(
-    `http://127.0.0.1:8000/mooring/sites`,
+    `${MOORING_COLLECTION_URL}/moorings_between_dates`,
   );
   return normalizeWaveBuoyDates(mooringSites.data);
 };
 
 // date in this response is converted to local date string, which is what the app displays
 export const getMooringLatestDate = async (): Promise<string> => {
-  const latestDate = await axios.get(`http://127.0.0.1:8000/mooring/latest-time`);
+  const latestDate = await axios.get(`${MOORING_COLLECTION_URL}/moorings_latest_available_date`);
   return utcToLocalDateTime(latestDate.data.time, 'YYYY-MM-DD');
 };

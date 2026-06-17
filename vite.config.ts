@@ -23,7 +23,7 @@ export default defineConfig(({ mode }) => {
       !process.env['VITE_AUTOMATED_TEST_RUNNING'] && {
         proxy: {
           '/api': {
-            target: 'https://portal.edge.aodn.org.au',
+            target: env.VITE_API_PROXY_TARGET || 'http://localhost:8080',
             changeOrigin: true,
           },
         },
