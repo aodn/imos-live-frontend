@@ -7,9 +7,10 @@ import {
   type SliderExposedMethod,
   type PointValue,
   type SelectionResult,
+  type SelectionPanelRenderProps,
   customDateLabelRenderer,
-  customSelectionPanelRenderer,
 } from '../DateSlider';
+import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { cn, toISODateString } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
 import { metaDataManifestQueryOptions } from '@/api';
@@ -17,6 +18,30 @@ import { PRODUCT } from '@/constants';
 import { useShallow } from 'zustand/shallow';
 
 type DateSelectionBarProps = { className?: string };
+
+function renderSelectionPanel({ toNextDate, toPrevDate, dateLabel }: SelectionPanelRenderProps) {
+  return (
+    <div className="hidden md:flex items-center gap-1 frosted rounded-l-lg px-2 py-1.5 w-42 shrink-0 overflow-hidden border-r border-imos-blue">
+      <button
+        onClick={toPrevDate}
+        className="p-1 hover:bg-white/30 rounded transition-colors shrink-0 cursor-pointer"
+        aria-label="Previous date"
+      >
+        <ChevronLeftIcon className="w-4 h-4 text-imos-grey" />
+      </button>
+      <span className="text-sm font-semibold text-imos-black flex-1 text-center whitespace-nowrap">
+        {dateLabel}
+      </span>
+      <button
+        onClick={toNextDate}
+        className="p-1 hover:bg-white/30 rounded transition-colors shrink-0 cursor-pointer"
+        aria-label="Next date"
+      >
+        <ChevronRightIcon className="w-4 h-4 text-imos-grey" />
+      </button>
+    </div>
+  );
+}
 
 export const DateSelectionBar = memo(function DateSelectionBar({
   className,
@@ -67,14 +92,15 @@ export const DateSelectionBar = memo(function DateSelectionBar({
           point: date,
         }}
         initialTimeUnit="day"
+        dateFormat={{ label: () => 'DD MMMM YYYY' }}
         icons={{
           point: <TriangleIcon size="lg" className="text-slate-700! text-shadow" />,
         }}
         classNames={{
-          slider: 'frosted',
-          trackActive: 'bg-white/30',
-          track: 'bg-white/10',
-          scaleMark: 'bg-imos-grey',
+          slider: 'frosted ',
+          sliderContainer: 'rounded-none',
+          trackActive: 'top-0 h-2 bg-imos-blue/70',
+          scaleMark: 'bg-imos-blue',
         }}
         onChange={handleSelect}
         layout={{
@@ -93,7 +119,7 @@ export const DateSelectionBar = memo(function DateSelectionBar({
         behavior={{ scrollable: true, handleLabelDisabled: false }}
         renderProps={{
           renderDateLabel: customDateLabelRenderer,
-          renderSelectionPanel: customSelectionPanelRenderer,
+          renderSelectionPanel,
         }}
       />
     </div>

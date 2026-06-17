@@ -201,6 +201,7 @@ export type DateSliderClassNames = {
   wrapper?: string;
   /** Slider container element */
   slider?: string;
+  sliderContainer?: string;
 
   // Track
   /** Base track element wrapper*/
