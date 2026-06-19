@@ -15,6 +15,7 @@ import {
   getPercentageFromMouseEvent,
   getPercentageFromTouchEvent,
   getRepresentativeDate,
+  getScaleDateAt,
   getTotalScales,
   getTrackVisibleRange,
   handleOutsideVisibleArea,
@@ -68,6 +69,35 @@ describe('generateNewDateByAddingScaleUnit', () => {
     const original = new Date('2026-05-29T00:00:00Z');
     generateNewDateByAddingScaleUnit(original, 5, 'day');
     expect(original.toISOString()).toBe('2026-05-29T00:00:00.000Z');
+  });
+});
+
+describe('getScaleDateAt', () => {
+  it('adds days for day unit, preserving day-of-month', () => {
+    const start = new Date('2026-06-20T00:00:00Z');
+    expect(getScaleDateAt(start, 0, 'day').toISOString()).toBe('2026-06-20T00:00:00.000Z');
+    expect(getScaleDateAt(start, 3, 'day').toISOString()).toBe('2026-06-23T00:00:00.000Z');
+  });
+
+  it('aligns month ticks to the 1st of each month, not the start day-of-month', () => {
+    // Range starting on the 20th must still produce first-of-month ticks.
+    const start = new Date('2026-06-20T00:00:00Z');
+    expect(getScaleDateAt(start, 0, 'month').toISOString()).toBe('2026-07-01T00:00:00.000Z');
+    expect(getScaleDateAt(start, 1, 'month').toISOString()).toBe('2026-08-01T00:00:00.000Z');
+    expect(getScaleDateAt(start, 6, 'month').toISOString()).toBe('2027-01-01T00:00:00.000Z');
+  });
+
+  it('keeps the start month when the range already begins on the 1st', () => {
+    const start = new Date('2026-01-01T00:00:00Z');
+    expect(getScaleDateAt(start, 0, 'month').toISOString()).toBe('2026-01-01T00:00:00.000Z');
+    expect(getScaleDateAt(start, 2, 'month').toISOString()).toBe('2026-03-01T00:00:00.000Z');
+  });
+
+  it('aligns year ticks to Jan 1', () => {
+    const start = new Date('2026-06-20T00:00:00Z');
+    expect(getScaleDateAt(start, 0, 'year').toISOString()).toBe('2027-01-01T00:00:00.000Z');
+    const startOfYear = new Date('2026-01-01T00:00:00Z');
+    expect(getScaleDateAt(startOfYear, 0, 'year').toISOString()).toBe('2026-01-01T00:00:00.000Z');
   });
 });
 
@@ -175,6 +205,16 @@ describe('generateScales', () => {
     const { scales } = generateScales(start, end, 'day', total, () => undefined as any);
     // Jan 1 → long (first of month) per defaultScaleTypeResolver
     expect(scales[0].type).toBe('long');
+  });
+
+  it('emits month ticks on the 1st of each month for a range starting mid-month', () => {
+    const start = new Date('2026-06-20T00:00:00Z');
+    const end = new Date('2026-10-10T00:00:00Z');
+    const total = getTotalScales(start, end, 'month');
+    const { scales } = generateScales(start, end, 'month', total);
+    // Every generated tick must land on the 1st of a month.
+    expect(scales.every(s => s.date.getUTCDate() === 1)).toBe(true);
+    expect(scales[0].date.toISOString()).toBe('2026-07-01T00:00:00.000Z');
   });
 
   it('skips dates that exceed the end date', () => {
