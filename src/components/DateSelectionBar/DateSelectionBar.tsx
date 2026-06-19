@@ -27,7 +27,7 @@ type DateSelectionBarProps = { className?: string };
 
 function renderSelectionPanel({ toNextDate, toPrevDate, dateLabel }: SelectionPanelRenderProps) {
   return (
-    <div className="hidden md:flex items-center gap-1 frosted rounded-l-lg px-2 py-1.5 w-40 shrink-0 overflow-hidden border-r border-imos-blue">
+    <div className="hidden md:flex items-center gap-1 frosted rounded-l-lg px-2 py-1.5 w-40 shrink-0 overflow-hidden border-r border-imos-black/70">
       <button
         onClick={toPrevDate}
         className="p-1 hover:bg-white/30 rounded transition-colors shrink-0 cursor-pointer"
@@ -62,7 +62,7 @@ function renderTimeUnitSelection({
   const isNextDisabled = !nextUnit || (nextUnit === 'month' && !isMonthValid);
 
   return (
-    <div className="flex flex-col items-center justify-between frosted rounded-r-lg px-3 border-l w-20 shrink-0">
+    <div className="flex flex-col items-center justify-between frosted rounded-r-lg px-3 border-l border-imos-black/70 w-20 shrink-0">
       <button
         onClick={() => selectTimeUnit(ALLOWED_TIME_UNITS[index - 1])}
         disabled={isPrevDisabled}
