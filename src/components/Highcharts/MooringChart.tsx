@@ -147,7 +147,7 @@ const MOORING_RANGE_SELECTOR: Omit<RangeSelectorConfig, 'selected' | 'buttons'> 
   inputDateFormat: '%Y-%m-%d',
   inputEditDateFormat: '%Y-%m-%d',
   floating: false,
-  y: -32,
+  y: -48,
 };
 
 export function MooringChart({ mooringData }: MooringChartProps) {
@@ -336,7 +336,7 @@ export function MooringChart({ mooringData }: MooringChartProps) {
   return (
     <div className="relative w-full">
       {availableVars.length > 1 && (
-        <div className="absolute right-10 top-6 z-10">
+        <div className="absolute right-10 top-2 z-10">
           <Dropdown
             key={activeVar?.key}
             size="sm"
