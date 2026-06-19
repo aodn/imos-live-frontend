@@ -108,6 +108,7 @@ export const DateSlider = memo(function DateSlider({
   const { sliderContainerWidth, trackContainerWidth } = useSliderDimesions(
     sliderContainerRef,
     trackContainerRef,
+    behavior.resizeObservationEnabled,
   );
 
   const previousSliderContainerWidth = useRef(sliderContainerWidth);

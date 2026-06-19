@@ -1,4 +1,5 @@
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
+import { Button } from '../Button';
 import { Dropdown, type DropdownOption } from '../Dropdown';
 import type {
   DateFormat,
@@ -11,30 +12,40 @@ import type {
 
 const ALLOWED_TIME_UNITS: readonly TimeUnit[] = ['day', 'month'];
 
+/** Rendered width (px) of the SelectionPanel — shared with the collapse logic in DateSelectionBar. */
+export const SELECTION_PANEL_WIDTH = 160;
+
 export function renderSelectionPanel({
   toNextDate,
   toPrevDate,
   dateLabel,
 }: SelectionPanelRenderProps) {
   return (
-    <div className="hidden md:flex items-center gap-1 frosted rounded-l-lg px-2 py-1.5 w-40 shrink-0 overflow-hidden border-r border-imos-black/70">
-      <button
+    <div
+      style={{ width: SELECTION_PANEL_WIDTH }}
+      className="hidden md:flex items-center gap-1 frosted rounded-l-lg px-2 py-1.5 shrink-0 overflow-hidden border-r border-imos-black/70"
+    >
+      <Button
+        variant="ghost"
+        size="icon"
         onClick={toPrevDate}
-        className="p-1 hover:bg-white/30 rounded transition-colors shrink-0 cursor-pointer"
+        className="p-1 hover:bg-white/30 rounded"
         aria-label="Previous date"
       >
         <ChevronLeftIcon className="w-4 h-4 text-imos-black" />
-      </button>
+      </Button>
       <span className="text-sm font-semibold text-imos-black flex-1 text-center whitespace-nowrap">
         {dateLabel}
       </span>
-      <button
+      <Button
+        variant="ghost"
+        size="icon"
         onClick={toNextDate}
-        className="p-1 hover:bg-white/30 rounded transition-colors shrink-0 cursor-pointer"
+        className="p-1 hover:bg-white/30 rounded"
         aria-label="Next date"
       >
         <ChevronRightIcon className="w-4 h-4 text-imos-black" />
-      </button>
+      </Button>
     </div>
   );
 }
@@ -70,35 +81,40 @@ export function renderTimeUnitSelection({
         optionClassName="justify-center uppercase text-xs font-bold tracking-wide text-imos-black bg-transparent hover:bg-white/30"
         selectedOptionClassName="bg-white/40"
         renderTrigger={({ open, toggle, isOpen }) => (
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="icon"
             onMouseEnter={open}
             onClick={toggle}
             aria-haspopup="listbox"
             aria-expanded={isOpen}
-            className="text-xs font-bold text-imos-black uppercase tracking-wide cursor-pointer select-none"
+            className="text-xs font-bold text-imos-black uppercase tracking-wide select-none"
           >
             {currentUnit}
-          </button>
+          </Button>
         )}
       />
-      <button
+      <Button
+        variant="ghost"
+        size="icon"
         onClick={() => selectTimeUnit(ALLOWED_TIME_UNITS[index - 1])}
         disabled={isPrevDisabled}
-        className="hover:bg-blue-50 rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0 cursor-pointer"
+        className="hover:bg-blue-50 rounded disabled:opacity-40 disabled:cursor-not-allowed"
         aria-label="Previous time unit"
       >
         <ChevronLeftIcon className="w-4 h-4 text-imos-black rotate-90" />
-      </button>
+      </Button>
 
-      <button
+      <Button
+        variant="ghost"
+        size="icon"
         onClick={() => selectTimeUnit(nextUnit)}
         disabled={isNextDisabled}
-        className=" hover:bg-blue-50 rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0 cursor-pointer"
+        className="hover:bg-blue-50 rounded disabled:opacity-40 disabled:cursor-not-allowed"
         aria-label="Next time unit"
       >
         <ChevronRightIcon className="w-4 h-4 text-imos-black rotate-90" />
-      </button>
+      </Button>
     </div>
   );
 }

@@ -47,6 +47,7 @@ export function useSliderConfig(props: SliderProps, isSmallScreen: boolean) {
     const freeSelectionOnTrackClick = behavior?.freeSelectionOnTrackClick ?? false;
     const sliderAutoScrollToPointHandleVisibleEnabled =
       behavior?.sliderAutoScrollToPointHandleVisibleEnabled ?? true;
+    const resizeObservationEnabled = behavior?.resizeObservationEnabled ?? true;
 
     // handle label behavior - specific settings override general ones
     const globalLabelPersistent = isSmallScreen || (behavior?.handleLabelPersistent ?? false);
@@ -68,6 +69,7 @@ export function useSliderConfig(props: SliderProps, isSmallScreen: boolean) {
       scrollable,
       freeSelectionOnTrackClick,
       sliderAutoScrollToPointHandleVisibleEnabled,
+      resizeObservationEnabled,
       pointHandleLabelPersistent,
       pointHandleLabelDisabled,
       rangeHandleLabelPersistent,
