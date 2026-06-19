@@ -3,7 +3,8 @@ import { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { ArrowIcon, CloseIcon } from '../Icons';
 import { cn } from '@/utils';
-import { useDropdownOutsideClick, useDropdownPosition } from '@/hooks';
+import { useDropdownOutsideClick } from './useDropdownOutsideClick';
+import { useDropdownPosition } from './useDropdownPosition';
 import type { DropdownProps, DropdownOption } from './type';
 import { DropdownContent } from './DropdownContent';
 
