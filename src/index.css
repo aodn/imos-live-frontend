@@ -98,6 +98,7 @@ body {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(40px);
     z-index: -1;
+    border-radius: 8px;
   }
 
   /* Same frosted look as `.frosted`, but without `position: relative` and the

@@ -96,7 +96,7 @@ export const DateSelectionBar = memo(function DateSelectionBar({
             point: <TriangleIcon size="lg" className="text-slate-700! text-shadow" />,
           }}
           classNames={{
-            slider: 'frosted ',
+            slider: 'frosted',
             sliderContainer: 'rounded-none',
             trackActive: 'top-0 h-3 bg-imos-blue/60',
             scaleMark: 'bg-imos-black',

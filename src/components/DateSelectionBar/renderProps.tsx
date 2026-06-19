@@ -68,7 +68,7 @@ export function renderTimeUnitSelection({
   }));
 
   return (
-    <div className="flex flex-col items-center justify-between frosted rounded-r-lg px-3 border-l border-imos-black/70 w-20 shrink-0">
+    <div className="flex flex-col items-center justify-between frosted px-3 border-l border-imos-black/70 w-20 shrink-0">
       <Dropdown
         options={timeUnitOptions}
         value={currentUnit}
@@ -76,7 +76,7 @@ export function renderTimeUnitSelection({
         position="top"
         closeOnMouseLeave
         maxHeight="160px"
-        dropdownClassName="frosted-glass border-imos-black/70 rounded-lg overflow-hidden min-w-20 mb-0 left-1/2 -translate-x-1/2"
+        dropdownClassName="frosted-glass border-imos-black/70 overflow-hidden min-w-20 mb-0 left-1/2 -translate-x-1/2"
         showSelectedCheck={false}
         optionClassName="justify-center uppercase text-xs font-bold tracking-wide text-imos-black bg-transparent hover:bg-white/30"
         selectedOptionClassName="bg-white/40"
