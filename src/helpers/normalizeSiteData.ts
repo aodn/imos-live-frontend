@@ -2,9 +2,7 @@ import type { RawSiteFeatureCollection, SiteFeature } from '@/types';
 import { utcToLocalDateTime } from '@/utils';
 import type { GeoJSONFeature } from 'mapbox-gl';
 
-export function normalizeWaveBuoyDates(
-  collection: RawSiteFeatureCollection,
-): RawSiteFeatureCollection {
+export function normalizeSiteDates(collection: RawSiteFeatureCollection): RawSiteFeatureCollection {
   return {
     ...collection,
     features: collection.features.map(f => ({
@@ -14,27 +12,27 @@ export function normalizeWaveBuoyDates(
   };
 }
 
-export function normalizeWaveBuoysData(features: GeoJSONFeature[]): Omit<SiteFeature, 'type'>[] {
+export function normalizeSitesData(features: GeoJSONFeature[]): Omit<SiteFeature, 'type'>[] {
   return features.map(f => ({
     geometry: f.geometry as SiteFeature['geometry'],
     properties: f.properties as SiteFeature['properties'],
   }));
 }
 
-type WaveBuoyData = {
+type SiteData = {
   date: Date;
   geometry: SiteFeature['geometry'];
   site: string;
 };
 
-export function toWaveBuoyChartData(waveBuoys: Omit<SiteFeature, 'type'>[]): WaveBuoyData {
-  if (waveBuoys.length === 0) {
-    throw new Error('waveBuoys must contain at least one feature');
+export function toSiteChartData(sites: Omit<SiteFeature, 'type'>[]): SiteData {
+  if (sites.length === 0) {
+    throw new Error('sites must contain at least one feature');
   }
 
   return {
-    geometry: waveBuoys[0].geometry,
-    date: new Date(waveBuoys[0].properties.date),
-    site: waveBuoys[0].properties.site || '',
+    geometry: sites[0].geometry,
+    date: new Date(sites[0].properties.date),
+    site: sites[0].properties.site || '',
   };
 }

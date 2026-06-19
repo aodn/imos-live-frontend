@@ -2,7 +2,7 @@ import { getWaveBuoyDetails, getWaveBuoyLatestDate } from '@/api';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
 import type { SiteFeature } from '@/types';
-import { toWaveBuoyChartData } from '@/helpers';
+import { toSiteChartData } from '@/helpers';
 import { formatLatLngToDirectional, toCompactDate, utcToLocalDateTime, today } from '@/utils';
 import { useDidMountEffect } from '@/hooks';
 import { useQuery } from '@tanstack/react-query';
@@ -176,7 +176,7 @@ export function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartPro
   // toWaveBuoyChartData throws on empty input. Compute defensively so hooks below
   // stay in the same order across renders; render-time guard happens after the hooks.
   const buoyChartData = useMemo(
-    () => (waveBuoysData.length > 0 ? toWaveBuoyChartData(waveBuoysData) : null),
+    () => (waveBuoysData.length > 0 ? toSiteChartData(waveBuoysData) : null),
     [waveBuoysData],
   );
   const buoy = buoyChartData?.site ?? '';

@@ -1,5 +1,5 @@
 import type { SiteFeature } from '@/types';
-import { normalizeWaveBuoysData } from '@/helpers';
+import { normalizeSitesData } from '@/helpers';
 import { useEffect } from 'react';
 
 /**
@@ -28,7 +28,7 @@ export function useSiteUnclusteredClick(
       if (featureId !== undefined) {
         selectFeature(featureId);
       }
-      setClickedPointData(normalizeWaveBuoysData(e.features));
+      setClickedPointData(normalizeSitesData(e.features));
     };
 
     mapInstance.on('click', unclusteredLayerId, handleClick);

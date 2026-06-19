@@ -2,7 +2,7 @@ import { getMooringDetails, getMooringLatestDate } from '@/api';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
 import type { MooringDataVariants, NominalDepthVariant, SiteFeature } from '@/types';
-import { toWaveBuoyChartData } from '@/helpers';
+import { toSiteChartData } from '@/helpers';
 import { formatLatLngToDirectional, toCompactDate, utcToLocalDateTime, today } from '@/utils';
 import { Dropdown } from '@/components/Dropdown';
 import { useDidMountEffect } from '@/hooks';
@@ -147,12 +147,12 @@ const MOORING_RANGE_SELECTOR: Omit<RangeSelectorConfig, 'selected' | 'buttons'> 
   inputDateFormat: '%Y-%m-%d',
   inputEditDateFormat: '%Y-%m-%d',
   floating: false,
-  y: -32,
+  y: -48,
 };
 
 export function MooringChart({ mooringData }: MooringChartProps) {
   const mooringChartData = useMemo(
-    () => (mooringData.length > 0 ? toWaveBuoyChartData(mooringData) : null),
+    () => (mooringData.length > 0 ? toSiteChartData(mooringData) : null),
     [mooringData],
   );
   const site = mooringChartData?.site ?? '';
@@ -336,7 +336,7 @@ export function MooringChart({ mooringData }: MooringChartProps) {
   return (
     <div className="relative w-full">
       {availableVars.length > 1 && (
-        <div className="absolute right-10 top-6 z-10">
+        <div className="absolute right-10 top-2 z-10">
           <Dropdown
             key={activeVar?.key}
             size="sm"
