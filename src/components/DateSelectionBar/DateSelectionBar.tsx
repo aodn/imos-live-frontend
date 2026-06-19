@@ -41,11 +41,6 @@ export const DateSelectionBar = memo(function DateSelectionBar({
   const imperativeHandlerRef = useRef<SliderExposedMethod>(null);
   const collapsedWidth = isSmallScreen ? 0 : SELECTION_PANEL_WIDTH;
 
-  const toggleCollapsed = useCallback(() => {
-    setCollapseAnimating(true);
-    setCollapsed(prev => !prev);
-  }, []);
-
   const { data: latestDate } = useQuery({
     ...metaDataManifestQueryOptions(),
     select: data => data.products[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]?.available_dates.at(-1),
@@ -68,6 +63,11 @@ export const DateSelectionBar = memo(function DateSelectionBar({
 
   const handleSelect = useCallback((v: SelectionResult) => {
     setDate(toISODateString((v as PointValue).point));
+  }, []);
+
+  const toggleCollapsed = useCallback(() => {
+    setCollapseAnimating(true);
+    setCollapsed(prev => !prev);
   }, []);
 
   return (
