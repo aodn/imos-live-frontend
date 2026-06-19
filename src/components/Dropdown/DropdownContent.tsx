@@ -32,6 +32,8 @@ export function OptionItem({
   onSelect,
   renderOption,
   className = '',
+  selectedClassName = '',
+  showSelectedCheck = true,
 }: OptionItemProps) {
   return (
     <button
@@ -46,6 +48,7 @@ export function OptionItem({
           'text-gray-900': !isSelected,
         },
         className,
+        isSelected && selectedClassName,
       )}
     >
       {renderOption ? (
@@ -61,7 +64,7 @@ export function OptionItem({
           </div>
         </div>
       )}
-      {isSelected && <CheckIcon className="text-blue-600 shrink-0 ml-2" />}
+      {isSelected && showSelectedCheck && <CheckIcon className="text-blue-600 shrink-0 ml-2" />}
     </button>
   );
 }
@@ -73,6 +76,8 @@ export function OptionsList({
   onSelect,
   renderOption,
   optionClassName,
+  selectedOptionClassName,
+  showSelectedCheck,
   emptyMessage,
   maxHeight,
   hasSearch,
@@ -101,6 +106,8 @@ export function OptionsList({
               onSelect={onSelect}
               renderOption={renderOption}
               className={optionClassName}
+              selectedClassName={selectedOptionClassName}
+              showSelectedCheck={showSelectedCheck}
             />
           );
         })
@@ -119,6 +126,8 @@ export function DropdownContent({
   onOptionSelect,
   renderOption,
   optionClassName,
+  selectedOptionClassName,
+  showSelectedCheck,
   emptyMessage,
   maxHeight,
   dropdownClassName,
@@ -167,6 +176,8 @@ export function DropdownContent({
         onSelect={onOptionSelect}
         renderOption={renderOption}
         optionClassName={optionClassName}
+        selectedOptionClassName={selectedOptionClassName}
+        showSelectedCheck={showSelectedCheck}
         emptyMessage={emptyMessage}
         maxHeight={maxHeight}
         hasSearch={searchable}

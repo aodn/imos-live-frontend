@@ -389,6 +389,50 @@ export const InOverflowContainer: Story = {
   },
 };
 
+// Custom Trigger (hover-to-open, controlled)
+function CustomTriggerStory() {
+  const [unit, setUnit] = useState<string | number | (string | number)[]>('day');
+  const unitOptions: DropdownOption[] = [
+    { value: 'day', label: 'day' },
+    { value: 'month', label: 'month' },
+  ];
+
+  return (
+    <Dropdown
+      options={unitOptions}
+      value={unit}
+      onChange={setUnit}
+      position="bottom"
+      closeOnMouseLeave
+      optionClassName="justify-center uppercase text-xs font-bold tracking-wide"
+      renderTrigger={({ open, toggle, isOpen }) => (
+        <button
+          type="button"
+          onMouseEnter={open}
+          onClick={toggle}
+          aria-haspopup="listbox"
+          aria-expanded={isOpen}
+          className="text-xs font-bold uppercase tracking-wide cursor-pointer border border-gray-300 rounded px-3 py-1"
+        >
+          {String(unit)}
+        </button>
+      )}
+    />
+  );
+}
+
+export const CustomTrigger: Story = {
+  render: CustomTriggerStory,
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Uses `renderTrigger` to replace the default button with a bare label that opens on hover, `value` for controlled selection, and `closeOnMouseLeave` so the menu dismisses when the pointer leaves.',
+      },
+    },
+  },
+};
+
 // Performance Story with Large Dataset
 export const LargeDataset: Story = {
   args: {

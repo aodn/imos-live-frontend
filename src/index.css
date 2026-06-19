@@ -100,6 +100,18 @@ body {
     z-index: -1;
   }
 
+  /* Same frosted look as `.frosted`, but without `position: relative` and the
+     positioned `::before` halo — safe to drop onto elements that set their own
+     positioning (absolute/fixed popovers, dropdown menus, etc.). */
+  .frosted-glass {
+    background-color: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow:
+      inset 0 0 15px rgba(255, 255, 255, 0.25),
+      0 4px 30px rgba(0, 0, 0, 0.15);
+  }
+
   .dark_frosted {
     position: relative;
     background-color: rgba(0, 0, 0, 0.5);

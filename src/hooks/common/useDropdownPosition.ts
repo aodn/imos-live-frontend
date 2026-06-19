@@ -3,7 +3,7 @@ import { useState, useCallback, useEffect } from 'react';
 
 export function useDropdownPosition(
   isOpen: boolean,
-  triggerRef: React.RefObject<HTMLButtonElement | null>,
+  triggerRef: React.RefObject<HTMLElement | null>,
   position: 'bottom' | 'top' | 'auto',
   maxHeight: string,
   usePortal: boolean,
