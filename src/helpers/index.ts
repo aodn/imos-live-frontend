@@ -9,6 +9,6 @@ export * from './mapImageExport.ts';
 export * from './buildProductPalette.ts';
 export * from './validateCategoricalManifest.ts';
 export * from './mergeAndFilterBuoyFeatures.ts';
-export * from './normalizeWaveBuoysData';
+export * from './normalizeSiteData.ts';
 export * from './coordinateToLngLat';
 export * from './addIdToFeatures';

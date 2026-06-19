@@ -2,7 +2,7 @@ import { getMooringDetails, getMooringLatestDate } from '@/api';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
 import type { MooringDataVariants, NominalDepthVariant, SiteFeature } from '@/types';
-import { toWaveBuoyChartData } from '@/helpers';
+import { toSiteChartData } from '@/helpers';
 import { formatLatLngToDirectional, toCompactDate, utcToLocalDateTime, today } from '@/utils';
 import { Dropdown } from '@/components/Dropdown';
 import { useDidMountEffect } from '@/hooks';
@@ -152,7 +152,7 @@ const MOORING_RANGE_SELECTOR: Omit<RangeSelectorConfig, 'selected' | 'buttons'> 
 
 export function MooringChart({ mooringData }: MooringChartProps) {
   const mooringChartData = useMemo(
-    () => (mooringData.length > 0 ? toWaveBuoyChartData(mooringData) : null),
+    () => (mooringData.length > 0 ? toSiteChartData(mooringData) : null),
     [mooringData],
   );
   const site = mooringChartData?.site ?? '';
