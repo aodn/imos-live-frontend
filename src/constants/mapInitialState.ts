@@ -1,5 +1,5 @@
 import { type StyleTitle } from '@/styles';
-import { getLast10Dates, getLast60Dates, generateValueByPercentage } from '@/utils';
+import { getLast10Dates, getLast365Dates, generateValueByPercentage } from '@/utils';
 import mapboxgl from 'mapbox-gl';
 import { PRODUCT } from './products';
 import type { ProductEnabled } from '@/store';
@@ -17,7 +17,7 @@ export const MAX_ZOOM = CLUSTER_MAX_ZOOM;
 export const INITIAL_ZOOM = 3;
 export const INITIAL_STYLE: StyleTitle = 'Streets';
 export const INITIAL_CENTER = new mapboxgl.LngLat(133.7751, -25.2744);
-export const DATE_RANGE = getLast60Dates();
+export const DATE_RANGE = getLast365Dates();
 export const INITIAL_DATE = DATE_RANGE.at(-1)!;
 export const INITIAL_WORLD_BOUNDARIES_ENABLED = true;
 export const INITIAL_DISTANCE_MEASUREMENT_ENABLED = false;

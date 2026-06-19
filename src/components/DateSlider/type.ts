@@ -476,6 +476,7 @@ export type SelectionPanelRenderProps = {
  * Used for rendering the time unit selector (day/month/year)
  *
  * @example
+ * // Built-in prev/next stepping
  * ```tsx
  * renderTimeUnitSelection={({ timeUnit, handleTimeUnitNextSelect, handleTimeUnitPreviousSelect }) => (
  *   <div>
@@ -485,13 +486,40 @@ export type SelectionPanelRenderProps = {
  *   </div>
  * )}
  * ```
+ *
+ * @example
+ * // Custom control via the exposed primitives (direct select + validity flags)
+ * ```tsx
+ * renderTimeUnitSelection={({ timeUnit, availableTimeUnits, selectTimeUnit, isMonthValid, isYearValid }) => (
+ *   <div>
+ *     {availableTimeUnits.map(unit => (
+ *       <button
+ *         key={unit}
+ *         disabled={(unit === 'month' && !isMonthValid) || (unit === 'year' && !isYearValid)}
+ *         aria-pressed={unit === timeUnit}
+ *         onClick={() => selectTimeUnit(unit)}
+ *       >
+ *         {unit}
+ *       </button>
+ *     ))}
+ *   </div>
+ * )}
+ * ```
  */
 export type TimeUnitSelectionRenderProps = {
-  /** Current time unit (day/month/year) */
+  /** Current time unit (hour/day/month/year) */
   timeUnit: TimeUnit;
-  /** Select the next time unit (day → month → year) */
+  /** Ordered list of all selectable time units (hour → day → month → year) */
+  availableTimeUnits: readonly TimeUnit[];
+  /** Whether the month unit is valid for the current date range */
+  isMonthValid: boolean;
+  /** Whether the year unit is valid for the current date range */
+  isYearValid: boolean;
+  /** Directly select any time unit — use to build custom controls (dropdown, segmented buttons, …) */
+  selectTimeUnit: (timeUnit: TimeUnit) => void;
+  /** Select the next time unit (hour → day → month → year) */
   handleTimeUnitNextSelect: () => void;
-  /** Select the previous time unit (year → month → day) */
+  /** Select the previous time unit (year → month → day → hour) */
   handleTimeUnitPreviousSelect: () => void;
   /** Check if next button should be disabled */
   isNextBtnDisabled: () => boolean;

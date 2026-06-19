@@ -55,7 +55,7 @@ export function getLastDates<const T extends number>(length: T) {
  * control the token rendering, e.g. getLastDates(7)('yy-mm-dd') → ['24-05-25', ..., '24-05-31'].
  */
 export const getLast10Dates = getLastDates(10);
-export const getLast60Dates = getLastDates(60);
+export const getLast365Dates = getLastDates(365);
 
 /** Convert compact date string (yyyymmdd) to ISO format (yyyy-mm-dd) */
 export function toISOFromCompact(date: string): string {

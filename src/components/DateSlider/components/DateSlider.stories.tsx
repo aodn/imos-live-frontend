@@ -632,3 +632,65 @@ export const DynamicStep: Story = {
     },
   },
 };
+
+/**
+ * Custom Time Unit Selector - Render-prop primitives
+ *
+ * Instead of the built-in prev/next stepper, this builds a segmented control
+ * from the primitives exposed to `renderTimeUnitSelection`:
+ * `availableTimeUnits`, `selectTimeUnit`, and the `isMonthValid`/`isYearValid`
+ * range-validity flags for per-unit disabling.
+ */
+export const CustomTimeUnitSelector: Story = {
+  render: Template,
+  args: {
+    mode: 'point',
+    value: {
+      point: toUTCDate('2024-06-15'),
+    },
+    min: toUTCDate('2023-01-01'),
+    max: toUTCDate('2025-12-31'),
+    initialTimeUnit: 'month' as TimeUnit,
+    layout: {
+      width: 900,
+      height: 80,
+      dateLabelEnabled: true,
+      selectionPanelEnabled: true,
+      timeUnitSelectionEnabled: true,
+    },
+    behavior: {
+      scrollable: true,
+      handleLabelPersistent: true,
+    },
+    renderProps: {
+      renderTimeUnitSelection: ({
+        timeUnit,
+        availableTimeUnits,
+        selectTimeUnit,
+        isMonthValid,
+        isYearValid,
+      }) => (
+        <div className="flex flex-col gap-1 rounded-lg border border-gray-300 bg-white p-1 shrink-0">
+          {availableTimeUnits.map(unit => {
+            const disabled =
+              (unit === 'month' && !isMonthValid) || (unit === 'year' && !isYearValid);
+            const active = unit === timeUnit;
+            return (
+              <button
+                key={unit}
+                disabled={disabled}
+                aria-pressed={active}
+                onClick={() => selectTimeUnit(unit)}
+                className={`rounded px-3 py-1 text-xs font-bold uppercase tracking-wide transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 ${
+                  active ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-indigo-50'
+                }`}
+              >
+                {unit}
+              </button>
+            );
+          })}
+        </div>
+      ),
+    },
+  },
+};
