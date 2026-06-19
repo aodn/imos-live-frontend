@@ -3,7 +3,8 @@ import { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { ArrowIcon, CloseIcon } from '../Icons';
 import { cn } from '@/utils';
-import { useDropdownOutsideClick, useDropdownPosition } from '@/hooks';
+import { useDropdownOutsideClick } from './useDropdownOutsideClick';
+import { useDropdownPosition } from './useDropdownPosition';
 import type { DropdownProps, DropdownOption } from './type';
 import { DropdownContent } from './DropdownContent';
 
@@ -25,7 +26,10 @@ const VARIANT_CLASSES = {
 export function Dropdown({
   options,
   initialValue,
+  value: controlledValue,
   onChange,
+  renderTrigger,
+  closeOnMouseLeave = false,
   placeholder = 'Select an option...',
   disabled = false,
   multiple = false,
@@ -40,6 +44,8 @@ export function Dropdown({
   className = '',
   dropdownClassName = '',
   optionClassName = '',
+  selectedOptionClassName,
+  showSelectedCheck = true,
   renderOption,
   renderValue,
   onFocus,
@@ -52,13 +58,20 @@ export function Dropdown({
 }: DropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [value, setValue] = useState<string | number | (string | number)[]>(
+  const [internalValue, setInternalValue] = useState<string | number | (string | number)[]>(
     initialValue ?? (multiple ? [] : ''),
   );
 
+  // Controlled when `value` is provided; otherwise the dropdown manages its own state.
+  const isControlled = controlledValue !== undefined;
+  const value = isControlled ? controlledValue : internalValue;
+
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const triggerRef = useRef<HTMLButtonElement>(null);
+  const triggerRef = useRef<HTMLElement | null>(null);
   const portalDropdownRef = useRef<HTMLDivElement>(null);
+  const setTriggerRef = (el: HTMLElement | null) => {
+    triggerRef.current = el;
+  };
 
   const { dropdownPosition, dropdownRect, calculatePosition } = useDropdownPosition(
     isOpen,
@@ -83,12 +96,28 @@ export function Dropdown({
         )
       : options;
 
+  const open = () => {
+    if (disabled || isOpen) return;
+    calculatePosition();
+    setIsOpen(true);
+  };
+
+  const close = () => {
+    setIsOpen(false);
+    setSearchQuery('');
+  };
+
   const handleToggle = () => {
     if (disabled) return;
     setIsOpen(prev => {
       if (!prev) calculatePosition();
       return !prev;
     });
+  };
+
+  const commitValue = (newValue: string | number | (string | number)[]) => {
+    if (!isControlled) setInternalValue(newValue);
+    onChange?.(newValue);
   };
 
   const handleOptionSelect = (option: DropdownOption) => {
@@ -107,15 +136,12 @@ export function Dropdown({
       setSearchQuery('');
     }
 
-    setValue(newValue);
-    onChange?.(newValue);
+    commitValue(newValue);
   };
 
   const handleClear = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const newValue = multiple ? [] : '';
-    setValue(newValue);
-    onChange?.(newValue);
+    commitValue(multiple ? [] : '');
   };
 
   const handleSearchChange = (query: string) => {
@@ -140,8 +166,16 @@ export function Dropdown({
 
   const hasValue = value && (Array.isArray(value) ? value.length > 0 : value);
 
+  const selectedOptions = options.filter(opt =>
+    Array.isArray(value) ? value.includes(opt.value) : opt.value === value,
+  );
+
   return (
-    <div className={cn('relative', className)} ref={!usePortal ? dropdownRef : undefined}>
+    <div
+      className={cn('relative', className)}
+      ref={!usePortal ? dropdownRef : undefined}
+      onMouseLeave={closeOnMouseLeave ? close : undefined}
+    >
       {label && (
         <label className="block text-sm font-medium text-imos-grey mb-1">
           {label}
@@ -149,51 +183,65 @@ export function Dropdown({
         </label>
       )}
 
-      <button
-        ref={triggerRef}
-        type="button"
-        onClick={handleToggle}
-        onFocus={onFocus}
-        onBlur={onBlur}
-        disabled={disabled}
-        className={cn(
-          'w-full flex items-center justify-between rounded-md transition-colors duration-200',
-          SIZE_CLASSES[size],
-          VARIANT_CLASSES[variant],
-          {
-            'opacity-50 cursor-not-allowed': disabled,
-            'cursor-pointer': !disabled,
-            'border-red-500 focus:border-red-500 focus:ring-red-200': error,
-            'ring-2 ring-blue-200': isOpen,
-          },
-        )}
-      >
-        <span
-          className={cn('truncate', {
-            'text-gray-500': !hasValue,
-            'text-gray-900': hasValue,
+      {renderTrigger ? (
+        <span ref={setTriggerRef} className="inline-flex">
+          {renderTrigger({
+            isOpen,
+            toggle: handleToggle,
+            open,
+            close,
+            disabled,
+            selectedOption: selectedOptions[0],
+            selectedOptions,
           })}
-        >
-          {getDisplayValue()}
         </span>
-
-        <div className="flex items-center gap-1 ml-2">
-          {loading && (
-            <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-blue-600" />
+      ) : (
+        <button
+          ref={setTriggerRef}
+          type="button"
+          onClick={handleToggle}
+          onFocus={onFocus}
+          onBlur={onBlur}
+          disabled={disabled}
+          className={cn(
+            'w-full flex items-center justify-between rounded-md transition-colors duration-200',
+            SIZE_CLASSES[size],
+            VARIANT_CLASSES[variant],
+            {
+              'opacity-50 cursor-not-allowed': disabled,
+              'cursor-pointer': !disabled,
+              'border-red-500 focus:border-red-500 focus:ring-red-200': error,
+              'ring-2 ring-blue-200': isOpen,
+            },
           )}
-          {clearable && hasValue && !disabled && (
-            <CloseIcon
-              className="text-gray-400 hover:text-gray-600 cursor-pointer"
-              onClick={handleClear}
-            />
-          )}
-          <ArrowIcon
-            className={cn('text-gray-400 transition-transform duration-200', {
-              'rotate-180': isOpen,
+        >
+          <span
+            className={cn('truncate', {
+              'text-gray-500': !hasValue,
+              'text-gray-900': hasValue,
             })}
-          />
-        </div>
-      </button>
+          >
+            {getDisplayValue()}
+          </span>
+
+          <div className="flex items-center gap-1 ml-2">
+            {loading && (
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-blue-600" />
+            )}
+            {clearable && hasValue && !disabled && (
+              <CloseIcon
+                className="text-gray-400 hover:text-gray-600 cursor-pointer"
+                onClick={handleClear}
+              />
+            )}
+            <ArrowIcon
+              className={cn('text-gray-400 transition-transform duration-200', {
+                'rotate-180': isOpen,
+              })}
+            />
+          </div>
+        </button>
+      )}
 
       {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
 
@@ -210,6 +258,8 @@ export function Dropdown({
               onOptionSelect={handleOptionSelect}
               renderOption={renderOption}
               optionClassName={optionClassName}
+              selectedOptionClassName={selectedOptionClassName}
+              showSelectedCheck={showSelectedCheck}
               emptyMessage={emptyMessage}
               maxHeight={maxHeight}
               dropdownClassName={dropdownClassName}
@@ -231,6 +281,8 @@ export function Dropdown({
             onOptionSelect={handleOptionSelect}
             renderOption={renderOption}
             optionClassName={optionClassName}
+            selectedOptionClassName={selectedOptionClassName}
+            showSelectedCheck={showSelectedCheck}
             emptyMessage={emptyMessage}
             maxHeight={maxHeight}
             dropdownClassName={dropdownClassName}

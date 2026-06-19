@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 
 export function useDropdownOutsideClick(
   isOpen: boolean,
-  triggerRef: React.RefObject<HTMLButtonElement | null>,
+  triggerRef: React.RefObject<HTMLElement | null>,
   portalDropdownRef: React.RefObject<HTMLDivElement | null>,
   dropdownRef: React.RefObject<HTMLDivElement | null>,
   usePortal: boolean,
