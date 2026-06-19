@@ -92,24 +92,33 @@ export const DateSelectionBar = memo(function DateSelectionBar({
           point: date,
         }}
         initialTimeUnit="day"
-        dateFormat={{ label: () => 'DD MMMM YYYY' }}
+        dateFormat={{
+          label: () => 'DD MMMM YYYY',
+          scale: ({ date }) => {
+            if (date.getUTCDate() === 1 || date.getDay() === 1) {
+              return 'DD MMM';
+            }
+            return '';
+          },
+        }}
         icons={{
           point: <TriangleIcon size="lg" className="text-slate-700! text-shadow" />,
         }}
         classNames={{
           slider: 'frosted ',
-          sliderContainer: 'rounded-none',
-          trackActive: 'top-0 h-2 bg-imos-blue/70',
+          sliderContainer: 'rounded-none rounded-r-lg',
+          trackActive: 'top-0 h-2 bg-imos-blue/40',
           scaleMark: 'bg-imos-blue',
+          scaleLabel: '-translate-x-1/2',
         }}
         onChange={handleSelect}
         layout={{
           width: 'fill',
           height: 64,
           scaleUnitConfig: {
-            gap: 62,
+            gap: 48,
             width: { short: 1, medium: 2, long: 2 },
-            height: { short: 18, medium: 36, long: 60 },
+            height: { short: 16, medium: 30, long: 48 },
           },
           showEndLabel: false,
           trackPaddingX: 24,
