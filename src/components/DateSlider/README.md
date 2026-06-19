@@ -108,6 +108,18 @@ Reach the handle via `imperativeRef`:
 | `moveByStep(direction, target?)` | Move by the configured `behavior.step`                               |
 | `focusHandle(handleType)`        | Programmatically focus a handle                                      |
 
+### Render props (`RenderPropsConfig`)
+
+Override any sub-component's markup while keeping the slider's behaviour. Each renderer receives the state and handlers it needs:
+
+| Renderer                  | Key props                                                                                                                                            |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `renderDateLabel`         | `label`                                                                                                                                              |
+| `renderSelectionPanel`    | `dateLabel`, `toNextDate`, `toPrevDate`                                                                                                              |
+| `renderTimeUnitSelection` | `timeUnit`, `availableTimeUnits`, `selectTimeUnit`, `isMonthValid`, `isYearValid`, `handleTimeUnit{Next,Previous}Select`, `is{Next,Prev}BtnDisabled` |
+
+`renderTimeUnitSelection` exposes two tiers: the ready-made `handleTimeUnitNextSelect`/`handleTimeUnitPreviousSelect` + `is{Next,Prev}BtnDisabled` for a simple stepper, **or** the lower-level `availableTimeUnits` + `selectTimeUnit(unit)` + `isMonthValid`/`isYearValid` to build a custom control (dropdown, segmented buttons) with your own selection logic.
+
 ## Layout
 
 - `components/` — `DateSlider`, `DateSliderWrapper`, `SliderTrack`,

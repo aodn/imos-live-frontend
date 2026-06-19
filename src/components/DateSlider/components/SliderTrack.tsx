@@ -28,7 +28,7 @@ const CursorLine = memo(
       <div
         style={{ left: `${position}%` }}
         className={cn(
-          'hidden md:block absolute top-0 h-full w-px transform -translate-x-0.5 pointer-events-none z-20 transition-opacity duration-150',
+          'hidden md:block absolute top-0 h-full w-px transform -translate-x-1/2 pointer-events-none z-20 transition-opacity duration-150',
           'motion-reduce:transition-none',
           className || 'bg-blue-500/70',
         )}
@@ -71,7 +71,7 @@ const Scales = memo(
 
     const getScaleClassName = useCallback(
       (type: ScaleType) => {
-        const baseClass = 'absolute transform -translate-x-0.5 top-0';
+        const baseClass = 'absolute transform -translate-x-1/2 top-0';
         const typeSpecificClass =
           type === 'long'
             ? scaleMarkMajorClassName

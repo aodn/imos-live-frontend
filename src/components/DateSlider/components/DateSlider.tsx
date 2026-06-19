@@ -216,6 +216,7 @@ export const DateSlider = memo(function DateSlider({
     (unit: TimeUnit) => {
       setTimeUnit(unit);
       resetPosition({ x: 0, y: 0 });
+      autoScrollToVisibleAreaRef.current = true;
     },
     [resetPosition],
   );

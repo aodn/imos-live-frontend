@@ -71,6 +71,41 @@ export const generateNewDateByAddingScaleUnit = (
 };
 
 /**
+ * Get the date for the i-th scale tick.
+ *
+ * For `hour`/`day` units the tick is simply `i` units after `start`, preserving
+ * the time-of-day / day-of-month of `start`.
+ *
+ * For `month`/`year` units the ticks are aligned to period boundaries — the
+ * first day of each month / the first day of each year — instead of carrying
+ * `start`'s day-of-month. This ensures a monthly scale always points at the 1st
+ * of each month (and a yearly scale at Jan 1), rather than at whatever day the
+ * range happens to start on. The first tick is the earliest boundary on or
+ * after `start`.
+ *
+ * @param start - Start date of the range
+ * @param i - Zero-based scale index
+ * @param unit - Time unit for scales
+ * @returns The UTC date for the i-th scale tick
+ */
+export const getScaleDateAt = (start: Date, i: number, unit: TimeUnit): Date => {
+  switch (unit) {
+    case 'month': {
+      const firstOfStartMonth = Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), 1);
+      const offset = firstOfStartMonth < start.getTime() ? 1 : 0;
+      return new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + offset + i, 1));
+    }
+    case 'year': {
+      const firstOfStartYear = Date.UTC(start.getUTCFullYear(), 0, 1);
+      const offset = firstOfStartYear < start.getTime() ? 1 : 0;
+      return new Date(Date.UTC(start.getUTCFullYear() + offset + i, 0, 1));
+    }
+    default:
+      return generateNewDateByAddingScaleUnit(start, i, unit);
+  }
+};
+
+/**
  * Calculate total number of scales for different combination of start date, end date and unit as 'hour'|'day'|'month'|'year'.
  *
  * @param start - Start date
@@ -224,7 +259,7 @@ export const generateScales = (
 
   // Generate both scales and time labels in a single loop
   for (let i = 0; i < totalUnits; i++) {
-    const current = generateNewDateByAddingScaleUnit(start, i, unit);
+    const current = getScaleDateAt(start, i, unit);
     if (current > end) break;
 
     const currentTime = current.getTime();
@@ -370,7 +405,7 @@ export const getAllScalesPercentage = (
   const endTime = end.getTime();
   const totalTimeSpan = endTime - startTime;
   for (let i = 0; i < totalUnits; i++) {
-    const current = generateNewDateByAddingScaleUnit(start, i, unit);
+    const current = getScaleDateAt(start, i, unit);
     if (current > end) break;
 
     // Calculate position based on actual time elapsed
