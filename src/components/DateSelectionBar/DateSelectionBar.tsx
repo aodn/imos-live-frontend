@@ -107,7 +107,7 @@ export const DateSelectionBar = memo(function DateSelectionBar({
         classNames={{
           slider: 'frosted ',
           sliderContainer: 'rounded-none rounded-r-lg',
-          trackActive: 'top-0 h-2 bg-imos-blue/40',
+          trackActive: 'top-0 h-3 bg-imos-blue/40',
           scaleMark: 'bg-imos-blue',
           scaleLabel: '-translate-x-1/2',
         }}
@@ -118,7 +118,7 @@ export const DateSelectionBar = memo(function DateSelectionBar({
           scaleUnitConfig: {
             gap: 48,
             width: { short: 1, medium: 2, long: 2 },
-            height: { short: 16, medium: 30, long: 48 },
+            height: { short: 12, medium: 24, long: 48 },
           },
           showEndLabel: false,
           trackPaddingX: 24,
