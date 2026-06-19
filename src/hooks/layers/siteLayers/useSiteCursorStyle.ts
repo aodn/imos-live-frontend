@@ -1,28 +1,21 @@
-import {
-  PRODUCT,
-  PRODUCTS,
-  UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
-  ZOOM_LIMIT_TEMP_POINTS_LAYER_ID,
-} from '@/constants';
+import { ZOOM_LIMIT_TEMP_POINTS_LAYER_ID } from '@/constants';
 import { useEffect } from 'react';
 
-const layers = [
-  PRODUCTS[PRODUCT.WAVE_BUOYS].layerId,
-  UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
-  ZOOM_LIMIT_TEMP_POINTS_LAYER_ID,
-] as const;
-
 /**
- * Manages cursor style changes when hovering over wave buoy layers.
+ * Manages cursor style changes when hovering over a site layer (clustered +
+ * unclustered) and the shared zoom-limit temp points layer.
  * Shows pointer cursor on mouseenter, normal cursor on mouseleave.
  */
-export function useWaveBuoysCursorStyle(
+export function useSiteCursorStyle(
   map: React.RefObject<mapboxgl.Map | null>,
   enabled: boolean,
+  clusterLayerId: string,
+  unclusteredLayerId: string,
 ) {
   useEffect(() => {
     if (!map.current || !enabled) return;
     const mapInstance = map.current;
+    const layers = [clusterLayerId, unclusteredLayerId, ZOOM_LIMIT_TEMP_POINTS_LAYER_ID];
 
     const handleMouseEnter = (e: mapboxgl.MapLayerMouseEvent) => {
       const inactive = e.features?.[0]?.properties?.hasDataForDate === false;
@@ -51,5 +44,5 @@ export function useWaveBuoysCursorStyle(
         mapInstance.getCanvas().style.cursor = '';
       }
     };
-  }, [enabled, map]);
+  }, [enabled, map, clusterLayerId, unclusteredLayerId]);
 }

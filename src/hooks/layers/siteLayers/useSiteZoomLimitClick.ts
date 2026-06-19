@@ -1,18 +1,18 @@
 import { CLUSTER_MAX_ZOOM } from '@/constants';
 import { ZOOM_LIMIT_TEMP_POINTS_LAYER_ID, ZOOM_LIMIT_TEMP_POINTS_SOURCE_ID } from '@/constants';
 import { normalizeWaveBuoysData, removeZoomLimitTempPoints } from '@/helpers';
-import { type WaveBuoySiteFeature } from '@/types';
+import { type SiteFeature } from '@/types';
 import { useEffect } from 'react';
 
 /**
- * Handles click events on zoom limit temp points layer.
+ * Handles click events on the shared zoom-limit temp points layer.
  * These are temporary points created when clusters can't be expanded further.
  */
-export function useWaveBuoysZoomLimitClick(
+export function useSiteZoomLimitClick(
   map: React.RefObject<mapboxgl.Map | null>,
   enabled: boolean,
   shouldHandle: () => boolean,
-  setClickedPointData: (data: Omit<WaveBuoySiteFeature, 'type'>[] | null) => void,
+  setClickedPointData: (data: Omit<SiteFeature, 'type'>[] | null) => void,
 ) {
   useEffect(() => {
     if (!map.current || !enabled || !shouldHandle()) return;

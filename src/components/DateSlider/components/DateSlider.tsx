@@ -309,7 +309,7 @@ export const DateSlider = memo(function DateSlider({
       {/* Date slider container */}
       <div
         ref={sliderContainerRef}
-        className="overflow-hidden flex-1 rounded-2xl"
+        className={cn('overflow-hidden flex-1 rounded-2xl', classNames?.sliderContainer)}
         style={{ height: '100%' }}
       >
         {/* Track width, this trackContainerRef div width = track width + 2*trackPaddingX */}

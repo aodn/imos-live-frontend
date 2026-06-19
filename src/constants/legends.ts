@@ -1,5 +1,5 @@
 import type { ColorOptionKey } from './colors';
-import { PRODUCT, type ProductType, MAX_VECTOR_SPEED } from './products';
+import { PRODUCT, type TilesProduct, MAX_VECTOR_SPEED } from './products';
 
 export type LegendArgs = {
   label: string;
@@ -64,4 +64,4 @@ export const PRODUCTLEGENDS = {
     colorKey: 'MHW_CATEGORY_LEGEND_COLORS' as ColorOptionKey,
     scale: 'category',
   },
-} as const satisfies Record<Exclude<ProductType, 'wave-buoys'>, LegendArgs>;
+} as const satisfies Record<TilesProduct, LegendArgs>;

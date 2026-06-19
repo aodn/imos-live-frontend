@@ -1,4 +1,4 @@
-import type { RawSiteFeatureCollection, WaveBuoySiteDetailsFeature } from '@/types';
+import type { RawSiteFeatureCollection, MooringSiteDetailsFeature } from '@/types';
 import { normalizeWaveBuoyDates } from '@/helpers';
 import { utcToLocalDateTime, localToUTC } from '@/utils';
 import axios from 'axios';
@@ -17,47 +17,46 @@ import dayjs from 'dayjs';
  * Because data sources are all in UTC, and in this application, we display local datetime to user.
  */
 
-const WAVE_BUOY_COLLECTION_URL = '/api/v1/ogc/collections/dummy_collection_id_satisfying_api/items';
+const MOORING_COLLECTION_URL = '/api/v1/ogc/collections/dummy_collection_id_satisfying_api/items';
 
-export const getWaveBuoyDetails = async (
+// date in this response is timestamp in ms, which is what Highcharts accepts, so we don't convert to local date string here, which will be processed in wavebuoy chart component
+export const getMooringDetails = async (
   from: Date,
   to: Date,
-  buoy: string,
-): Promise<WaveBuoySiteDetailsFeature> => {
-  const waveDetails = await axios.get<WaveBuoySiteDetailsFeature>(
-    `${WAVE_BUOY_COLLECTION_URL}/wave_buoy_details_between_dates?waveBuoy=${buoy}&datetime=${localToUTC(from)}/${localToUTC(to)}`,
+  mooring: string,
+): Promise<MooringSiteDetailsFeature> => {
+  const mooringDetails = await axios.get<MooringSiteDetailsFeature>(
+    `${MOORING_COLLECTION_URL}/mooring_details_between_dates?mooring=${mooring}&datetime=${localToUTC(from)}/${localToUTC(to)}`,
   );
-  return waveDetails.data;
+  return mooringDetails.data;
 };
 
 // Bound the query to the selected *local* day (converted to UTC) so a buoy counts as
 // "active" only when it reported on that date — not merely any time before it. Marks the
 // active set the merge uses for hasDataForDate. Dates in the response are converted back
 // to local date strings for display.
-export const getWaveBuoySitesByDate = async (
+export const getMooringSitesByDate = async (
   localDate: string,
 ): Promise<RawSiteFeatureCollection> => {
   const start = localToUTC(dayjs(localDate).startOf('day').toDate());
   const end = localToUTC(dayjs(localDate).endOf('day').toDate());
-  const wavebuoysSites = await axios.get<RawSiteFeatureCollection>(
-    `${WAVE_BUOY_COLLECTION_URL}/wave_buoys_between_dates?datetime=${start}/${end}`,
+  const mooringSites = await axios.get<RawSiteFeatureCollection>(
+    `${MOORING_COLLECTION_URL}/moorings_between_dates?datetime=${start}/${end}`,
   );
-  return normalizeWaveBuoyDates(wavebuoysSites.data);
+  return normalizeWaveBuoyDates(mooringSites.data);
 };
 
 //This is to get all buoy sites with their latest available observation
-export const getLatestWaveBuoySites = async (): Promise<RawSiteFeatureCollection> => {
-  const wavebuoysSites = await axios.get<RawSiteFeatureCollection>(
-    `${WAVE_BUOY_COLLECTION_URL}/wave_buoys_between_dates`,
+export const getLatestMooringSites = async (): Promise<RawSiteFeatureCollection> => {
+  const mooringSites = await axios.get<RawSiteFeatureCollection>(
+    `${MOORING_COLLECTION_URL}/moorings_between_dates`,
   );
-  return normalizeWaveBuoyDates(wavebuoysSites.data);
+  return normalizeWaveBuoyDates(mooringSites.data);
 };
 
 // date in this response is converted to local date string, which is what the app displays
-export const getWaveBuoyLatestDate = async (): Promise<string> => {
-  const latestDate = await axios.get(
-    `${WAVE_BUOY_COLLECTION_URL}/wave_buoys_latest_available_date`,
-  );
+export const getMooringLatestDate = async (): Promise<string> => {
+  const latestDate = await axios.get(`${MOORING_COLLECTION_URL}/moorings_latest_available_date`);
   return utcToLocalDateTime(latestDate.data.time, 'YYYY-MM-DD');
 };
 

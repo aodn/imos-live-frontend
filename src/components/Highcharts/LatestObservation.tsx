@@ -1,4 +1,4 @@
-import type { WaveBuoyDetailsFeature } from '@/types';
+import type { BuoyItem, SiteDetailsFeature } from '@/types';
 import { cn, utcToLocalDateTime, prioritizeKey } from '@/utils';
 import { useMemo } from 'react';
 import { obseravtionVariants, preferredVariant, variantDescription } from './config';
@@ -12,7 +12,7 @@ export type ObservationField = {
 
 export type ObservationData = ObservationField[];
 
-function buildObservationData(feature: WaveBuoyDetailsFeature): ObservationData {
+function buildObservationData(feature: SiteDetailsFeature<BuoyItem>): ObservationData {
   const { properties } = feature;
 
   const fields = obseravtionVariants
@@ -68,12 +68,9 @@ function ObservationCell({ field, isLast }: { field: ObservationField; isLast: b
   );
 }
 
-export function LatestObservation({ feature }: { feature: WaveBuoyDetailsFeature | undefined }) {
-  const observationData = useMemo(
-    () => (feature?.properties ? buildObservationData(feature) : []),
-    [feature],
-  );
-
+// Presentational panel shared by the buoy and mooring charts; callers pass in their
+// own pre-built observation data (built differently per data shape).
+export function ObservationPanel({ observationData }: { observationData: ObservationData }) {
   const latestTimeStamp = observationData[0]?.timeStamp;
 
   return (
@@ -102,4 +99,17 @@ export function LatestObservation({ feature }: { feature: WaveBuoyDetailsFeature
       </div>
     </div>
   );
+}
+
+export function LatestObservation({
+  feature,
+}: {
+  feature: SiteDetailsFeature<BuoyItem> | undefined;
+}) {
+  const observationData = useMemo(
+    () => (feature?.properties ? buildObservationData(feature) : []),
+    [feature],
+  );
+
+  return <ObservationPanel observationData={observationData} />;
 }

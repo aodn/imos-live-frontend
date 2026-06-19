@@ -1,2 +1,2 @@
 export * from './ClickedMapPopupContent';
-export * from './BuoyHoverPopupContent';
+export * from './SiteHoverPopupContent';

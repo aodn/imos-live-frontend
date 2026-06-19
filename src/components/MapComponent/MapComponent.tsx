@@ -7,18 +7,33 @@ import {
   useParticleAtlasLayer,
   useTilesLayersEventHandlers,
   useScalarAtlasLayer,
-  useWaveBuoysLayer,
-  useWaveBuoysLayerEventHandler,
+  useSiteLayer,
+  useSiteLayerEventHandler,
   useWorldLandLayer,
 } from '@/hooks';
-import { useMapUIStore } from '@/store';
+import {
+  getLatestMooringSites,
+  getLatestWaveBuoySites,
+  getMooringSitesByDate,
+  getWaveBuoySitesByDate,
+} from '@/api';
+import { useMapUIStore, openBottomDrawer } from '@/store';
 import { cn, isSmallScreen } from '@/utils';
 import mapboxgl from 'mapbox-gl';
 import { lazy, memo, Suspense, useEffect } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { DistanceMeasurement } from '../DistanceMeasurement';
 import { MapControlPanel } from '../MapControlPanel';
-import { PRODUCT } from '@/constants';
+import {
+  MOORING_CLUSTER_LABEL_LAYER_ID,
+  MOORING_LAYER_CONFIG,
+  PRODUCT,
+  PRODUCTS,
+  UNCLUSTERED_MOORING_LAYER_CONFIG,
+  UNCLUSTERED_MOORING_LAYER_ID,
+  UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
+  WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID,
+} from '@/constants';
 import type { DrawerProps } from '../Drawer';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_KEY;
@@ -27,7 +42,11 @@ const WaveBuoyChart = lazy(() =>
   import('../Highcharts/WaveBuoyChart').then(m => ({ default: m.WaveBuoyChart })),
 );
 
-const WAVE_BUOY_SNAP_POINTS = (
+const MooringChart = lazy(() =>
+  import('../Highcharts/MooringChart').then(m => ({ default: m.MooringChart })),
+);
+
+const SITE_SNAP_POINTS = (
   isSmallScreen() ? ['70%', '90%'] : [620, 700]
 ) as DrawerProps['snapPoints'];
 
@@ -35,6 +54,7 @@ export const MapComponent = memo(function MapComponent() {
   const {
     distanceMeasurementEnabled,
     waveBuoysEnabled,
+    mooringEnabled,
     oceanCurrentEnabled,
     gslaAnomalySeaLevelsEnabled,
     marineHeatwaveSstMosaicEnabled,
@@ -44,6 +64,7 @@ export const MapComponent = memo(function MapComponent() {
     useShallow(s => ({
       distanceMeasurementEnabled: s.distanceMeasurementEnabled,
       waveBuoysEnabled: s.productEnabled[PRODUCT.WAVE_BUOYS],
+      mooringEnabled: s.productEnabled[PRODUCT.MOORING_TIMESERIES_REALTIME],
       oceanCurrentEnabled: s.productEnabled[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT],
       gslaAnomalySeaLevelsEnabled: s.productEnabled[PRODUCT.GSLA_ANOMALY_SEA_LEVELS],
       marineHeatwaveSstMosaicEnabled: s.productEnabled[PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC],
@@ -78,14 +99,43 @@ export const MapComponent = memo(function MapComponent() {
     map,
     product: PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY,
   });
-  useWaveBuoysLayer({
+  useSiteLayer({
     map,
     product: PRODUCT.WAVE_BUOYS,
+    unclusteredLayerId: UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
+    clusterLabelLayerId: WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID,
+    getSitesByDate: getWaveBuoySitesByDate,
+    getLatestSites: getLatestWaveBuoySites,
+  });
+  useSiteLayer({
+    map,
+    product: PRODUCT.MOORING_TIMESERIES_REALTIME,
+    unclusteredLayerId: UNCLUSTERED_MOORING_LAYER_ID,
+    clusterLabelLayerId: MOORING_CLUSTER_LABEL_LAYER_ID,
+    getSitesByDate: getMooringSitesByDate,
+    getLatestSites: getLatestMooringSites,
+    clusterConfig: MOORING_LAYER_CONFIG,
+    unclusteredConfig: UNCLUSTERED_MOORING_LAYER_CONFIG,
   });
 
   //3. add click event listners to map and layers.
-  const { clickedPointData: waveBuoysLayerClickedPointData, openDrawer } =
-    useWaveBuoysLayerEventHandler(map, waveBuoysEnabled, distanceMeasurementEnabled);
+  const { clickedPointData: waveBuoysClickedPointData } = useSiteLayerEventHandler(map, {
+    product: PRODUCT.WAVE_BUOYS,
+    enabled: waveBuoysEnabled,
+    distanceMeasurementEnabled,
+    clusterLayerId: PRODUCTS[PRODUCT.WAVE_BUOYS].layerId,
+    unclusteredLayerId: UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
+    sourceId: PRODUCTS[PRODUCT.WAVE_BUOYS].sourceId,
+  });
+
+  const { clickedPointData: mooringClickedPointData } = useSiteLayerEventHandler(map, {
+    product: PRODUCT.MOORING_TIMESERIES_REALTIME,
+    enabled: mooringEnabled,
+    distanceMeasurementEnabled,
+    clusterLayerId: PRODUCTS[PRODUCT.MOORING_TIMESERIES_REALTIME].layerId,
+    unclusteredLayerId: UNCLUSTERED_MOORING_LAYER_ID,
+    sourceId: PRODUCTS[PRODUCT.MOORING_TIMESERIES_REALTIME].sourceId,
+  });
 
   useTilesLayersEventHandlers({
     map,
@@ -106,15 +156,26 @@ export const MapComponent = memo(function MapComponent() {
   );
 
   useEffect(() => {
-    if (waveBuoysLayerClickedPointData) {
-      openDrawer(
+    if (waveBuoysClickedPointData) {
+      openBottomDrawer(
         <Suspense fallback={<div>Loading...</div>}>
-          <WaveBuoyChart waveBuoysData={waveBuoysLayerClickedPointData} showDirection />
+          <WaveBuoyChart waveBuoysData={waveBuoysClickedPointData} showDirection />
         </Suspense>,
-        WAVE_BUOY_SNAP_POINTS,
+        SITE_SNAP_POINTS,
       );
     }
-  }, [waveBuoysLayerClickedPointData, openDrawer]);
+  }, [waveBuoysClickedPointData]);
+
+  useEffect(() => {
+    if (mooringClickedPointData) {
+      openBottomDrawer(
+        <Suspense fallback={<div>Loading...</div>}>
+          <MooringChart mooringData={mooringClickedPointData} />
+        </Suspense>,
+        SITE_SNAP_POINTS,
+      );
+    }
+  }, [mooringClickedPointData]);
 
   //4. enable to toggle style.
   useMapStyle(map);

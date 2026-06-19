@@ -1,5 +1,5 @@
 import { buoyDataDirectionVariant, directionColors, readableVariantName } from '../config';
-import type { BuoyItemContent } from '@/types';
+import type { SiteItemContent } from '@/types';
 import type { SeriesData } from '../type';
 
 /**
@@ -30,7 +30,7 @@ export function createDirectionArrow(
  * are direction-pointing arrow SVGs, anchored to a fixed y-position below
  * the main plot area.
  */
-export function processDirectionData(data: BuoyItemContent): SeriesData | null {
+export function processDirectionData(data: SiteItemContent): SeriesData | null {
   if (!Array.isArray(data) || data.length === 0) {
     return null;
   }

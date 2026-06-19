@@ -12,7 +12,7 @@ createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
-        <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-left" />
+        <ReactQueryDevtools initialIsOpen={false} buttonPosition="top-right" />
         <BrowserRouter>
           <App />
         </BrowserRouter>
@@ -20,4 +20,3 @@ createRoot(document.getElementById('root')!).render(
     </HelmetProvider>
   </React.StrictMode>,
 );
-// TODO fix: export wave buoy chart image fails to have imos logo image in the exported image.

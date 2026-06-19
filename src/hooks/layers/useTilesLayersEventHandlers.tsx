@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo } from 'react';
 import {
   WORLD_LAND_FILL_LAYER_ID,
   UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
+  UNCLUSTERED_MOORING_LAYER_ID,
   ZOOM_LIMIT_TEMP_POINTS_LAYER_ID,
   PRODUCTS,
   PRODUCT,
@@ -31,6 +32,8 @@ export function useTilesLayersEventHandlers({
         higherPriorityLayers: [
           PRODUCTS[PRODUCT.WAVE_BUOYS].layerId,
           UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
+          PRODUCTS[PRODUCT.MOORING_TIMESERIES_REALTIME].layerId,
+          UNCLUSTERED_MOORING_LAYER_ID,
           ZOOM_LIMIT_TEMP_POINTS_LAYER_ID,
         ],
       }),

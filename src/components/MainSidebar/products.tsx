@@ -72,6 +72,12 @@ const featuredPresentation: FeaturedPresentation[] = ((products: ProductType[]) 
       image: { src: waveBuoysImage, alt: 'Wave buoys' },
       icon: <WaveBuoyIcon size="lg" />,
     },
+    {
+      product: PRODUCT.MOORING_TIMESERIES_REALTIME,
+      title: 'Mooring timeseries realtime',
+      image: { src: sstImage, alt: 'Mooring timeseries realtime' },
+      icon: <ThermometerIcon size="lg" />,
+    },
   ].filter(({ product }) => products.includes(product));
 })([
   PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT,
@@ -80,6 +86,7 @@ const featuredPresentation: FeaturedPresentation[] = ((products: ProductType[]) 
   PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC,
   PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY,
   PRODUCT.WAVE_BUOYS,
+  PRODUCT.MOORING_TIMESERIES_REALTIME,
 ]);
 
 export const featuredDataset: LayersDataset[] = featuredPresentation.map(

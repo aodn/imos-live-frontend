@@ -54,6 +54,7 @@ export const INITIAL_PRODUCT_ENABLED = {
   [PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC]: false,
   [PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY]: false,
   [PRODUCT.WAVE_BUOYS]: true,
+  [PRODUCT.MOORING_TIMESERIES_REALTIME]: false,
 } as const satisfies ProductEnabled;
 
 function buildProductBooleanMap(value: boolean): ProductEnabled {

@@ -88,6 +88,62 @@ export const WAVE_BUOY_CLUSTER_LABEL_LAYER_CONFIG: Partial<SymbolLayerSpecificat
   },
 } as const;
 
+// Mooring clusters use a warm amber ramp (vs the wave-buoy blue/yellow/pink) so the
+// two site products are visually distinguishable on the map at a glance.
+export const MOORING_LAYER_CONFIG: Partial<CircleLayerSpecification> = {
+  filter: ['has', 'point_count'], // Only show clustered points
+  paint: {
+    'circle-color': [
+      'step',
+      ['get', 'point_count'],
+      '#fdba74', // < 100
+      100,
+      '#fb923c', // 100–750
+      750,
+      '#ea580c', // > 750
+    ],
+    'circle-radius': ['step', ['get', 'point_count'], 20, 100, 30, 750, 40],
+  },
+} as const;
+
+export const UNCLUSTERED_MOORING_LAYER_CONFIG: Partial<CircleLayerSpecification> = {
+  filter: ['!', ['has', 'point_count']],
+  paint: {
+    'circle-color': [
+      'case',
+      ['boolean', ['feature-state', 'selected'], false],
+      '#ffffff', // selected: white fill
+      ['boolean', ['get', 'hasDataForDate'], true],
+      '#f97316', // active: amber (distinct from wave-buoy blue)
+      '#aaaaaa', // inactive: gray
+    ],
+    'circle-opacity': 1,
+    'circle-radius': [
+      'case',
+      ['boolean', ['feature-state', 'selected'], false],
+      10, // slightly larger when selected
+      8, // normal size
+    ],
+    'circle-stroke-width': [
+      'case',
+      ['boolean', ['feature-state', 'selected'], false],
+      3, // thicker stroke when selected
+      2,
+    ],
+    'circle-stroke-color': '#000000',
+    'circle-stroke-opacity': 1,
+    // Add smooth transitions
+    'circle-radius-transition': {
+      duration: 200,
+      delay: 0,
+    },
+    'circle-stroke-width-transition': {
+      duration: 200,
+      delay: 0,
+    },
+  },
+} as const;
+
 export const ZOOM_LIMIT_TEMPPOINT_LAYER_PARTIAL: Partial<CircleLayerSpecification> = {
   paint: {
     'circle-color': [

@@ -1,5 +1,5 @@
 import { WAVE_BUOY_MIN_DATE } from '@/components/Highcharts/WaveBuoyChart';
-import type { WaveBuoySiteFeatureCollection } from '@/types';
+import type { RawSiteFeatureCollection } from '@/types';
 import { isBeforeDays } from '@/utils';
 
 /**
@@ -8,15 +8,15 @@ import { isBeforeDays } from '@/utils';
  * buoys within the 30-day window before the selected date.
  */
 export const mergeAndFilterBuoyFeatures = (
-  allBuoySites: WaveBuoySiteFeatureCollection,
-  buoySites: WaveBuoySiteFeatureCollection,
+  allBuoySites: RawSiteFeatureCollection,
+  buoySites: RawSiteFeatureCollection,
   selectedDate: Date | string,
-): WaveBuoySiteFeatureCollection['features'] => {
-  const activeBuoysByName = new Map(buoySites.features.map(f => [f.properties.buoy, f]));
+): RawSiteFeatureCollection['features'] => {
+  const activeBuoysByName = new Map(buoySites.features.map(f => [f.properties.site, f]));
   // Active buoys in allBuoySites now get their feature replaced wholesale from buoySites (so date and other properties reflect the selected date)
   return allBuoySites.features
     .map(f => {
-      const activeSite = activeBuoysByName.get(f.properties.buoy);
+      const activeSite = activeBuoysByName.get(f.properties.site);
       if (activeSite) {
         return {
           ...activeSite,

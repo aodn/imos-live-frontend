@@ -387,7 +387,7 @@ export function Drawer({
 
         {closeIconHidden ? null : (
           <Button
-            className="absolute top-0 right-0 cursor-pointer z-10 block"
+            className="absolute top-0 right-0 p-px! cursor-pointer z-10 block"
             variant="ghost"
             onClick={handleClose}
             aria-label="close drawer"

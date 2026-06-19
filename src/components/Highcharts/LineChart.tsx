@@ -26,7 +26,7 @@ Highcharts.setOptions({
 });
 
 export const LineChart = memo(function LineChart({ ref, ...props }: LineChartProps) {
-  const { width = '100%', height = 400, className, style } = props;
+  const { width = '100%', height = 400, className, style, allowChartUpdate = true } = props;
 
   const chartRef = useRef<HighchartsReact.RefObject>(null);
 
@@ -58,7 +58,7 @@ export const LineChart = memo(function LineChart({ ref, ...props }: LineChartPro
         highcharts={Highcharts}
         constructorType={'stockChart'}
         options={chartOptions}
-        allowChartUpdate={true}
+        allowChartUpdate={allowChartUpdate}
         updateArgs={[true, true, true]}
       />
     </div>
