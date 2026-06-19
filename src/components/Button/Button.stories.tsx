@@ -1,8 +1,6 @@
-/* eslint-disable jsx-a11y/anchor-is-valid */
 import type { Meta, StoryObj } from '@storybook/react';
 import { Button } from './Button';
-import { ChevronRight, Download, Heart, Plus, Settings, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { ChevronRight, Download, Plus, Settings } from 'lucide-react';
 
 const meta = {
   title: 'Components/Button',
@@ -50,7 +48,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-// Basic Stories
+// Variants
 export const Default: Story = {
   args: {
     children: 'Button',
@@ -92,7 +90,7 @@ export const Link: Story = {
   },
 };
 
-// Size Variants
+// Sizes
 export const Small: Story = {
   args: {
     size: 'sm',
@@ -114,7 +112,7 @@ export const Icon: Story = {
   },
 };
 
-// State Variants
+// States
 export const Active: Story = {
   args: {
     isActive: true,
@@ -129,15 +127,7 @@ export const Disabled: Story = {
   },
 };
 
-export const DisabledDestructive: Story = {
-  args: {
-    variant: 'destructive',
-    disabled: true,
-    children: 'Disabled Delete',
-  },
-};
-
-// With Icons
+// With icons
 export const WithIcon: Story = {
   args: {
     children: (
@@ -165,152 +155,5 @@ export const IconOnly: Story = {
     size: 'icon',
     variant: 'outline',
     children: <Plus />,
-  },
-  parameters: {
-    docs: {
-      description: {
-        story: 'Icon-only button using the icon size variant',
-      },
-    },
-  },
-};
-
-// Complex Examples
-export const AllVariants: Story = {
-  render: () => (
-    <div className="flex flex-wrap gap-4">
-      <Button variant="default">Default</Button>
-      <Button variant="destructive">Destructive</Button>
-      <Button variant="outline">Outline</Button>
-      <Button variant="secondary">Secondary</Button>
-      <Button variant="ghost">Ghost</Button>
-      <Button variant="link">Link</Button>
-    </div>
-  ),
-  parameters: {
-    docs: {
-      description: {
-        story: 'All button variants displayed together',
-      },
-    },
-  },
-};
-
-export const AllSizes: Story = {
-  render: () => (
-    <div className="flex items-center gap-4">
-      <Button size="sm">Small</Button>
-      <Button size="default">Default</Button>
-      <Button size="lg">Large</Button>
-      <Button size="icon">
-        <Settings />
-      </Button>
-    </div>
-  ),
-  parameters: {
-    docs: {
-      description: {
-        story: 'All button sizes displayed together',
-      },
-    },
-  },
-};
-
-export const ActiveStates: Story = {
-  render: () => (
-    <div className="flex flex-wrap gap-4">
-      <Button isActive>Default Active</Button>
-      <Button variant="destructive" isActive>
-        Destructive Active
-      </Button>
-      <Button variant="outline" isActive>
-        Outline Active
-      </Button>
-      <Button variant="secondary" isActive>
-        Secondary Active
-      </Button>
-      <Button variant="ghost" isActive>
-        Ghost Active
-      </Button>
-    </div>
-  ),
-  parameters: {
-    docs: {
-      description: {
-        story: 'Buttons in their active states',
-      },
-    },
-  },
-};
-
-export const WithVariousIcons: Story = {
-  render: () => (
-    <div className="flex flex-wrap gap-4">
-      <Button>
-        <Plus /> Add Item
-      </Button>
-      <Button variant="destructive">
-        <Trash2 /> Delete
-      </Button>
-      <Button variant="outline">
-        <Download /> Download
-      </Button>
-      <Button variant="secondary">
-        <Heart /> Favorite
-      </Button>
-      <Button size="icon" variant="ghost">
-        <Settings />
-      </Button>
-    </div>
-  ),
-  parameters: {
-    docs: {
-      description: {
-        story: 'Buttons with various icons from Lucide React',
-      },
-    },
-  },
-};
-
-// Interactive Examples
-export const LoadingButton: Story = {
-  render: () => {
-    const [isLoading, setIsLoading] = useState(false);
-
-    const handleClick = () => {
-      setIsLoading(true);
-      setTimeout(() => setIsLoading(false), 2000);
-    };
-
-    return (
-      <Button onClick={handleClick} disabled={isLoading}>
-        {isLoading ? 'Loading...' : 'Click me'}
-      </Button>
-    );
-  },
-  parameters: {
-    docs: {
-      description: {
-        story: 'Interactive example showing a loading state',
-      },
-    },
-  },
-};
-
-// AsChild Example
-export const AsChildExample: Story = {
-  render: () => (
-    <Button asChild>
-      <a href="#" onClick={e => e.preventDefault()}>
-        This is a link styled as a button
-      </a>
-    </Button>
-  ),
-  parameters: {
-    docs: {
-      description: {
-        story: 'Using asChild prop to render the button as a different element (link in this case)',
-      },
-    },
   },
 };
