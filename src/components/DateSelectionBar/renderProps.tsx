@@ -1,6 +1,7 @@
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { Button } from '../Button';
 import { Dropdown, type DropdownOption } from '../Dropdown';
+import { DatePicker } from '../DatePicker';
 import type {
   DateFormat,
   DateFormatFn,
@@ -13,13 +14,34 @@ import type {
 const ALLOWED_TIME_UNITS: readonly TimeUnit[] = ['day', 'month'];
 
 /** Rendered width (px) of the SelectionPanel — shared with the collapse logic in DateSelectionBar. */
-export const SELECTION_PANEL_WIDTH = 160;
+export const SELECTION_PANEL_WIDTH = 188;
+
+/**
+ * The slider's SelectionPanel render prop only exposes the formatted label and
+ * step callbacks; the DatePicker also needs the live selected date, the
+ * selectable range, and a way to commit a pick — these are injected by
+ * DateSelectionBar.
+ */
+type SelectionPanelProps = SelectionPanelRenderProps & {
+  /** Currently selected date (UTC). */
+  date: Date;
+  /** Earliest selectable date (UTC, inclusive). */
+  min: Date;
+  /** Latest selectable date (UTC, inclusive). */
+  max: Date;
+  /** Commit a date chosen from the picker (UTC). */
+  onPickDate: (date: Date) => void;
+};
 
 export function renderSelectionPanel({
   toNextDate,
   toPrevDate,
   dateLabel,
-}: SelectionPanelRenderProps) {
+  date,
+  min,
+  max,
+  onPickDate,
+}: SelectionPanelProps) {
   return (
     <div
       style={{ width: SELECTION_PANEL_WIDTH }}
@@ -37,6 +59,7 @@ export function renderSelectionPanel({
       <span className="text-sm font-semibold text-imos-black flex-1 text-center whitespace-nowrap">
         {dateLabel}
       </span>
+      <DatePicker value={date} min={min} max={max} onChange={onPickDate} />
       <Button
         variant="ghost"
         size="icon"

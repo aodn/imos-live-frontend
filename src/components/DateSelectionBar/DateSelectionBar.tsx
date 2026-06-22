@@ -9,7 +9,7 @@ import {
   type PointValue,
   type SelectionResult,
 } from '../DateSlider';
-import { cn, toISODateString } from '@/utils';
+import { cn, minusOneUTCDay, toISODateString } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
 import { metaDataManifestQueryOptions } from '@/api';
 import { PRODUCT } from '@/constants';
@@ -63,6 +63,12 @@ export const DateSelectionBar = memo(function DateSelectionBar({
 
   const handleSelect = useCallback((v: SelectionResult) => {
     setDate(toISODateString((v as PointValue).point));
+  }, []);
+
+  // The picker drives the slider via the same imperative path as the date jump,
+  // which moves the handle and fires the slider's onChange (→ store + URL).
+  const handlePickDate = useCallback((picked: Date) => {
+    imperativeHandlerRef.current?.setDateTime(picked);
   }, []);
 
   const toggleCollapsed = useCallback(() => {
@@ -126,7 +132,14 @@ export const DateSelectionBar = memo(function DateSelectionBar({
           }}
           renderProps={{
             renderDateLabel,
-            renderSelectionPanel,
+            renderSelectionPanel: props =>
+              renderSelectionPanel({
+                ...props,
+                date,
+                min: startDate,
+                max: minusOneUTCDay(endDate),
+                onPickDate: handlePickDate,
+              }),
             renderTimeUnitSelection,
           }}
         />
