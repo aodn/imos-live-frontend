@@ -1,7 +1,8 @@
 import { TriangleIcon } from '../Icons';
+import { CollapseToggle } from './CollapseToggle';
 import { clearJumpToDate, setDate, useMapUIStore } from '@/store';
-import { memo, useCallback, useEffect, useRef } from 'react';
-import { useDateSliderDates, useHasInitialQueryParam } from '@/hooks';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { useDateSliderDates, useHasInitialQueryParam, useViewportSize } from '@/hooks';
 import {
   DateSlider,
   type SliderExposedMethod,
@@ -18,6 +19,7 @@ import {
   renderDateLabel,
   renderSelectionPanel,
   renderTimeUnitSelection,
+  SELECTION_PANEL_WIDTH,
 } from './renderProps';
 
 type DateSelectionBarProps = { className?: string };
@@ -25,6 +27,9 @@ type DateSelectionBarProps = { className?: string };
 export const DateSelectionBar = memo(function DateSelectionBar({
   className,
 }: DateSelectionBarProps) {
+  const [collapsed, setCollapsed] = useState(false);
+  const [collapseAnimating, setCollapseAnimating] = useState(false);
+  const { isSmallScreen } = useViewportSize();
   const { date, startDate, endDate } = useDateSliderDates(); //date in DateSlider is expected to be UTC only.
   const isDateInQueryParams = useHasInitialQueryParam('date');
   const { jumpTrigger, jumpDate } = useMapUIStore(
@@ -34,6 +39,7 @@ export const DateSelectionBar = memo(function DateSelectionBar({
     })),
   );
   const imperativeHandlerRef = useRef<SliderExposedMethod>(null);
+  const collapsedWidth = isSmallScreen ? 0 : SELECTION_PANEL_WIDTH;
 
   const { data: latestDate } = useQuery({
     ...metaDataManifestQueryOptions(),
@@ -59,51 +65,73 @@ export const DateSelectionBar = memo(function DateSelectionBar({
     setDate(toISODateString((v as PointValue).point));
   }, []);
 
+  const toggleCollapsed = useCallback(() => {
+    setCollapseAnimating(true);
+    setCollapsed(prev => !prev);
+  }, []);
+
   return (
-    <div className={cn('shadow-xl', className)}>
-      <DateSlider
-        imperativeRef={imperativeHandlerRef}
-        mode="point"
-        min={startDate}
-        max={endDate}
-        value={{
-          point: date,
+    <div className={cn('flex', className)}>
+      <div
+        style={collapsed ? { width: collapsedWidth } : {}}
+        onTransitionEnd={e => {
+          if (e.propertyName === 'width') setCollapseAnimating(false);
         }}
-        initialTimeUnit="day"
-        dateFormat={dateFormat}
-        icons={{
-          point: <TriangleIcon size="lg" className="text-slate-700! text-shadow" />,
-        }}
-        classNames={{
-          slider: 'frosted ',
-          sliderContainer: 'rounded-none',
-          trackActive: 'top-0 h-3 bg-imos-blue/60',
-          scaleMark: 'bg-imos-black',
-          scaleLabel: 'text-imos-black ml-2',
-          cursorLine: 'bg-imos-blue/60',
-        }}
-        onChange={handleSelect}
-        layout={{
-          width: 'fill',
-          height: 64,
-          scaleUnitConfig: {
-            gap: 12,
-            width: { short: 1, medium: 2, long: 2 },
-            height: { short: 12, medium: 24, long: 64 },
-          },
-          showEndLabel: false,
-          trackPaddingX: 24,
-          selectionPanelEnabled: true,
-          dateLabelEnabled: true,
-          timeUnitSelectionEnabled: true,
-        }}
-        behavior={{ scrollable: true, handleLabelDisabled: false }}
-        renderProps={{
-          renderDateLabel,
-          renderSelectionPanel,
-          renderTimeUnitSelection,
-        }}
-      />
+        className={cn(
+          'min-w-0 shadow-xl transition-[width] duration-300 ease-in-out',
+          collapsed ? 'overflow-hidden' : 'overflow-visible flex-1',
+        )}
+      >
+        <DateSlider
+          imperativeRef={imperativeHandlerRef}
+          mode="point"
+          min={startDate}
+          max={endDate}
+          value={{
+            point: date,
+          }}
+          initialTimeUnit="day"
+          dateFormat={dateFormat}
+          icons={{
+            point: <TriangleIcon size="lg" className="text-slate-700! text-shadow" />,
+          }}
+          classNames={{
+            slider: 'frosted',
+            sliderContainer: 'rounded-none',
+            trackActive: 'top-0 h-3 bg-imos-blue/60',
+            scaleMark: 'bg-imos-black',
+            scaleLabel: 'text-imos-black ml-2',
+            cursorLine: 'bg-imos-blue/60',
+          }}
+          onChange={handleSelect}
+          layout={{
+            width: 'fill',
+            height: 64,
+            scaleUnitConfig: {
+              gap: 12,
+              width: { short: 1, medium: 2, long: 2 },
+              height: { short: 12, medium: 24, long: 64 },
+            },
+            showEndLabel: false,
+            trackPaddingX: 24,
+            selectionPanelEnabled: true,
+            dateLabelEnabled: true,
+            timeUnitSelectionEnabled: true,
+          }}
+          behavior={{
+            scrollable: true,
+            handleLabelDisabled: false,
+            // Freeze the slider's repositioning while animate the collapse/expand width
+            resizeObservationEnabled: !(collapsed || collapseAnimating),
+          }}
+          renderProps={{
+            renderDateLabel,
+            renderSelectionPanel,
+            renderTimeUnitSelection,
+          }}
+        />
+      </div>
+      <CollapseToggle collapsed={collapsed} onToggle={toggleCollapsed} />
     </div>
   );
 });

@@ -301,6 +301,12 @@ export type BehaviorConfig = {
   freeSelectionOnTrackClick?: boolean;
   /**Keep point handle always visible, slider will auto scroll into point handle visible area */
   sliderAutoScrollToPointHandleVisibleEnabled?: boolean;
+  /**
+   * Observe the slider/track container size and recompute dimensions on resize. Defaults to true.
+   * Set false to freeze the current dimensions — useful when the host animates the slider's width
+   * (e.g. a collapse/expand transition) and doesn't want the slider to react to those resizes.
+   */
+  resizeObservationEnabled?: boolean;
 
   /**
    * Step configuration for navigation (keyboard arrows, SelectionPanel buttons, moveByStep API)
