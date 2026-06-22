@@ -18,7 +18,8 @@
       "Bash(npx playwright *)",
       "Bash(echo \"tsc exit:$?\")",
       "Bash(npx eslint *)",
-      "Bash(pnpm eslint *)"
+      "Bash(pnpm eslint *)",
+      "Bash(npx prettier *)"
     ],
     "deny": [],
     "ask": []

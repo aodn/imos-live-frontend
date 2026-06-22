@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { cn } from '@/utils';
 import type {
   DropdownContentProps,
@@ -34,9 +35,11 @@ export function OptionItem({
   className = '',
   selectedClassName = '',
   showSelectedCheck = true,
+  buttonRef,
 }: OptionItemProps) {
   return (
     <button
+      ref={buttonRef}
       onClick={() => onSelect(option)}
       disabled={option.disabled}
       className={cn(
@@ -81,9 +84,29 @@ export function OptionsList({
   emptyMessage,
   maxHeight,
   hasSearch,
+  scrollSelectedIntoView,
 }: OptionsListProps) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const selectedRef = useRef<HTMLButtonElement>(null);
+
+  // On open, bring the (first) selected option into view within the scroll area.
+  // No-op when disabled, nothing is selected, or the list isn't tall enough to scroll.
+  useEffect(() => {
+    if (!scrollSelectedIntoView) return;
+    const container = scrollRef.current;
+    const selected = selectedRef.current;
+    if (!container || !selected) return;
+    const cRect = container.getBoundingClientRect();
+    const sRect = selected.getBoundingClientRect();
+    container.scrollTop +=
+      sRect.top - cRect.top - (container.clientHeight - selected.clientHeight) / 2;
+  }, [scrollSelectedIntoView]);
+
+  let selectedRefAssigned = false;
+
   return (
     <div
+      ref={scrollRef}
       className="overflow-y-auto"
       style={{
         maxHeight: hasSearch ? `calc(${maxHeight} - 60px)` : maxHeight,
@@ -97,6 +120,9 @@ export function OptionsList({
           const isSelected = multiple
             ? Array.isArray(value) && value.includes(option.value)
             : value === option.value;
+          // Attach the ref to the first selected option so it can be scrolled into view.
+          const attachSelectedRef = isSelected && !selectedRefAssigned;
+          if (attachSelectedRef) selectedRefAssigned = true;
 
           return (
             <OptionItem
@@ -108,6 +134,7 @@ export function OptionsList({
               className={optionClassName}
               selectedClassName={selectedOptionClassName}
               showSelectedCheck={showSelectedCheck}
+              buttonRef={attachSelectedRef ? selectedRef : undefined}
             />
           );
         })
@@ -128,6 +155,7 @@ export function DropdownContent({
   optionClassName,
   selectedOptionClassName,
   showSelectedCheck,
+  scrollSelectedIntoView,
   emptyMessage,
   maxHeight,
   dropdownClassName,
@@ -178,6 +206,7 @@ export function DropdownContent({
         optionClassName={optionClassName}
         selectedOptionClassName={selectedOptionClassName}
         showSelectedCheck={showSelectedCheck}
+        scrollSelectedIntoView={scrollSelectedIntoView}
         emptyMessage={emptyMessage}
         maxHeight={maxHeight}
         hasSearch={searchable}

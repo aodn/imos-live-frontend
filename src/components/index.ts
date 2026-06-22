@@ -15,6 +15,7 @@ export * from './Input';
 export * from './MainSidebar';
 export * from './Image';
 export * from './DateSelectionBar';
+export * from './DatePicker';
 export * from './Dropdown';
 export * from './Switch';
 export * from './Toast';

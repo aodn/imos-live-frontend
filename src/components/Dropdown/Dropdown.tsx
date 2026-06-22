@@ -46,6 +46,7 @@ export function Dropdown({
   optionClassName = '',
   selectedOptionClassName,
   showSelectedCheck = true,
+  scrollSelectedIntoView = true,
   renderOption,
   renderValue,
   onFocus,
@@ -260,6 +261,7 @@ export function Dropdown({
               optionClassName={optionClassName}
               selectedOptionClassName={selectedOptionClassName}
               showSelectedCheck={showSelectedCheck}
+              scrollSelectedIntoView={scrollSelectedIntoView}
               emptyMessage={emptyMessage}
               maxHeight={maxHeight}
               dropdownClassName={dropdownClassName}
@@ -283,6 +285,7 @@ export function Dropdown({
             optionClassName={optionClassName}
             selectedOptionClassName={selectedOptionClassName}
             showSelectedCheck={showSelectedCheck}
+            scrollSelectedIntoView={scrollSelectedIntoView}
             emptyMessage={emptyMessage}
             maxHeight={maxHeight}
             dropdownClassName={dropdownClassName}

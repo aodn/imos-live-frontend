@@ -54,6 +54,8 @@ export type DropdownProps = {
   renderValue?: (option: DropdownOption) => React.ReactNode;
   /** Show the check mark on the selected option. Default `true`; set `false` to indicate selection by row highlight instead. */
   showSelectedCheck?: boolean;
+  /** Scroll the selected option into view when the menu opens. Default `true`. */
+  scrollSelectedIntoView?: boolean;
   /** Extra classes applied to the selected option row (e.g. a highlight background). */
   selectedOptionClassName?: string;
   onFocus?: () => void;
@@ -72,6 +74,8 @@ export type OptionItemProps = {
   className?: string;
   selectedClassName?: string;
   showSelectedCheck?: boolean;
+  /** Ref attached to the option button — used to scroll the selected option into view. */
+  buttonRef?: React.Ref<HTMLButtonElement>;
 };
 export type OptionsListProps = {
   options: DropdownOption[];
@@ -85,6 +89,7 @@ export type OptionsListProps = {
   emptyMessage: string;
   maxHeight: string;
   hasSearch: boolean;
+  scrollSelectedIntoView: boolean;
 };
 export type DropdownContentProps = {
   searchable: boolean;
@@ -98,6 +103,7 @@ export type DropdownContentProps = {
   optionClassName?: string;
   selectedOptionClassName?: string;
   showSelectedCheck?: boolean;
+  scrollSelectedIntoView: boolean;
   emptyMessage: string;
   maxHeight: string;
   dropdownClassName?: string;
