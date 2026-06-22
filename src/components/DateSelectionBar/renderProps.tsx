@@ -68,7 +68,7 @@ export function renderTimeUnitSelection({
   }));
 
   return (
-    <div className="flex flex-col items-center justify-between frosted px-3 border-l border-imos-black/70 w-20 shrink-0">
+    <div className="flex flex-col items-center justify-between frosted px-3 border-l border-r border-imos-black/70 w-20 shrink-0">
       <Dropdown
         options={timeUnitOptions}
         value={currentUnit}
