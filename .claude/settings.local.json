@@ -19,7 +19,10 @@
       "Bash(echo \"tsc exit:$?\")",
       "Bash(npx eslint *)",
       "Bash(pnpm eslint *)",
-      "Bash(npx prettier *)"
+      "Bash(npx prettier *)",
+      "Bash(VITE_AUTOMATED_TEST_RUNNING=1 node_modules/.bin/vite --port 5179 --strictPort)",
+      "Bash(echo \"started, pid $!\")",
+      "Read(//tmp/**)"
     ],
     "deny": [],
     "ask": []
