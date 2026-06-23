@@ -41,6 +41,13 @@ export function processSeries(
       zIndex: s.zIndex,
     };
 
+    // Per-series dataGrouping override (e.g. the direction series forces grouping on to
+    // keep its per-point `direction`/`marker` props, which Highstock's non-grouped point
+    // path drops for large series).
+    if (s.dataGrouping) {
+      seriesConfig.dataGrouping = s.dataGrouping;
+    }
+
     if (s.marker) {
       const sanitizedMarker = sanitizeMarker(s.marker);
       if (sanitizedMarker) {

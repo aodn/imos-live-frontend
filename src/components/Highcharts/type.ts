@@ -23,6 +23,9 @@ export type SeriesData = {
   yAxis: number;
   zIndex?: number;
   tooltip?: Highcharts.TooltipOptions;
+  // Per-series data-grouping override. Force it on for series whose points carry
+  // custom per-point config (e.g. the direction arrows), which the non-grouped path drops.
+  dataGrouping?: Highcharts.DataGroupingOptionsObject;
   [key: string]: unknown;
 };
 

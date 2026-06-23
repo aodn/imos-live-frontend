@@ -58,23 +58,28 @@ function BuoyTitleHeading({ buoy, lng, lat }: { buoy: string; lng: number; lat: 
   );
 }
 
-// HTML string for the shared tooltip. The direction series shows direction + period
-// (period pulled from the indexed map); every other series shows wave height.
-function buildBuoyTooltipHTML(
-  context: TooltipFormatterContext,
-  wavePeriodByTime: Map<number, number>,
-): string {
-  const { point } = context;
-  const datetime = utcToLocalDateTime(point.x as number);
+// HTML string for the shared tooltip. Iterate every point at the hovered x (shared
+// tooltip) so both the wave-height line and the direction strip contribute — otherwise
+// the single `context.point` resolves to just one series and hovering an arrow would
+// only show wave height. The direction series shows direction + period; others wave height.
+function buildBuoyTooltipHTML(context: TooltipFormatterContext): string {
+  const points = context.points ?? (context.point ? [context.point] : []);
+  if (points.length === 0) return '';
 
+  const datetime = utcToLocalDateTime(points[0].x as number);
   let html = `<div style="font-size: 12px;"><b>Time:</b> ${datetime}<br/>`;
 
-  if (point.series.name === VariantReadableName[buoyDataDirectionVariant]) {
-    const wavePeriod = wavePeriodByTime.get(point.x as number) ?? null;
-    const direction = (point.options as { direction?: number }).direction ?? point.y;
-    html += `<span style="color:${point.color}">●</span> <b>${VariantReadableName.SSWMD}:</b> ${direction?.toFixed(1)}° (to)<br/><span style="color:${point.color}">●</span> <b>${VariantReadableName.WPFM}:</b> ${wavePeriod} s<br/>`;
-  } else {
-    html += `<span style="color:${point.color}">●</span> <b>${VariantReadableName.WSSH}:</b> ${point.y?.toFixed(2)} m<br/>`;
+  for (const point of points) {
+    if (point.series.name === VariantReadableName[buoyDataDirectionVariant]) {
+      // direction + period are read straight off the point (set in processDirectionData):
+      // dataGrouping re-anchors the grouped point's x, so a by-timestamp lookup would miss.
+      const pointOptions = point.options as { direction?: number; wavePeriod?: number | null };
+      const wavePeriod = pointOptions.wavePeriod ?? null;
+      const direction = pointOptions.direction ?? point.y;
+      html += `<span style="color:${point.color}">●</span> <b>${VariantReadableName.SSWMD}:</b> ${direction?.toFixed(1)}° (to)<br/><span style="color:${point.color}">●</span> <b>${VariantReadableName.WPFM}:</b> ${wavePeriod} s<br/>`;
+    } else {
+      html += `<span style="color:${point.color}">●</span> <b>${VariantReadableName.WSSH}:</b> ${point.y?.toFixed(2)} m<br/>`;
+    }
   }
 
   return html + '</div>';
@@ -234,7 +239,7 @@ export function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartPro
       : null;
 
     const directionSeries = showDirection
-      ? processDirectionData(properties[buoyDataDirectionVariant] ?? [])
+      ? processDirectionData(properties[buoyDataDirectionVariant] ?? [], properties.WPFM)
       : null;
 
     return [regularSeries, directionSeries].filter((s): s is SeriesData => s !== null);
@@ -260,21 +265,8 @@ export function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartPro
       )
     : '';
 
-  // Indexed lookup so the tooltip doesn't scan WPFM on every hover.
-  const wavePeriodByTime = useMemo(() => {
-    const map = new Map<number, number>();
-    feature?.properties.WPFM?.forEach(d => {
-      if (Array.isArray(d)) map.set(d[0], d[1]);
-    });
-    return map;
-  }, [feature?.properties.WPFM]);
-  // Latest map for the tooltip formatter, which is installed once at mount (allowChartUpdate is off).
-  const wavePeriodByTimeRef = useRef(wavePeriodByTime);
-  wavePeriodByTimeRef.current = wavePeriodByTime;
-
   const tooltipFormatter = useCallback(
-    (context: TooltipFormatterContext) =>
-      buildBuoyTooltipHTML(context, wavePeriodByTimeRef.current),
+    (context: TooltipFormatterContext) => buildBuoyTooltipHTML(context),
     [],
   );
 
