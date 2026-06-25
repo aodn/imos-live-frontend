@@ -260,19 +260,46 @@ export const DateSlider = memo(function DateSlider({
     [startDate, endDate],
   );
 
+  // Each handle's live date is null in the mode that doesn't render it, so
+  // consumers can rely on the field being meaningful only when it's non-null.
   const pointDate = useMemo(
-    () => getDateFromPercent(pointPosition, startDate, endDate),
-    [pointPosition, startDate, endDate],
+    () => (viewMode === 'range' ? null : getDateFromPercent(pointPosition, startDate, endDate)),
+    [viewMode, pointPosition, startDate, endDate],
   );
+
+  const rangeStartDate = useMemo(
+    () =>
+      viewMode === 'point' ? null : getDateFromPercent(rangeStartPosition, startDate, endDate),
+    [viewMode, rangeStartPosition, startDate, endDate],
+  );
+
+  const rangeEndDate = useMemo(
+    () => (viewMode === 'point' ? null : getDateFromPercent(rangeEndPosition, startDate, endDate)),
+    [viewMode, rangeEndPosition, startDate, endDate],
+  );
+
+  const isDragging = !!isHandleDragging;
 
   useEffect(() => {
     stateStore?.setState({
       pointDate,
+      rangeStartDate,
+      rangeEndDate,
       timeUnit,
       isMonthValid: moreThanOneMonth,
       isYearValid: moreThanOneYear,
+      isDragging,
     });
-  }, [stateStore, pointDate, timeUnit, moreThanOneMonth, moreThanOneYear]);
+  }, [
+    stateStore,
+    pointDate,
+    rangeStartDate,
+    rangeEndDate,
+    timeUnit,
+    moreThanOneMonth,
+    moreThanOneYear,
+    isDragging,
+  ]);
 
   const {
     handleMouseDown,

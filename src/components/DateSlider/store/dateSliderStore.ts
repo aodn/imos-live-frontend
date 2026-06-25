@@ -3,9 +3,12 @@ import type { DateSliderState, DateSliderStore, TimeUnit } from '../type';
 
 const INITIAL_STATE: DateSliderState = {
   pointDate: null,
+  rangeStartDate: null,
+  rangeEndDate: null,
   timeUnit: 'day',
   isMonthValid: false,
   isYearValid: false,
+  isDragging: false,
 };
 
 function isSameState(a: DateSliderState, b: DateSliderState): boolean {
@@ -13,9 +16,15 @@ function isSameState(a: DateSliderState, b: DateSliderState): boolean {
     a.timeUnit === b.timeUnit &&
     a.isMonthValid === b.isMonthValid &&
     a.isYearValid === b.isYearValid &&
-    a.pointDate?.getTime() === b.pointDate?.getTime()
+    a.isDragging === b.isDragging &&
+    a.pointDate?.getTime() === b.pointDate?.getTime() &&
+    a.rangeStartDate?.getTime() === b.rangeStartDate?.getTime() &&
+    a.rangeEndDate?.getTime() === b.rangeEndDate?.getTime()
   );
 }
+
+// This is just like create a zustand store, have state: INITIAL_STATE, and method setState. setState can mutate the
+// states, and whenever state updates, the component consuming the states will get rerendered.
 
 /**
  * Create a DateSlider state store. The slider writes to it via `setState`;
@@ -51,7 +60,9 @@ export function useDateSliderStore(initialTimeUnit: TimeUnit = 'day'): DateSlide
   return storeRef.current;
 }
 
-/** Subscribe to a slider's live state (selected date, time unit, range validity). */
+/** Subscribe to a slider's live state (selected dates, time unit, range validity, drag status). */
 export function useDateSliderState(store: DateSliderStore): DateSliderState {
+  // inside useSyncExternalStore, react will create a onStoreChange function and subscribe it,
+  // this function will force rerender.
   return useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
 }

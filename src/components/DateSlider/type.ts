@@ -204,14 +204,29 @@ export type SliderExposedMethod = {
  * Read it with `useDateSliderState` to drive controls rendered outside the slider.
  */
 export type DateSliderState = {
-  /** Currently selected point date (UTC). `null` until the slider has mounted and published. */
+  /**
+   * Currently selected point date (UTC). `null` in `range` mode (no point handle)
+   * and until the slider has mounted and published.
+   */
   pointDate: Date | null;
+  /**
+   * Range start date (UTC). `null` in `point` mode (no range handles) and until
+   * the slider has mounted and published.
+   */
+  rangeStartDate: Date | null;
+  /**
+   * Range end date (UTC). `null` in `point` mode (no range handles) and until
+   * the slider has mounted and published.
+   */
+  rangeEndDate: Date | null;
   /** Current time unit granularity. */
   timeUnit: TimeUnit;
   /** Whether the month unit is valid for the current date range. */
   isMonthValid: boolean;
   /** Whether the year unit is valid for the current date range. */
   isYearValid: boolean;
+  /** Whether a handle is currently being dragged (the selection is actively changing). */
+  isDragging: boolean;
 };
 
 /**
