@@ -28,15 +28,9 @@ import {
 import type { SliderProps, TimeUnit, DragHandle } from '../type';
 import { cn, checkDateDuration, generateTrackWidth, getDateFromPercent } from '../utils';
 import { DateSliderWrapper } from './DateSliderWrapper';
-import {
-  customSelectionPanelRenderer,
-  customDateLabelRenderer,
-  customTimeUnitSelectionRenderer,
-} from './defaultRender';
-import { SelectionPanel } from './SelectionPanel';
+import { customDateLabelRenderer } from './defaultRender';
 import { RenderSliderHandle } from './SliderHandle';
 import { SliderTrack } from './SliderTrack';
-import { TimeUnitSelection } from './TimeUnitSelection';
 
 //TODO: 3. beautify stories.
 //TODO: 4. snap to unit.
@@ -326,20 +320,6 @@ export const DateSlider = memo(function DateSlider({
 
   return (
     <DateSliderWrapper classNames={classNames} layout={layout}>
-      {/* Time display and date selection operation */}
-      {layout.selectionPanelEnabled && (
-        <SelectionPanel
-          startDate={startDate}
-          endDate={endDate}
-          position={pointPosition}
-          moveByStep={moveByStep}
-          renderSelectionPanel={renderProps?.renderSelectionPanel || customSelectionPanelRenderer}
-          dateFormat={dateFormat}
-          locale={locale}
-          timeUnit={timeUnit}
-        />
-      )}
-
       {/* Date slider container */}
       <div
         ref={sliderContainerRef}
@@ -440,19 +420,6 @@ export const DateSlider = memo(function DateSlider({
           </div>
         </div>
       </div>
-
-      {/* toggle time unit */}
-      {layout.timeUnitSelectionEnabled && (
-        <TimeUnitSelection
-          isMonthValid={moreThanOneMonth}
-          isYearValid={moreThanOneYear}
-          onChange={handleTimeUnitChange}
-          initialTimeUnit={initialTimeUnit}
-          renderTimeUnitSelection={
-            renderProps?.renderTimeUnitSelection || customTimeUnitSelectionRenderer
-          }
-        />
-      )}
     </DateSliderWrapper>
   );
 });

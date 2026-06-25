@@ -400,10 +400,6 @@ export type LayoutConfig = {
   scaleUnitConfig?: ScaleUnitConfig;
   /** DateLabel distance over handle and track in pixels */
   dateLabelDistanceOverHandle?: number;
-  /** Whether render SelectionPanel Component*/
-  selectionPanelEnabled?: boolean;
-  /**  Whether render TimeUnitSelection component*/
-  timeUnitSelectionEnabled?: boolean;
   /** Whether render Date label */
   dateLabelEnabled?: boolean;
 };
@@ -490,94 +486,11 @@ export type DateLabelRenderProps = {
 };
 
 /**
- * Props passed to custom time display renderer
- * Used for rendering the current date/time display with navigation controls
- *
- * @example
- * ```tsx
- * renderSelectionPanel={({ dateLabel, toNextDate, toPrevDate }) => (
- *   <div>
- *     <button onClick={toPrevDate}>←</button>
- *     <span>{dateLabel}</span>
- *     <button onClick={toNextDate}>→</button>
- *   </div>
- * )}
- * ```
- */
-export type SelectionPanelRenderProps = {
-  /** Navigate to the next date based on current time unit */
-  toNextDate: () => void;
-  /** Navigate to the previous date based on current time unit */
-  toPrevDate: () => void;
-  /** Formatted date label for current selection */
-  dateLabel: string;
-};
-
-/**
- * Props passed to custom time unit selection renderer
- * Used for rendering the time unit selector (day/month/year)
- *
- * @example
- * // Built-in prev/next stepping
- * ```tsx
- * renderTimeUnitSelection={({ timeUnit, handleTimeUnitNextSelect, handleTimeUnitPreviousSelect }) => (
- *   <div>
- *     <button onClick={handleTimeUnitPreviousSelect}>↑</button>
- *     <span>{timeUnit}</span>
- *     <button onClick={handleTimeUnitNextSelect}>↓</button>
- *   </div>
- * )}
- * ```
- *
- * @example
- * // Custom control via the exposed primitives (direct select + validity flags)
- * ```tsx
- * renderTimeUnitSelection={({ timeUnit, availableTimeUnits, selectTimeUnit, isMonthValid, isYearValid }) => (
- *   <div>
- *     {availableTimeUnits.map(unit => (
- *       <button
- *         key={unit}
- *         disabled={(unit === 'month' && !isMonthValid) || (unit === 'year' && !isYearValid)}
- *         aria-pressed={unit === timeUnit}
- *         onClick={() => selectTimeUnit(unit)}
- *       >
- *         {unit}
- *       </button>
- *     ))}
- *   </div>
- * )}
- * ```
- */
-export type TimeUnitSelectionRenderProps = {
-  /** Current time unit (hour/day/month/year) */
-  timeUnit: TimeUnit;
-  /** Ordered list of all selectable time units (hour → day → month → year) */
-  availableTimeUnits: readonly TimeUnit[];
-  /** Whether the month unit is valid for the current date range */
-  isMonthValid: boolean;
-  /** Whether the year unit is valid for the current date range */
-  isYearValid: boolean;
-  /** Directly select any time unit — use to build custom controls (dropdown, segmented buttons, …) */
-  selectTimeUnit: (timeUnit: TimeUnit) => void;
-  /** Select the next time unit (hour → day → month → year) */
-  handleTimeUnitNextSelect: () => void;
-  /** Select the previous time unit (year → month → day → hour) */
-  handleTimeUnitPreviousSelect: () => void;
-  /** Check if next button should be disabled */
-  isNextBtnDisabled: () => boolean;
-  /** Check if previous button should be disabled */
-  isPrevBtnDisabled: () => boolean;
-};
-/**
  * Render prop function types
  */
 export type RenderPropsConfig = {
   /** Custom date label renderer */
   renderDateLabel?: (props: DateLabelRenderProps) => ReactNode;
-  /** Custom selectionPanel renderer */
-  renderSelectionPanel?: (props: SelectionPanelRenderProps) => ReactNode;
-  /** Custom TimeUnitSelection renderer */
-  renderTimeUnitSelection?: (props: TimeUnitSelectionRenderProps) => ReactNode;
 };
 
 /**
@@ -937,25 +850,6 @@ export type RenderSliderHandleProps = {
   locale: string;
   sliderPositionX: number;
   trackWidth: number;
-};
-
-export type TimeUnitSelectionProps = {
-  initialTimeUnit: TimeUnit;
-  isMonthValid: boolean;
-  isYearValid: boolean;
-  onChange: (timeUnit: TimeUnit) => void;
-  renderTimeUnitSelection: (props: TimeUnitSelectionRenderProps) => ReactNode;
-};
-
-export type SelectionPanelProps = {
-  position: number;
-  startDate: Date;
-  endDate: Date;
-  moveByStep: (direction: 'forward' | 'backward', target?: DragHandle) => void;
-  renderSelectionPanel: (props: SelectionPanelRenderProps) => ReactNode;
-  dateFormat: Required<DateFormat>;
-  locale: string;
-  timeUnit: TimeUnit;
 };
 
 export type ScalesUnitLabelsProps = {
