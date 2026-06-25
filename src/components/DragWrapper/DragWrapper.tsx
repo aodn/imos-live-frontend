@@ -12,7 +12,7 @@ type PositionType = {
   y: number;
 };
 
-type RelativeType = 'topLeft' | 'topRight';
+type RelativeType = 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight';
 
 export type DragWrapperProps = {
   boundary?: 'window' | 'parent';
@@ -45,14 +45,17 @@ export function DragWrapper({
   const preocessInitialPosition = useCallback(
     (relative: RelativeType, initialPosition?: PositionType): PositionType => {
       if (!initialPosition) initialPosition = { x: 0, y: 0 };
-      if (relative === 'topRight') {
-        const x = parentDimesion.width - targetDimesion.width - initialPosition.x;
-        const y = initialPosition.y;
-        return { x, y };
-      }
-      return initialPosition;
+      const isRight = relative === 'topRight' || relative === 'bottomRight';
+      const isBottom = relative === 'bottomLeft' || relative === 'bottomRight';
+      const x = isRight
+        ? parentDimesion.width - targetDimesion.width - initialPosition.x
+        : initialPosition.x;
+      const y = isBottom
+        ? parentDimesion.height - targetDimesion.height - initialPosition.y
+        : initialPosition.y;
+      return { x, y };
     },
-    [parentDimesion.width, targetDimesion.width],
+    [parentDimesion.width, parentDimesion.height, targetDimesion.width, targetDimesion.height],
   );
 
   // Calculate bounds for the draggable element, the starting position is left:0 and top:0 when implement translateX and translateY.

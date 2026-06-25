@@ -19,12 +19,19 @@ import { PRODUCT } from '@/constants';
 import { useShallow } from 'zustand/shallow';
 import { dateFormat, renderDateLabel } from './renderProps';
 
-type DateSelectionBarProps = { className?: string };
+type DateSelectionBarProps = {
+  className?: string;
+  dragHandleClassName?: string;
+  collapsed: boolean;
+  onToggleCollapsed: () => void;
+};
 
 export const DateSelectionBar = memo(function DateSelectionBar({
   className,
+  dragHandleClassName,
+  collapsed,
+  onToggleCollapsed,
 }: DateSelectionBarProps) {
-  const [collapsed, setCollapsed] = useState(false);
   const [collapseAnimating, setCollapseAnimating] = useState(false);
   const { date, startDate, endDate } = useDateSliderDates(); //date in DateSlider is expected to be UTC only.
   const isDateInQueryParams = useHasInitialQueryParam('date');
@@ -63,8 +70,8 @@ export const DateSelectionBar = memo(function DateSelectionBar({
 
   const toggleCollapsed = useCallback(() => {
     setCollapseAnimating(true);
-    setCollapsed(prev => !prev);
-  }, []);
+    onToggleCollapsed();
+  }, [onToggleCollapsed]);
 
   return (
     <div className={cn('flex', className)}>
@@ -75,7 +82,7 @@ export const DateSelectionBar = memo(function DateSelectionBar({
         fallbackDate={date}
         min={startDate}
         max={minusOneUTCDay(endDate)}
-        className="shadow-xl"
+        className={cn('shadow-xl', dragHandleClassName)}
       />
 
       {/* Collapsible region — the slider track and the time unit selector */}
