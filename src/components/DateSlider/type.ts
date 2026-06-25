@@ -185,10 +185,46 @@ export type SliderExposedMethod = {
   moveByStep: (direction: 'forward' | 'backward', target?: DragHandle) => void;
 
   /**
+   * Programmatically set the active time unit (granularity).
+   * Mirrors selecting a unit in the built-in TimeUnitSelection — resets the
+   * scroll position and re-centres on the point handle. Use this to drive the
+   * time unit from a control rendered outside the slider.
+   */
+  setTimeUnit: (timeUnit: TimeUnit) => void;
+
+  /**
    * Programmatically focus a specific handle
    * @param handleType - Which handle to focus ('start', 'end', 'point')
    */
   focusHandle: (handleType: DragHandle) => void;
+};
+
+/**
+ * Live state the DateSlider publishes to an external {@link DateSliderStore}.
+ * Read it with `useDateSliderState` to drive controls rendered outside the slider.
+ */
+export type DateSliderState = {
+  /** Currently selected point date (UTC). `null` until the slider has mounted and published. */
+  pointDate: Date | null;
+  /** Current time unit granularity. */
+  timeUnit: TimeUnit;
+  /** Whether the month unit is valid for the current date range. */
+  isMonthValid: boolean;
+  /** Whether the year unit is valid for the current date range. */
+  isYearValid: boolean;
+};
+
+/**
+ * External store the DateSlider publishes its live {@link DateSliderState} to.
+ * Create it with `useDateSliderStore`, pass it via the `stateStore` prop, and
+ * subscribe with `useDateSliderState`. The slider stays the source of truth —
+ * the store just makes its state observable from sibling components.
+ */
+export type DateSliderStore = {
+  subscribe: (listener: () => void) => () => void;
+  getSnapshot: () => DateSliderState;
+  /** Internal: the slider publishes here. Consumers should use `useDateSliderState`. */
+  setState: (next: DateSliderState) => void;
 };
 
 /**
@@ -683,6 +719,14 @@ type CommonSliderProps = {
 
   /** Imperative API reference for external control */
   imperativeRef?: React.Ref<SliderExposedMethod>;
+
+  /**
+   * Optional external store the slider publishes its live state to (selected
+   * date, time unit, range validity). Create it with `useDateSliderStore` and
+   * read it with `useDateSliderState` to drive controls — a SelectionPanel or
+   * TimeUnitSelection — rendered as siblings outside the slider.
+   */
+  stateStore?: DateSliderStore;
 };
 
 /**

@@ -36,12 +36,13 @@ import { DateSlider, type SliderProps } from '@/components/DateSlider';
 
 `index.ts` re-exports exactly one component (`DateSlider`), the default renderers
 (`customDateLabelRenderer`, `customSelectionPanelRenderer`,
-`customTimeUnitSelectionRenderer`), and the public types. The internal
-building-block components (`SliderTrack`, `SliderHandle`, `SelectionPanel`,
-`ScalesUnitLabels`, `TimeUnitSelection`) and everything under `./hooks/` and
-`./utils/` are deliberately **not** exported. The barrel enforces this — it lists
-named exports rather than `export *`, so adding a public symbol is a conscious
-edit here.
+`customTimeUnitSelectionRenderer`), the state-store helpers
+(`createDateSliderStore`, `useDateSliderStore`, `useDateSliderState`), and the
+public types. The internal building-block components (`SliderTrack`,
+`SliderHandle`, `SelectionPanel`, `ScalesUnitLabels`, `TimeUnitSelection`) and
+everything under `./hooks/` and `./utils/` are deliberately **not** exported. The
+barrel enforces this — it lists named exports rather than `export *`, so adding a
+public symbol is a conscious edit here.
 
 ## Usage
 
@@ -90,6 +91,7 @@ ref.current?.setDateTime(new Date('2024-06-15'));
 | `initialTimeUnit`   | `'hour' \| 'day' \| 'month' \| 'year'` | Initial zoom granularity                                  |
 | `onChange`          | `(value: SliderValue) => void`         | Fires on selection change                                 |
 | `imperativeRef`     | `Ref<SliderExposedMethod>`             | External control — see below                              |
+| `stateStore`        | `DateSliderStore`                      | Publishes live state for sibling controls — see below     |
 | `classNames`        | `DateSliderClassNames`                 | Per-element Tailwind overrides                            |
 | `behavior`          | `BehaviorConfig`                       | Scrolling, step, label persistence, free track selection  |
 | `layout`            | `LayoutConfig`                         | Width/height, padding, which sub-components render        |
@@ -106,6 +108,7 @@ Reach the handle via `imperativeRef`:
 | -------------------------------- | -------------------------------------------------------------------- |
 | `setDateTime(date, target?)`     | Set a handle to a UTC date (`target`: `'start' \| 'end' \| 'point'`) |
 | `moveByStep(direction, target?)` | Move by the configured `behavior.step`                               |
+| `setTimeUnit(timeUnit)`          | Change the active granularity (resets scroll, re-centres the handle) |
 | `focusHandle(handleType)`        | Programmatically focus a handle                                      |
 
 ### Render props (`RenderPropsConfig`)
@@ -119,6 +122,46 @@ Override any sub-component's markup while keeping the slider's behaviour. Each r
 | `renderTimeUnitSelection` | `timeUnit`, `availableTimeUnits`, `selectTimeUnit`, `isMonthValid`, `isYearValid`, `handleTimeUnit{Next,Previous}Select`, `is{Next,Prev}BtnDisabled` |
 
 `renderTimeUnitSelection` exposes two tiers: the ready-made `handleTimeUnitNextSelect`/`handleTimeUnitPreviousSelect` + `is{Next,Prev}BtnDisabled` for a simple stepper, **or** the lower-level `availableTimeUnits` + `selectTimeUnit(unit)` + `isMonthValid`/`isYearValid` to build a custom control (dropdown, segmented buttons) with your own selection logic.
+
+### External state store (`useDateSliderStore` / `useDateSliderState`)
+
+Render props place the SelectionPanel/TimeUnitSelection **inside** the slider's
+flex layout. When the host needs them as **siblings** instead — e.g. to keep the
+date panel pinned while the slider collapses — use the state store: the slider
+stays the source of truth and just publishes its live state outward.
+
+```tsx
+import {
+  DateSlider,
+  useDateSliderStore,
+  useDateSliderState,
+  type SliderExposedMethod,
+} from '@/components/DateSlider';
+
+const sliderRef = useRef<SliderExposedMethod>(null);
+const store = useDateSliderStore('day'); // stable for the component's lifetime
+
+// In a sibling control — only this component re-renders as state changes:
+const { pointDate, timeUnit, isMonthValid, isYearValid } = useDateSliderState(store);
+
+<DateSlider
+  imperativeRef={sliderRef}
+  stateStore={store}
+  layout={{ selectionPanelEnabled: false, timeUnitSelectionEnabled: false }}
+  /* … */
+/>;
+```
+
+- `useDateSliderState(store)` is backed by `useSyncExternalStore`, so only the
+  components that call it re-render on change — not the slider or its parent.
+- The published `pointDate` is **not** debounced (unlike `onChange`), so a
+  sibling date label stays live during a drag.
+- Drive the slider back from siblings via the imperative handle —
+  `sliderRef.current?.moveByStep(…)` and `sliderRef.current?.setTimeUnit(…)`.
+- `createDateSliderStore` is the non-hook factory (for tests/stories).
+
+> `DateSelectionBar` (the app's consumer) uses exactly this pattern: a pinned
+> `DateSelectionPanel` and a `TimeUnitSelector` rendered as siblings of the slider.
 
 ## Layout
 

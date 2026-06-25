@@ -11,6 +11,13 @@ export {
   customTimeUnitSelectionRenderer,
 } from './components/defaultRender';
 
+// ── Live state store (drive controls rendered outside the slider) ─────────────
+export {
+  createDateSliderStore,
+  useDateSliderStore,
+  useDateSliderState,
+} from './store/dateSliderStore';
+
 // ── Public types ──────────────────────────────────────────────────────────────
 export type {
   // Main props (discriminated union on `mode`)
@@ -26,6 +33,9 @@ export type {
   SelectionResult,
   // Imperative API
   SliderExposedMethod,
+  // Live state store
+  DateSliderState,
+  DateSliderStore,
   // Styling & config
   DateSliderClassNames,
   BehaviorConfig,
