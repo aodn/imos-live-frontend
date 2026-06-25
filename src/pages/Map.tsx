@@ -84,7 +84,7 @@ export function Map() {
           <DragWrapper
             boundary="parent"
             dragHandleClassName={DATE_SELECTION_BAR_DRAG_HANDLE}
-            className={dateBarCollapsed ? 'w-fit' : 'w-full'}
+            className={dateBarCollapsed ? 'w-fit' : 'md:w-full'}
             initialPosition={{ x: 0, y: 8 }}
             relative="bottomLeft"
           >

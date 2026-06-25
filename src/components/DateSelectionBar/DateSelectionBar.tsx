@@ -92,7 +92,7 @@ export const DateSelectionBar = memo(function DateSelectionBar({
           if (e.propertyName === 'width') setCollapseAnimating(false);
         }}
         className={cn(
-          'flex min-w-0 shadow-xl transition-[width] duration-300 ease-in-out',
+          'hidden md:flex min-w-0 shadow-xl transition-[width] duration-300 ease-in-out',
           collapsed ? 'overflow-hidden' : 'overflow-visible flex-1',
         )}
       >
@@ -147,7 +147,11 @@ export const DateSelectionBar = memo(function DateSelectionBar({
         {/* Right cap — hides with the slider on collapse */}
         <TimeUnitSelector store={sliderStore} sliderRef={imperativeHandlerRef} />
       </div>
-      <CollapseToggle collapsed={collapsed} onToggle={toggleCollapsed} />
+      <CollapseToggle
+        collapsed={collapsed}
+        onToggle={toggleCollapsed}
+        className="hidden md:block"
+      />
     </div>
   );
 });
