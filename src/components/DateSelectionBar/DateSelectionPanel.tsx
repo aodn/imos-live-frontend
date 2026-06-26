@@ -50,7 +50,7 @@ export function DateSelectionPanel({
     <div
       style={{ width: SELECTION_PANEL_WIDTH }}
       className={cn(
-        'flex items-center gap-1 frosted rounded-l-lg h-16 px-2 py-1.5 shrink-0 overflow-hidden md:border-r border-imos-black/70',
+        'flex items-center gap-1 frosted rounded-lg md:rounded-r-none h-16 px-2 py-1.5 shrink-0 overflow-hidden md:border-r border-imos-black/70',
         className,
       )}
     >
