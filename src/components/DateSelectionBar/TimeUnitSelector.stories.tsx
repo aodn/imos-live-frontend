@@ -25,6 +25,7 @@ function SelectorHarness({ monthValid }: { monthValid: boolean }) {
   const store = useMemo(() => {
     const s = createDateSliderStore('day');
     s.setState({
+      ...s.getSnapshot(),
       pointDate: new Date(Date.UTC(2023, 5, 15)),
       timeUnit: 'day',
       isMonthValid: monthValid,

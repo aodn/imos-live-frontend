@@ -27,13 +27,25 @@ const MAX = new Date(Date.UTC(2024, 11, 31));
 function PanelHarness({ initialDate }: { initialDate: Date }) {
   const store = useMemo(() => {
     const s = createDateSliderStore('day');
-    s.setState({ pointDate: initialDate, timeUnit: 'day', isMonthValid: true, isYearValid: true });
+    s.setState({
+      ...s.getSnapshot(),
+      pointDate: initialDate,
+      timeUnit: 'day',
+      isMonthValid: true,
+      isYearValid: true,
+    });
     return s;
   }, [initialDate]);
 
   const sliderRef = useMemo<RefObject<SliderExposedMethod | null>>(() => {
     const publish = (date: Date) =>
-      store.setState({ pointDate: date, timeUnit: 'day', isMonthValid: true, isYearValid: true });
+      store.setState({
+        ...store.getSnapshot(),
+        pointDate: date,
+        timeUnit: 'day',
+        isMonthValid: true,
+        isYearValid: true,
+      });
     return {
       current: {
         setDateTime: publish,
