@@ -1,4 +1,12 @@
-import { memo, useCallback, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { ACCESSIBILITY } from '../constants';
 import {
   useDrag,
@@ -18,17 +26,11 @@ import {
   useSliderRePosition,
 } from '../hooks';
 import type { SliderProps, TimeUnit, DragHandle } from '../type';
-import { cn, checkDateDuration, generateTrackWidth } from '../utils';
+import { cn, checkDateDuration, generateTrackWidth, getDateFromPercent } from '../utils';
 import { DateSliderWrapper } from './DateSliderWrapper';
-import {
-  customSelectionPanelRenderer,
-  customDateLabelRenderer,
-  customTimeUnitSelectionRenderer,
-} from './defaultRender';
-import { SelectionPanel } from './SelectionPanel';
+import { customDateLabelRenderer } from './defaultRender';
 import { RenderSliderHandle } from './SliderHandle';
 import { SliderTrack } from './SliderTrack';
-import { TimeUnitSelection } from './TimeUnitSelection';
 
 //TODO: 3. beautify stories.
 //TODO: 4. snap to unit.
@@ -42,6 +44,7 @@ export const DateSlider = memo(function DateSlider({
   renderProps,
   classNames,
   imperativeRef,
+  stateStore,
   ...restProps
 }: SliderProps) {
   const { isSmallScreen } = useViewportSize();
@@ -243,10 +246,60 @@ export const DateSlider = memo(function DateSlider({
     () => ({
       setDateTime,
       moveByStep,
+      setTimeUnit: handleTimeUnitChange,
       focusHandle: (handleType: DragHandle) => requestHandleFocus(handleType, 'keyboard'),
     }),
-    [setDateTime, moveByStep, requestHandleFocus],
+    [setDateTime, moveByStep, handleTimeUnitChange, requestHandleFocus],
   );
+
+  // Publish live state to the external store so sibling controls (SelectionPanel,
+  // TimeUnitSelection rendered outside the slider) can read it without re-rendering
+  // the slider. The slider stays the source of truth.
+  const { moreThanOneMonth, moreThanOneYear } = useMemo(
+    () => checkDateDuration(startDate, endDate),
+    [startDate, endDate],
+  );
+
+  // Each handle's live date is null in the mode that doesn't render it, so
+  // consumers can rely on the field being meaningful only when it's non-null.
+  const pointDate = useMemo(
+    () => (viewMode === 'range' ? null : getDateFromPercent(pointPosition, startDate, endDate)),
+    [viewMode, pointPosition, startDate, endDate],
+  );
+
+  const rangeStartDate = useMemo(
+    () =>
+      viewMode === 'point' ? null : getDateFromPercent(rangeStartPosition, startDate, endDate),
+    [viewMode, rangeStartPosition, startDate, endDate],
+  );
+
+  const rangeEndDate = useMemo(
+    () => (viewMode === 'point' ? null : getDateFromPercent(rangeEndPosition, startDate, endDate)),
+    [viewMode, rangeEndPosition, startDate, endDate],
+  );
+
+  const isDragging = !!isHandleDragging;
+
+  useEffect(() => {
+    stateStore?.setState({
+      pointDate,
+      rangeStartDate,
+      rangeEndDate,
+      timeUnit,
+      isMonthValid: moreThanOneMonth,
+      isYearValid: moreThanOneYear,
+      isDragging,
+    });
+  }, [
+    stateStore,
+    pointDate,
+    rangeStartDate,
+    rangeEndDate,
+    timeUnit,
+    moreThanOneMonth,
+    moreThanOneYear,
+    isDragging,
+  ]);
 
   const {
     handleMouseDown,
@@ -294,20 +347,6 @@ export const DateSlider = memo(function DateSlider({
 
   return (
     <DateSliderWrapper classNames={classNames} layout={layout}>
-      {/* Time display and date selection operation */}
-      {layout.selectionPanelEnabled && (
-        <SelectionPanel
-          startDate={startDate}
-          endDate={endDate}
-          position={pointPosition}
-          moveByStep={moveByStep}
-          renderSelectionPanel={renderProps?.renderSelectionPanel || customSelectionPanelRenderer}
-          dateFormat={dateFormat}
-          locale={locale}
-          timeUnit={timeUnit}
-        />
-      )}
-
       {/* Date slider container */}
       <div
         ref={sliderContainerRef}
@@ -408,19 +447,6 @@ export const DateSlider = memo(function DateSlider({
           </div>
         </div>
       </div>
-
-      {/* toggle time unit */}
-      {layout.timeUnitSelectionEnabled && (
-        <TimeUnitSelection
-          isMonthValid={checkDateDuration(startDate, endDate).moreThanOneMonth}
-          isYearValid={checkDateDuration(startDate, endDate).moreThanOneYear}
-          onChange={handleTimeUnitChange}
-          initialTimeUnit={initialTimeUnit}
-          renderTimeUnitSelection={
-            renderProps?.renderTimeUnitSelection || customTimeUnitSelectionRenderer
-          }
-        />
-      )}
     </DateSliderWrapper>
   );
 });

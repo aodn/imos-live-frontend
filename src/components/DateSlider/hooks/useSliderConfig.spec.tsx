@@ -63,8 +63,6 @@ describe('useSliderConfig', () => {
       expect(result.current.layout.scaleUnitConfig).toBe(DEFAULT_SCALE_CONFIG);
       expect(result.current.layout.dateLabelDistance).toBe(LAYOUT.DATE_LABEL_DISTANCE);
       expect(result.current.layout.withEndLabel).toBe(true);
-      expect(result.current.layout.selectionPanelEnabled).toBe(false);
-      expect(result.current.layout.timeUnitSelectionEnabled).toBe(false);
       expect(result.current.layout.dateLabelEnabled).toBe(false);
     });
 

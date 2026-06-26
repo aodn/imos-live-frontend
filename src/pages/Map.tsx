@@ -2,6 +2,7 @@ import { Helmet } from 'react-helmet-async';
 import logImage from '@/assets/imos_logo_with_title.png';
 import {
   DateSelectionBar,
+  DragWrapper,
   Drawer,
   FeaturesMenu,
   FloatingPanel,
@@ -21,16 +22,20 @@ import { PRODUCT } from '@/constants';
 import { useViewportSize } from '@/hooks';
 import { useDrawerStore, refreshDates, closeLeftDrawer, openLeftDrawer } from '@/store';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 const MODE_TITLE_PREFIX: Record<string, string> = {
   development: '[DEV] ',
   edge: '[EDGE] ',
 };
 
+const DATE_SELECTION_BAR_DRAG_HANDLE = 'date-selection-bar-drag-handle';
+
 export function Map() {
   const { isSmallScreen } = useViewportSize();
   const leftDrawer = useDrawerStore(s => s.leftDrawer);
+  const [dateBarCollapsed, setDateBarCollapsed] = useState(false);
+  const toggleDateBarCollapsed = useCallback(() => setDateBarCollapsed(prev => !prev), []);
 
   useEffect(() => {
     refreshDates();
@@ -76,7 +81,20 @@ export function Map() {
             ]}
           />
           <MapComponent key={isSmallScreen ? 'mobile' : 'desktop'} />
-          <DateSelectionBar className="absolute bottom-2 left-1/2 -translate-x-1/2 w-full" />
+          <DragWrapper
+            boundary="parent"
+            dragHandleClassName={DATE_SELECTION_BAR_DRAG_HANDLE}
+            className={dateBarCollapsed ? 'w-fit' : 'md:w-full'}
+            initialPosition={{ x: 0, y: 8 }}
+            relative="bottomLeft"
+          >
+            <DateSelectionBar
+              dragHandleClassName={DATE_SELECTION_BAR_DRAG_HANDLE}
+              collapsed={dateBarCollapsed}
+              onToggleCollapsed={toggleDateBarCollapsed}
+            />
+          </DragWrapper>
+
           <FloatingPanel
             wrapperClassName="w-14 md:min-w-72 bg-imos-light rounded-xl"
             boundary="parent"
@@ -101,6 +119,8 @@ export function Map() {
       leftDrawer.direction,
       leftDrawer.isOpen,
       leftDrawer.snapMode,
+      dateBarCollapsed,
+      toggleDateBarCollapsed,
     ],
   );
 

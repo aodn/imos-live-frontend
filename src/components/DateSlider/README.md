@@ -34,11 +34,11 @@ import { DateSlider, type SliderProps } from '@/components/DateSlider';
 > Note: DateSlider is **not** re-exported from the `@/components` barrel — import
 > it from `@/components/DateSlider` (or a relative path to that folder).
 
-`index.ts` re-exports exactly one component (`DateSlider`), the default renderers
-(`customDateLabelRenderer`, `customSelectionPanelRenderer`,
-`customTimeUnitSelectionRenderer`), and the public types. The internal
-building-block components (`SliderTrack`, `SliderHandle`, `SelectionPanel`,
-`ScalesUnitLabels`, `TimeUnitSelection`) and everything under `./hooks/` and
+`index.ts` re-exports exactly one component (`DateSlider`), the default
+date-label renderer (`customDateLabelRenderer`), the state-store helpers
+(`createDateSliderStore`, `useDateSliderStore`, `useDateSliderState`), and the
+public types. The internal building-block components (`SliderTrack`,
+`SliderHandle`, `ScalesUnitLabels`) and everything under `./hooks/` and
 `./utils/` are deliberately **not** exported. The barrel enforces this — it lists
 named exports rather than `export *`, so adding a public symbol is a conscious
 edit here.
@@ -58,7 +58,7 @@ const ref = useRef<SliderExposedMethod>(null);
   initialTimeUnit="day"
   imperativeRef={ref}
   onChange={v => setDate((v as PointValue).point)}
-  layout={{ width: 'fill', height: 64, selectionPanelEnabled: true }}
+  layout={{ width: 'fill', height: 64, dateLabelEnabled: true }}
   behavior={{ scrollable: true }}
 />;
 
@@ -84,19 +84,20 @@ ref.current?.setDateTime(new Date('2024-06-15'));
 
 ### Common props
 
-| Prop                | Type                                   | Notes                                                     |
-| ------------------- | -------------------------------------- | --------------------------------------------------------- |
-| `min` / `max`       | `Date` (UTC, required)                 | Bounds of the timeline                                    |
-| `initialTimeUnit`   | `'hour' \| 'day' \| 'month' \| 'year'` | Initial zoom granularity                                  |
-| `onChange`          | `(value: SliderValue) => void`         | Fires on selection change                                 |
-| `imperativeRef`     | `Ref<SliderExposedMethod>`             | External control — see below                              |
-| `classNames`        | `DateSliderClassNames`                 | Per-element Tailwind overrides                            |
-| `behavior`          | `BehaviorConfig`                       | Scrolling, step, label persistence, free track selection  |
-| `layout`            | `LayoutConfig`                         | Width/height, padding, which sub-components render        |
-| `renderProps`       | `RenderPropsConfig`                    | Custom date-label / selection-panel / time-unit renderers |
-| `dateFormat`        | `DateFormat`                           | dayjs format tokens for scale marks vs handle labels      |
-| `locale`            | `string` (default `'en'`)              | Requires `import 'dayjs/locale/<code>'` first             |
-| `scaleTypeResolver` | `ScaleTypeResolver`                    | Custom short/medium/long classification of scale marks    |
+| Prop                | Type                                   | Notes                                                    |
+| ------------------- | -------------------------------------- | -------------------------------------------------------- |
+| `min` / `max`       | `Date` (UTC, required)                 | Bounds of the timeline                                   |
+| `initialTimeUnit`   | `'hour' \| 'day' \| 'month' \| 'year'` | Initial zoom granularity                                 |
+| `onChange`          | `(value: SliderValue) => void`         | Fires on selection change                                |
+| `imperativeRef`     | `Ref<SliderExposedMethod>`             | External control — see below                             |
+| `stateStore`        | `DateSliderStore`                      | Publishes live state for sibling controls — see below    |
+| `classNames`        | `DateSliderClassNames`                 | Per-element Tailwind overrides                           |
+| `behavior`          | `BehaviorConfig`                       | Scrolling, step, label persistence, free track selection |
+| `layout`            | `LayoutConfig`                         | Width/height, padding, which sub-components render       |
+| `renderProps`       | `RenderPropsConfig`                    | Custom date-label renderer                               |
+| `dateFormat`        | `DateFormat`                           | dayjs format tokens for scale marks vs handle labels     |
+| `locale`            | `string` (default `'en'`)              | Requires `import 'dayjs/locale/<code>'` first            |
+| `scaleTypeResolver` | `ScaleTypeResolver`                    | Custom short/medium/long classification of scale marks   |
 
 ### Imperative API (`SliderExposedMethod`)
 
@@ -106,25 +107,63 @@ Reach the handle via `imperativeRef`:
 | -------------------------------- | -------------------------------------------------------------------- |
 | `setDateTime(date, target?)`     | Set a handle to a UTC date (`target`: `'start' \| 'end' \| 'point'`) |
 | `moveByStep(direction, target?)` | Move by the configured `behavior.step`                               |
+| `setTimeUnit(timeUnit)`          | Change the active granularity (resets scroll, re-centres the handle) |
 | `focusHandle(handleType)`        | Programmatically focus a handle                                      |
 
 ### Render props (`RenderPropsConfig`)
 
-Override any sub-component's markup while keeping the slider's behaviour. Each renderer receives the state and handlers it needs:
+Override a sub-component's markup while keeping the slider's behaviour:
 
-| Renderer                  | Key props                                                                                                                                            |
-| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `renderDateLabel`         | `label`                                                                                                                                              |
-| `renderSelectionPanel`    | `dateLabel`, `toNextDate`, `toPrevDate`                                                                                                              |
-| `renderTimeUnitSelection` | `timeUnit`, `availableTimeUnits`, `selectTimeUnit`, `isMonthValid`, `isYearValid`, `handleTimeUnit{Next,Previous}Select`, `is{Next,Prev}BtnDisabled` |
+| Renderer          | Key props |
+| ----------------- | --------- |
+| `renderDateLabel` | `label`   |
 
-`renderTimeUnitSelection` exposes two tiers: the ready-made `handleTimeUnitNextSelect`/`handleTimeUnitPreviousSelect` + `is{Next,Prev}BtnDisabled` for a simple stepper, **or** the lower-level `availableTimeUnits` + `selectTimeUnit(unit)` + `isMonthValid`/`isYearValid` to build a custom control (dropdown, segmented buttons) with your own selection logic.
+The slider renders only the track, handles, and floating date labels. The date
+panel and time-unit selector are **not** part of the slider — drive them as
+sibling components via the state store (below).
+
+### External state store (`useDateSliderStore` / `useDateSliderState`)
+
+The slider owns its state but publishes it outward so controls rendered as
+**siblings** — a date panel, a time-unit selector — can read it live (e.g. to
+keep the date panel pinned while the slider collapses). The slider stays the
+source of truth; siblings read via the store and write back via the imperative
+handle.
+
+```tsx
+import {
+  DateSlider,
+  useDateSliderStore,
+  useDateSliderState,
+  type SliderExposedMethod,
+} from '@/components/DateSlider';
+
+const sliderRef = useRef<SliderExposedMethod>(null);
+const store = useDateSliderStore('day'); // stable for the component's lifetime
+
+// In a sibling control — only this component re-renders as state changes:
+const { pointDate, timeUnit, isMonthValid, isYearValid } = useDateSliderState(store);
+
+<DateSlider imperativeRef={sliderRef} stateStore={store} /* … */ />;
+```
+
+- `useDateSliderState(store)` is backed by `useSyncExternalStore`, so only the
+  components that call it re-render on change — not the slider or its parent.
+- The published `pointDate` is **not** debounced (unlike `onChange`), so a
+  sibling date label stays live during a drag.
+- Drive the slider back from siblings via the imperative handle —
+  `sliderRef.current?.moveByStep(…)` and `sliderRef.current?.setTimeUnit(…)`.
+- `createDateSliderStore` is the non-hook factory (for tests/stories).
+
+> `DateSelectionBar` (the app's consumer) uses exactly this pattern: a pinned
+> `DateSelectionPanel` and a `TimeUnitSelector` rendered as siblings of the slider.
 
 ## Layout
 
 - `components/` — `DateSlider`, `DateSliderWrapper`, `SliderTrack`,
-  `SliderHandle`, `DateLabel`, `ScalesUnitLabels`, `SelectionPanel`,
-  `TimeUnitSelection`, and the default renderers.
+  `SliderHandle`, `DateLabel`, `ScalesUnitLabels`, and the default date-label
+  renderer.
+- `store/` — `dateSliderStore.ts` (external live-state store + hooks).
 - `hooks/` — drag, position, scroll, scaling, dimensions, focus, debouncing.
 - `utils/` — pure helpers (`cn`, `clamp`, `debounce`, …) plus
   `dateSliderUtils.ts` for slider-specific date math.

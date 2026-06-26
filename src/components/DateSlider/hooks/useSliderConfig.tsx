@@ -86,8 +86,6 @@ export function useSliderConfig(props: SliderProps, isSmallScreen: boolean) {
     const trackPaddingX = layout?.trackPaddingX ?? LAYOUT.TRACK_PADDING_X;
     const isTrackFixedWidth = !behaviorConfig.scrollable;
 
-    const selectionPanelEnabled = layout?.selectionPanelEnabled ?? false;
-    const timeUnitSelectionEnabled = layout?.timeUnitSelectionEnabled ?? false;
     const dateLabelEnabled = layout?.dateLabelEnabled ?? false;
 
     const withEndLabel = layout?.showEndLabel ?? true;
@@ -100,8 +98,6 @@ export function useSliderConfig(props: SliderProps, isSmallScreen: boolean) {
       sliderHeight,
       trackPaddingX,
       isTrackFixedWidth,
-      selectionPanelEnabled,
-      timeUnitSelectionEnabled,
       dateLabelEnabled,
       withEndLabel,
       minGapScaleUnits,

@@ -1,15 +1,18 @@
 // The single public door for the DateSlider package — a curated allowlist, not a
 // wildcard. Internal building-block components (SliderTrack, SliderHandle,
-// SelectionPanel, ScalesUnitLabels, TimeUnitSelection) and the hooks/utils are
-// intentionally NOT re-exported. See README.md § Public surface.
+// ScalesUnitLabels) and the hooks/utils are intentionally NOT re-exported.
+// See README.md § Public surface.
 
-// ── Public component + default renderers ──────────────────────────────────────
+// ── Public component + default renderer ───────────────────────────────────────
 export { DateSlider } from './components/DateSlider';
+export { customDateLabelRenderer } from './components/defaultRender';
+
+// ── Live state store (drive controls rendered outside the slider) ─────────────
 export {
-  customDateLabelRenderer,
-  customSelectionPanelRenderer,
-  customTimeUnitSelectionRenderer,
-} from './components/defaultRender';
+  createDateSliderStore,
+  useDateSliderStore,
+  useDateSliderState,
+} from './store/dateSliderStore';
 
 // ── Public types ──────────────────────────────────────────────────────────────
 export type {
@@ -26,6 +29,9 @@ export type {
   SelectionResult,
   // Imperative API
   SliderExposedMethod,
+  // Live state store
+  DateSliderState,
+  DateSliderStore,
   // Styling & config
   DateSliderClassNames,
   BehaviorConfig,
@@ -45,6 +51,4 @@ export type {
   // Render-prop contracts (for custom renderers)
   HandleRenderProps,
   DateLabelRenderProps,
-  SelectionPanelRenderProps,
-  TimeUnitSelectionRenderProps,
 } from './type';
