@@ -5,7 +5,7 @@ import {
   PRODUCT,
   PRODUCTLEGENDS,
 } from '@/constants';
-import { cn, toCompactDate, toISOFromCompact } from '@/utils';
+import { cn } from '@/utils';
 import type { ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getMooringLatestDate, getWaveBuoyLatestDate, metaDataManifestQueryOptions } from '@/api';
@@ -118,14 +118,13 @@ function useLatestDate(product: ProductType) {
 
   // Site products expose their own latest-time endpoint. Keep the query keys aligned
   // with the drawer charts (WaveBuoyChart/MooringChart) so the cache is shared.
-  const { data: siteCompact, isLoading: isSiteLoading } = useQuery({
+  const { data: siteDate, isLoading: isSiteLoading } = useQuery({
     queryKey: [isMooring ? 'mooring_latest_date' : 'wave_buoy_latest_date'],
     queryFn: isMooring ? getMooringLatestDate : getWaveBuoyLatestDate,
-    select: toCompactDate,
     enabled: isSiteProduct,
   });
 
-  const date = isSiteProduct ? siteCompact && toISOFromCompact(siteCompact) : tilesDate;
+  const date = isSiteProduct ? siteDate : tilesDate;
   const isLoading = isSiteProduct ? isSiteLoading : isTilesLoading;
 
   const jumpToLatest = () => {

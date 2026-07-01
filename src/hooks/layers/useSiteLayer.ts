@@ -1,5 +1,6 @@
 import type { ProductType } from '@/constants';
 import {
+  PRODUCT,
   PRODUCTS,
   UNCLUSTERED_WAVE_BUOYS_LAYER_CONFIG,
   WAVE_BUOY_CLUSTER_LABEL_LAYER_CONFIG,
@@ -28,6 +29,7 @@ type UseSiteLayer = {
   getSitesByDate: (localDate: string) => Promise<RawSiteFeatureCollection>;
   // Returns all sites with their latest observation (the base set the date merge fills in).
   getLatestSites: () => Promise<RawSiteFeatureCollection>;
+  getLatestDate: () => Promise<string>;
   // Per-product paint/layout so site products are visually distinguishable.
   // Default to the wave-buoy styling.
   clusterConfig?: Partial<CircleLayerSpecification>;
@@ -52,6 +54,7 @@ export function useSiteLayer({
   clusterLabelLayerId,
   getSitesByDate,
   getLatestSites,
+  getLatestDate,
   clusterConfig = WAVE_BUOYS_LAYER_CONFIG,
   unclusteredConfig = UNCLUSTERED_WAVE_BUOYS_LAYER_CONFIG,
   clusterLabelConfig = WAVE_BUOY_CLUSTER_LABEL_LAYER_CONFIG,
@@ -64,11 +67,20 @@ export function useSiteLayer({
       isError: s.productError[product],
     })),
   );
+  const isMooring = product === PRODUCT.MOORING_TIMESERIES_REALTIME;
+
+  const { data: latestDate, isLoading: isLatestDateLoading } = useQuery({
+    queryKey: [isMooring ? 'mooring_latest_date' : 'wave_buoy_latest_date'],
+    queryFn: getLatestDate,
+  });
+
+  const shouldFetchByDate =
+    enabled && !!date && !isLatestDateLoading && !!latestDate && date <= latestDate;
 
   const sitesByDateQuery = useQuery({
     queryKey: ['site_sites_by_date', product, date],
     queryFn: () => getSitesByDate(date),
-    enabled: enabled && !!date,
+    enabled: shouldFetchByDate,
   });
 
   const allSitesQuery = useQuery({
@@ -127,10 +139,14 @@ export function useSiteLayer({
       setProductErrorByProduct(product, true);
       return EMPTY_COLLECTION;
     });
-    const sitesByDatePromise = sitesByDateQuery.promise.catch(() => {
-      setProductErrorByProduct(product, true);
-      return EMPTY_COLLECTION;
-    });
+    // A disabled by-date query never settles its promise, so
+    // short-circuit to an empty collection instead of awaiting it.
+    const sitesByDatePromise = shouldFetchByDate
+      ? sitesByDateQuery.promise.catch(() => {
+          setProductErrorByProduct(product, true);
+          return EMPTY_COLLECTION;
+        })
+      : Promise.resolve(EMPTY_COLLECTION);
 
     const [allSites, sitesByDate] = await Promise.all([allSitesPromise, sitesByDatePromise]);
 
@@ -144,7 +160,15 @@ export function useSiteLayer({
       enableCluster: true,
       clusterRadius: 40,
     });
-  }, [allSitesQuery.promise, sitesByDateQuery.promise, date, map, sourceId, product]);
+  }, [
+    allSitesQuery.promise,
+    sitesByDateQuery.promise,
+    shouldFetchByDate,
+    date,
+    map,
+    sourceId,
+    product,
+  ]);
 
   const setupLayer = useCallback(async () => {
     if (layers.some(layer => !layer)) return;
@@ -170,5 +194,5 @@ export function useSiteLayer({
   useDidMountEffect(() => {
     if (!map.current || !loadComplete || !enabled) return;
     void setDataByDataset();
-  }, [loadComplete, date, enabled]);
+  }, [loadComplete, date, enabled, shouldFetchByDate]);
 }

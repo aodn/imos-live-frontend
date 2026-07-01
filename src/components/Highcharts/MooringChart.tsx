@@ -3,7 +3,7 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
 import type { MooringDataVariants, NominalDepthVariant, SiteFeature } from '@/types';
 import { toSiteChartData } from '@/helpers';
-import { formatLatLngToDirectional, toCompactDate, utcToLocalDateTime, today } from '@/utils';
+import { formatLatLngToDirectional, utcToLocalDateTime, today } from '@/utils';
 import { Dropdown } from '@/components/Dropdown';
 import { useDidMountEffect } from '@/hooks';
 import { useQuery } from '@tanstack/react-query';
@@ -165,7 +165,6 @@ export function MooringChart({ mooringData }: MooringChartProps) {
   const { data: latestMooringDate, isLoading: isLatestMooringDateLoading } = useQuery({
     queryKey: ['mooring_latest_date'],
     queryFn: getMooringLatestDate,
-    select: data => toCompactDate(data),
   });
 
   const { from, to } = useMemo(() => {

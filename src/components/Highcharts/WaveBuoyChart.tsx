@@ -3,7 +3,7 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
 import type { SiteFeature } from '@/types';
 import { toSiteChartData } from '@/helpers';
-import { formatLatLngToDirectional, toCompactDate, utcToLocalDateTime, today } from '@/utils';
+import { formatLatLngToDirectional, utcToLocalDateTime, today } from '@/utils';
 import { useDidMountEffect } from '@/hooks';
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useMemo, useRef } from 'react';
@@ -192,7 +192,6 @@ export function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartPro
   const { data: latestWaveBuoyDate, isLoading: isLatestWaveBuoyDateLoading } = useQuery({
     queryKey: ['wave_buoy_latest_date'],
     queryFn: getWaveBuoyLatestDate,
-    select: data => toCompactDate(data),
   });
 
   const { from, to } = useMemo(() => {

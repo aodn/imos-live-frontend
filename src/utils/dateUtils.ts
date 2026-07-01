@@ -62,12 +62,6 @@ export function toISOFromCompact(date: string): string {
   return dayjs(date, 'YYYYMMDD').format('YYYY-MM-DD');
 }
 
-/** Convert ISO format (yyyy-mm-dd) to compact date string (yyyymmdd)*/
-export function toCompactDate(date: string): string | undefined {
-  const parsed = dayjs(date, 'YYYY-MM-DD', true);
-  return parsed.isValid() ? parsed.format('YYYYMMDD') : undefined;
-}
-
 export function today() {
   return dayjs().format('YYYYMMDD');
 }
