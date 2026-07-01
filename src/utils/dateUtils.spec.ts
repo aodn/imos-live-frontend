@@ -1,31 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  getLastDates,
-  isBeforeDays,
-  localToUTC,
-  toCompactDate,
-  toISOFromCompact,
-  utcToLocalDateTime,
-} from './dateUtils';
+import { getLastDates, isBeforeDays, localToUTC, utcToLocalDateTime } from './dateUtils';
 
 // Pin to a fixed local time so the "today is..." functions are deterministic. The Playwright
 // config uses Australia/Sydney for its E2E run; we match the host timezone here implicitly
 // and assert in ranges that don't depend on it.
-
-describe('toISOFromCompact / toCompactDate', () => {
-  it('toISOFromCompact inserts dashes', () => {
-    expect(toISOFromCompact('20260529')).toBe('2026-05-29');
-  });
-
-  it('toCompactDate strips dashes', () => {
-    expect(toCompactDate('2026-05-29')).toBe('20260529');
-  });
-
-  it('toCompactDate returns undefined for malformed input', () => {
-    expect(toCompactDate('2026/05/29')).toBeUndefined();
-    expect(toCompactDate('not a date')).toBeUndefined();
-  });
-});
 
 describe('isBeforeDays', () => {
   it('returns true when a is within `days` days before b', () => {

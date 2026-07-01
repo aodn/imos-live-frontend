@@ -16,6 +16,8 @@ import {
   getLatestWaveBuoySites,
   getMooringSitesByDate,
   getWaveBuoySitesByDate,
+  getWaveBuoyLatestDate,
+  getMooringLatestDate,
 } from '@/api';
 import { useMapUIStore, openBottomDrawer } from '@/store';
 import { cn, isSmallScreen } from '@/utils';
@@ -106,6 +108,7 @@ export const MapComponent = memo(function MapComponent() {
     clusterLabelLayerId: WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID,
     getSitesByDate: getWaveBuoySitesByDate,
     getLatestSites: getLatestWaveBuoySites,
+    getLatestDate: getWaveBuoyLatestDate,
   });
   useSiteLayer({
     map,
@@ -114,6 +117,7 @@ export const MapComponent = memo(function MapComponent() {
     clusterLabelLayerId: MOORING_CLUSTER_LABEL_LAYER_ID,
     getSitesByDate: getMooringSitesByDate,
     getLatestSites: getLatestMooringSites,
+    getLatestDate: getMooringLatestDate,
     clusterConfig: MOORING_LAYER_CONFIG,
     unclusteredConfig: UNCLUSTERED_MOORING_LAYER_CONFIG,
   });
