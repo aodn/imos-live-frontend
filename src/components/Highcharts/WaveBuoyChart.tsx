@@ -34,6 +34,7 @@ import type Highcharts from 'highcharts/highstock';
 dayjs.extend(utc);
 
 export const WAVE_BUOY_MIN_DATE = 30;
+const WAVE_BUOY_DATA_GAP_THRESHOLD_MS = 24 * 60 * 60 * 1000;
 
 type WaveBuoyChartProps = {
   waveBuoysData: Omit<SiteFeature, 'type'>[];
@@ -360,6 +361,8 @@ export function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartPro
           series: {
             clip: true,
             cropThreshold: 0,
+            gapSize: WAVE_BUOY_DATA_GAP_THRESHOLD_MS,
+            gapUnit: 'value',
           },
         }}
         legend={{ enabled: false }}

@@ -25,6 +25,8 @@ dayjs.extend(utc);
 
 export const MOORING_MIN_DATE = 30;
 
+const MOORING_DATA_GAP_THRESHOLD_MS = 24 * 60 * 60 * 1000;
+
 type MooringVariableMeta = { key: MooringDataVariants; label: string; unit: string };
 const MOORING_VARIABLES: readonly MooringVariableMeta[] = [
   { key: 'TEMP', label: 'Temperature', unit: '°C' },
@@ -382,6 +384,8 @@ export function MooringChart({ mooringData }: MooringChartProps) {
           series: {
             clip: true,
             cropThreshold: 0,
+            gapSize: MOORING_DATA_GAP_THRESHOLD_MS,
+            gapUnit: 'value',
           },
         }}
         legend={{ enabled: true }}
