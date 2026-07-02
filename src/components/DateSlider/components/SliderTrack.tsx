@@ -352,6 +352,7 @@ export const SliderTrack = memo(function SliderTrack({
         aria-hidden="true"
       >
         <div className={cn('relative w-full h-full', classNames?.trackInner)} ref={trackRef}>
+          <div className={cn('absolute w-full', classNames?.trackInactive)} />
           {commonElements}
           {activeTrack}
         </div>
