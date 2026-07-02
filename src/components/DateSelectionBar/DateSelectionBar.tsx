@@ -114,7 +114,8 @@ export const DateSelectionBar = memo(function DateSelectionBar({
             classNames={{
               slider: 'frosted',
               sliderContainer: 'rounded-none',
-              trackActive: 'top-0 h-3 bg-imos-blue/60',
+              trackActive: 'hidden',
+              trackInactive: 'top-0 h-3 bg-imos-blue/60',
               scaleMark: 'bg-imos-black',
               scaleLabel: 'text-imos-black ml-2',
               cursorLine: 'bg-imos-blue/60',
