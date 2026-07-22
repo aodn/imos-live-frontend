@@ -11,6 +11,7 @@ export type Products = Record<
 export type MetaDataManifest = {
   products: Products;
   cache_version: string;
+  max_lods: number;
 };
 
 /**
@@ -21,7 +22,7 @@ export type MetaDataManifest = {
  * pipeline work.
  */
 export const TILE_BASE_URL: string =
-  import.meta.env.VITE_TILE_BASE_URL || 'https://dhxbyhlmab1yr.cloudfront.net/data_tiles';
+  import.meta.env.VITE_TILE_BASE_URL || 'http://localhost:8000/api/v1/das/tiler/data_tiles';
 
 export const getMetaDataManifest = async (): Promise<MetaDataManifest> => {
   const response = await axios.get<MetaDataManifest>(`${TILE_BASE_URL}/manifest`);

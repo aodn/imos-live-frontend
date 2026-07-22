@@ -13,7 +13,7 @@
 
 import { createHeatmapAtlasField } from './HeatmapAtlasField';
 import type { HeatmapAtlasFieldAPI } from './HeatmapAtlasField';
-import type { ProductManifest, ColorPalette, PalettePatch } from '../types';
+import type { ProductManifest, ColorPalette, PalettePatch, LodZoomThresholds } from '../types';
 import { throttle } from '../utils';
 
 export type { ColorPalette, PalettePatch };
@@ -33,7 +33,11 @@ export type HeatmapAtlasLayerInterface = mapboxgl.CustomLayerInterface & {
   setVisible: (visible: boolean) => void;
 };
 
-export function heatmapAtlasLayer(id: string, palette: ColorPalette): HeatmapAtlasLayerInterface {
+export function heatmapAtlasLayer(
+  id: string,
+  palette: ColorPalette,
+  lodZoomThresholds?: LodZoomThresholds,
+): HeatmapAtlasLayerInterface {
   let mapRef: mapboxgl.Map | null = null;
   // Stored so onRemove can detach them — anonymous handlers would leak.
   let onMoveEnd: (() => void) | null = null;
@@ -46,7 +50,12 @@ export function heatmapAtlasLayer(id: string, palette: ColorPalette): HeatmapAtl
 
     onAdd(map, gl) {
       mapRef = map;
-      this.field = createHeatmapAtlasField(map, gl as WebGL2RenderingContext, palette);
+      this.field = createHeatmapAtlasField(
+        map,
+        gl as WebGL2RenderingContext,
+        palette,
+        lodZoomThresholds,
+      );
 
       const forward = () => {
         if (this.visible) {

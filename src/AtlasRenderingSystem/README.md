@@ -42,6 +42,7 @@ The package is driven entirely through the two factory functions exported from `
      tileBaseUrl, // tiles resolved as `${tileBaseUrl}/${date}/{lod}/{cx}/{cy}.png`
      colorPalette,
      legendRange: [min, max],
+     lodZoomThresholds, // optional — see LOD zoom-activation thresholds
      beforeLayerId, // optional — Mapbox layer to insert beneath
    });
 
@@ -53,6 +54,7 @@ The package is driven entirely through the two factory functions exported from `
      tileBaseUrl,
      colorPalette,
      legendRange,
+     lodZoomThresholds, // optional — see LOD zoom-activation thresholds
      particleConfig, // optional — see Particle behaviour
    });
    ```
@@ -87,36 +89,35 @@ The manifest is the primary configuration file for each product. It controls til
   "valueRange": [-4.98, 4.46],
   "lods": {
     "1": { "grid": [3, 3], "chunkPx": [240, 192], "storedPx": [242, 194], "padding": 1 },
-    "2": {
-      "grid": [6, 5],
-      "chunkPx": [240, 192],
-      "storedPx": [242, 194],
-      "padding": 1,
-      "zoomThreshold": 5
-    },
-    "3": {
-      "grid": [12, 10],
-      "chunkPx": [240, 192],
-      "storedPx": [242, 194],
-      "padding": 1,
-      "zoomThreshold": 6
-    }
+    "2": { "grid": [6, 5], "chunkPx": [240, 192], "storedPx": [242, 194], "padding": 1 },
+    "3": { "grid": [12, 10], "chunkPx": [240, 192], "storedPx": [242, 194], "padding": 1 }
   }
 }
 ```
 
-| Field                     | What it controls                                                                                                      |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `bounds`                  | Geographic extent of the dataset                                                                                      |
-| `valueRange`              | `[rawMin, rawMax]` of the encoded scalar — used for RGB24 decoding                                                    |
-| `uRange`, `vRange`        | Velocity encoding ranges for particle products                                                                        |
-| `flagValues`              | _(categorical only)_ Sequential integer flag values, e.g. `[0,1,2,3,4]`. Presence flips the heatmap to discrete mode. |
-| `flagMeanings`            | _(categorical only)_ Human-readable label per flag value (same length as `flagValues`)                                |
-| `lods['N'].grid`          | `[cols, rows]` — how many chunks tile the region at this LOD                                                          |
-| `lods['N'].chunkPx`       | `[w, h]` — inner data pixels per tile (excludes padding). This is the geographic resolution knob.                     |
-| `lods['N'].storedPx`      | `[w, h]` — actual PNG pixel size (= `chunkPx + [2×padding, 2×padding]`)                                               |
-| `lods['N'].padding`       | Padding pixels on each side. Recommended: **1**. See guidance below.                                                  |
-| `lods['N'].zoomThreshold` | _(LOD2+)_ Minimum map zoom to activate this LOD. Defaults to `6`. LOD1 ignores it.                                    |
+| Field                | What it controls                                                                                                      |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `bounds`             | Geographic extent of the dataset                                                                                      |
+| `valueRange`         | `[rawMin, rawMax]` of the encoded scalar — used for RGB24 decoding                                                    |
+| `uRange`, `vRange`   | Velocity encoding ranges for particle products                                                                        |
+| `flagValues`         | _(categorical only)_ Sequential integer flag values, e.g. `[0,1,2,3,4]`. Presence flips the heatmap to discrete mode. |
+| `flagMeanings`       | _(categorical only)_ Human-readable label per flag value (same length as `flagValues`)                                |
+| `lods['N'].grid`     | `[cols, rows]` — how many chunks tile the region at this LOD                                                          |
+| `lods['N'].chunkPx`  | `[w, h]` — inner data pixels per tile (excludes padding). This is the geographic resolution knob.                     |
+| `lods['N'].storedPx` | `[w, h]` — actual PNG pixel size (= `chunkPx + [2×padding, 2×padding]`)                                               |
+| `lods['N'].padding`  | Padding pixels on each side. Recommended: **1**. See guidance below.                                                  |
+
+The manifest no longer carries a per-LOD zoom threshold — that's host-configured instead. See **LOD zoom-activation thresholds** below.
+
+### LOD zoom-activation thresholds
+
+Minimum map zoom to activate each on-demand LOD (LOD2+) is **not** part of the manifest — it's package config, independent of the tile API response. The package ships `DEFAULT_LOD_ZOOM_THRESHOLDS` (`{ '2': 6, '3': 6, '4': 6 }`) and every factory accepts an optional `lodZoomThresholds` override (keyed by LOD number as a string) that's merged over the default:
+
+- `createScalarAtlasLayer` / `createParticleAtlasLayer` — `options.lodZoomThresholds`
+- `heatmapAtlasLayer` / `particlesAtlasLayer` — 3rd positional arg
+- `createHeatmapAtlasField` / `createParticlesAtlasField` — 4th positional arg
+
+LOD1 is always active and ignores this map. A host app can, for example, key its own override by product (see `LOD_ZOOM_THRESHOLDS` in the consuming app's `src/constants/`) and pass the per-product map in at layer-creation time.
 
 **Categorical (discrete) products**
 
@@ -613,7 +614,7 @@ createChunkScheduler(
 ): ChunkSchedulerAPI
 ```
 
-`zoomThreshold` defaults to `DEFAULT_ZOOM_THRESHOLD = 6`. Pass `lodEntry.zoomThreshold` from the manifest to make it per-LOD.
+`zoomThreshold` defaults to `DEFAULT_ZOOM_THRESHOLD = 6`. `createLodSchedulers` (in `atlasFieldShared.ts`) passes the resolved per-LOD value from the host's `lodZoomThresholds` (see **LOD zoom-activation thresholds** above) merged over `DEFAULT_LOD_ZOOM_THRESHOLDS`.
 
 | Behaviour                | Detail                                                                                                                                                                                                                                                                                                                                                                        |
 | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

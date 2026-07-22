@@ -9,7 +9,8 @@ import mapboxgl from 'mapbox-gl';
 import type { ProductManifest, LodEntry, ColorPalette } from '../types';
 import { convertLogColorScaleToRamp, convertLinearColorScaleToRamp } from '../utils';
 import type { AtlasManagerAPI, ChunkSchedulerAPI } from '../webgl';
-import { createChunkScheduler, DEFAULT_ZOOM_THRESHOLD, MAX_LODS } from '../webgl';
+import { createChunkScheduler, MAX_LODS } from '../webgl';
+import type { LodZoomThresholds } from '../config/lodZoomThresholds';
 
 /** Palette → 256-stop color-ramp stop map (log or linear scale). */
 export function computeRamp(palette: ColorPalette): Record<string, string> {
@@ -85,13 +86,14 @@ export function computeUvTransform(lod1: LodEntry): {
 
 /**
  * Per-LOD zoom thresholds aligned with `lodsSorted`. LOD1 is always active
- * (-Infinity); LOD2+ default to `DEFAULT_ZOOM_THRESHOLD` when the manifest
- * omits one. Matches `ChunkScheduler.update`'s `zoom > threshold` activation.
+ * (-Infinity); LOD2+ read from `thresholds`, keyed by LOD number as a string.
+ * Matches `ChunkScheduler.update`'s `zoom > threshold` activation.
  */
-export function buildLodZoomThresholds(lodsSorted: LodEntry[]): number[] {
-  return lodsSorted.map((lod, i) =>
-    i === 0 ? -Infinity : (lod.zoomThreshold ?? DEFAULT_ZOOM_THRESHOLD),
-  );
+export function buildLodZoomThresholds(
+  lodsSorted: LodEntry[],
+  thresholds: LodZoomThresholds,
+): number[] {
+  return lodsSorted.map((_, i) => (i === 0 ? -Infinity : thresholds[String(i + 1)]));
 }
 
 /**
@@ -133,8 +135,9 @@ export function createLodSchedulers(params: {
   onChunkLoaded: (id: string) => void;
   bounds: { lonMin: number; lonMax: number; latMin: number; latMax: number };
   lodsSorted: LodEntry[];
+  lodZoomThresholds: LodZoomThresholds;
 }): ChunkSchedulerAPI[] {
-  const { atlas, tileBaseUrl, onChunkLoaded, bounds, lodsSorted } = params;
+  const { atlas, tileBaseUrl, onChunkLoaded, bounds, lodsSorted, lodZoomThresholds } = params;
   const schedulers: ChunkSchedulerAPI[] = [];
   for (let lodNum = 2; lodNum <= lodsSorted.length; lodNum++) {
     const lodEntry = lodsSorted[lodNum - 1];
@@ -145,7 +148,7 @@ export function createLodSchedulers(params: {
         onChunkLoaded,
         { ...bounds, cols: lodEntry.grid[0], rows: lodEntry.grid[1] },
         lodNum,
-        lodEntry.zoomThreshold,
+        lodZoomThresholds[String(lodNum)],
       ),
     );
   }

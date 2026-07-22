@@ -5,11 +5,11 @@
  */
 
 export const PRODUCT = {
-  GSLA_OCEAN_GEOSTROPHIC_CURRENT: 'model_sea_level_anomaly_gridded_realtime_vcur_ucur',
-  GSLA_ANOMALY_SEA_LEVELS: 'model_sea_level_anomaly_gridded_realtime_gsla',
-  AUSTEMP_HEATWAVE_SSTA_MOSAIC: 'satellite_austemp_heatwave_8day_ssta_mosaic',
-  AUSTEMP_HEATWAVE_SST_MOSAIC: 'satellite_austemp_heatwave_8day_sst_mosaic',
-  AUSTEMP_HEATWAVE_MCS_CATEGORY: 'satellite_austemp_heatwave_8day_mcs_category',
+  GSLA_OCEAN_GEOSTROPHIC_CURRENT: 'model_sea_level_anomaly_gridded_realtime:ucur+vcur',
+  GSLA_ANOMALY_SEA_LEVELS: 'model_sea_level_anomaly_gridded_realtime:gsla',
+  AUSTEMP_HEATWAVE_SSTA_MOSAIC: 'satellite_austemp_heatwave_8day:ssta_mosaic',
+  AUSTEMP_HEATWAVE_SST_MOSAIC: 'satellite_austemp_heatwave_8day:sst_mosaic',
+  AUSTEMP_HEATWAVE_MCS_CATEGORY: 'satellite_austemp_heatwave_8day:mcs_category',
   WAVE_BUOYS: 'wave-buoys',
   MOORING_TIMESERIES_REALTIME: 'mooring_timeseries_realtime',
 } as const;

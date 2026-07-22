@@ -20,6 +20,9 @@ export type {
 export { PRODUCTLEGENDS, HW_CATEGORY_LOOKUP, HW_CATEGORY_LEGEND_SCALES } from './legends';
 export type { LegendArgs } from './legends';
 
+// LOD zoom-activation thresholds
+export { LOD_ZOOM_THRESHOLDS } from './lodZoomThresholds';
+
 // Colors / palettes
 export {
   rdBuR,

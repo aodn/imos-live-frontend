@@ -1,5 +1,11 @@
 import type { TilesProduct } from '@/constants';
-import { PRODUCTLEGENDS, PRODUCTS, COLOR_OPTIONS, LAYERS_ORDER } from '@/constants';
+import {
+  PRODUCTLEGENDS,
+  PRODUCTS,
+  COLOR_OPTIONS,
+  LAYERS_ORDER,
+  LOD_ZOOM_THRESHOLDS,
+} from '@/constants';
 import { TILE_BASE_URL, productManifestQueryOptions, queryClient } from '@/api';
 import { buildProductPalette, validateCategoricalManifest } from '@/helpers';
 import type { AtlasLayerHandle, ScalarAtlasLayerOptions } from '@/AtlasRenderingSystem';
@@ -111,6 +117,7 @@ export function useAtlasLayer<H extends AtlasLayerHandle>({
       tileBaseUrl: `${TILE_BASE_URL}/${product}`,
       colorPalette: buildProductPalette(getProductLegend(product)),
       legendRange,
+      lodZoomThresholds: LOD_ZOOM_THRESHOLDS[product],
     });
 
     LAYERS_ORDER.forEach(id => {
