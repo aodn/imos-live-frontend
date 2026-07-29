@@ -12,7 +12,7 @@
  *     per-chunk as tiles arrive (progressive rendering, no animated crossfade).
  *
  * Caller contract:
- *   1. Call setSource(manifest, tileBaseUrl, legendRange) when date changes — resolves after the
+ *   1. Call setSource(manifest, buildTileUrl, legendRange) when date changes — resolves after the
  *      first LOD1 tile is uploaded; remaining tiles continue in the background.
  *   2. Call onMapMove(bounds, zoom) on every moveend / zoom event.
  *   3. Call setVisible(true/false) to control rendering.
@@ -24,7 +24,8 @@ import type { AtlasManagerAPI, ChunkSchedulerAPI } from '../webgl';
 import { createAtlasManager, makeScalarAtlasFs, scalarAtlasVs } from '../webgl';
 
 import { getColorRamp } from '../utils';
-import type { ProductManifest, ColorPalette, PalettePatch } from '../types';
+import type { ProductManifest, ColorPalette, PalettePatch, LodZoomThresholds } from '../types';
+import { DEFAULT_LOD_ZOOM_THRESHOLDS } from '../types';
 import {
   computeRamp,
   buildDiscreteRampPixels,
@@ -48,7 +49,7 @@ export type { ColorPalette, PalettePatch };
 export type HeatmapAtlasFieldAPI = {
   setSource: (
     manifest: ProductManifest,
-    tileBaseUrl: string,
+    buildTileUrl: (id: string) => string,
     legendRange: [number, number],
   ) => Promise<void>;
   updatePalette: (patch: PalettePatch) => void;
@@ -65,7 +66,13 @@ export function createHeatmapAtlasField(
   map: mapboxgl.Map,
   gl: WebGL2RenderingContext,
   palette: ColorPalette,
+  lodZoomThresholds?: LodZoomThresholds,
 ): HeatmapAtlasFieldAPI {
+  const resolvedLodZoomThresholds: LodZoomThresholds = {
+    ...DEFAULT_LOD_ZOOM_THRESHOLDS,
+    ...lodZoomThresholds,
+  };
+
   // ── Shader program ───────────────────────────────────────────────────────
   let programInfo: twgl.ProgramInfo | null = null;
   let bufferInfo: twgl.BufferInfo | null = null;
@@ -93,7 +100,7 @@ export function createHeatmapAtlasField(
   /** Per-LOD zoom thresholds, aligned with the sorted LOD list. Drives the
    *  dynamic u_lod_count below so a resident LOD2+ chunk left over from a
    *  deeper zoom doesn't bleed through at a zoom where its LOD is inactive. */
-  let lodZoomThresholds: number[] = [];
+  let activeLodZoomThresholds: number[] = [];
   /** chunkPx / storedPx — maps local [0,1] UV into the data region (excluding padding). */
   let uvScale: [number, number] | null = null;
   /** padding / storedPx — shifts UV past the padding border. */
@@ -180,7 +187,7 @@ export function createHeatmapAtlasField(
 
   async function setSource(
     manifest: ProductManifest,
-    tileBaseUrl: string,
+    buildTileUrl: (id: string) => string,
     newLegendRange: [number, number],
   ): Promise<void> {
     const gen = ++fetchGeneration;
@@ -193,7 +200,7 @@ export function createHeatmapAtlasField(
     currentPalette = { ...currentPalette, legendRange: newLegendRange };
     ({ uvScale, uvOffset } = computeUvTransform(lod1));
     lodGridsFlat = buildLodGridsFlat(lodsSorted);
-    lodZoomThresholds = buildLodZoomThresholds(lodsSorted);
+    activeLodZoomThresholds = buildLodZoomThresholds(lodsSorted, resolvedLodZoomThresholds);
 
     // Categorical products carry `flagValues` in the manifest; presence flips
     // the field into discrete mode (NEAREST atlas/ramp filtering, one ramp
@@ -218,16 +225,17 @@ export function createHeatmapAtlasField(
 
     schedulers = createLodSchedulers({
       atlas,
-      tileBaseUrl,
+      buildTileUrl,
       onChunkLoaded,
       bounds: manifest.bounds,
       lodsSorted,
+      lodZoomThresholds: resolvedLodZoomThresholds,
     });
 
     // Fetch LOD1 progressively — resolves on the first uploaded tile so the
     // caller can reveal the layer immediately; each tile triggers a repaint.
     await preloadLod1({
-      tileBaseUrl,
+      buildTileUrl,
       lod1Ids: lod1ChunkIds(lod1),
       atlas,
       isStale: () => gen !== fetchGeneration,
@@ -282,7 +290,7 @@ export function createHeatmapAtlasField(
       // Dynamic: zoom-gated active LOD count. Caps the shader's LOD loop so
       // stale LOD2+ chunks resident from a deeper-zoom session can't show as
       // intermediate-LOD patches once the user has zoomed back out.
-      u_lod_count: computeActiveLodCount(map.getZoom(), lodZoomThresholds),
+      u_lod_count: computeActiveLodCount(map.getZoom(), activeLodZoomThresholds),
       u_bounds: mapBounds,
       u_data_bounds: dataBounds,
       u_uv_scale: uvScale,

@@ -46,7 +46,10 @@ export const DateSelectionBar = memo(function DateSelectionBar({
 
   const { data: latestDate } = useQuery({
     ...metaDataManifestQueryOptions(),
-    select: data => data.products[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]?.available_dates.at(-1),
+    select: data =>
+      data.products
+        .find(p => p.id === PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT)
+        ?.available_dates.at(-1),
     enabled: !isDateInQueryParams, //if date already selected, stop.
     retry: false,
   });

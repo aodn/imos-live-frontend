@@ -145,18 +145,18 @@ describe('buildLodZoomThresholds', () => {
   it('returns -Infinity for LOD1 and the per-LOD threshold for LOD2+', () => {
     const lods: LodEntry[] = [
       { ...LOD_ENTRY, grid: [3, 2] },
-      { ...LOD_ENTRY, grid: [6, 4], zoomThreshold: 5 },
-      { ...LOD_ENTRY, grid: [12, 10], zoomThreshold: 7 },
+      { ...LOD_ENTRY, grid: [6, 4] },
+      { ...LOD_ENTRY, grid: [12, 10] },
     ];
-    expect(buildLodZoomThresholds(lods)).toEqual([-Infinity, 5, 7]);
+    expect(buildLodZoomThresholds(lods, { '2': 5, '3': 7 })).toEqual([-Infinity, 5, 7]);
   });
 
-  it('defaults missing LOD2+ thresholds to DEFAULT_ZOOM_THRESHOLD (6)', () => {
+  it('reads whatever thresholds map it is given, LOD by LOD', () => {
     const lods: LodEntry[] = [
       { ...LOD_ENTRY, grid: [3, 2] },
       { ...LOD_ENTRY, grid: [6, 4] },
     ];
-    expect(buildLodZoomThresholds(lods)).toEqual([-Infinity, 6]);
+    expect(buildLodZoomThresholds(lods, { '2': 6 })).toEqual([-Infinity, 6]);
   });
 });
 
@@ -252,7 +252,7 @@ describe('preloadLod1 (progressive)', () => {
     vi.stubGlobal(
       'fetch',
       vi.fn(async (url: string) => {
-        if (url.endsWith('1/0/0.png')) {
+        if (url.endsWith('1/0/0')) {
           await firstReady;
         }
         return { ok: true, blob: async () => new Blob() } as Response;
@@ -262,7 +262,7 @@ describe('preloadLod1 (progressive)', () => {
     const { atlas, uploads } = makeAtlas();
     const ids = ['1/0/0', '1/1/0', '1/2/0'];
     const promise = preloadLod1({
-      tileBaseUrl: 'http://x',
+      buildTileUrl: (id: string) => `http://x/${id}`,
       lod1Ids: ids,
       atlas,
       isStale: () => false,
@@ -294,7 +294,7 @@ describe('preloadLod1 (progressive)', () => {
     const { atlas } = makeAtlas();
     await expect(
       preloadLod1({
-        tileBaseUrl: 'http://x',
+        buildTileUrl: (id: string) => `http://x/${id}`,
         lod1Ids: ['1/0/0', '1/1/0'],
         atlas,
         isStale: () => false,
@@ -310,7 +310,7 @@ describe('preloadLod1 (progressive)', () => {
 
     const { atlas, uploads } = makeAtlas();
     await preloadLod1({
-      tileBaseUrl: 'http://x',
+      buildTileUrl: (id: string) => `http://x/${id}`,
       lod1Ids: ['1/0/0'],
       atlas,
       isStale: () => true,
@@ -321,7 +321,7 @@ describe('preloadLod1 (progressive)', () => {
   it('resolves immediately with no ids', async () => {
     const { atlas, uploads } = makeAtlas();
     await preloadLod1({
-      tileBaseUrl: 'http://x',
+      buildTileUrl: (id: string) => `http://x/${id}`,
       lod1Ids: [],
       atlas,
       isStale: () => false,
@@ -352,7 +352,7 @@ describe('preloadAllLod1 (blocking)', () => {
     } as unknown as AtlasManagerAPI;
 
     await preloadAllLod1({
-      tileBaseUrl: 'http://x',
+      buildTileUrl: (id: string) => `http://x/${id}`,
       lod1Ids: ['1/0/0', '1/1/0', '1/2/0'],
       atlas,
       isStale: () => false,
@@ -367,7 +367,7 @@ describe('preloadAllLod1 (blocking)', () => {
     } as unknown as AtlasManagerAPI;
 
     await preloadAllLod1({
-      tileBaseUrl: 'http://x',
+      buildTileUrl: (id: string) => `http://x/${id}`,
       lod1Ids: ['1/0/0', '1/1/0'],
       atlas,
       isStale: () => true,

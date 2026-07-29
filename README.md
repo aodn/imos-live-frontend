@@ -52,7 +52,7 @@ Layer paint/layout config lives in `src/constants/layerSpecs.ts`.
    pnpm install
    ```
 
-1. Configure environment variables. Copy [`.env.example`](.env.example) to `.env` (or `.env.local`) and fill in the values — at minimum `VITE_MAPBOX_KEY` (your Mapbox access token) and `VITE_TILE_BASE_URL` (the tile / manifest origin). See `.env.example` for the full list of supported variables.
+1. Configure environment variables. Copy [`.env.example`](.env.example) to `.env` (or `.env.local`) and fill in the values — at minimum `VITE_MAPBOX_KEY` (your Mapbox access token). See `.env.example` for the full list of supported variables.
 
    ```
    cp .env.example .env
@@ -71,6 +71,5 @@ The application currently makes two kinds of HTTP calls:
 - **Wave-buoy REST** — relative path `/api/v1/...`. In production this is
   routed by CloudFront to the OGC API; in development `vite.config.ts`
   proxies it to `https://portal.edge.aodn.org.au`.
-- **Tile / manifest data** — absolute URL built from the `VITE_TILE_BASE_URL`
-  environment variable (see [`.env.example`](.env.example)). No proxy is
-  needed because the URL is fully-qualified.
+- **Tile / manifest data** — absolute URL built from `TILE_BASE_PATH` in
+  `src/api/tiles.ts`. No proxy is needed because the URL is fully-qualified.

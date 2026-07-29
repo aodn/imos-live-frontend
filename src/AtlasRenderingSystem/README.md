@@ -25,11 +25,11 @@ This package is **self-contained and UI-framework-agnostic** (but Mapbox-specifi
 
 The package is driven entirely through the two factory functions exported from `index.ts`. The host owns product definitions, UI, and data fetching; the package owns the GPU rendering. Integrating a product takes four steps — none of them touch atlas, shader, or scheduler code.
 
-1. **Generate tiles** — produce a `manifest.json` plus PNG tiles named `{lod}/{cx}/{cy}.png`. The manifest is the package's primary input contract; see [Tile & LOD configuration](#tile--lod-configuration-manifestjson) for every field.
+1. **Generate tiles** — produce a `manifest.json` plus PNG tiles addressable as `{lod}/{cx}/{cy}` (served at whatever URL shape the host's `buildTileUrl` constructs, e.g. path segments and/or `dataset`/`variable`/`datetime` query params). The manifest is the package's primary input contract; see [Tile & LOD configuration](#tile--lod-configuration-manifestjson) for every field.
 
 2. **Build a `ColorPalette`** — the package uploads this as the colour-ramp texture. It is a plain object (the `ColorPalette` type is exported from `types.ts`); the host constructs it from whatever legend/colour config it uses. See [Visual appearance](#visual-appearance) for what `legendRange` vs the manifest's `valueRange` control, and the categorical notes below for discrete products.
 
-3. **Create the layer** — call the factory for the product type, passing a Mapbox map, a layer id, a `fetchManifest(date)` callback, a `tileBaseUrl`, the `colorPalette`, and a `legendRange`:
+3. **Create the layer** — call the factory for the product type, passing a Mapbox map, a layer id, a `fetchManifest(date)` callback, a `tileBaseUrl` (plus `dataset`/`variable`), the `colorPalette`, and a `legendRange`:
 
    ```ts
    import { createScalarAtlasLayer, createParticleAtlasLayer } from './AtlasRenderingSystem';
@@ -39,9 +39,12 @@ The package is driven entirely through the two factory functions exported from `
      map, // mapbox-gl Map
      layerId: 'my-product',
      fetchManifest, // (date: string) => Promise<ProductManifest>
-     tileBaseUrl, // tiles resolved as `${tileBaseUrl}/${date}/{lod}/{cx}/{cy}.png`
+     tileBaseUrl, // tiles resolved as `${tileBaseUrl}/{lod}/{cx}/{cy}?dataset=...&variable=...&datetime=${date}`
+     dataset, // sent as the `dataset` query param on every tile request
+     variable, // sent as the `variable` query param on every tile request
      colorPalette,
      legendRange: [min, max],
+     lodZoomThresholds, // optional — see LOD zoom-activation thresholds
      beforeLayerId, // optional — Mapbox layer to insert beneath
    });
 
@@ -51,8 +54,11 @@ The package is driven entirely through the two factory functions exported from `
      layerId,
      fetchManifest,
      tileBaseUrl,
+     dataset,
+     variable,
      colorPalette,
      legendRange,
+     lodZoomThresholds, // optional — see LOD zoom-activation thresholds
      particleConfig, // optional — see Particle behaviour
    });
    ```
@@ -87,36 +93,35 @@ The manifest is the primary configuration file for each product. It controls til
   "valueRange": [-4.98, 4.46],
   "lods": {
     "1": { "grid": [3, 3], "chunkPx": [240, 192], "storedPx": [242, 194], "padding": 1 },
-    "2": {
-      "grid": [6, 5],
-      "chunkPx": [240, 192],
-      "storedPx": [242, 194],
-      "padding": 1,
-      "zoomThreshold": 5
-    },
-    "3": {
-      "grid": [12, 10],
-      "chunkPx": [240, 192],
-      "storedPx": [242, 194],
-      "padding": 1,
-      "zoomThreshold": 6
-    }
+    "2": { "grid": [6, 5], "chunkPx": [240, 192], "storedPx": [242, 194], "padding": 1 },
+    "3": { "grid": [12, 10], "chunkPx": [240, 192], "storedPx": [242, 194], "padding": 1 }
   }
 }
 ```
 
-| Field                     | What it controls                                                                                                      |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `bounds`                  | Geographic extent of the dataset                                                                                      |
-| `valueRange`              | `[rawMin, rawMax]` of the encoded scalar — used for RGB24 decoding                                                    |
-| `uRange`, `vRange`        | Velocity encoding ranges for particle products                                                                        |
-| `flagValues`              | _(categorical only)_ Sequential integer flag values, e.g. `[0,1,2,3,4]`. Presence flips the heatmap to discrete mode. |
-| `flagMeanings`            | _(categorical only)_ Human-readable label per flag value (same length as `flagValues`)                                |
-| `lods['N'].grid`          | `[cols, rows]` — how many chunks tile the region at this LOD                                                          |
-| `lods['N'].chunkPx`       | `[w, h]` — inner data pixels per tile (excludes padding). This is the geographic resolution knob.                     |
-| `lods['N'].storedPx`      | `[w, h]` — actual PNG pixel size (= `chunkPx + [2×padding, 2×padding]`)                                               |
-| `lods['N'].padding`       | Padding pixels on each side. Recommended: **1**. See guidance below.                                                  |
-| `lods['N'].zoomThreshold` | _(LOD2+)_ Minimum map zoom to activate this LOD. Defaults to `6`. LOD1 ignores it.                                    |
+| Field                | What it controls                                                                                                      |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `bounds`             | Geographic extent of the dataset                                                                                      |
+| `valueRange`         | `[rawMin, rawMax]` of the encoded scalar — used for RGB24 decoding                                                    |
+| `uRange`, `vRange`   | Velocity encoding ranges for particle products                                                                        |
+| `flagValues`         | _(categorical only)_ Sequential integer flag values, e.g. `[0,1,2,3,4]`. Presence flips the heatmap to discrete mode. |
+| `flagMeanings`       | _(categorical only)_ Human-readable label per flag value (same length as `flagValues`)                                |
+| `lods['N'].grid`     | `[cols, rows]` — how many chunks tile the region at this LOD                                                          |
+| `lods['N'].chunkPx`  | `[w, h]` — inner data pixels per tile (excludes padding). This is the geographic resolution knob.                     |
+| `lods['N'].storedPx` | `[w, h]` — actual PNG pixel size (= `chunkPx + [2×padding, 2×padding]`)                                               |
+| `lods['N'].padding`  | Padding pixels on each side. Recommended: **1**. See guidance below.                                                  |
+
+The manifest no longer carries a per-LOD zoom threshold — that's host-configured instead. See **LOD zoom-activation thresholds** below.
+
+### LOD zoom-activation thresholds
+
+Minimum map zoom to activate each on-demand LOD (LOD2+) is **not** part of the manifest — it's package config, independent of the tile API response. The package ships `DEFAULT_LOD_ZOOM_THRESHOLDS` (`{ '2': 6, '3': 6, '4': 6 }`) and every factory accepts an optional `lodZoomThresholds` override (keyed by LOD number as a string) that's merged over the default:
+
+- `createScalarAtlasLayer` / `createParticleAtlasLayer` — `options.lodZoomThresholds`
+- `heatmapAtlasLayer` / `particlesAtlasLayer` — 3rd positional arg
+- `createHeatmapAtlasField` / `createParticlesAtlasField` — 4th positional arg
+
+LOD1 is always active and ignores this map. A host app can, for example, key its own override by product (see `LOD_ZOOM_THRESHOLDS` in the consuming app's `src/constants/`) and pass the per-product map in at layer-creation time.
 
 **Categorical (discrete) products**
 
@@ -464,8 +469,9 @@ manifest.json
     │
     ▼
 host binding → createScalarAtlasLayer / createParticleAtlasLayer
-    │  handle.setSource(date) calls fetchManifest(date), then
-    │  layer.setSource(manifest, `${tileBaseUrl}/${date}`, legendRange)
+    │  handle.setSource(date) calls fetchManifest(date), builds
+    │  buildTileUrl = id => `${tileBaseUrl}/${id}?dataset=...&variable=...&datetime=${date}`, then
+    │  layer.setSource(manifest, buildTileUrl, legendRange)
     ▼
 HeatmapAtlasField / ParticlesAtlasField  (setSource)
     │  1. sort manifest.lods numerically
@@ -562,7 +568,7 @@ When a LOD2+ chunk is uploaded and the pool is full, the chunk with the oldest `
 Orchestrates the atlas, schedulers, and LOD controller for scalar overlay products.
 
 ```ts
-setSource(manifest, tileBaseUrl, legendRange): Promise<void>
+setSource(manifest, buildTileUrl, legendRange): Promise<void>
 updatePalette(patch: PalettePatch): void   // legendRange, rawColors, and/or scale
 setVisible(visible: boolean): void
 onMapMove(bounds: LngLatBounds, zoom: number): void
@@ -583,7 +589,7 @@ A `fetchGeneration` counter discards stale upload callbacks if `setSource` is ca
 Orchestrates the atlas, schedulers, and LOD controller for the ocean current particle product.
 
 ```ts
-setSource(manifest, tileBaseUrl, legendRange): Promise<void>
+setSource(manifest, buildTileUrl, legendRange): Promise<void>
 startAnimation(): void
 stopAnimation(): void
 draw(): void
@@ -608,12 +614,12 @@ One instance per on-demand LOD. Manages the fetch queue for that LOD.
 
 ```ts
 createChunkScheduler(
-  atlas, tileBaseUrl, onChunkLoaded, region,
+  atlas, buildTileUrl, onChunkLoaded, region,
   lod, zoomThreshold?
 ): ChunkSchedulerAPI
 ```
 
-`zoomThreshold` defaults to `DEFAULT_ZOOM_THRESHOLD = 6`. Pass `lodEntry.zoomThreshold` from the manifest to make it per-LOD.
+`zoomThreshold` defaults to `DEFAULT_ZOOM_THRESHOLD = 6`. `createLodSchedulers` (in `atlasFieldShared.ts`) passes the resolved per-LOD value from the host's `lodZoomThresholds` (see **LOD zoom-activation thresholds** above) merged over `DEFAULT_LOD_ZOOM_THRESHOLDS`.
 
 | Behaviour                | Detail                                                                                                                                                                                                                                                                                                                                                                        |
 | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

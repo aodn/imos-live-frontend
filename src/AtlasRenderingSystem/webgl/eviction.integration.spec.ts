@@ -95,7 +95,7 @@ function assertBijection(chunkSlots: Int32Array) {
   }
 }
 
-const NW_CHUNK_URL = 'http://x/2/0/0.png'; // chunk (cx=0, cy=0): lon 0..5, lat 36..40
+const NW_CHUNK_URL = 'http://x/2/0/0'; // chunk (cx=0, cy=0): lon 0..5, lat 36..40
 
 describe('eviction integration (AtlasManager + ChunkScheduler)', () => {
   let clock = 0;
@@ -127,7 +127,14 @@ describe('eviction integration (AtlasManager + ChunkScheduler)', () => {
     vi.stubGlobal('fetch', fetchMock);
 
     const onChunk = vi.fn();
-    const scheduler = createChunkScheduler(atlas, 'http://x', onChunk, REGION, 2, 0);
+    const scheduler = createChunkScheduler(
+      atlas,
+      (id: string) => `http://x/${id}`,
+      onChunk,
+      REGION,
+      2,
+      0,
+    );
 
     // ── Visit the NW corner — chunk (0,0) loads ────────────────────────────────
     scheduler.update({ west: 1, east: 4, south: 37, north: 39 }, 8);

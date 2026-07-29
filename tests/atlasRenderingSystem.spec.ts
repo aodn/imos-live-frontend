@@ -18,6 +18,11 @@
  *   - date change triggers a manifest fetch keyed by the new date
  *   - rapid date changes resolve cleanly (fetchGeneration guard)
  */
+// Import directly from '@/api/tiles' rather than the '@/api' barrel — the
+// barrel re-exports './site', which pulls in '@/helpers' -> 'mapImageExport.ts'
+// -> '@/components' (the whole component tree, incl. Highcharts/CSS modules).
+// Playwright's Node-side spec transform can't handle those non-JS assets.
+import { extractProductVariables } from '@/api/tiles';
 import { PRODUCT, PRODUCTS } from '@/constants';
 import { serialize } from '@/store/serialization';
 import type { Page, Route } from '@playwright/test';
@@ -68,30 +73,25 @@ const SCALAR_MANIFEST = {
   },
 };
 
-// Top-level metadata manifest (`/data_tiles/manifest`). Layer hooks gate their
-// first tile load on this resolving (via `manifestLoaded`) and validate the
-// selected date against `available_dates`, so the products under test must list
-// the dates these tests exercise (default day and the +1 day).
+// Top-level metadata manifest (`/products`). Layer hooks gate their first tile
+// load on this resolving (via `manifestLoaded`) and validate the selected date
+// against `available_dates`, so the products under test must list the dates
+// these tests exercise (default day and the +1 day).
 const AVAILABLE_DATES = [defaultDaySelected, nextDaySelected];
 const METADATA_MANIFEST = {
-  cache_version: 'test',
-  products: Object.fromEntries(
-    (
-      [
-        GSLA_PARTICLE_PRODUCT,
-        GSLA_ANOMALY_PRODUCT,
-        PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC,
-        PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC,
-        PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY,
-      ] as const
-    ).map(product => [
-      product,
-      {
-        available_dates: AVAILABLE_DATES,
-        full_date_range: { start: AVAILABLE_DATES[0], end: AVAILABLE_DATES.at(-1)! },
-      },
-    ]),
-  ),
+  products: (
+    [
+      GSLA_PARTICLE_PRODUCT,
+      GSLA_ANOMALY_PRODUCT,
+      PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC,
+      PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC,
+      PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY,
+    ] as const
+  ).map(id => ({
+    id,
+    available_dates: AVAILABLE_DATES,
+    full_date_range: { start: AVAILABLE_DATES[0], end: AVAILABLE_DATES.at(-1)! },
+  })),
 };
 
 type LayerSnapshot = {
@@ -192,24 +192,29 @@ async function enableProduct(page: Page, productName: string) {
 test.beforeEach(async ({ page }) => {
   await page.clock.install({ time: currentDate });
 
-  // Top-level metadata manifest powering per-product date availability. Anchored
-  // to `/manifest` (no `.json`) so it doesn't clash with the per-date route below.
-  await page.route(/\/data_tiles\/manifest(?:$|\?)/, async (route: Route) => {
+  // Top-level metadata manifest powering per-product date availability:
+  // `/collections/{collectionId}/products`.
+  await page.route(/\/collections\/[^/]+\/products(?:$|\?)/, async (route: Route) => {
     await route.fulfill({ json: METADATA_MANIFEST });
   });
 
-  await page.route('**/data_tiles/**/manifest.json', async (route: Route) => {
-    const url = route.request().url();
-    if (url.includes(GSLA_PARTICLE_PRODUCT)) {
+  // Per-product-per-date manifest: `/collections/{collectionId}/data_tiles/manifest
+  // ?dataset=...&variable=...&datetime=...`. Routed by the `dataset`/`variable`
+  // query params rather than a path segment, per the new tile-fetch contract.
+  const { variable: particleVariable } = extractProductVariables(GSLA_PARTICLE_PRODUCT);
+  await page.route(/\/data_tiles\/manifest(?:\?|$)/, async (route: Route) => {
+    const url = new URL(route.request().url());
+    if (url.searchParams.get('variable') === particleVariable) {
       await route.fulfill({ json: PARTICLE_MANIFEST });
     } else {
       await route.fulfill({ json: SCALAR_MANIFEST });
     }
   });
 
-  // Abort tile PNGs — the layer enters its alpha-mask-discard state which is
-  // fine for layer-contract tests.
-  await page.route(/data_tiles\/.+\/\d+\/\d+\/\d+\.png$/, route => route.abort());
+  // Abort tile fetches — the layer enters its alpha-mask-discard state which is
+  // fine for layer-contract tests. New shape: `/data_tiles/{lod}/{cx}/{cy}?...`
+  // (no extension).
+  await page.route(/\/data_tiles\/\d+\/\d+\/\d+(?:\?|$)/, route => route.abort());
 
   // Keep wave-buoy fetches quiet so they don't interfere — the default URL
   // enables Wave Buoys, so the page would otherwise log errors.
@@ -293,11 +298,16 @@ test.describe('HeatmapAtlasLayer / HeatmapAtlasField', () => {
   });
 
   test('manifest fetch is keyed by the URL date on day change', async ({ page }) => {
-    const nextManifest = page.waitForRequest(
-      req =>
-        req.url().includes(GSLA_ANOMALY_PRODUCT) &&
-        req.url().includes(`/${nextDaySelected}/manifest.json`),
-    );
+    const { dataset, variable } = extractProductVariables(GSLA_ANOMALY_PRODUCT);
+    const nextManifest = page.waitForRequest(req => {
+      const url = new URL(req.url());
+      return (
+        url.pathname.endsWith('/data_tiles/manifest') &&
+        url.searchParams.get('dataset') === dataset &&
+        url.searchParams.get('variable') === variable &&
+        url.searchParams.get('datetime') === nextDaySelected
+      );
+    });
 
     const sliderHandle = page.getByRole('slider', { name: 'point handle' });
     await sliderHandle.waitFor({ state: 'visible' });
@@ -384,11 +394,16 @@ test.describe('ParticlesAtlasLayer / ParticlesAtlasField', () => {
   });
 
   test('manifest fetch is keyed by the URL date on day change', async ({ page }) => {
-    const nextManifest = page.waitForRequest(
-      req =>
-        req.url().includes(GSLA_PARTICLE_PRODUCT) &&
-        req.url().includes(`/${nextDaySelected}/manifest.json`),
-    );
+    const { dataset, variable } = extractProductVariables(GSLA_PARTICLE_PRODUCT);
+    const nextManifest = page.waitForRequest(req => {
+      const url = new URL(req.url());
+      return (
+        url.pathname.endsWith('/data_tiles/manifest') &&
+        url.searchParams.get('dataset') === dataset &&
+        url.searchParams.get('variable') === variable &&
+        url.searchParams.get('datetime') === nextDaySelected
+      );
+    });
 
     const sliderHandle = page.getByRole('slider', { name: 'point handle' });
     await sliderHandle.waitFor({ state: 'visible' });

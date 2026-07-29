@@ -102,7 +102,7 @@ describe('ChunkScheduler', () => {
     const onChunk = vi.fn();
     const scheduler = createChunkScheduler(
       atlas,
-      'http://x',
+      (id: string) => `http://x/${id}`,
       onChunk,
       REGION,
       2,
@@ -126,7 +126,14 @@ describe('ChunkScheduler', () => {
     const { fetchMock, pendingUrls } = controllableFetch();
     vi.stubGlobal('fetch', fetchMock);
     const atlas = makeAtlas();
-    const scheduler = createChunkScheduler(atlas, 'http://x', vi.fn(), REGION, 2, 0);
+    const scheduler = createChunkScheduler(
+      atlas,
+      (id: string) => `http://x/${id}`,
+      vi.fn(),
+      REGION,
+      2,
+      0,
+    );
 
     // Viewport covers a single chunk at (cx=1, cy=2), lon 10..20, lat 10..20.
     // The 1-chunk buffer ring adds 8 more; total queued = 9, but CONCURRENCY=6 caps
@@ -135,14 +142,21 @@ describe('ChunkScheduler', () => {
 
     const urls = pendingUrls();
     expect(urls.length).toBe(6); // concurrency cap
-    expect(urls).toContain('http://x/2/1/2.png'); // viewport priority 0 — always dispatched
+    expect(urls).toContain('http://x/2/1/2'); // viewport priority 0 — always dispatched
   });
 
   it('caps in-flight fetches at the concurrency limit (6)', async () => {
     const { fetchMock, pendingCount } = controllableFetch();
     vi.stubGlobal('fetch', fetchMock);
     const atlas = makeAtlas();
-    const scheduler = createChunkScheduler(atlas, 'http://x', vi.fn(), REGION, 2, 0);
+    const scheduler = createChunkScheduler(
+      atlas,
+      (id: string) => `http://x/${id}`,
+      vi.fn(),
+      REGION,
+      2,
+      0,
+    );
 
     // Large viewport — many chunks needed, but only 6 should be in flight at any moment
     scheduler.update({ west: 0, east: 60, south: 0, north: 40 }, 8);
@@ -153,7 +167,14 @@ describe('ChunkScheduler', () => {
     const { fetchMock, pendingCount, resolveUrl, pendingUrls } = controllableFetch();
     vi.stubGlobal('fetch', fetchMock);
     const atlas = makeAtlas();
-    const scheduler = createChunkScheduler(atlas, 'http://x', vi.fn(), REGION, 2, 0);
+    const scheduler = createChunkScheduler(
+      atlas,
+      (id: string) => `http://x/${id}`,
+      vi.fn(),
+      REGION,
+      2,
+      0,
+    );
 
     scheduler.update({ west: 0, east: 60, south: 0, north: 40 }, 8);
     expect(pendingCount()).toBe(6);
@@ -169,7 +190,14 @@ describe('ChunkScheduler', () => {
     const { fetchMock, pendingUrls, pendingCount } = controllableFetch();
     vi.stubGlobal('fetch', fetchMock);
     const atlas = makeAtlas();
-    const scheduler = createChunkScheduler(atlas, 'http://x', vi.fn(), REGION, 2, 0);
+    const scheduler = createChunkScheduler(
+      atlas,
+      (id: string) => `http://x/${id}`,
+      vi.fn(),
+      REGION,
+      2,
+      0,
+    );
 
     // Initial viewport in the NW (cx=0, cy=0)
     scheduler.update({ west: 1, east: 9, south: 31, north: 39 }, 8);
@@ -181,7 +209,7 @@ describe('ChunkScheduler', () => {
 
     await new Promise(r => setTimeout(r, 0));
     // Old NW chunks should no longer be pending
-    expect(pendingUrls().some(u => u.endsWith('/0/0.png'))).toBe(false);
+    expect(pendingUrls().some(u => u.endsWith('/0/0'))).toBe(false);
     expect(pendingCount()).toBeGreaterThan(0);
   });
 
@@ -189,7 +217,14 @@ describe('ChunkScheduler', () => {
     const { fetchMock } = controllableFetch();
     vi.stubGlobal('fetch', fetchMock);
     const atlas = makeAtlas();
-    const scheduler = createChunkScheduler(atlas, 'http://x', vi.fn(), REGION, 2, 0);
+    const scheduler = createChunkScheduler(
+      atlas,
+      (id: string) => `http://x/${id}`,
+      vi.fn(),
+      REGION,
+      2,
+      0,
+    );
 
     // Pre-load some viewport chunks
     atlas.uploaded.add('2/1/2');
@@ -208,18 +243,32 @@ describe('ChunkScheduler', () => {
     const atlas = makeAtlas();
     atlas.uploaded.add('2/1/2');
 
-    const scheduler = createChunkScheduler(atlas, 'http://x', vi.fn(), REGION, 2, 0);
+    const scheduler = createChunkScheduler(
+      atlas,
+      (id: string) => `http://x/${id}`,
+      vi.fn(),
+      REGION,
+      2,
+      0,
+    );
     scheduler.update({ west: 11, east: 19, south: 11, north: 19 }, 8);
 
     // 2/1/2 (the centre visible chunk) is already resident — no fetch.
-    expect(pendingUrls()).not.toContain('http://x/2/1/2.png');
+    expect(pendingUrls()).not.toContain('http://x/2/1/2');
   });
 
   it('allVisibleLoaded returns true only once every viewport chunk is in the atlas', () => {
     const { fetchMock } = controllableFetch();
     vi.stubGlobal('fetch', fetchMock);
     const atlas = makeAtlas();
-    const scheduler = createChunkScheduler(atlas, 'http://x', vi.fn(), REGION, 2, 0);
+    const scheduler = createChunkScheduler(
+      atlas,
+      (id: string) => `http://x/${id}`,
+      vi.fn(),
+      REGION,
+      2,
+      0,
+    );
 
     // Viewport covers a single chunk (cx=1, cy=2)
     scheduler.update({ west: 11, east: 19, south: 11, north: 19 }, 8);
@@ -235,12 +284,19 @@ describe('ChunkScheduler', () => {
 
     const atlas = makeAtlas();
     const onChunkLoaded = vi.fn();
-    const scheduler = createChunkScheduler(atlas, 'http://x', onChunkLoaded, REGION, 2, 0);
+    const scheduler = createChunkScheduler(
+      atlas,
+      (id: string) => `http://x/${id}`,
+      onChunkLoaded,
+      REGION,
+      2,
+      0,
+    );
 
     scheduler.update({ west: 11, east: 19, south: 11, north: 19 }, 8);
 
     // Resolve the centre tile fetch
-    const centreUrl = pendingUrls().find(u => u.endsWith('/2/1/2.png'))!;
+    const centreUrl = pendingUrls().find(u => u.endsWith('/2/1/2'))!;
     resolveUrl(centreUrl);
     await new Promise(r => setTimeout(r, 0));
     await new Promise(r => setTimeout(r, 0));
@@ -253,7 +309,14 @@ describe('ChunkScheduler', () => {
     const { fetchMock, pendingCount } = controllableFetch();
     vi.stubGlobal('fetch', fetchMock);
     const atlas = makeAtlas();
-    const scheduler = createChunkScheduler(atlas, 'http://x', vi.fn(), REGION, 2, 0);
+    const scheduler = createChunkScheduler(
+      atlas,
+      (id: string) => `http://x/${id}`,
+      vi.fn(),
+      REGION,
+      2,
+      0,
+    );
 
     scheduler.update({ west: 100, east: 110, south: 100, north: 110 }, 8);
     expect(pendingCount()).toBe(0);
@@ -265,7 +328,14 @@ describe('ChunkScheduler', () => {
     const { fetchMock, pendingCount } = controllableFetch();
     vi.stubGlobal('fetch', fetchMock);
     const atlas = makeAtlas();
-    const scheduler = createChunkScheduler(atlas, 'http://x', vi.fn(), REGION, 2, 0);
+    const scheduler = createChunkScheduler(
+      atlas,
+      (id: string) => `http://x/${id}`,
+      vi.fn(),
+      REGION,
+      2,
+      0,
+    );
 
     scheduler.update({ west: 0, east: 60, south: 0, north: 40 }, 8);
     expect(pendingCount()).toBeGreaterThan(0);
@@ -302,7 +372,7 @@ function flakyFetch(failuresByUrl: Map<string, number>) {
 }
 
 describe('ChunkScheduler — retry on transient failure', () => {
-  const TARGET = 'http://x/2/1/2.png'; // the centre viewport chunk (cx=1, cy=2)
+  const TARGET = 'http://x/2/1/2'; // the centre viewport chunk (cx=1, cy=2)
 
   beforeEach(() => {
     vi.useFakeTimers();
@@ -322,7 +392,14 @@ describe('ChunkScheduler — retry on transient failure', () => {
     vi.stubGlobal('fetch', fetchMock);
     const atlas = makeAtlas();
     const onChunk = vi.fn();
-    const scheduler = createChunkScheduler(atlas, 'http://x', onChunk, REGION, 2, 0);
+    const scheduler = createChunkScheduler(
+      atlas,
+      (id: string) => `http://x/${id}`,
+      onChunk,
+      REGION,
+      2,
+      0,
+    );
 
     scheduler.update({ west: 11, east: 19, south: 11, north: 19 }, 8);
 
@@ -345,7 +422,14 @@ describe('ChunkScheduler — retry on transient failure', () => {
     const { fetchMock, countFor } = flakyFetch(new Map([[TARGET, Infinity]])); // always fail
     vi.stubGlobal('fetch', fetchMock);
     const atlas = makeAtlas();
-    const scheduler = createChunkScheduler(atlas, 'http://x', vi.fn(), REGION, 2, 0);
+    const scheduler = createChunkScheduler(
+      atlas,
+      (id: string) => `http://x/${id}`,
+      vi.fn(),
+      REGION,
+      2,
+      0,
+    );
 
     scheduler.update({ west: 11, east: 19, south: 11, north: 19 }, 8);
 
@@ -370,7 +454,14 @@ describe('ChunkScheduler — retry on transient failure', () => {
     const { fetchMock, countFor } = flakyFetch(new Map([[TARGET, Infinity]]));
     vi.stubGlobal('fetch', fetchMock);
     const atlas = makeAtlas();
-    const scheduler = createChunkScheduler(atlas, 'http://x', vi.fn(), REGION, 2, 0);
+    const scheduler = createChunkScheduler(
+      atlas,
+      (id: string) => `http://x/${id}`,
+      vi.fn(),
+      REGION,
+      2,
+      0,
+    );
 
     // Fail the centre chunk once, scheduling a backoff retry.
     scheduler.update({ west: 11, east: 19, south: 11, north: 19 }, 8);
@@ -391,7 +482,14 @@ describe('ChunkScheduler — retry on transient failure', () => {
     const { fetchMock, countFor } = flakyFetch(new Map([[TARGET, Infinity]]));
     vi.stubGlobal('fetch', fetchMock);
     const atlas = makeAtlas();
-    const scheduler = createChunkScheduler(atlas, 'http://x', vi.fn(), REGION, 2, 6);
+    const scheduler = createChunkScheduler(
+      atlas,
+      (id: string) => `http://x/${id}`,
+      vi.fn(),
+      REGION,
+      2,
+      6,
+    );
 
     scheduler.update({ west: 11, east: 19, south: 11, north: 19 }, 8);
     await vi.advanceTimersByTimeAsync(0);

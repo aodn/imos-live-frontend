@@ -112,7 +112,7 @@ function useLatestDate(product: ProductType) {
 
   const { data: tilesDate, isLoading: isTilesLoading } = useQuery({
     ...metaDataManifestQueryOptions(),
-    select: ({ products }) => products[product as TilesProduct].full_date_range.end,
+    select: ({ products }) => products.find(p => p.id === product)?.full_date_range.end,
     enabled: !isSiteProduct,
   });
 

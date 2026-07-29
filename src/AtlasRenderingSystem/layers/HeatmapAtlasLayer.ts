@@ -7,13 +7,13 @@
  * Usage:
  *   const layer = heatmapAtlasLayer('gsla-anomaly-sea-levels-webgl-layer', palette);
  *   map.addLayer(layer);
- *   await layer.setSource(manifest, '/26-01-01/sea_level_anomaly', legendRange);
+ *   await layer.setSource(manifest, id => `/data_tiles/${id}?datetime=2026-01-01`, legendRange);
  *   layer.setVisible(true);
  */
 
 import { createHeatmapAtlasField } from './HeatmapAtlasField';
 import type { HeatmapAtlasFieldAPI } from './HeatmapAtlasField';
-import type { ProductManifest, ColorPalette, PalettePatch } from '../types';
+import type { ProductManifest, ColorPalette, PalettePatch, LodZoomThresholds } from '../types';
 import { throttle } from '../utils';
 
 export type { ColorPalette, PalettePatch };
@@ -26,14 +26,18 @@ export type HeatmapAtlasLayerInterface = mapboxgl.CustomLayerInterface & {
   field?: HeatmapAtlasFieldAPI;
   setSource: (
     manifest: ProductManifest,
-    tileBaseUrl: string,
+    buildTileUrl: (id: string) => string,
     legendRange: [number, number],
   ) => Promise<void>;
   updatePalette: (patch: PalettePatch) => void;
   setVisible: (visible: boolean) => void;
 };
 
-export function heatmapAtlasLayer(id: string, palette: ColorPalette): HeatmapAtlasLayerInterface {
+export function heatmapAtlasLayer(
+  id: string,
+  palette: ColorPalette,
+  lodZoomThresholds?: LodZoomThresholds,
+): HeatmapAtlasLayerInterface {
   let mapRef: mapboxgl.Map | null = null;
   // Stored so onRemove can detach them — anonymous handlers would leak.
   let onMoveEnd: (() => void) | null = null;
@@ -46,7 +50,12 @@ export function heatmapAtlasLayer(id: string, palette: ColorPalette): HeatmapAtl
 
     onAdd(map, gl) {
       mapRef = map;
-      this.field = createHeatmapAtlasField(map, gl as WebGL2RenderingContext, palette);
+      this.field = createHeatmapAtlasField(
+        map,
+        gl as WebGL2RenderingContext,
+        palette,
+        lodZoomThresholds,
+      );
 
       const forward = () => {
         if (this.visible) {
@@ -74,8 +83,12 @@ export function heatmapAtlasLayer(id: string, palette: ColorPalette): HeatmapAtl
       this.field?.draw();
     },
 
-    async setSource(manifest: ProductManifest, tileBaseUrl: string, legendRange: [number, number]) {
-      await this.field?.setSource(manifest, tileBaseUrl, legendRange);
+    async setSource(
+      manifest: ProductManifest,
+      buildTileUrl: (id: string) => string,
+      legendRange: [number, number],
+    ) {
+      await this.field?.setSource(manifest, buildTileUrl, legendRange);
       if (this.visible) {
         this.field?.setVisible(true);
         const bounds = mapRef?.getBounds();

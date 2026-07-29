@@ -21,6 +21,9 @@ export {
   POINT_SIZE_RANGE,
 } from './config/particleConfig';
 
+// ── LOD zoom-threshold config (host override type) ─────────────────────────────
+export type { LodZoomThresholds } from './config/lodZoomThresholds';
+
 // ── Layer interfaces and constructors (used by React bindings in the app) ─────
 export type { HeatmapAtlasFieldAPI } from './layers/HeatmapAtlasField';
 export type { ParticlesAtlasFieldAPI } from './layers/ParticlesAtlasField';
@@ -40,10 +43,20 @@ import type {
 } from './types';
 
 export function createScalarAtlasLayer(options: ScalarAtlasLayerOptions): AtlasLayerHandle {
-  const { map, layerId, fetchManifest, tileBaseUrl, colorPalette, legendRange, beforeLayerId } =
-    options;
+  const {
+    map,
+    layerId,
+    fetchManifest,
+    tileBaseUrl,
+    dataset,
+    variable,
+    colorPalette,
+    legendRange,
+    lodZoomThresholds,
+    beforeLayerId,
+  } = options;
 
-  const layer = _heatmapAtlasLayer(layerId, colorPalette);
+  const layer = _heatmapAtlasLayer(layerId, colorPalette, lodZoomThresholds);
 
   if (beforeLayerId) {
     map.addLayer(layer, beforeLayerId);
@@ -54,7 +67,9 @@ export function createScalarAtlasLayer(options: ScalarAtlasLayerOptions): AtlasL
   return {
     async setSource(date: string) {
       const manifest = await fetchManifest(date);
-      await layer.setSource(manifest, `${tileBaseUrl}/${date}`, legendRange);
+      const buildTileUrl = (id: string) =>
+        `${tileBaseUrl}/${id}?${new URLSearchParams({ dataset, variable, datetime: date })}`;
+      await layer.setSource(manifest, buildTileUrl, legendRange);
     },
     setVisible(visible: boolean) {
       layer.setVisible(visible);
@@ -76,13 +91,16 @@ export function createParticleAtlasLayer(
     layerId,
     fetchManifest,
     tileBaseUrl,
+    dataset,
+    variable,
     colorPalette,
     legendRange,
+    lodZoomThresholds,
     particleConfig,
     beforeLayerId,
   } = options;
 
-  const layer = _particlesAtlasLayer(layerId, colorPalette);
+  const layer = _particlesAtlasLayer(layerId, colorPalette, lodZoomThresholds);
 
   if (beforeLayerId) {
     map.addLayer(layer, beforeLayerId);
@@ -97,7 +115,9 @@ export function createParticleAtlasLayer(
   return {
     async setSource(date: string) {
       const resolved = await fetchManifest(date);
-      await layer.setSource(resolved, `${tileBaseUrl}/${date}`, legendRange);
+      const buildTileUrl = (id: string) =>
+        `${tileBaseUrl}/${id}?${new URLSearchParams({ dataset, variable, datetime: date })}`;
+      await layer.setSource(resolved, buildTileUrl, legendRange);
     },
     setVisible(visible: boolean) {
       layer.setVisible(visible);
