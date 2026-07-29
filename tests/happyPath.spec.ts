@@ -1,3 +1,8 @@
+// Import directly from '@/api/tiles' rather than the '@/api' barrel — the
+// barrel re-exports './site', which pulls in '@/helpers' -> 'mapImageExport.ts'
+// -> '@/components' (the whole component tree, incl. Highcharts/CSS modules).
+// Playwright's Node-side spec transform can't handle those non-JS assets.
+import { extractProductVariables } from '@/api/tiles';
 import {
   MEASURE_POINTS_LAYER_ID,
   PRODUCT,
@@ -231,30 +236,25 @@ const SCALAR_MANIFEST = {
   },
 };
 
-// Top-level metadata manifest (`/data_tiles/manifest`). Layer hooks gate their
-// first tile load on this resolving (via `manifestLoaded`) and validate the
-// selected date against `available_dates`, so every tiles product must list the
-// dates these tests exercise (default day, the +1 day, and the deep-link day).
+// Top-level metadata manifest (`/products`). Layer hooks gate their first tile
+// load on this resolving (via `manifestLoaded`) and validate the selected date
+// against `available_dates`, so every tiles product must list the dates these
+// tests exercise (default day, the +1 day, and the deep-link day).
 const AVAILABLE_DATES = [defaultDaySelected, nextDaySelected, '2025-07-15'];
 const METADATA_MANIFEST = {
-  cache_version: 'test',
-  products: Object.fromEntries(
-    (
-      [
-        GSLA_PARTICLE_PRODUCT,
-        GSLA_ANOMALY_PRODUCT,
-        PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC,
-        PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC,
-        PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY,
-      ] as const
-    ).map(product => [
-      product,
-      {
-        available_dates: AVAILABLE_DATES,
-        full_date_range: { start: AVAILABLE_DATES[0], end: AVAILABLE_DATES.at(-1)! },
-      },
-    ]),
-  ),
+  products: (
+    [
+      GSLA_PARTICLE_PRODUCT,
+      GSLA_ANOMALY_PRODUCT,
+      PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC,
+      PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC,
+      PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY,
+    ] as const
+  ).map(id => ({
+    id,
+    available_dates: AVAILABLE_DATES,
+    full_date_range: { start: AVAILABLE_DATES[0], end: AVAILABLE_DATES.at(-1)! },
+  })),
 };
 
 // u=N, v=0 gives a due-east vector with speed N and Cartesian degree 0 — keeps
@@ -289,28 +289,33 @@ function parseDateFromTileUrl(url: string): string | undefined {
 test.beforeEach(async ({ page }) => {
   await page.clock.install({ time: currentDate });
 
-  // Top-level metadata manifest powering per-product date availability. Anchored
-  // to `/manifest` (no `.json`) so it doesn't clash with the per-date route below.
-  await page.route(/\/data_tiles\/manifest(?:$|\?)/, async (route: Route) => {
+  // Top-level metadata manifest powering per-product date availability:
+  // `/collections/{collectionId}/products`.
+  await page.route(/\/collections\/[^/]+\/products(?:$|\?)/, async (route: Route) => {
     await route.fulfill({ json: METADATA_MANIFEST });
   });
 
-  // Tile manifests — return product-shape-appropriate stubs.
-  await page.route('**/data_tiles/**/manifest.json', async (route: Route) => {
-    const url = route.request().url();
-    if (url.includes(GSLA_PARTICLE_PRODUCT)) {
+  // Per-product-per-date manifest: `/collections/{collectionId}/data_tiles/manifest
+  // ?dataset=...&variable=...&datetime=...`. Routed by the `dataset`/`variable`
+  // query params rather than a path segment, per the new tile-fetch contract.
+  const { variable: particleVariable } = extractProductVariables(GSLA_PARTICLE_PRODUCT);
+  await page.route(/\/data_tiles\/manifest(?:\?|$)/, async (route: Route) => {
+    const url = new URL(route.request().url());
+    if (url.searchParams.get('variable') === particleVariable) {
       await route.fulfill({ json: PARTICLE_MANIFEST });
     } else {
       await route.fulfill({ json: SCALAR_MANIFEST });
     }
   });
 
-  // Tile PNGs aren't needed for these tests — abort so the atlas falls into
+  // Tile fetches aren't needed for these tests — abort so the atlas falls into
   // error state quickly rather than retrying against the unreachable origin.
-  await page.route(/data_tiles\/.+\/\d+\/\d+\/\d+\.png$/, route => route.abort());
+  // New shape: `/data_tiles/{lod}/{cx}/{cy}?...` (no extension).
+  await page.route(/\/data_tiles\/\d+\/\d+\/\d+(?:\?|$)/, route => route.abort());
 
-  // Per-point lookup powering the click popup.
-  await page.route('**/data_tiles/**/point*', async (route: Route) => {
+  // Per-point lookup powering the click popup: `/collections/{product}/{date}/point`
+  // (not under `/data_tiles/` — this endpoint wasn't part of the tile/manifest migration).
+  await page.route(/\/collections\/.+\/point(?:\?|$)/, async (route: Route) => {
     const url = route.request().url();
     const date = parseDateFromTileUrl(url) ?? defaultDaySelected;
     if (url.includes(GSLA_PARTICLE_PRODUCT)) {
@@ -478,11 +483,16 @@ test.describe('Ocean Current', () => {
     await sliderHandle.waitFor({ state: 'visible' });
     await page.waitForTimeout(1000);
 
-    const nextDateManifest = page.waitForRequest(
-      req =>
-        req.url().includes(GSLA_PARTICLE_PRODUCT) &&
-        req.url().includes(`/${nextDaySelected}/manifest.json`),
-    );
+    const { dataset, variable } = extractProductVariables(GSLA_PARTICLE_PRODUCT);
+    const nextDateManifest = page.waitForRequest(req => {
+      const url = new URL(req.url());
+      return (
+        url.pathname.endsWith('/data_tiles/manifest') &&
+        url.searchParams.get('dataset') === dataset &&
+        url.searchParams.get('variable') === variable &&
+        url.searchParams.get('datetime') === nextDaySelected
+      );
+    });
     await sliderHandle.focus();
     await page.keyboard.press('ArrowRight');
     await nextDateManifest;
