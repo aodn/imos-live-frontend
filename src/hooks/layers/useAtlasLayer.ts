@@ -1,11 +1,7 @@
 import type { TilesProduct } from '@/constants';
+import { productManifestQueryOptions, queryClient, TILE_BASE_PATH } from '@/api';
 import {
   extractProductVariables,
-  productManifestQueryOptions,
-  queryClient,
-  TILE_BASE_PATH,
-} from '@/api';
-import {
   PRODUCTLEGENDS,
   PRODUCTS,
   COLOR_OPTIONS,

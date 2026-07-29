@@ -2,7 +2,14 @@
 // becomes part of the public constants surface.
 
 // Products
-export { PRODUCT, PRODUCTS, MAX_VECTOR_SPEED, TILES_GROUP, SCALAR_TILES_GROUP } from './products';
+export {
+  PRODUCT,
+  PRODUCTS,
+  MAX_VECTOR_SPEED,
+  TILES_GROUP,
+  SCALAR_TILES_GROUP,
+  extractProductVariables,
+} from './products';
 export type {
   ProductType,
   TilesProduct,

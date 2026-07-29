@@ -1,13 +1,9 @@
-// Import directly from '@/api/tiles' rather than the '@/api' barrel — the
-// barrel re-exports './site', which pulls in '@/helpers' -> 'mapImageExport.ts'
-// -> '@/components' (the whole component tree, incl. Highcharts/CSS modules).
-// Playwright's Node-side spec transform can't handle those non-JS assets.
-import { extractProductVariables } from '@/api/tiles';
 import {
   MEASURE_POINTS_LAYER_ID,
   PRODUCT,
   PRODUCTS,
   UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
+  extractProductVariables,
 } from '@/constants';
 import { serialize } from '@/store/serialization';
 import type { Page, Route } from '@playwright/test';

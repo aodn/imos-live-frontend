@@ -18,12 +18,7 @@
  *   - date change triggers a manifest fetch keyed by the new date
  *   - rapid date changes resolve cleanly (fetchGeneration guard)
  */
-// Import directly from '@/api/tiles' rather than the '@/api' barrel — the
-// barrel re-exports './site', which pulls in '@/helpers' -> 'mapImageExport.ts'
-// -> '@/components' (the whole component tree, incl. Highcharts/CSS modules).
-// Playwright's Node-side spec transform can't handle those non-JS assets.
-import { extractProductVariables } from '@/api/tiles';
-import { PRODUCT, PRODUCTS } from '@/constants';
+import { PRODUCT, PRODUCTS, extractProductVariables } from '@/constants';
 import { serialize } from '@/store/serialization';
 import type { Page, Route } from '@playwright/test';
 import { expect, test } from '@playwright/test';

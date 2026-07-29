@@ -144,3 +144,11 @@ export const TILES_GROUP = [
 export const SCALAR_TILES_GROUP = TILES_GROUP.filter(
   p => p !== PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT,
 ) as ScalarTilesProduct[];
+
+export function extractProductVariables(product: TilesProduct): {
+  dataset: string;
+  variable: string;
+} {
+  const [dataset, variable] = product.split(':');
+  return { dataset, variable };
+}

@@ -66,10 +66,8 @@ Layer paint/layout config lives in `src/constants/layerSpecs.ts`.
 
 ## API Routing
 
-The application currently makes two kinds of HTTP calls:
-
-- **Wave-buoy REST** — relative path `/api/v1/...`. In production this is
-  routed by CloudFront to the OGC API; in development `vite.config.ts`
-  proxies it to `https://portal.edge.aodn.org.au`.
-- **Tile / manifest data** — absolute URL built from `TILE_BASE_PATH` in
-  `src/api/tiles.ts`. No proxy is needed because the URL is fully-qualified.
+All HTTP calls (wave-buoy/mooring REST and tile/manifest data) use relative
+paths under `/api/v1/...` — `SITE_BASE_PATH` in `src/api/site.ts` and
+`TILE_BASE_PATH` in `src/api/tiles.ts`. In production these are routed by
+CloudFront to the OGC API; in development `vite.config.ts` proxies `/api` to
+`https://portal.edge.aodn.org.au`.
