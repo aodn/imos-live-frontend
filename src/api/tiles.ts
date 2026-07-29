@@ -1,5 +1,6 @@
 import type { ProductManifest } from '@/AtlasRenderingSystem';
 import type { PRODUCTS, TilesProduct } from '@/constants';
+import { extractProductVariables } from '@/constants';
 import { queryOptions } from '@tanstack/react-query';
 import axios from 'axios';
 
@@ -21,14 +22,6 @@ export type MetaDataManifest = {
 };
 
 export const TILE_BASE_PATH = '/api/v1/ogc/ext/tiles/collections';
-
-export function extractProductVariables(product: TilesProduct): {
-  dataset: string;
-  variable: string;
-} {
-  const [dataset, variable] = product.split(':');
-  return { dataset, variable };
-}
 
 // ---------- Meta Data Manifest ----------
 export const getMetaDataManifest = async (args: {
