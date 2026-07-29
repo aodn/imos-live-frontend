@@ -5,7 +5,6 @@ export type LodEntry = {
   storedPx: [number, number];
   chunkPx: [number, number];
   padding: number;
-  zoomThreshold?: number;
 };
 
 export type ProductManifest = {
@@ -53,6 +52,14 @@ import type { ParticleConfig } from './config/particleConfig';
 export type { ParticleConfig };
 export { DEFAULT_PARTICLE_CONFIG } from './config/particleConfig';
 
+// ── LOD zoom-threshold config types ───────────────────────────────────────────
+// Single source of truth lives in `./config/lodZoomThresholds`. Re-exported
+// here so the rest of the package can keep importing from `./types`.
+
+import type { LodZoomThresholds } from './config/lodZoomThresholds';
+export type { LodZoomThresholds };
+export { DEFAULT_LOD_ZOOM_THRESHOLDS } from './config/lodZoomThresholds';
+
 // ── Handle types (Phase 4 factory return value) ───────────────────────────────
 
 export type AtlasLayerHandle = {
@@ -78,6 +85,8 @@ export type ScalarAtlasLayerOptions = {
   variable: string;
   colorPalette: ColorPalette;
   legendRange: [number, number];
+  /** Overrides `DEFAULT_LOD_ZOOM_THRESHOLDS` per LOD; unset LODs fall back to the default. */
+  lodZoomThresholds?: LodZoomThresholds;
   beforeLayerId?: string;
 };
 
@@ -91,6 +100,8 @@ export type ParticleAtlasLayerOptions = {
   variable: string;
   colorPalette: ColorPalette;
   legendRange: [number, number];
+  /** Overrides `DEFAULT_LOD_ZOOM_THRESHOLDS` per LOD; unset LODs fall back to the default. */
+  lodZoomThresholds?: LodZoomThresholds;
   particleConfig?: Partial<ParticleConfig>;
   beforeLayerId?: string;
 };

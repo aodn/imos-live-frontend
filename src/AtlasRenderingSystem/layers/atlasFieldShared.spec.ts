@@ -145,18 +145,18 @@ describe('buildLodZoomThresholds', () => {
   it('returns -Infinity for LOD1 and the per-LOD threshold for LOD2+', () => {
     const lods: LodEntry[] = [
       { ...LOD_ENTRY, grid: [3, 2] },
-      { ...LOD_ENTRY, grid: [6, 4], zoomThreshold: 5 },
-      { ...LOD_ENTRY, grid: [12, 10], zoomThreshold: 7 },
+      { ...LOD_ENTRY, grid: [6, 4] },
+      { ...LOD_ENTRY, grid: [12, 10] },
     ];
-    expect(buildLodZoomThresholds(lods)).toEqual([-Infinity, 5, 7]);
+    expect(buildLodZoomThresholds(lods, { '2': 5, '3': 7 })).toEqual([-Infinity, 5, 7]);
   });
 
-  it('defaults missing LOD2+ thresholds to DEFAULT_ZOOM_THRESHOLD (6)', () => {
+  it('reads whatever thresholds map it is given, LOD by LOD', () => {
     const lods: LodEntry[] = [
       { ...LOD_ENTRY, grid: [3, 2] },
       { ...LOD_ENTRY, grid: [6, 4] },
     ];
-    expect(buildLodZoomThresholds(lods)).toEqual([-Infinity, 6]);
+    expect(buildLodZoomThresholds(lods, { '2': 6 })).toEqual([-Infinity, 6]);
   });
 });
 

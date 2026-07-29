@@ -13,7 +13,13 @@
 
 import { createParticlesAtlasField } from './ParticlesAtlasField';
 import type { ParticlesAtlasFieldAPI } from './ParticlesAtlasField';
-import type { ParticleConfig, ProductManifest, ColorPalette, PalettePatch } from '../types';
+import type {
+  ParticleConfig,
+  ProductManifest,
+  ColorPalette,
+  PalettePatch,
+  LodZoomThresholds,
+} from '../types';
 import { throttle } from '../utils';
 
 /** Mapbox fires `zoom` every frame of a zoom animation — cap onMapMove frequency. */
@@ -38,6 +44,7 @@ export type ParticlesAtlasLayerInterface = mapboxgl.CustomLayerInterface & {
 export function particlesAtlasLayer(
   id: string,
   palette: ColorPalette,
+  lodZoomThresholds?: LodZoomThresholds,
 ): ParticlesAtlasLayerInterface {
   // Stored so onRemove can detach them — anonymous handlers would leak.
   let onMoveStartH: (() => void) | null = null;
@@ -51,7 +58,12 @@ export function particlesAtlasLayer(
     visible: false,
 
     onAdd(map, gl) {
-      this.field = createParticlesAtlasField(map, gl as WebGL2RenderingContext, palette);
+      this.field = createParticlesAtlasField(
+        map,
+        gl as WebGL2RenderingContext,
+        palette,
+        lodZoomThresholds,
+      );
 
       onMoveStartH = () => this.onMoveStart();
       onMoveEndH = () => {

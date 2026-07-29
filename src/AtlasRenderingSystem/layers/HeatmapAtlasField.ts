@@ -24,7 +24,8 @@ import type { AtlasManagerAPI, ChunkSchedulerAPI } from '../webgl';
 import { createAtlasManager, makeScalarAtlasFs, scalarAtlasVs } from '../webgl';
 
 import { getColorRamp } from '../utils';
-import type { ProductManifest, ColorPalette, PalettePatch } from '../types';
+import type { ProductManifest, ColorPalette, PalettePatch, LodZoomThresholds } from '../types';
+import { DEFAULT_LOD_ZOOM_THRESHOLDS } from '../types';
 import {
   computeRamp,
   buildDiscreteRampPixels,
@@ -65,7 +66,13 @@ export function createHeatmapAtlasField(
   map: mapboxgl.Map,
   gl: WebGL2RenderingContext,
   palette: ColorPalette,
+  lodZoomThresholds?: LodZoomThresholds,
 ): HeatmapAtlasFieldAPI {
+  const resolvedLodZoomThresholds: LodZoomThresholds = {
+    ...DEFAULT_LOD_ZOOM_THRESHOLDS,
+    ...lodZoomThresholds,
+  };
+
   // ── Shader program ───────────────────────────────────────────────────────
   let programInfo: twgl.ProgramInfo | null = null;
   let bufferInfo: twgl.BufferInfo | null = null;
@@ -93,7 +100,7 @@ export function createHeatmapAtlasField(
   /** Per-LOD zoom thresholds, aligned with the sorted LOD list. Drives the
    *  dynamic u_lod_count below so a resident LOD2+ chunk left over from a
    *  deeper zoom doesn't bleed through at a zoom where its LOD is inactive. */
-  let lodZoomThresholds: number[] = [];
+  let activeLodZoomThresholds: number[] = [];
   /** chunkPx / storedPx — maps local [0,1] UV into the data region (excluding padding). */
   let uvScale: [number, number] | null = null;
   /** padding / storedPx — shifts UV past the padding border. */
@@ -193,7 +200,7 @@ export function createHeatmapAtlasField(
     currentPalette = { ...currentPalette, legendRange: newLegendRange };
     ({ uvScale, uvOffset } = computeUvTransform(lod1));
     lodGridsFlat = buildLodGridsFlat(lodsSorted);
-    lodZoomThresholds = buildLodZoomThresholds(lodsSorted);
+    activeLodZoomThresholds = buildLodZoomThresholds(lodsSorted, resolvedLodZoomThresholds);
 
     // Categorical products carry `flagValues` in the manifest; presence flips
     // the field into discrete mode (NEAREST atlas/ramp filtering, one ramp
@@ -222,6 +229,7 @@ export function createHeatmapAtlasField(
       onChunkLoaded,
       bounds: manifest.bounds,
       lodsSorted,
+      lodZoomThresholds: resolvedLodZoomThresholds,
     });
 
     // Fetch LOD1 progressively — resolves on the first uploaded tile so the
@@ -282,7 +290,7 @@ export function createHeatmapAtlasField(
       // Dynamic: zoom-gated active LOD count. Caps the shader's LOD loop so
       // stale LOD2+ chunks resident from a deeper-zoom session can't show as
       // intermediate-LOD patches once the user has zoomed back out.
-      u_lod_count: computeActiveLodCount(map.getZoom(), lodZoomThresholds),
+      u_lod_count: computeActiveLodCount(map.getZoom(), activeLodZoomThresholds),
       u_bounds: mapBounds,
       u_data_bounds: dataBounds,
       u_uv_scale: uvScale,

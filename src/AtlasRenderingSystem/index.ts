@@ -21,6 +21,9 @@ export {
   POINT_SIZE_RANGE,
 } from './config/particleConfig';
 
+// ── LOD zoom-threshold config (host override type) ─────────────────────────────
+export type { LodZoomThresholds } from './config/lodZoomThresholds';
+
 // ── Layer interfaces and constructors (used by React bindings in the app) ─────
 export type { HeatmapAtlasFieldAPI } from './layers/HeatmapAtlasField';
 export type { ParticlesAtlasFieldAPI } from './layers/ParticlesAtlasField';
@@ -49,10 +52,11 @@ export function createScalarAtlasLayer(options: ScalarAtlasLayerOptions): AtlasL
     variable,
     colorPalette,
     legendRange,
+    lodZoomThresholds,
     beforeLayerId,
   } = options;
 
-  const layer = _heatmapAtlasLayer(layerId, colorPalette);
+  const layer = _heatmapAtlasLayer(layerId, colorPalette, lodZoomThresholds);
 
   if (beforeLayerId) {
     map.addLayer(layer, beforeLayerId);
@@ -91,11 +95,12 @@ export function createParticleAtlasLayer(
     variable,
     colorPalette,
     legendRange,
+    lodZoomThresholds,
     particleConfig,
     beforeLayerId,
   } = options;
 
-  const layer = _particlesAtlasLayer(layerId, colorPalette);
+  const layer = _particlesAtlasLayer(layerId, colorPalette, lodZoomThresholds);
 
   if (beforeLayerId) {
     map.addLayer(layer, beforeLayerId);

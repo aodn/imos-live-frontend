@@ -1,6 +1,13 @@
 {
+<<<<<<< HEAD
   "pid": 84385,
   "version": "0.9.9",
   "socketPath": "/Users/leslie/code/imos-live-frontend/.codegraph/daemon.sock",
   "startedAt": 1785293134459
+=======
+  "pid": 18027,
+  "version": "0.9.9",
+  "socketPath": "/Users/leslie/code/imos-live-frontend/.codegraph/daemon.sock",
+  "startedAt": 1784682505167
+>>>>>>> 8d880d1938362c24929d59655da67fd4e11558ab
 }
