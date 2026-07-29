@@ -12,7 +12,7 @@
  *     per-chunk as tiles arrive (progressive rendering, no animated crossfade).
  *
  * Caller contract:
- *   1. Call setSource(manifest, tileBaseUrl, legendRange) when date changes — resolves after the
+ *   1. Call setSource(manifest, buildTileUrl, legendRange) when date changes — resolves after the
  *      first LOD1 tile is uploaded; remaining tiles continue in the background.
  *   2. Call onMapMove(bounds, zoom) on every moveend / zoom event.
  *   3. Call setVisible(true/false) to control rendering.
@@ -48,7 +48,7 @@ export type { ColorPalette, PalettePatch };
 export type HeatmapAtlasFieldAPI = {
   setSource: (
     manifest: ProductManifest,
-    tileBaseUrl: string,
+    buildTileUrl: (id: string) => string,
     legendRange: [number, number],
   ) => Promise<void>;
   updatePalette: (patch: PalettePatch) => void;
@@ -180,7 +180,7 @@ export function createHeatmapAtlasField(
 
   async function setSource(
     manifest: ProductManifest,
-    tileBaseUrl: string,
+    buildTileUrl: (id: string) => string,
     newLegendRange: [number, number],
   ): Promise<void> {
     const gen = ++fetchGeneration;
@@ -218,7 +218,7 @@ export function createHeatmapAtlasField(
 
     schedulers = createLodSchedulers({
       atlas,
-      tileBaseUrl,
+      buildTileUrl,
       onChunkLoaded,
       bounds: manifest.bounds,
       lodsSorted,
@@ -227,7 +227,7 @@ export function createHeatmapAtlasField(
     // Fetch LOD1 progressively — resolves on the first uploaded tile so the
     // caller can reveal the layer immediately; each tile triggers a repaint.
     await preloadLod1({
-      tileBaseUrl,
+      buildTileUrl,
       lod1Ids: lod1ChunkIds(lod1),
       atlas,
       isStale: () => gen !== fetchGeneration,

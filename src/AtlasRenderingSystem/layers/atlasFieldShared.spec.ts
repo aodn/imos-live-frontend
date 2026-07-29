@@ -252,7 +252,7 @@ describe('preloadLod1 (progressive)', () => {
     vi.stubGlobal(
       'fetch',
       vi.fn(async (url: string) => {
-        if (url.endsWith('1/0/0.png')) {
+        if (url.endsWith('1/0/0')) {
           await firstReady;
         }
         return { ok: true, blob: async () => new Blob() } as Response;
@@ -262,7 +262,7 @@ describe('preloadLod1 (progressive)', () => {
     const { atlas, uploads } = makeAtlas();
     const ids = ['1/0/0', '1/1/0', '1/2/0'];
     const promise = preloadLod1({
-      tileBaseUrl: 'http://x',
+      buildTileUrl: (id: string) => `http://x/${id}`,
       lod1Ids: ids,
       atlas,
       isStale: () => false,
@@ -294,7 +294,7 @@ describe('preloadLod1 (progressive)', () => {
     const { atlas } = makeAtlas();
     await expect(
       preloadLod1({
-        tileBaseUrl: 'http://x',
+        buildTileUrl: (id: string) => `http://x/${id}`,
         lod1Ids: ['1/0/0', '1/1/0'],
         atlas,
         isStale: () => false,
@@ -310,7 +310,7 @@ describe('preloadLod1 (progressive)', () => {
 
     const { atlas, uploads } = makeAtlas();
     await preloadLod1({
-      tileBaseUrl: 'http://x',
+      buildTileUrl: (id: string) => `http://x/${id}`,
       lod1Ids: ['1/0/0'],
       atlas,
       isStale: () => true,
@@ -321,7 +321,7 @@ describe('preloadLod1 (progressive)', () => {
   it('resolves immediately with no ids', async () => {
     const { atlas, uploads } = makeAtlas();
     await preloadLod1({
-      tileBaseUrl: 'http://x',
+      buildTileUrl: (id: string) => `http://x/${id}`,
       lod1Ids: [],
       atlas,
       isStale: () => false,
@@ -352,7 +352,7 @@ describe('preloadAllLod1 (blocking)', () => {
     } as unknown as AtlasManagerAPI;
 
     await preloadAllLod1({
-      tileBaseUrl: 'http://x',
+      buildTileUrl: (id: string) => `http://x/${id}`,
       lod1Ids: ['1/0/0', '1/1/0', '1/2/0'],
       atlas,
       isStale: () => false,
@@ -367,7 +367,7 @@ describe('preloadAllLod1 (blocking)', () => {
     } as unknown as AtlasManagerAPI;
 
     await preloadAllLod1({
-      tileBaseUrl: 'http://x',
+      buildTileUrl: (id: string) => `http://x/${id}`,
       lod1Ids: ['1/0/0', '1/1/0'],
       atlas,
       isStale: () => true,

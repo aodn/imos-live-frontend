@@ -73,6 +73,9 @@ export type ScalarAtlasLayerOptions = {
   layerId: string;
   fetchManifest: (date: string) => Promise<ProductManifest>;
   tileBaseUrl: string;
+  /** Sent as the `dataset`/`variable` query params on every tile request. */
+  dataset: string;
+  variable: string;
   colorPalette: ColorPalette;
   legendRange: [number, number];
   beforeLayerId?: string;
@@ -83,6 +86,9 @@ export type ParticleAtlasLayerOptions = {
   layerId: string;
   fetchManifest: (date: string) => Promise<ProductManifest>;
   tileBaseUrl: string;
+  /** Sent as the `dataset`/`variable` query params on every tile request. */
+  dataset: string;
+  variable: string;
   colorPalette: ColorPalette;
   legendRange: [number, number];
   particleConfig?: Partial<ParticleConfig>;

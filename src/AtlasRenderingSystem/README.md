@@ -25,11 +25,11 @@ This package is **self-contained and UI-framework-agnostic** (but Mapbox-specifi
 
 The package is driven entirely through the two factory functions exported from `index.ts`. The host owns product definitions, UI, and data fetching; the package owns the GPU rendering. Integrating a product takes four steps — none of them touch atlas, shader, or scheduler code.
 
-1. **Generate tiles** — produce a `manifest.json` plus PNG tiles named `{lod}/{cx}/{cy}.png`. The manifest is the package's primary input contract; see [Tile & LOD configuration](#tile--lod-configuration-manifestjson) for every field.
+1. **Generate tiles** — produce a `manifest.json` plus PNG tiles addressable as `{lod}/{cx}/{cy}` (served at whatever URL shape the host's `buildTileUrl` constructs, e.g. path segments and/or `dataset`/`variable`/`datetime` query params). The manifest is the package's primary input contract; see [Tile & LOD configuration](#tile--lod-configuration-manifestjson) for every field.
 
 2. **Build a `ColorPalette`** — the package uploads this as the colour-ramp texture. It is a plain object (the `ColorPalette` type is exported from `types.ts`); the host constructs it from whatever legend/colour config it uses. See [Visual appearance](#visual-appearance) for what `legendRange` vs the manifest's `valueRange` control, and the categorical notes below for discrete products.
 
-3. **Create the layer** — call the factory for the product type, passing a Mapbox map, a layer id, a `fetchManifest(date)` callback, a `tileBaseUrl`, the `colorPalette`, and a `legendRange`:
+3. **Create the layer** — call the factory for the product type, passing a Mapbox map, a layer id, a `fetchManifest(date)` callback, a `tileBaseUrl` (plus `dataset`/`variable`), the `colorPalette`, and a `legendRange`:
 
    ```ts
    import { createScalarAtlasLayer, createParticleAtlasLayer } from './AtlasRenderingSystem';
@@ -39,7 +39,9 @@ The package is driven entirely through the two factory functions exported from `
      map, // mapbox-gl Map
      layerId: 'my-product',
      fetchManifest, // (date: string) => Promise<ProductManifest>
-     tileBaseUrl, // tiles resolved as `${tileBaseUrl}/${date}/{lod}/{cx}/{cy}.png`
+     tileBaseUrl, // tiles resolved as `${tileBaseUrl}/{lod}/{cx}/{cy}?dataset=...&variable=...&datetime=${date}`
+     dataset, // sent as the `dataset` query param on every tile request
+     variable, // sent as the `variable` query param on every tile request
      colorPalette,
      legendRange: [min, max],
      beforeLayerId, // optional — Mapbox layer to insert beneath
@@ -51,6 +53,8 @@ The package is driven entirely through the two factory functions exported from `
      layerId,
      fetchManifest,
      tileBaseUrl,
+     dataset,
+     variable,
      colorPalette,
      legendRange,
      particleConfig, // optional — see Particle behaviour
@@ -464,8 +468,9 @@ manifest.json
     │
     ▼
 host binding → createScalarAtlasLayer / createParticleAtlasLayer
-    │  handle.setSource(date) calls fetchManifest(date), then
-    │  layer.setSource(manifest, `${tileBaseUrl}/${date}`, legendRange)
+    │  handle.setSource(date) calls fetchManifest(date), builds
+    │  buildTileUrl = id => `${tileBaseUrl}/${id}?dataset=...&variable=...&datetime=${date}`, then
+    │  layer.setSource(manifest, buildTileUrl, legendRange)
     ▼
 HeatmapAtlasField / ParticlesAtlasField  (setSource)
     │  1. sort manifest.lods numerically
@@ -562,7 +567,7 @@ When a LOD2+ chunk is uploaded and the pool is full, the chunk with the oldest `
 Orchestrates the atlas, schedulers, and LOD controller for scalar overlay products.
 
 ```ts
-setSource(manifest, tileBaseUrl, legendRange): Promise<void>
+setSource(manifest, buildTileUrl, legendRange): Promise<void>
 updatePalette(patch: PalettePatch): void   // legendRange, rawColors, and/or scale
 setVisible(visible: boolean): void
 onMapMove(bounds: LngLatBounds, zoom: number): void
@@ -583,7 +588,7 @@ A `fetchGeneration` counter discards stale upload callbacks if `setSource` is ca
 Orchestrates the atlas, schedulers, and LOD controller for the ocean current particle product.
 
 ```ts
-setSource(manifest, tileBaseUrl, legendRange): Promise<void>
+setSource(manifest, buildTileUrl, legendRange): Promise<void>
 startAnimation(): void
 stopAnimation(): void
 draw(): void
@@ -608,7 +613,7 @@ One instance per on-demand LOD. Manages the fetch queue for that LOD.
 
 ```ts
 createChunkScheduler(
-  atlas, tileBaseUrl, onChunkLoaded, region,
+  atlas, buildTileUrl, onChunkLoaded, region,
   lod, zoomThreshold?
 ): ChunkSchedulerAPI
 ```

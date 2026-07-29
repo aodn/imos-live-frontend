@@ -5,11 +5,11 @@
  */
 
 export const PRODUCT = {
-  GSLA_OCEAN_GEOSTROPHIC_CURRENT: 'model_sea_level_anomaly_gridded_realtime_vcur_ucur',
-  GSLA_ANOMALY_SEA_LEVELS: 'model_sea_level_anomaly_gridded_realtime_gsla',
-  AUSTEMP_HEATWAVE_SSTA_MOSAIC: 'satellite_austemp_heatwave_8day_ssta_mosaic',
-  AUSTEMP_HEATWAVE_SST_MOSAIC: 'satellite_austemp_heatwave_8day_sst_mosaic',
-  AUSTEMP_HEATWAVE_MCS_CATEGORY: 'satellite_austemp_heatwave_8day_mcs_category',
+  GSLA_OCEAN_GEOSTROPHIC_CURRENT: 'model_sea_level_anomaly_gridded_realtime:ucur+vcur',
+  GSLA_ANOMALY_SEA_LEVELS: 'model_sea_level_anomaly_gridded_realtime:gsla',
+  AUSTEMP_HEATWAVE_SSTA_MOSAIC: 'satellite_austemp_heatwave_8day:ssta_mosaic',
+  AUSTEMP_HEATWAVE_SST_MOSAIC: 'satellite_austemp_heatwave_8day:sst_mosaic',
+  AUSTEMP_HEATWAVE_MCS_CATEGORY: 'satellite_austemp_heatwave_8day:mcs_category',
   WAVE_BUOYS: 'wave-buoys',
   MOORING_TIMESERIES_REALTIME: 'mooring_timeseries_realtime',
 } as const;
@@ -36,6 +36,7 @@ type ProductValue = {
   variables?: string[];
   description: string;
   portalLink: string;
+  collectionId?: string;
 };
 
 const AUSTEMP_HEATWAVE_PORTAL_LINK =
@@ -59,6 +60,7 @@ export const PRODUCTS = {
       ' and tidegauge estimates of sea level. GSL is GSLA plus an estimate of the departure of mean sea level from the geoid.' +
       ' The geostrophic velocities are derived from GSL.',
     portalLink: GSLA_PORTAL_LINK,
+    collectionId: '0c9eb39c-9cbe-4c6a-8a10-5867087e703a',
   },
   [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: {
     name: 'GSLA Anomaly Sea Levels',
@@ -72,6 +74,7 @@ export const PRODUCTS = {
       ' and tidegauge estimates of sea level. GSL is GSLA plus an estimate of the departure of mean sea level from the geoid.' +
       ' The geostrophic velocities are derived from GSL.',
     portalLink: GSLA_PORTAL_LINK,
+    collectionId: '0c9eb39c-9cbe-4c6a-8a10-5867087e703a',
   },
   [PRODUCT.WAVE_BUOYS]: {
     name: 'Wave Buoys',
@@ -89,6 +92,7 @@ export const PRODUCTS = {
     description:
       'Sea Surface Temperature (SST) mosaic for the Australasian region, showing absolute sea surface temperatures used to identify marine heatwave conditions.',
     portalLink: AUSTEMP_HEATWAVE_PORTAL_LINK,
+    collectionId: '2ffccdad-1197-4e41-b412-a9033517cfb2',
   },
   [PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC]: {
     name: 'Austemp heatwave SSTA Mosaic',
@@ -98,6 +102,7 @@ export const PRODUCTS = {
     description:
       'Sea Surface Temperature Anomaly (SSTA) mosaic for the Australasian region, showing deviations from the long-term mean to identify marine heatwave conditions.',
     portalLink: AUSTEMP_HEATWAVE_PORTAL_LINK,
+    collectionId: '2ffccdad-1197-4e41-b412-a9033517cfb2',
   },
   [PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY]: {
     name: 'Austemp heatwave MCS Category',
@@ -107,6 +112,7 @@ export const PRODUCTS = {
     description:
       'Marine Cold Spell / Marine Heatwave (MCS) category mosaic for the Australasian region, classifying sea surface temperature anomalies into severity categories.',
     portalLink: AUSTEMP_HEATWAVE_PORTAL_LINK,
+    collectionId: '2ffccdad-1197-4e41-b412-a9033517cfb2',
   },
   [PRODUCT.MOORING_TIMESERIES_REALTIME]: {
     name: 'Mooring Timeseries Realtime',

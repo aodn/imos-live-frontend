@@ -40,8 +40,17 @@ import type {
 } from './types';
 
 export function createScalarAtlasLayer(options: ScalarAtlasLayerOptions): AtlasLayerHandle {
-  const { map, layerId, fetchManifest, tileBaseUrl, colorPalette, legendRange, beforeLayerId } =
-    options;
+  const {
+    map,
+    layerId,
+    fetchManifest,
+    tileBaseUrl,
+    dataset,
+    variable,
+    colorPalette,
+    legendRange,
+    beforeLayerId,
+  } = options;
 
   const layer = _heatmapAtlasLayer(layerId, colorPalette);
 
@@ -54,7 +63,9 @@ export function createScalarAtlasLayer(options: ScalarAtlasLayerOptions): AtlasL
   return {
     async setSource(date: string) {
       const manifest = await fetchManifest(date);
-      await layer.setSource(manifest, `${tileBaseUrl}/${date}`, legendRange);
+      const buildTileUrl = (id: string) =>
+        `${tileBaseUrl}/${id}?${new URLSearchParams({ dataset, variable, datetime: date })}`;
+      await layer.setSource(manifest, buildTileUrl, legendRange);
     },
     setVisible(visible: boolean) {
       layer.setVisible(visible);
@@ -76,6 +87,8 @@ export function createParticleAtlasLayer(
     layerId,
     fetchManifest,
     tileBaseUrl,
+    dataset,
+    variable,
     colorPalette,
     legendRange,
     particleConfig,
@@ -97,7 +110,9 @@ export function createParticleAtlasLayer(
   return {
     async setSource(date: string) {
       const resolved = await fetchManifest(date);
-      await layer.setSource(resolved, `${tileBaseUrl}/${date}`, legendRange);
+      const buildTileUrl = (id: string) =>
+        `${tileBaseUrl}/${id}?${new URLSearchParams({ dataset, variable, datetime: date })}`;
+      await layer.setSource(resolved, buildTileUrl, legendRange);
     },
     setVisible(visible: boolean) {
       layer.setVisible(visible);

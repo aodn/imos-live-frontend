@@ -18,7 +18,7 @@
  *  - Fire onChunkLoaded so the field can repaint and reveal the new chunk
  *
  * ChunkId convention: "{lod}/{cx}/{cy}"  e.g. "2/3/2", "3/5/4"
- * File URL:           "{tileBaseUrl}/{lod}/{cx}/{cy}.png"
+ * File URL:           built by the caller-supplied `buildTileUrl(chunkId)`
  */
 
 import type { AtlasManagerAPI } from './AtlasManager';
@@ -111,7 +111,7 @@ async function fetchChunk(url: string, signal: AbortSignal): Promise<ImageBitmap
 
 export function createChunkScheduler(
   atlas: AtlasManagerAPI,
-  tileBaseUrl: string,
+  buildTileUrl: (chunkId: string) => string,
   onChunkLoaded: (chunkId: string) => void,
   region: ChunkRegion,
   /** 1-based LOD number this scheduler handles (2 = LOD2, 3 = LOD3, ...). */
@@ -137,10 +137,6 @@ export function createChunkScheduler(
   // chunkId format: "${lod}/${cx}/${cy}"
   function makeChunkId(cx: number, cy: number): string {
     return `${lod}/${cx}/${cy}`;
-  }
-
-  function chunkUrl(id: string): string {
-    return `${tileBaseUrl}/${id}.png`;
   }
 
   function clearRetry(id: string) {
@@ -200,7 +196,7 @@ export function createChunkScheduler(
       loading.add(id);
       inflight++;
 
-      fetchChunk(chunkUrl(id), ctrl.signal)
+      fetchChunk(buildTileUrl(id), ctrl.signal)
         .then(img => {
           atlas.upload(id, img);
           retries.delete(id); // loaded — clear any failure history

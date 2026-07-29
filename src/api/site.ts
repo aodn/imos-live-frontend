@@ -27,7 +27,7 @@ import dayjs from 'dayjs';
  * * Open intervals: "2018-02-12T00:00:00Z/.." or "../2018-03-18T12:31:12Z"
  */
 
-const COLLECTION_PATH = '/api/v1/ogc/collections/dummy_collection_id_satisfying_api/items';
+const SITE_BASE_PATH = '/api/v1/ogc/collections/dummy_collection_id_satisfying_api/items';
 
 // Wave buoys and moorings share the same OGC collection and only differ by the path
 // segment of each endpoint, so the request shapes below are built once and bound to
@@ -37,9 +37,9 @@ const COLLECTION_PATH = '/api/v1/ogc/collections/dummy_collection_id_satisfying_
 // pairs, which Highcharts and toLocalDateTime handle directly (no date conversion here).
 function createGetDetails<T>(detailsPath: string, idParam: string) {
   return async (from: Date, to: Date, id: string): Promise<T> => {
-    const details = await axios.get<T>(
-      `${COLLECTION_PATH}/${detailsPath}?${idParam}=${id}&datetime=${localToUTC(from)}/${localToUTC(to)}`,
-    );
+    const details = await axios.get<T>(`${SITE_BASE_PATH}/${detailsPath}`, {
+      params: { [idParam]: id, datetime: `${localToUTC(from)}/${localToUTC(to)}` },
+    });
     return details.data;
   };
 }
@@ -52,9 +52,9 @@ function createGetSitesByDate(sitesPath: string) {
   return async (localDate: string): Promise<RawSiteFeatureCollection> => {
     const start = localToUTC(dayjs(localDate).startOf('day').toDate());
     const end = localToUTC(dayjs(localDate).endOf('day').toDate());
-    const sites = await axios.get<RawSiteFeatureCollection>(
-      `${COLLECTION_PATH}/${sitesPath}?datetime=${start}/${end}`,
-    );
+    const sites = await axios.get<RawSiteFeatureCollection>(`${SITE_BASE_PATH}/${sitesPath}`, {
+      params: { datetime: `${start}/${end}` },
+    });
     return normalizeSiteDates(sites.data);
   };
 }
@@ -62,7 +62,7 @@ function createGetSitesByDate(sitesPath: string) {
 // Get all sites with their latest available observation (no datetime bound).
 function createGetLatestSites(sitesPath: string) {
   return async (): Promise<RawSiteFeatureCollection> => {
-    const sites = await axios.get<RawSiteFeatureCollection>(`${COLLECTION_PATH}/${sitesPath}`);
+    const sites = await axios.get<RawSiteFeatureCollection>(`${SITE_BASE_PATH}/${sitesPath}`);
     return normalizeSiteDates(sites.data);
   };
 }
@@ -70,7 +70,7 @@ function createGetLatestSites(sitesPath: string) {
 // date in this response is converted to local date string, which is what the app displays
 function createGetLatestDate(latestDatePath: string) {
   return async (): Promise<string> => {
-    const latestDate = await axios.get(`${COLLECTION_PATH}/${latestDatePath}`);
+    const latestDate = await axios.get(`${SITE_BASE_PATH}/${latestDatePath}`);
     return utcToLocalDateTime(latestDate.data.time, 'YYYY-MM-DD');
   };
 }

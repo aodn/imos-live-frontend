@@ -8,7 +8,8 @@ export function useProductDateAvailabilitySync(product: TilesProduct, date: stri
   const { data, isSuccess, isError } = useQuery(metaDataManifestQueryOptions());
   // Optimistically true while the manifest is loading — avoids blocking downstream
   // requests before we know whether the date is actually unavailable.
-  const isDateAvailable = isSuccess ? data.products[product].available_dates.includes(date) : true;
+  const p = data?.products.find(p => p.id === product);
+  const isDateAvailable = isSuccess && p ? p.available_dates.includes(date) : true;
 
   useEffect(() => {
     if (isError) {

@@ -6,7 +6,7 @@
  * LODs blended in) rather than a single flat PNG.
  *
  * Caller contract:
- *   1. Call setSource(manifest, tileBaseUrl, legendRange) when date changes — awaits the full
+ *   1. Call setSource(manifest, buildTileUrl, legendRange) when date changes — awaits the full
  *      LOD1 preload (all tiles resident) before resolving, since the shaders sample LOD1
  *      unconditionally.
  *   2. Call onMapMove(bounds, zoom) on every moveend / zoom event.
@@ -48,7 +48,7 @@ import {
 export type ParticlesAtlasFieldAPI = {
   setSource: (
     manifest: ProductManifest,
-    tileBaseUrl: string,
+    buildTileUrl: (id: string) => string,
     legendRange: [number, number],
   ) => Promise<void>;
   startAnimation: () => void;
@@ -452,7 +452,7 @@ export function createParticlesAtlasField(
 
   async function setSource(
     manifest: ProductManifest,
-    tileBaseUrl: string,
+    buildTileUrl: (id: string) => string,
     legendRange: [number, number],
   ): Promise<void> {
     const gen = ++fetchGeneration;
@@ -483,7 +483,7 @@ export function createParticlesAtlasField(
     // starts the animation: the particle shaders sample LOD1 unconditionally, so a
     // missing chunk would index u_slots[-1] (out-of-bounds) instead of discarding.
     await preloadAllLod1({
-      tileBaseUrl,
+      buildTileUrl,
       lod1Ids: lod1ChunkIds(lod1),
       atlas,
       isStale: () => gen !== fetchGeneration,
@@ -502,7 +502,7 @@ export function createParticlesAtlasField(
 
     schedulers = createLodSchedulers({
       atlas,
-      tileBaseUrl,
+      buildTileUrl,
       onChunkLoaded,
       bounds: manifest.bounds,
       lodsSorted,

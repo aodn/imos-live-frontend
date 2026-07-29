@@ -129,19 +129,19 @@ export function lod1ChunkIds(lod1: LodEntry): string[] {
 /** Create one ChunkScheduler per on-demand LOD (LODs 2..N). */
 export function createLodSchedulers(params: {
   atlas: AtlasManagerAPI;
-  tileBaseUrl: string;
+  buildTileUrl: (id: string) => string;
   onChunkLoaded: (id: string) => void;
   bounds: { lonMin: number; lonMax: number; latMin: number; latMax: number };
   lodsSorted: LodEntry[];
 }): ChunkSchedulerAPI[] {
-  const { atlas, tileBaseUrl, onChunkLoaded, bounds, lodsSorted } = params;
+  const { atlas, buildTileUrl, onChunkLoaded, bounds, lodsSorted } = params;
   const schedulers: ChunkSchedulerAPI[] = [];
   for (let lodNum = 2; lodNum <= lodsSorted.length; lodNum++) {
     const lodEntry = lodsSorted[lodNum - 1];
     schedulers.push(
       createChunkScheduler(
         atlas,
-        tileBaseUrl,
+        buildTileUrl,
         onChunkLoaded,
         { ...bounds, cols: lodEntry.grid[0], rows: lodEntry.grid[1] },
         lodNum,
@@ -160,13 +160,13 @@ export function createLodSchedulers(params: {
  * resolves without uploading (the caller's own staleness guards then no-op).
  */
 export function preloadLod1(params: {
-  tileBaseUrl: string;
+  buildTileUrl: (id: string) => string;
   lod1Ids: string[];
   atlas: AtlasManagerAPI;
   isStale: () => boolean;
   onTileUploaded?: (id: string) => void;
 }): Promise<void> {
-  const { tileBaseUrl, lod1Ids, atlas, isStale, onTileUploaded } = params;
+  const { buildTileUrl, lod1Ids, atlas, isStale, onTileUploaded } = params;
   if (lod1Ids.length === 0) return Promise.resolve();
 
   return new Promise<void>((resolve, reject) => {
@@ -183,7 +183,7 @@ export function preloadLod1(params: {
     for (const id of lod1Ids) {
       void (async () => {
         try {
-          const blob = await fetch(`${tileBaseUrl}/${id}.png`).then(r => r.blob());
+          const blob = await fetch(buildTileUrl(id)).then(r => r.blob());
           const img = await createImageBitmap(blob, {
             premultiplyAlpha: 'none',
             colorSpaceConversion: 'none',
@@ -217,15 +217,15 @@ export function preloadLod1(params: {
  * alpha mask does. So every LOD1 tile must be present before the animation runs.
  */
 export async function preloadAllLod1(params: {
-  tileBaseUrl: string;
+  buildTileUrl: (id: string) => string;
   lod1Ids: string[];
   atlas: AtlasManagerAPI;
   isStale: () => boolean;
 }): Promise<void> {
-  const { tileBaseUrl, lod1Ids, atlas, isStale } = params;
+  const { buildTileUrl, lod1Ids, atlas, isStale } = params;
   await Promise.all(
     lod1Ids.map(async id => {
-      const blob = await fetch(`${tileBaseUrl}/${id}.png`).then(r => r.blob());
+      const blob = await fetch(buildTileUrl(id)).then(r => r.blob());
       const img = await createImageBitmap(blob, {
         premultiplyAlpha: 'none',
         colorSpaceConversion: 'none',
