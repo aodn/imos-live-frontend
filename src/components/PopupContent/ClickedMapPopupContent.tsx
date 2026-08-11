@@ -3,7 +3,7 @@ import { useShallow } from 'zustand/shallow';
 import type { LngLat } from 'mapbox-gl';
 import type { ClosePopupFn } from '@/helpers';
 import type { TilesProduct } from '@/constants';
-import { HW_CATEGORY_LOOKUP, PRODUCT, PRODUCTLEGENDS, PRODUCTS } from '@/constants';
+import { MHW_CATEGORY_LOOKUP, PRODUCT, PRODUCTLEGENDS, PRODUCTS } from '@/constants';
 import { useQueries } from '@tanstack/react-query';
 import type { ProductManifest } from '@/AtlasRenderingSystem';
 import { getPointData, productManifestQueryOptions } from '@/api/tiles';
@@ -50,7 +50,7 @@ export function ClickedMapPopupContent({ onClose, lngLat }: ClickedMapPopupConte
   });
 
   const mcsCategoryManifest =
-    manifestResults[enabledProducts.indexOf(PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY_MOSAIC)]?.data;
+    manifestResults[enabledProducts.indexOf(PRODUCT.AUSTEMP_HEATWAVE_MHW_CATEGORY_MOSAIC)]?.data;
 
   // A product is in-bounds only once its manifest has loaded; until then we hold
   // off on the point fetch rather than guessing.
@@ -94,7 +94,7 @@ export function ClickedMapPopupContent({ onClose, lngLat }: ClickedMapPopupConte
     return Object.entries(variables)
       .filter(([, v]) => v.value !== null)
       .map(([varKey, v]) => {
-        if (product === PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY_MOSAIC) {
+        if (product === PRODUCT.AUSTEMP_HEATWAVE_MHW_CATEGORY_MOSAIC) {
           const category = v.value as number;
           // Prefer the data-driven mapping from the manifest's flag_values /
           // flag_meanings; fall back to the static constant only when the
@@ -105,7 +105,7 @@ export function ClickedMapPopupContent({ onClose, lngLat }: ClickedMapPopupConte
           const meaning =
             idx >= 0 && flagMeanings
               ? flagMeanings[idx]
-              : HW_CATEGORY_LOOKUP[category as keyof typeof HW_CATEGORY_LOOKUP];
+              : MHW_CATEGORY_LOOKUP[category as keyof typeof MHW_CATEGORY_LOOKUP];
           return {
             key: `${product}:${varKey}`,
             label,

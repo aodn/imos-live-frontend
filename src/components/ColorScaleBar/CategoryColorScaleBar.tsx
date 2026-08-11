@@ -14,8 +14,8 @@ type CategoryColorScaleBarProps = {
 export function CategoryColorScaleBar({
   height = 10,
   className,
-  colors = COLOR_OPTIONS[PRODUCTLEGENDS[PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY_MOSAIC].colorKey],
-  scales = PRODUCTLEGENDS[PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY_MOSAIC].scales as string[],
+  colors = COLOR_OPTIONS[PRODUCTLEGENDS[PRODUCT.AUSTEMP_HEATWAVE_MHW_CATEGORY_MOSAIC].colorKey],
+  scales = PRODUCTLEGENDS[PRODUCT.AUSTEMP_HEATWAVE_MHW_CATEGORY_MOSAIC].scales as string[],
   label,
 }: CategoryColorScaleBarProps) {
   const segments = useMemo(

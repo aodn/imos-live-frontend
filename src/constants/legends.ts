@@ -19,7 +19,7 @@ export type LegendArgs = {
 // This map is only used until the manifest is in the cache.
 // `validateCategoricalManifest` warns in dev if this fallback drifts away
 // from the manifest data.
-export const HW_CATEGORY_LOOKUP = {
+export const MHW_CATEGORY_LOOKUP = {
   0: 'none',
   1: 'moderate',
   2: 'strong',
@@ -27,7 +27,7 @@ export const HW_CATEGORY_LOOKUP = {
   4: 'extreme',
 } as const;
 
-export const HW_CATEGORY_LEGEND_SCALES = Object.values(HW_CATEGORY_LOOKUP);
+export const MHW_CATEGORY_LEGEND_SCALES = Object.values(MHW_CATEGORY_LOOKUP);
 
 export const PRODUCTLEGENDS = {
   [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: {
@@ -57,10 +57,10 @@ export const PRODUCTLEGENDS = {
     colorKey: 'X SST' as ColorOptionKey,
     scale: 'linear',
   },
-  [PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY_MOSAIC]: {
-    scales: HW_CATEGORY_LEGEND_SCALES,
+  [PRODUCT.AUSTEMP_HEATWAVE_MHW_CATEGORY_MOSAIC]: {
+    scales: MHW_CATEGORY_LEGEND_SCALES,
     range: [0, 4],
-    label: 'MCS Category mosaic',
+    label: 'MHW Category mosaic',
     colorKey: 'MHW_CATEGORY_LEGEND_COLORS' as ColorOptionKey,
     scale: 'category',
   },

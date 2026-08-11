@@ -25,7 +25,7 @@ describe('product enabled state', () => {
     expect(productEnabled[PRODUCT.WAVE_BUOYS]).toBe(true);
     expect(productEnabled[PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC]).toBe(false);
     expect(productEnabled[PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC]).toBe(false);
-    expect(productEnabled[PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY_MOSAIC]).toBe(false);
+    expect(productEnabled[PRODUCT.AUSTEMP_HEATWAVE_MHW_CATEGORY_MOSAIC]).toBe(false);
   });
 
   it('toggling a non-SCALAR_TILES_GROUP product leaves others untouched', () => {
@@ -41,10 +41,10 @@ describe('product enabled state', () => {
     const { setProductEnabledByProduct } = useMapUIStore.getState();
     // First turn on SST mosaic, then switch to MCS category — only the latter should remain on.
     setProductEnabledByProduct(PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC, true);
-    setProductEnabledByProduct(PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY_MOSAIC, true);
+    setProductEnabledByProduct(PRODUCT.AUSTEMP_HEATWAVE_MHW_CATEGORY_MOSAIC, true);
 
     const after = useMapUIStore.getState().productEnabled;
-    expect(after[PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY_MOSAIC]).toBe(true);
+    expect(after[PRODUCT.AUSTEMP_HEATWAVE_MHW_CATEGORY_MOSAIC]).toBe(true);
     expect(after[PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC]).toBe(false);
     expect(after[PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC]).toBe(false);
     expect(after[PRODUCT.GSLA_ANOMALY_SEA_LEVELS]).toBe(false);

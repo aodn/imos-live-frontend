@@ -29,7 +29,7 @@ describe('per-key round-trip', () => {
         [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: true,
         [PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC]: false,
         [PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC]: false,
-        [PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY_MOSAIC]: false,
+        [PRODUCT.AUSTEMP_HEATWAVE_MHW_CATEGORY_MOSAIC]: false,
         [PRODUCT.WAVE_BUOYS]: true,
         [PRODUCT.MOORING_TIMESERIES_REALTIME]: false,
       },
@@ -76,7 +76,7 @@ describe('compact output format (no type tags, no JSON noise)', () => {
       [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: true,
       [PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC]: false,
       [PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC]: false,
-      [PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY_MOSAIC]: false,
+      [PRODUCT.AUSTEMP_HEATWAVE_MHW_CATEGORY_MOSAIC]: false,
       [PRODUCT.WAVE_BUOYS]: true,
       [PRODUCT.MOORING_TIMESERIES_REALTIME]: false,
     };
