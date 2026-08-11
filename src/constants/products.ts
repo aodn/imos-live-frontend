@@ -9,7 +9,7 @@ export const PRODUCT = {
   GSLA_ANOMALY_SEA_LEVELS: 'model_sea_level_anomaly_gridded_realtime:gsla',
   AUSTEMP_HEATWAVE_SSTA_MOSAIC: 'satellite_austemp_heatwave_14day:ssta_mosaic',
   AUSTEMP_HEATWAVE_SST_MOSAIC: 'satellite_austemp_heatwave_14day:sst_mosaic',
-  AUSTEMP_HEATWAVE_MCS_CATEGORY_MOSAIC: 'satellite_austemp_heatwave_14day:mcs_category_mosaic',
+  AUSTEMP_HEATWAVE_MHW_CATEGORY_MOSAIC: 'satellite_austemp_heatwave_14day:mhw_category_mosaic',
   WAVE_BUOYS: 'wave-buoys',
   MOORING_TIMESERIES_REALTIME: 'mooring_timeseries_realtime',
 } as const;
@@ -104,7 +104,7 @@ export const PRODUCTS = {
     portalLink: AUSTEMP_HEATWAVE_PORTAL_LINK,
     collectionId: '2ffccdad-1197-4e41-b412-a9033517cfb2',
   },
-  [PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY_MOSAIC]: {
+  [PRODUCT.AUSTEMP_HEATWAVE_MHW_CATEGORY_MOSAIC]: {
     name: 'Austemp heatwave MCS Category Mosaic',
     layerId: 'austemp-heatwave-mcs-category-mosaic-layer',
     sourceId: 'austemp-heatwave-mcs-category-mosaic-source',
@@ -138,7 +138,7 @@ export const TILES_GROUP = [
   PRODUCT.GSLA_ANOMALY_SEA_LEVELS,
   PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC,
   PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC,
-  PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY_MOSAIC,
+  PRODUCT.AUSTEMP_HEATWAVE_MHW_CATEGORY_MOSAIC,
 ] as const satisfies TilesProduct[];
 
 export const SCALAR_TILES_GROUP = TILES_GROUP.filter(

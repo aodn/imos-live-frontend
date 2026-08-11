@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { ExportPanel } from './ExportPanel';
 import { CategoryColorScaleBar } from '@/components/ColorScaleBar';
 import { LinearColorScaleBar } from '@/components/ColorScaleBar';
-import { HW_CATEGORY_LEGEND_SCALES } from '@/constants';
+import { MHW_CATEGORY_LEGEND_SCALES } from '@/constants';
 import { COLOR_OPTIONS } from '@/constants';
 
 const MHW_CATEGORY_LEGEND_COLORS = COLOR_OPTIONS.MHW_CATEGORY_LEGEND_COLORS;
@@ -32,7 +32,7 @@ export const WithCategoricalLegend: Story = {
       legend: (
         <CategoryColorScaleBar
           colors={MHW_CATEGORY_LEGEND_COLORS}
-          scales={HW_CATEGORY_LEGEND_SCALES}
+          scales={MHW_CATEGORY_LEGEND_SCALES}
         />
       ),
     },

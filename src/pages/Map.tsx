@@ -77,7 +77,7 @@ export function Map() {
               { Icon: ThermometerIcon, product: PRODUCT.MOORING_TIMESERIES_REALTIME },
               { Icon: ThermometerIcon, product: PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC },
               { Icon: ThermometerIcon, product: PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC },
-              { Icon: ThermometerIcon, product: PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY_MOSAIC },
+              { Icon: ThermometerIcon, product: PRODUCT.AUSTEMP_HEATWAVE_MHW_CATEGORY_MOSAIC },
             ]}
           />
           <MapComponent key={isSmallScreen ? 'mobile' : 'desktop'} />

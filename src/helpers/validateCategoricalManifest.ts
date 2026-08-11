@@ -1,6 +1,6 @@
 import {
   COLOR_OPTIONS,
-  HW_CATEGORY_LOOKUP,
+  MHW_CATEGORY_LOOKUP,
   PRODUCT,
   PRODUCTLEGENDS,
   type TilesProduct,
@@ -29,17 +29,17 @@ export function validateCategoricalManifest(product: TilesProduct, manifest: Pro
     );
   }
 
-  if (product === PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY_MOSAIC && flagMeanings) {
-    const expectedLabels = Object.values(HW_CATEGORY_LOOKUP);
+  if (product === PRODUCT.AUSTEMP_HEATWAVE_MHW_CATEGORY_MOSAIC && flagMeanings) {
+    const expectedLabels = Object.values(MHW_CATEGORY_LOOKUP);
     if (expectedLabels.length !== flagMeanings.length) {
       warnOnce(
-        `[${product}] HW_CATEGORY_LOOKUP has ${expectedLabels.length} labels but manifest flag_meanings has ${flagMeanings.length} — popup category labels will be wrong.`,
+        `[${product}] MHW_CATEGORY_LOOKUP has ${expectedLabels.length} labels but manifest flag_meanings has ${flagMeanings.length} — popup category labels will be wrong.`,
       );
     } else {
       const mismatchIdx = expectedLabels.findIndex((label, i) => label !== flagMeanings[i]);
       if (mismatchIdx !== -1) {
         warnOnce(
-          `[${product}] HW_CATEGORY_LOOKUP[${mismatchIdx}]='${expectedLabels[mismatchIdx]}' but manifest flag_meanings[${mismatchIdx}]='${flagMeanings[mismatchIdx]}'.`,
+          `[${product}] MHW_CATEGORY_LOOKUP[${mismatchIdx}]='${expectedLabels[mismatchIdx]}' but manifest flag_meanings[${mismatchIdx}]='${flagMeanings[mismatchIdx]}'.`,
         );
       }
     }

@@ -61,7 +61,7 @@ const featuredPresentation: FeaturedPresentation[] = ((products: ProductType[]) 
       icon: <ThermometerIcon size="lg" />,
     },
     {
-      product: PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY_MOSAIC,
+      product: PRODUCT.AUSTEMP_HEATWAVE_MHW_CATEGORY_MOSAIC,
       title: 'Marine heatwave sea surface temperature MCS Category Mosaic',
       image: { src: sstImage, alt: 'Marine heatwave MCS Category Mosaic' },
       icon: <ThermometerIcon size="lg" />,
@@ -84,7 +84,7 @@ const featuredPresentation: FeaturedPresentation[] = ((products: ProductType[]) 
   PRODUCT.GSLA_ANOMALY_SEA_LEVELS,
   PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC,
   PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC,
-  PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY_MOSAIC,
+  PRODUCT.AUSTEMP_HEATWAVE_MHW_CATEGORY_MOSAIC,
   PRODUCT.WAVE_BUOYS,
   PRODUCT.MOORING_TIMESERIES_REALTIME,
 ]);
