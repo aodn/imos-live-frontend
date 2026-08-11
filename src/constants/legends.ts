@@ -57,10 +57,10 @@ export const PRODUCTLEGENDS = {
     colorKey: 'X SST' as ColorOptionKey,
     scale: 'linear',
   },
-  [PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY]: {
+  [PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY_MOSAIC]: {
     scales: HW_CATEGORY_LEGEND_SCALES,
     range: [0, 4],
-    label: 'MCS Category',
+    label: 'MCS Category mosaic',
     colorKey: 'MHW_CATEGORY_LEGEND_COLORS' as ColorOptionKey,
     scale: 'category',
   },

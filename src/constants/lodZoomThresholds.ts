@@ -12,5 +12,5 @@ export const LOD_ZOOM_THRESHOLDS: Partial<Record<TilesProduct, LodZoomThresholds
   [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: { '2': 4, '3': 5, '4': 6 },
   [PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC]: { '2': 4, '3': 5, '4': 6 },
   [PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC]: { '2': 4, '3': 5, '4': 6 },
-  [PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY]: { '2': 4, '3': 5, '4': 6 },
+  [PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY_MOSAIC]: { '2': 4, '3': 5, '4': 6 },
 };

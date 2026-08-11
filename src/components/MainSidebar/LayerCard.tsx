@@ -115,7 +115,6 @@ function useLatestDate(product: ProductType) {
     select: ({ products }) => products.find(p => p.id === product)?.full_date_range.end,
     enabled: !isSiteProduct,
   });
-
   // Site products expose their own latest-time endpoint. Keep the query keys aligned
   // with the drawer charts (WaveBuoyChart/MooringChart) so the cache is shared.
   const { data: siteDate, isLoading: isSiteLoading } = useQuery({
