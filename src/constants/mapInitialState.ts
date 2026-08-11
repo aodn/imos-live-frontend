@@ -1,5 +1,5 @@
 import { type StyleTitle } from '@/styles';
-import { getLast10Dates, getLast365Dates, generateValueByPercentage } from '@/utils';
+import { getLast10Dates, generateValueByPercentage, getLast365Dates } from '@/utils';
 import mapboxgl from 'mapbox-gl';
 import { PRODUCT } from './products';
 import type { ProductEnabled } from '@/store';
@@ -52,7 +52,7 @@ export const INITIAL_PRODUCT_ENABLED = {
   [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: true,
   [PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC]: false,
   [PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC]: false,
-  [PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY]: false,
+  [PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY_MOSAIC]: false,
   [PRODUCT.WAVE_BUOYS]: true,
   [PRODUCT.MOORING_TIMESERIES_REALTIME]: false,
 } as const satisfies ProductEnabled;

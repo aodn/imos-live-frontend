@@ -50,7 +50,7 @@ export function ClickedMapPopupContent({ onClose, lngLat }: ClickedMapPopupConte
   });
 
   const mcsCategoryManifest =
-    manifestResults[enabledProducts.indexOf(PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY)]?.data;
+    manifestResults[enabledProducts.indexOf(PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY_MOSAIC)]?.data;
 
   // A product is in-bounds only once its manifest has loaded; until then we hold
   // off on the point fetch rather than guessing.
@@ -94,7 +94,7 @@ export function ClickedMapPopupContent({ onClose, lngLat }: ClickedMapPopupConte
     return Object.entries(variables)
       .filter(([, v]) => v.value !== null)
       .map(([varKey, v]) => {
-        if (product === PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY) {
+        if (product === PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY_MOSAIC) {
           const category = v.value as number;
           // Prefer the data-driven mapping from the manifest's flag_values /
           // flag_meanings; fall back to the static constant only when the

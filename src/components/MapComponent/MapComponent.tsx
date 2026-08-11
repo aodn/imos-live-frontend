@@ -71,7 +71,8 @@ export const MapComponent = memo(function MapComponent() {
       gslaAnomalySeaLevelsEnabled: s.productEnabled[PRODUCT.GSLA_ANOMALY_SEA_LEVELS],
       marineHeatwaveSstMosaicEnabled: s.productEnabled[PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC],
       marineHeatwaveSstaEnabled: s.productEnabled[PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC],
-      marineHeatwaveMcsCategoryEnabled: s.productEnabled[PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY],
+      marineHeatwaveMcsCategoryEnabled:
+        s.productEnabled[PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY_MOSAIC],
     })),
   );
 
@@ -99,7 +100,7 @@ export const MapComponent = memo(function MapComponent() {
   });
   useScalarAtlasLayer({
     map,
-    product: PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY,
+    product: PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY_MOSAIC,
   });
   useSiteLayer({
     map,

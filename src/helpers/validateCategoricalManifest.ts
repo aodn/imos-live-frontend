@@ -29,7 +29,7 @@ export function validateCategoricalManifest(product: TilesProduct, manifest: Pro
     );
   }
 
-  if (product === PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY && flagMeanings) {
+  if (product === PRODUCT.AUSTEMP_HEATWAVE_MCS_CATEGORY_MOSAIC && flagMeanings) {
     const expectedLabels = Object.values(HW_CATEGORY_LOOKUP);
     if (expectedLabels.length !== flagMeanings.length) {
       warnOnce(
