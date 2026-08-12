@@ -3,7 +3,7 @@ import { useShallow } from 'zustand/shallow';
 import type { LngLat } from 'mapbox-gl';
 import type { ClosePopupFn } from '@/helpers';
 import type { TilesProduct } from '@/constants';
-import { MHW_CATEGORY_LOOKUP, PRODUCT, PRODUCTLEGENDS, PRODUCTS } from '@/constants';
+import { MHW_CATEGORY_LOOKUP, PRODUCT, PRODUCTLEGENDS } from '@/constants';
 import { useQueries } from '@tanstack/react-query';
 import type { ProductManifest } from '@/AtlasRenderingSystem';
 import { getPointData, productManifestQueryOptions } from '@/api/tiles';
@@ -44,7 +44,7 @@ export function ClickedMapPopupContent({ onClose, lngLat }: ClickedMapPopupConte
   // skip the per-point fetch for any product whose bounds don't cover the click.
   const manifestResults = useQueries({
     queries: enabledProducts.map(product => ({
-      ...productManifestQueryOptions(PRODUCTS[product]?.collectionId, product, date),
+      ...productManifestQueryOptions(product, date),
       enabled: !!date,
     })),
   });

@@ -1,6 +1,6 @@
 import type { ProductManifest } from '@/AtlasRenderingSystem';
 import type { PRODUCTS, TilesProduct } from '@/constants';
-import { extractProductVariables } from '@/constants';
+import { extractProductVariables, getCollectionIdForProduct } from '@/constants';
 import { queryOptions } from '@tanstack/react-query';
 import axios from 'axios';
 
@@ -57,27 +57,22 @@ export const metaDataManifestQueryOptions = () =>
 
 // ---------- Product Manifest ----------
 export const getProductManifest = async (args: {
-  collectionId: string;
   product: TilesProduct;
   date: string;
 }): Promise<ProductManifest> => {
   const { dataset, variable } = extractProductVariables(args.product);
   const response = await axios.get<ProductManifest>(
-    `${TILE_BASE_PATH}/${args.collectionId}/data_tiles/manifest`,
+    `${TILE_BASE_PATH}/${getCollectionIdForProduct(args.product)}/data_tiles/manifest`,
     { params: { dataset, variable, datetime: args.date } },
   );
   return response.data;
 };
 
 // staleTime: Infinity because a product's tile manifest for a given date is immutable.
-export const productManifestQueryOptions = (
-  collectionId: string,
-  product: TilesProduct,
-  date: string,
-) =>
+export const productManifestQueryOptions = (product: TilesProduct, date: string) =>
   queryOptions({
     queryKey: ['productManifest', product, date] as const,
-    queryFn: () => getProductManifest({ collectionId, product, date }),
+    queryFn: () => getProductManifest({ product, date }),
     staleTime: Infinity,
   });
 
@@ -104,9 +99,10 @@ export const getPointData = async <T extends TilesProduct>(args: {
   lat: number;
   lon: number;
 }): Promise<PointData<T>> => {
+  const { dataset, variable } = extractProductVariables(args.product);
   const response = await axios.get<PointData<T>>(
-    `${TILE_BASE_PATH}/${args.product}/${args.date}/point`,
-    { params: { lon: args.lon, lat: args.lat } },
+    `${TILE_BASE_PATH}/${getCollectionIdForProduct(args.product)}/data_tiles/point`,
+    { params: { dataset, variable, datetime: args.date, lat: args.lat, lon: args.lon } },
   );
   return response.data;
 };

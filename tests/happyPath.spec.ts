@@ -278,10 +278,6 @@ function gslaPointForDate(date: string) {
   };
 }
 
-function parseDateFromTileUrl(url: string): string | undefined {
-  return url.match(/\/(\d{4}-\d{2}-\d{2})\//)?.[1];
-}
-
 test.beforeEach(async ({ page }) => {
   await page.clock.install({ time: currentDate });
 
@@ -309,14 +305,17 @@ test.beforeEach(async ({ page }) => {
   // New shape: `/data_tiles/{lod}/{cx}/{cy}?...` (no extension).
   await page.route(/\/data_tiles\/\d+\/\d+\/\d+(?:\?|$)/, route => route.abort());
 
-  // Per-point lookup powering the click popup: `/collections/{product}/{date}/point`
-  // (not under `/data_tiles/` — this endpoint wasn't part of the tile/manifest migration).
-  await page.route(/\/collections\/.+\/point(?:\?|$)/, async (route: Route) => {
-    const url = route.request().url();
-    const date = parseDateFromTileUrl(url) ?? defaultDaySelected;
-    if (url.includes(GSLA_PARTICLE_PRODUCT)) {
+  // Per-point lookup powering the click popup: `/collections/{collectionId}/data_tiles/point
+  // ?dataset=...&variable=...&datetime=...`. Routed by the `variable` query param rather
+  // than a path segment, mirroring the manifest endpoint's contract.
+  const { variable: anomalyVariable } = extractProductVariables(GSLA_ANOMALY_PRODUCT);
+  await page.route(/\/data_tiles\/point(?:\?|$)/, async (route: Route) => {
+    const url = new URL(route.request().url());
+    const date = url.searchParams.get('datetime') ?? defaultDaySelected;
+    const variable = url.searchParams.get('variable');
+    if (variable === particleVariable) {
       await route.fulfill({ json: particlePointForDate(date) });
-    } else if (url.includes(GSLA_ANOMALY_PRODUCT)) {
+    } else if (variable === anomalyVariable) {
       await route.fulfill({ json: gslaPointForDate(date) });
     } else {
       // Other tile products (SST mosaic, MCS category) aren't exercised here.

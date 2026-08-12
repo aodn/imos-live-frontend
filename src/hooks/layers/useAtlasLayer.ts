@@ -101,9 +101,7 @@ export function useAtlasLayer<H extends AtlasLayerHandle>({
       map: map.current!,
       layerId,
       fetchManifest: async d => {
-        const manifest = await queryClient.fetchQuery(
-          productManifestQueryOptions(PRODUCTS[product]?.collectionId, product, d),
-        );
+        const manifest = await queryClient.fetchQuery(productManifestQueryOptions(product, d));
         validateCategoricalManifest(product, manifest);
         // Categorical products: rewrite the legend's tick labels with the
         // manifest's CF `flag_meanings`. Popups read flag_values/flag_meanings

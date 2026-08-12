@@ -9,6 +9,7 @@ export {
   TILES_GROUP,
   SCALAR_TILES_GROUP,
   extractProductVariables,
+  getCollectionIdForProduct,
 } from './products';
 export type {
   ProductType,
