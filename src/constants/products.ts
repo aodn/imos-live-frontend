@@ -152,3 +152,8 @@ export function extractProductVariables(product: TilesProduct): {
   const [dataset, variable] = product.split(':');
   return { dataset, variable };
 }
+
+export const getCollectionIdForProduct = (product: TilesProduct): string | undefined => {
+  const productInfo = PRODUCTS[product];
+  return productInfo?.collectionId;
+};
