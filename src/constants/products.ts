@@ -105,12 +105,12 @@ export const PRODUCTS = {
     collectionId: '2ffccdad-1197-4e41-b412-a9033517cfb2',
   },
   [PRODUCT.AUSTEMP_HEATWAVE_MHW_CATEGORY_MOSAIC]: {
-    name: 'Austemp heatwave MCS Category Mosaic',
-    layerId: 'austemp-heatwave-mcs-category-mosaic-layer',
-    sourceId: 'austemp-heatwave-mcs-category-mosaic-source',
+    name: 'Austemp heatwave MHW Category Mosaic',
+    layerId: 'austemp-heatwave-mhw-category-mosaic-layer',
+    sourceId: 'austemp-heatwave-mhw-category-mosaic-source',
     variables: ['MHW_category_mosaic'],
     description:
-      'Marine Cold Spell / Marine Heatwave (MCS) category mosaic for the Australasian region, classifying sea surface temperature anomalies into severity categories.',
+      'Marine Cold Spell / Marine Heatwave (MHW) category mosaic for the Australasian region, classifying sea surface temperature anomalies into severity categories.',
     portalLink: AUSTEMP_HEATWAVE_PORTAL_LINK,
     collectionId: '2ffccdad-1197-4e41-b412-a9033517cfb2',
   },

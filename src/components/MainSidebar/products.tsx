@@ -62,8 +62,8 @@ const featuredPresentation: FeaturedPresentation[] = ((products: ProductType[]) 
     },
     {
       product: PRODUCT.AUSTEMP_HEATWAVE_MHW_CATEGORY_MOSAIC,
-      title: 'Marine heatwave sea surface temperature MCS Category Mosaic',
-      image: { src: sstImage, alt: 'Marine heatwave MCS Category Mosaic' },
+      title: 'Marine heatwave sea surface temperature MHW Category Mosaic',
+      image: { src: sstImage, alt: 'Marine heatwave MHW Category Mosaic' },
       icon: <ThermometerIcon size="lg" />,
     },
     {
