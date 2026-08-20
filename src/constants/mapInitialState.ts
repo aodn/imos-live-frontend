@@ -17,6 +17,9 @@ export const MAX_ZOOM = CLUSTER_MAX_ZOOM;
 export const INITIAL_ZOOM = 3;
 export const INITIAL_STYLE: StyleTitle = 'Streets';
 export const INITIAL_CENTER = new mapboxgl.LngLat(133.7751, -25.2744);
+// The date time design is to use the calendar day which is timezone free, and its format is 'YYYY-MM-DD', e.g. 2024-06-01.
+// In different timezones, the same calendar day may have different UTC date time. If the timezone of this project is configed to be UTC, then the date time of the calendar day is 2024-06-01T00:00:00Z to 2024-06-01T23:59:59Z.
+// If the timezone of this project is configed to be local timezone then the date time of the calendar day is local timezone 2024-06-01T00:00:00 to 2024-06-01T23:59:59.
 export const DATE_RANGE = getLast365Dates();
 export const INITIAL_DATE = DATE_RANGE.at(-1)!;
 export const INITIAL_WORLD_BOUNDARIES_ENABLED = true;

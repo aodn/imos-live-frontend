@@ -68,6 +68,77 @@ ref.current?.setDateTime(new Date('2024-06-15'));
 
 > **All dates are UTC.** `min`, `max`, `value`, and everything `onChange` returns are UTC `Date`s — pass UTC in, expect UTC out.
 
+## ⚠️ Timezone model — read this before wiring up dates
+
+**Every internal calculation reads a `Date`'s `getUTC*` fields, and every position
+calculation is pure epoch-ms arithmetic (`.getTime()` diffs).** The slider never
+touches `getMonth()`, `getHours()`, `Intl`, or the browser's local timezone. That
+has two consequences:
+
+1. **A JS `Date` has no timezone — only an instant.** "UTC" here doesn't mean the
+   slider forces real-world UTC; it means the slider reads whatever values sit in
+   the `Date`'s UTC-labeled fields. You control what goes into those fields.
+2. **This makes the slider effectively timezone-agnostic, not UTC-only.** You can
+   represent _any_ timezone by encoding that timezone's wall-clock time into the
+   `Date`'s UTC fields — e.g. `Date.UTC(y, m, d, h)` or an ISO string ending in
+   `Z` — and reading `onChange`'s result back the same way (`getUTC*`, or this
+   package's `toISODateString`). The slider will tick, scroll, and label
+   correctly no matter what real-world timezone those numbers are supposed to
+   represent, because it never asks the environment what timezone it's in.
+
+**The one way to break this:** don't pass ISO strings with a real UTC offset
+(e.g. `2024-06-15T00:00:00+10:00`) into `min`/`max`/`value`. `new Date(...)`
+will correctly convert that to a true UTC instant, and `getUTC*` will then
+return the _converted_ UTC hour — not your original +10 wall-clock hour. Always
+feed the slider `Z`-suffixed (or bare-date, which callers commonly zero-pad to
+midnight `Z`) strings that already encode the exact field values you want back
+out. In short: **encode, don't convert.**
+
+### Worked example: driving the slider in a non-UTC timezone
+
+Say you want the slider to represent **Sydney local time (AEST, UTC+10)**
+instead of real UTC — e.g. a range from 9am to 5pm Sydney time on 15 June 2024.
+Don't pass the real UTC instant for those wall-clock times (`23:00`/`07:00`
+UTC the day before/of) — encode the Sydney wall-clock numbers directly into the
+`Date`'s UTC fields instead:
+
+```tsx
+// ❌ Don't do this — real UTC offset gets converted, so getUTC*() no longer
+// matches the Sydney wall-clock time you meant:
+const min = new Date('2024-06-15T09:00:00+10:00'); // becomes 2024-06-14T23:00:00Z internally
+
+// ✅ Do this — encode the Sydney wall-clock time directly as if it were UTC:
+const min = new Date(Date.UTC(2024, 5, 15, 9, 0)); // "2024-06-15T09:00:00Z", read as 9am Sydney
+const max = new Date(Date.UTC(2024, 5, 15, 17, 0)); // read as 5pm Sydney
+
+<DateSlider
+  mode="point"
+  min={min}
+  max={max}
+  value={{ point: min }}
+  initialTimeUnit="hour"
+  onChange={v => {
+    const p = (v as PointValue).point;
+    // Decode the same way you encoded: getUTC*() fields ARE the Sydney
+    // wall-clock fields, not real UTC.
+    console.log(`Selected ${p.getUTCHours()}:00 Sydney time`); // e.g. "Selected 13:00 Sydney time"
+  }}
+/>;
+```
+
+The slider itself never knows or cares that these numbers mean "Sydney" — it
+just ticks hours, scrolls, and reports positions from the epoch-ms span between
+`min` and `max`. The timezone meaning exists only at the edges: in how you
+construct `min`/`max`/`value`, and in how you interpret `onChange`'s result.
+Mixing conventions (e.g. encoding `min` as Sydney time but reading `onChange`'s
+result as real UTC) will silently produce the wrong wall-clock time — always
+encode and decode with the same convention.
+
+This app's current usage (`useDateSliderDates.ts` → `DateSelectionBar.tsx`)
+happens to use real UTC, because the underlying satellite data (IMOS) is
+genuinely date-only / UTC-midnight. That's a property of this app's data, not
+a constraint of the slider itself.
+
 ## API
 
 ### Mode (discriminated union on `mode`)
