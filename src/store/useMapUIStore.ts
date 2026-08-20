@@ -19,6 +19,7 @@ import { type LngLat } from 'mapbox-gl';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { storageOptions } from './urlSync';
+import { INITIAL_TIMEZONE } from '@/constants/mapInitialState';
 
 type ProductError = Record<ProductType, boolean>;
 type ProductLoading = Record<ProductType, boolean>;
@@ -31,7 +32,10 @@ export type JumpToDate = {
   trigger: number;
 };
 
+export type TIMEZONE = 'UTC' | 'LOCAL';
+
 export type MapUIState = {
+  timezone: TIMEZONE;
   center: LngLat;
   zoom: number;
   style: StyleTitle;
@@ -44,6 +48,7 @@ export type MapUIState = {
   productLoading: ProductLoading;
   productLegends: ProductLegend;
   jumpToDate: JumpToDate | null;
+  setTimezone: (timezone: TIMEZONE) => void;
   setCenter: (center: LngLat) => void;
   setZoom: (zoom: number) => void;
   setStyle: (style: StyleTitle) => void;
@@ -62,6 +67,7 @@ export type MapUIState = {
 export const useMapUIStore = create(
   persist<MapUIState>(
     set => ({
+      timezone: INITIAL_TIMEZONE,
       center: INITIAL_CENTER,
       zoom: INITIAL_ZOOM,
       style: INITIAL_STYLE,
@@ -76,6 +82,7 @@ export const useMapUIStore = create(
         Object.entries(PRODUCTLEGENDS).map(([k, v]) => [k, { ...v }]),
       ) as Record<TilesProduct, LegendArgs>,
       jumpToDate: null,
+      setTimezone: timezone => set({ timezone }),
       setCenter: center => set({ center }),
       setZoom: zoom => set({ zoom }),
       setStyle: style => set({ style }),
@@ -130,6 +137,7 @@ export const useMapUIStore = create(
 
 //utils
 export const {
+  setTimezone,
   setCenter,
   setDate,
   setDistanceMeasurementEnabled,
