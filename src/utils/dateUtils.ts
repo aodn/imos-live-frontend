@@ -43,6 +43,17 @@ export function utcDateOnly(input: number | string | Date, format = 'YYYY-MM-DD'
   return date.format(format);
 }
 
+// Format a UTC instant in the given timezone frame — 'UTC' keeps it as UTC,
+// 'LOCAL' converts to the browser's local time. Defaults to a bare calendar
+// day; pass a time-inclusive format for datetime display.
+export function formatUtcInstant(
+  input: number | string | Date,
+  timezone: 'UTC' | 'LOCAL',
+  format = 'YYYY-MM-DD',
+): string {
+  return timezone === 'UTC' ? utcDateOnly(input, format) : utcToLocalDateTime(input, format);
+}
+
 export function today() {
   return dayjs().format('YYYYMMDD');
 }

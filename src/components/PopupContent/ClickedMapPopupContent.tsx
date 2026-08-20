@@ -4,9 +4,14 @@ import type { LngLat } from 'mapbox-gl';
 import type { ClosePopupFn } from '@/helpers';
 import type { TilesProduct } from '@/constants';
 import { MHW_CATEGORY_LOOKUP, PRODUCT, PRODUCTLEGENDS } from '@/constants';
-import { useQueries } from '@tanstack/react-query';
+import { useQueries, useQuery } from '@tanstack/react-query';
 import type { ProductManifest } from '@/AtlasRenderingSystem';
-import { getPointData, productManifestQueryOptions } from '@/api/tiles';
+import {
+  getPointData,
+  metaDataManifestQueryOptions,
+  pickDateByTimezone,
+  productManifestQueryOptions,
+} from '@/api/tiles';
 import { LoaderIcon } from '@/components/Icons';
 import { roundToTwo, velocityToReadable } from '@/utils';
 
@@ -33,6 +38,7 @@ export function ClickedMapPopupContent({ onClose, lngLat }: ClickedMapPopupConte
     }),
   );
   const date = useMapUIStore(s => s.date);
+  const timezone = useMapUIStore(s => s.timezone);
 
   const { lat, lng } = {
     lat: roundToTwo(lngLat?.lat),
@@ -40,12 +46,19 @@ export function ClickedMapPopupContent({ onClose, lngLat }: ClickedMapPopupConte
   };
   const hasCoords = lat != null && lng != null;
 
+  const { data: metaData, isLoading: isMetaDataLoading } = useQuery(metaDataManifestQueryOptions());
+  const requestDates = enabledProducts.map(product => {
+    const p = metaData?.products.find(p => p.id === product);
+    const matched = p?.available_dates.find(d => pickDateByTimezone(d, timezone) === date);
+    return matched?.date;
+  });
+
   // Each product's manifest carries its data bounds. Fetch them first so we can
   // skip the per-point fetch for any product whose bounds don't cover the click.
   const manifestResults = useQueries({
-    queries: enabledProducts.map(product => ({
-      ...productManifestQueryOptions(product, date),
-      enabled: !!date,
+    queries: enabledProducts.map((product, i) => ({
+      ...productManifestQueryOptions(product, requestDates[i] ?? ''),
+      enabled: !!requestDates[i],
     })),
   });
 
@@ -61,13 +74,20 @@ export function ClickedMapPopupContent({ onClose, lngLat }: ClickedMapPopupConte
 
   const results = useQueries({
     queries: enabledProducts.map((product, i) => ({
-      queryKey: [product, 'getPointData', date, lng, lat],
-      queryFn: () => getPointData({ product, date, lon: lng as number, lat: lat as number }),
-      enabled: !!date && hasCoords && inBounds[i],
+      queryKey: [product, 'getPointData', requestDates[i], lng, lat],
+      queryFn: () =>
+        getPointData({
+          product,
+          date: requestDates[i]!,
+          lon: lng as number,
+          lat: lat as number,
+        }),
+      enabled: !!requestDates[i] && hasCoords && inBounds[i],
     })),
   });
 
-  const isLoading = manifestResults.some(r => r.isLoading) || results.some(r => r.isLoading);
+  const isLoading =
+    isMetaDataLoading || manifestResults.some(r => r.isLoading) || results.some(r => r.isLoading);
 
   // Flatten each product's point response into display rows.
   const rows = enabledProducts.flatMap((product, i) => {

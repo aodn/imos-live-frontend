@@ -1,5 +1,6 @@
 import type { BuoyItem, SiteDetailsFeature } from '@/types';
-import { cn, utcToLocalDateTime, prioritizeKey } from '@/utils';
+import { cn, formatUtcInstant, prioritizeKey } from '@/utils';
+import { useMapUIStore } from '@/store';
 import { useMemo } from 'react';
 import { obseravtionVariants, preferredVariant, variantDescription } from './config';
 
@@ -71,6 +72,7 @@ function ObservationCell({ field, isLast }: { field: ObservationField; isLast: b
 // Presentational panel shared by the buoy and mooring charts; callers pass in their
 // own pre-built observation data (built differently per data shape).
 export function ObservationPanel({ observationData }: { observationData: ObservationData }) {
+  const timezone = useMapUIStore(s => s.timezone);
   const latestTimeStamp = observationData[0]?.timeStamp;
 
   return (
@@ -81,7 +83,7 @@ export function ObservationPanel({ observationData }: { observationData: Observa
             <span>Latest Observations</span>
             {latestTimeStamp && (
               <span className="text-xs font-light ml-2" data-testid="latest-observation-timestamp">
-                {utcToLocalDateTime(latestTimeStamp)}
+                {formatUtcInstant(latestTimeStamp, timezone, 'YYYY-MM-DD HH:mm:ss')}
               </span>
             )}
           </h2>

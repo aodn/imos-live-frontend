@@ -127,8 +127,8 @@ function useLatestDate(product: ProductType) {
   // Site products expose their own latest-time endpoint. Keep the query keys aligned
   // with the drawer charts (WaveBuoyChart/MooringChart) so the cache is shared.
   const { data: siteDate, isLoading: isSiteLoading } = useQuery({
-    queryKey: [isMooring ? 'mooring_latest_date' : 'wave_buoy_latest_date'],
-    queryFn: isMooring ? getMooringLatestDate : getWaveBuoyLatestDate,
+    queryKey: [isMooring ? 'mooring_latest_date' : 'wave_buoy_latest_date', timezone],
+    queryFn: () => (isMooring ? getMooringLatestDate(timezone) : getWaveBuoyLatestDate(timezone)),
     enabled: isSiteProduct,
   });
 
