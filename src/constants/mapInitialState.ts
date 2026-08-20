@@ -1,5 +1,5 @@
 import { type StyleTitle } from '@/styles';
-import { generateValueByPercentage, getLastDateRange } from '@/utils';
+import { generateValueByPercentage, toISODateString } from '@/utils';
 import mapboxgl from 'mapbox-gl';
 import { PRODUCT } from './products';
 import type { ProductEnabled, TIMEZONE } from '@/store';
@@ -20,7 +20,10 @@ export const INITIAL_STYLE: StyleTitle = 'Streets';
 export const INITIAL_CENTER = new mapboxgl.LngLat(133.7751, -25.2744);
 // The DATE_RANGE use the calendar day which is timezone free, and its format is 'YYYY-MM-DD', e.g. 2024-06-01.
 // but how date in Date_Rnage is seen depending on timezone default to UTC, which can be changed to local.
-export const DATE_RANGE = getLastDateRange(365);
+export const DATE_RANGE = {
+  start: '2024-01-01',
+  end: toISODateString(new Date()),
+};
 export const INITIAL_DATE = DATE_RANGE.end;
 export const INITIAL_WORLD_BOUNDARIES_ENABLED = true;
 export const INITIAL_DISTANCE_MEASUREMENT_ENABLED = false;

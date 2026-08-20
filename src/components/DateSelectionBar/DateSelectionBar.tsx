@@ -14,7 +14,7 @@ import {
 } from '../DateSlider';
 import { cn, toDateOnly } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
-import { metaDataManifestQueryOptions } from '@/api';
+import { metaDataManifestQueryOptions, pickDateByTimezone } from '@/api';
 import { DATE_RANGE, PRODUCT } from '@/constants';
 import { useShallow } from 'zustand/shallow';
 import { dateFormat, renderDateLabel } from './renderProps';
@@ -35,10 +35,11 @@ export const DateSelectionBar = memo(function DateSelectionBar({
   const [collapseAnimating, setCollapseAnimating] = useState(false);
   const { date, startDate, endDate } = useDateSliderDates(); //naive (timezone-free) date strings throughout.
   const isDateInQueryParams = useHasInitialQueryParam('date');
-  const { jumpTrigger, jumpDate } = useMapUIStore(
+  const { jumpTrigger, jumpDate, timezone } = useMapUIStore(
     useShallow(s => ({
       jumpTrigger: s.jumpToDate?.trigger,
       jumpDate: s.jumpToDate?.date,
+      timezone: s.timezone,
     })),
   );
   const imperativeHandlerRef = useRef<SliderExposedMethod>(null);
@@ -46,10 +47,12 @@ export const DateSelectionBar = memo(function DateSelectionBar({
 
   const { data: latestDate } = useQuery({
     ...metaDataManifestQueryOptions(),
-    select: data =>
-      data.products
+    select: data => {
+      const latest = data.products
         .find(p => p.id === PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT)
-        ?.available_dates.at(-1),
+        ?.available_dates.at(-1);
+      return latest && pickDateByTimezone(latest, timezone);
+    },
     enabled: !isDateInQueryParams, //if date already selected, stop.
     retry: false,
   });

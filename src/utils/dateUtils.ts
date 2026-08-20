@@ -32,19 +32,15 @@ export function utcToLocalDateTime(
   return date.local().format(format);
 }
 
-/**
- * Boundary dates of a "last N days" range, ending today.
- */
-export function getLastDateRange(
-  length: number,
-  format: string = 'yyyy-mm-dd',
-): { start: string; end: string } {
-  const dayjsFormat = format.toUpperCase();
-  const base = dayjs().startOf('day');
-  return {
-    start: base.subtract(length - 1, 'day').format(dayjsFormat),
-    end: base.format(dayjsFormat),
-  };
+// Truncate a UTC instant to its `yyyy-mm-dd` UTC calendar date.
+export function utcDateOnly(input: number | string | Date, format = 'YYYY-MM-DD'): string {
+  const date = dayjs.utc(input);
+
+  if (!date.isValid()) {
+    throw new Error(`Invalid UTC date: ${input}`);
+  }
+
+  return date.format(format);
 }
 
 export function today() {

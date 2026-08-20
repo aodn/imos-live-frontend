@@ -1,12 +1,5 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  getLastDateRange,
-  isBeforeDays,
-  localToUTC,
-  toDateOnly,
-  toUTCDate,
-  utcToLocalDateTime,
-} from './dateUtils';
+import { describe, expect, it } from 'vitest';
+import { isBeforeDays, localToUTC, toDateOnly, toUTCDate, utcToLocalDateTime } from './dateUtils';
 
 // Pin to a fixed local time so the "today is..." functions are deterministic. The Playwright
 // config uses Australia/Sydney for its E2E run; we match the host timezone here implicitly
@@ -76,24 +69,5 @@ describe('utcToLocalDateTime', () => {
 
   it('throws on an invalid input', () => {
     expect(() => utcToLocalDateTime('not a date')).toThrow('Invalid UTC date');
-  });
-});
-
-describe('getLastDateRange', () => {
-  beforeEach(() => {
-    // Pin "now" to a known instant so the generated dates are deterministic.
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-05-29T12:00:00'));
-  });
-  afterEach(() => vi.useRealTimers());
-
-  it('returns the start (N-1 days ago) and end (today) boundaries', () => {
-    const range = getLastDateRange(3);
-    expect(range).toEqual({ start: '2026-05-27', end: '2026-05-29' });
-  });
-
-  it('supports yy / mm / dd format tokens', () => {
-    const range = getLastDateRange(2, 'dd/mm/yy');
-    expect(range).toEqual({ start: '28/05/26', end: '29/05/26' });
   });
 });

@@ -74,7 +74,10 @@ export function useAtlasLayer<H extends AtlasLayerHandle>({
     })),
   );
 
-  const { isDateAvailable, manifestLoaded } = useProductDateAvailabilitySync(product, date);
+  const { isDateAvailable, manifestLoaded, requestDate } = useProductDateAvailabilitySync(
+    product,
+    date,
+  );
 
   const legendRange = PRODUCTLEGENDS[product].range as [number, number];
 
@@ -83,16 +86,16 @@ export function useAtlasLayer<H extends AtlasLayerHandle>({
   const loadData = useCallback(async () => {
     if (!handleRef.current || !manifestLoaded) return;
     setProductErrorByProduct(product, false);
-    if (!isDateAvailable) {
+    if (!isDateAvailable || !requestDate) {
       setProductErrorByProduct(product, true);
       return;
     }
     setProductLoadingByProduct(product, true);
-    await handleRef.current.setSource(date).catch(() => {
+    await handleRef.current.setSource(requestDate).catch(() => {
       setProductErrorByProduct(product, true);
     });
     setProductLoadingByProduct(product, false);
-  }, [date, isDateAvailable, manifestLoaded, product]);
+  }, [isDateAvailable, manifestLoaded, product, requestDate]);
 
   const setupLayer = useCallback(async () => {
     handleRef.current?.destroy();
