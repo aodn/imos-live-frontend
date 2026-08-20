@@ -6,14 +6,12 @@ import { useMemo } from 'react';
 export const useDateSliderDates = () => {
   let date = toUTCDate(useMapUIStore(s => s.date));
 
-  const dateRange = DATE_RANGE;
-
-  const startDate = useMemo(() => toUTCDate(dateRange[0]), [dateRange]);
+  const startDate = useMemo(() => toUTCDate(DATE_RANGE.start), []);
 
   const endDate = useMemo(() => {
-    const lastDateString = toUTCDate(dateRange.at(-1)!);
-    return addTime(lastDateString, 1, 'day'); //add one day to make endDate exclusive, as we still want to select the last date from dateRange.
-  }, [dateRange]);
+    //add one day to make endDate exclusive, as we still want to select the last date from DATE_RANGE.
+    return addTime(toUTCDate(DATE_RANGE.end), 1, 'day');
+  }, []);
 
   if (date < startDate || date >= endDate) {
     date = minusOneUTCDay(endDate);

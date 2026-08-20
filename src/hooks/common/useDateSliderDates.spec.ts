@@ -8,7 +8,7 @@ import { renderHook } from '@testing-library/react';
 const store = vi.hoisted(() => ({ date: '2025-01-03' }));
 
 vi.mock('@/constants', () => ({
-  DATE_RANGE: ['2025-01-01', '2025-01-02', '2025-01-03', '2025-01-04', '2025-01-05'],
+  DATE_RANGE: { start: '2025-01-01', end: '2025-01-05' },
 }));
 vi.mock('@/store', () => ({
   useMapUIStore: (selector: (s: { date: string }) => unknown) => selector({ date: store.date }),

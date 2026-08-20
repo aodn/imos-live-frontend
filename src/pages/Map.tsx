@@ -20,9 +20,9 @@ import {
 } from '@/components';
 import { PRODUCT } from '@/constants';
 import { useViewportSize } from '@/hooks';
-import { useDrawerStore, refreshDates, closeLeftDrawer, openLeftDrawer } from '@/store';
+import { useDrawerStore, closeLeftDrawer, openLeftDrawer } from '@/store';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 const MODE_TITLE_PREFIX: Record<string, string> = {
   development: '[DEV] ',
@@ -36,10 +36,6 @@ export function Map() {
   const leftDrawer = useDrawerStore(s => s.leftDrawer);
   const [dateBarCollapsed, setDateBarCollapsed] = useState(false);
   const toggleDateBarCollapsed = useCallback(() => setDateBarCollapsed(prev => !prev), []);
-
-  useEffect(() => {
-    refreshDates();
-  }, []);
 
   const mapContent = useMemo(
     () => (

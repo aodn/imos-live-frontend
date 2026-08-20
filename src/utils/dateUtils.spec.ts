@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { getLastDates, isBeforeDays, localToUTC, utcToLocalDateTime } from './dateUtils';
+import { getLastDateRange, isBeforeDays, localToUTC, utcToLocalDateTime } from './dateUtils';
 
 // Pin to a fixed local time so the "today is..." functions are deterministic. The Playwright
 // config uses Australia/Sydney for its E2E run; we match the host timezone here implicitly
@@ -44,7 +44,7 @@ describe('utcToLocalDateTime', () => {
   });
 });
 
-describe('getLastDates', () => {
+describe('getLastDateRange', () => {
   beforeEach(() => {
     // Pin "now" to a known instant so the generated dates are deterministic.
     vi.useFakeTimers();
@@ -52,14 +52,13 @@ describe('getLastDates', () => {
   });
   afterEach(() => vi.useRealTimers());
 
-  it('returns exactly N dates ending today', () => {
-    const dates = getLastDates(3)('yyyy-mm-dd');
-    expect(dates).toHaveLength(3);
-    expect(dates[2]).toBe('2026-05-29');
+  it('returns the start (N-1 days ago) and end (today) boundaries', () => {
+    const range = getLastDateRange(3);
+    expect(range).toEqual({ start: '2026-05-27', end: '2026-05-29' });
   });
 
   it('supports yy / mm / dd format tokens', () => {
-    const dates = getLastDates(2)('dd/mm/yy');
-    expect(dates[1]).toBe('29/05/26');
+    const range = getLastDateRange(2, 'dd/mm/yy');
+    expect(range).toEqual({ start: '28/05/26', end: '29/05/26' });
   });
 });

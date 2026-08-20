@@ -1,6 +1,5 @@
 import type { ParticleConfig } from '@/AtlasRenderingSystem';
 import {
-  DATE_RANGE,
   INITIAL_CENTER,
   INITIAL_DATE,
   INITIAL_DISTANCE_MEASUREMENT_ENABLED,
@@ -40,7 +39,6 @@ export type MapUIState = {
   distanceMeasurementEnabled: boolean;
   worldBoundariesEnabled: boolean;
   date: string;
-  dates: string[];
   productEnabled: ProductEnabled;
   productError: ProductError;
   productLoading: ProductLoading;
@@ -53,7 +51,6 @@ export type MapUIState = {
   setDistanceMeasurementEnabled: (v: boolean) => void;
   setWorldBoundariesEnabled: (v: boolean) => void;
   setDate: (d: string) => void;
-  refreshDates: () => void;
   setProductErrorByProduct: (product: ProductType, error: boolean) => void;
   setProductLoadingByProduct: (product: ProductType, loading: boolean) => void;
   setProductEnabledByProduct: (product: ProductType, enabled: boolean) => void;
@@ -71,7 +68,6 @@ export const useMapUIStore = create(
       particleConfig: INITIAL_PARTICLE_CONFIG,
       distanceMeasurementEnabled: INITIAL_DISTANCE_MEASUREMENT_ENABLED,
       worldBoundariesEnabled: INITIAL_WORLD_BOUNDARIES_ENABLED,
-      dates: DATE_RANGE,
       date: INITIAL_DATE,
       productEnabled: INITIAL_PRODUCT_ENABLED,
       productError: INITIAL_PRODUCT_ERROR,
@@ -91,7 +87,6 @@ export const useMapUIStore = create(
         set({ distanceMeasurementEnabled }),
       setWorldBoundariesEnabled: worldBoundariesEnabled => set({ worldBoundariesEnabled }),
       setDate: date => set({ date }),
-      refreshDates: () => set({ dates: DATE_RANGE }),
       setProductEnabledByProduct: (product, enabled) => {
         set(prev => {
           const next = { ...prev.productEnabled };
@@ -142,7 +137,6 @@ export const {
   setStyle,
   setWorldBoundariesEnabled,
   setZoom,
-  refreshDates,
   setProductErrorByProduct,
   setProductLoadingByProduct,
   setProductEnabledByProduct,

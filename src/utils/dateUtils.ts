@@ -1,8 +1,6 @@
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
 import customParseFormat from 'dayjs/plugin/customParseFormat.js';
-import type { FixedLengthArray } from '@/types';
-
 dayjs.extend(utc);
 dayjs.extend(customParseFormat);
 
@@ -34,28 +32,20 @@ export function utcToLocalDateTime(
   return date.local().format(format);
 }
 
-export function getLastDates<const T extends number>(length: T) {
-  return (format: string = 'yyyy-mm-dd'): FixedLengthArray<string, T> => {
-    // The documented lowercase tokens (yyyy/yy/mm/dd) map 1:1 onto dayjs's
-    // uppercase tokens, so upper-casing the format hands the rendering to dayjs.
-    const dayjsFormat = format.toUpperCase();
-    const base = dayjs().startOf('day');
-
-    // Ascending order, ending today: index 0 is the oldest day.
-    const dates = Array.from({ length }, (_, i) =>
-      base.subtract(length - 1 - i, 'day').format(dayjsFormat),
-    );
-
-    return dates as FixedLengthArray<string, T>;
+/**
+ * Boundary dates of a "last N days" range, ending today.
+ */
+export function getLastDateRange(
+  length: number,
+  format: string = 'yyyy-mm-dd',
+): { start: string; end: string } {
+  const dayjsFormat = format.toUpperCase();
+  const base = dayjs().startOf('day');
+  return {
+    start: base.subtract(length - 1, 'day').format(dayjsFormat),
+    end: base.format(dayjsFormat),
   };
 }
-/**
- * Build a "last N dates" generator. The dates are returned in ascending order,
- * ending today. Pass a format like 'yyyy-mm-dd', 'yy-mm-dd', or 'dd/mm/yyyy' to
- * control the token rendering, e.g. getLastDates(7)('yy-mm-dd') → ['24-05-25', ..., '24-05-31'].
- */
-export const getLast10Dates = getLastDates(10);
-export const getLast365Dates = getLastDates(365);
 
 /** Convert compact date string (yyyymmdd) to ISO format (yyyy-mm-dd) */
 export function toISOFromCompact(date: string): string {
