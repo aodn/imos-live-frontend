@@ -21,16 +21,16 @@ const meta: Meta<typeof DateSelectionPanel> = {
 export default meta;
 type Story = StoryObj<typeof DateSelectionPanel>;
 
-const MIN = new Date(Date.UTC(2020, 0, 1));
-const MAX = new Date(Date.UTC(2024, 11, 31));
+const MIN: NaiveDateTime = '2020-01-01';
+const MAX: NaiveDateTime = '2024-12-31';
 
 /** Standalone harness: a seeded store + a fake imperative handle that steps the date. */
-function PanelHarness({ initialDate }: { initialDate: Date }) {
+function PanelHarness({ initialDate }: { initialDate: NaiveDateTime }) {
   const store = useMemo(() => {
     const s = createDateSliderStore('day');
     s.setState({
       ...s.getSnapshot(),
-      pointDate: toISODateString(initialDate),
+      pointDate: initialDate,
       timeUnit: 'day',
       isMonthValid: true,
       isYearValid: true,
@@ -39,23 +39,22 @@ function PanelHarness({ initialDate }: { initialDate: Date }) {
   }, [initialDate]);
 
   const sliderRef = useMemo<RefObject<SliderExposedMethod | null>>(() => {
-    const publish = (date: Date) =>
+    const publish = (date: NaiveDateTime) =>
       store.setState({
         ...store.getSnapshot(),
-        pointDate: toISODateString(date),
+        pointDate: date,
         timeUnit: 'day',
         isMonthValid: true,
         isYearValid: true,
       });
     return {
       current: {
-        setDateTime: (date: NaiveDateTime) => publish(toUTCDate(date)),
+        setDateTime: publish,
         moveByStep: direction => {
-          const currentPointDate = store.getSnapshot().pointDate;
-          const current = currentPointDate ? toUTCDate(currentPointDate) : initialDate;
-          const next = new Date(current);
+          const currentPointDate = store.getSnapshot().pointDate ?? initialDate;
+          const next = toUTCDate(currentPointDate);
           next.setUTCDate(next.getUTCDate() + (direction === 'forward' ? 1 : -1));
-          publish(next);
+          publish(toISODateString(next));
         },
         setTimeUnit: () => {},
         focusHandle: () => {},
@@ -75,9 +74,9 @@ function PanelHarness({ initialDate }: { initialDate: Date }) {
 }
 
 export const Default: Story = {
-  render: () => <PanelHarness initialDate={new Date(Date.UTC(2023, 5, 15))} />,
+  render: () => <PanelHarness initialDate="2023-06-15" />,
 };
 
 export const EarlierDate: Story = {
-  render: () => <PanelHarness initialDate={new Date(Date.UTC(2021, 0, 1))} />,
+  render: () => <PanelHarness initialDate="2021-01-01" />,
 };

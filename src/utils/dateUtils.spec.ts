@@ -3,6 +3,7 @@ import {
   getLastDateRange,
   isBeforeDays,
   localToUTC,
+  toDateOnly,
   toUTCDate,
   utcToLocalDateTime,
 } from './dateUtils';
@@ -26,6 +27,16 @@ describe('toUTCDate', () => {
 
   it('throws on a real timezone offset', () => {
     expect(() => toUTCDate('2026-05-29T14:30:00+10:00')).toThrow(/timezone-free/);
+  });
+});
+
+describe('toDateOnly', () => {
+  it('extracts the yyyy-mm-dd portion from a naive datetime string', () => {
+    expect(toDateOnly('2026-05-29T14:30:00')).toBe('2026-05-29');
+  });
+
+  it('passes a bare yyyy-mm-dd through unchanged', () => {
+    expect(toDateOnly('2026-05-29')).toBe('2026-05-29');
   });
 });
 

@@ -47,11 +47,6 @@ export function getLastDateRange(
   };
 }
 
-/** Convert compact date string (yyyymmdd) to ISO format (yyyy-mm-dd) */
-export function toISOFromCompact(date: string): string {
-  return dayjs(date, 'YYYYMMDD').format('YYYY-MM-DD');
-}
-
 export function today() {
   return dayjs().format('YYYYMMDD');
 }
@@ -125,4 +120,12 @@ export function addTime(
 /** Format a `Date` as a `yyyy-mm-dd` string using its UTC components. */
 export function toISODateString(date: Date): string {
   return dayjs.utc(date).format('YYYY-MM-DD');
+}
+
+/**
+ * Extract the `yyyy-mm-dd` portion from a naive datetime string, e.g. DateSlider's
+ * `"YYYY-MM-DDTHH:mm:ss"` onChange output. This app only tracks day granularity.
+ */
+export function toDateOnly(naiveDateTime: string): string {
+  return naiveDateTime.slice(0, 10);
 }

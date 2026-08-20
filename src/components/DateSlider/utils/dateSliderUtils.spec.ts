@@ -21,7 +21,6 @@ import {
   handleOutsideVisibleArea,
   labelDateFormatFn,
   scaleDateFormatFn,
-  toISODateString,
   toNaiveDateTimeString,
   toUTCDate,
 } from './dateSliderUtils';
@@ -361,16 +360,6 @@ describe('addTime', () => {
   it('does not mutate input', () => {
     addTime(base, 5, 'day');
     expect(base.toISOString()).toBe('2026-01-15T12:00:00.000Z');
-  });
-});
-
-describe('toISODateString', () => {
-  it('formats UTC date as YYYY-MM-DD', () => {
-    expect(toISODateString(new Date('2026-05-29T14:30:00Z'))).toBe('2026-05-29');
-  });
-
-  it('zero-pads month and day', () => {
-    expect(toISODateString(new Date('2026-01-05T00:00:00Z'))).toBe('2026-01-05');
   });
 });
 

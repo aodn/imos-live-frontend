@@ -12,10 +12,10 @@ import {
   type PointValue,
   type SelectionResult,
 } from '../DateSlider';
-import { cn, minusOneUTCDay, toISODateString } from '@/utils';
+import { cn, toDateOnly } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
 import { metaDataManifestQueryOptions } from '@/api';
-import { PRODUCT } from '@/constants';
+import { DATE_RANGE, PRODUCT } from '@/constants';
 import { useShallow } from 'zustand/shallow';
 import { dateFormat, renderDateLabel } from './renderProps';
 
@@ -33,7 +33,7 @@ export const DateSelectionBar = memo(function DateSelectionBar({
   onToggleCollapsed,
 }: DateSelectionBarProps) {
   const [collapseAnimating, setCollapseAnimating] = useState(false);
-  const { date, startDate, endDate } = useDateSliderDates(); //date in DateSlider is expected to be UTC only.
+  const { date, startDate, endDate } = useDateSliderDates(); //naive (timezone-free) date strings throughout.
   const isDateInQueryParams = useHasInitialQueryParam('date');
   const { jumpTrigger, jumpDate } = useMapUIStore(
     useShallow(s => ({
@@ -68,8 +68,7 @@ export const DateSelectionBar = memo(function DateSelectionBar({
   }, [jumpTrigger, jumpDate]);
 
   const handleSelect = useCallback((v: SelectionResult) => {
-    // DateSlider's naive datetime is "YYYY-MM-DDTHH:mm:ss" — the app only tracks day granularity.
-    setDate((v as PointValue).point.slice(0, 10));
+    setDate(toDateOnly((v as PointValue).point));
   }, []);
 
   const toggleCollapsed = useCallback(() => {
@@ -85,7 +84,7 @@ export const DateSelectionBar = memo(function DateSelectionBar({
         sliderRef={imperativeHandlerRef}
         fallbackDate={date}
         min={startDate}
-        max={minusOneUTCDay(endDate)}
+        max={DATE_RANGE.end}
         className={cn('shadow-xl', dragHandleClassName)}
       />
 
@@ -105,10 +104,10 @@ export const DateSelectionBar = memo(function DateSelectionBar({
             imperativeRef={imperativeHandlerRef}
             stateStore={sliderStore}
             mode="point"
-            min={toISODateString(startDate)}
-            max={toISODateString(endDate)}
+            min={startDate}
+            max={endDate}
             value={{
-              point: toISODateString(date),
+              point: date,
             }}
             initialTimeUnit="day"
             dateFormat={dateFormat}

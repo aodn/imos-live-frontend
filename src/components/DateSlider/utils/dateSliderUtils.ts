@@ -647,27 +647,6 @@ export function getPercentFromDate(date: Date, startDate: Date, endDate: Date): 
 }
 
 /**
- * Convert UTC date to ISO date string (YYYY-MM-DD)
- *
- * Useful for API calls and storage that expect date strings.
- * Uses UTC date components to avoid timezone issues.
- *
- * @param date - UTC date
- * @returns ISO date string
- *
- * @example
- * toISODateString(new Date("2024-01-15T14:30:00Z"))
- * // → "2024-01-15"
- */
-export function toISODateString(date: Date): string {
-  const year = date.getUTCFullYear();
-  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-  const day = String(date.getUTCDate()).padStart(2, '0');
-
-  return `${year}-${month}-${day}`;
-}
-
-/**
  * Detect if handle is outside visible area in slider
  *
  * @param sliderContainerRef
