@@ -29,7 +29,7 @@ describe('useOnChangeNotifier', () => {
       vi.advanceTimersByTime(TIMING.DEBOUNCE_DELAY);
     });
     expect(onChange).toHaveBeenCalledTimes(1);
-    expect(onChange.mock.calls[0][0]).toMatchObject({ point: expect.any(Date) });
+    expect(onChange.mock.calls[0][0]).toMatchObject({ point: expect.any(String) });
   });
 
   it('emits a debounced range-mode selection', () => {
@@ -49,8 +49,8 @@ describe('useOnChangeNotifier', () => {
       vi.advanceTimersByTime(TIMING.DEBOUNCE_DELAY);
     });
     expect(onChange.mock.calls[0][0]).toMatchObject({
-      start: expect.any(Date),
-      end: expect.any(Date),
+      start: expect.any(String),
+      end: expect.any(String),
     });
   });
 
@@ -71,9 +71,9 @@ describe('useOnChangeNotifier', () => {
       vi.advanceTimersByTime(TIMING.DEBOUNCE_DELAY);
     });
     expect(onChange.mock.calls[0][0]).toMatchObject({
-      start: expect.any(Date),
-      end: expect.any(Date),
-      point: expect.any(Date),
+      start: expect.any(String),
+      end: expect.any(String),
+      point: expect.any(String),
     });
   });
 

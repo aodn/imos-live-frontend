@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { useMemo, type RefObject } from 'react';
 import { DateSelectionPanel } from './DateSelectionPanel';
-import { createDateSliderStore, type SliderExposedMethod } from '../DateSlider';
+import { createDateSliderStore, type NaiveDateTime, type SliderExposedMethod } from '../DateSlider';
+import { toISODateString, toUTCDate } from '@/utils';
 
 const meta: Meta<typeof DateSelectionPanel> = {
   title: 'Components/DateSelectionBar/DateSelectionPanel',
@@ -29,7 +30,7 @@ function PanelHarness({ initialDate }: { initialDate: Date }) {
     const s = createDateSliderStore('day');
     s.setState({
       ...s.getSnapshot(),
-      pointDate: initialDate,
+      pointDate: toISODateString(initialDate),
       timeUnit: 'day',
       isMonthValid: true,
       isYearValid: true,
@@ -41,16 +42,17 @@ function PanelHarness({ initialDate }: { initialDate: Date }) {
     const publish = (date: Date) =>
       store.setState({
         ...store.getSnapshot(),
-        pointDate: date,
+        pointDate: toISODateString(date),
         timeUnit: 'day',
         isMonthValid: true,
         isYearValid: true,
       });
     return {
       current: {
-        setDateTime: publish,
+        setDateTime: (date: NaiveDateTime) => publish(toUTCDate(date)),
         moveByStep: direction => {
-          const current = store.getSnapshot().pointDate ?? initialDate;
+          const currentPointDate = store.getSnapshot().pointDate;
+          const current = currentPointDate ? toUTCDate(currentPointDate) : initialDate;
           const next = new Date(current);
           next.setUTCDate(next.getUTCDate() + (direction === 'forward' ? 1 : -1));
           publish(next);

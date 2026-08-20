@@ -1,9 +1,33 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { getLastDateRange, isBeforeDays, localToUTC, utcToLocalDateTime } from './dateUtils';
+import {
+  getLastDateRange,
+  isBeforeDays,
+  localToUTC,
+  toUTCDate,
+  utcToLocalDateTime,
+} from './dateUtils';
 
 // Pin to a fixed local time so the "today is..." functions are deterministic. The Playwright
 // config uses Australia/Sydney for its E2E run; we match the host timezone here implicitly
 // and assert in ranges that don't depend on it.
+
+describe('toUTCDate', () => {
+  it('treats a bare yyyy-mm-dd as midnight UTC', () => {
+    expect(toUTCDate('2026-05-29').toISOString()).toBe('2026-05-29T00:00:00.000Z');
+  });
+
+  it('reads a naive datetime string as UTC-encoded fields', () => {
+    expect(toUTCDate('2026-05-29T14:30:00').toISOString()).toBe('2026-05-29T14:30:00.000Z');
+  });
+
+  it('throws on a trailing "Z" (a real UTC instant, not a naive datetime)', () => {
+    expect(() => toUTCDate('2026-05-29T14:30:00Z')).toThrow(/timezone-free/);
+  });
+
+  it('throws on a real timezone offset', () => {
+    expect(() => toUTCDate('2026-05-29T14:30:00+10:00')).toThrow(/timezone-free/);
+  });
+});
 
 describe('isBeforeDays', () => {
   it('returns true when a is within `days` days before b', () => {

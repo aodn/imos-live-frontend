@@ -22,6 +22,7 @@ import {
   labelDateFormatFn,
   scaleDateFormatFn,
   toISODateString,
+  toNaiveDateTimeString,
   toUTCDate,
 } from './dateSliderUtils';
 
@@ -296,12 +297,37 @@ describe('toUTCDate', () => {
     expect(toUTCDate('2026-05-29').toISOString()).toBe('2026-05-29T00:00:00.000Z');
   });
 
-  it('preserves ISO datetime strings', () => {
-    expect(toUTCDate('2026-05-29T14:30:00Z').toISOString()).toBe('2026-05-29T14:30:00.000Z');
+  it('reads a naive datetime string as UTC-encoded fields, regardless of host timezone', () => {
+    // Guards against the JS Date footgun: `new Date('2026-05-29T14:30:00')` (no offset) parses
+    // as *local* time, not UTC — environment-dependent. toUTCDate must not do that.
+    expect(toUTCDate('2026-05-29T14:30:00').toISOString()).toBe('2026-05-29T14:30:00.000Z');
+  });
+
+  it('defaults seconds to :00 when omitted', () => {
+    expect(toUTCDate('2026-05-29T14:30').toISOString()).toBe('2026-05-29T14:30:00.000Z');
+  });
+
+  it('throws on a trailing "Z" (a real UTC instant, not a naive datetime)', () => {
+    expect(() => toUTCDate('2026-05-29T14:30:00Z')).toThrow(/timezone-free/);
+  });
+
+  it('throws on a real timezone offset', () => {
+    expect(() => toUTCDate('2026-05-29T14:30:00+10:00')).toThrow(/timezone-free/);
   });
 
   it('throws on invalid input', () => {
-    expect(() => toUTCDate('not-a-date')).toThrow(/Invalid date string/);
+    expect(() => toUTCDate('not-a-date')).toThrow(/not a valid naive datetime/);
+  });
+});
+
+describe('toNaiveDateTimeString', () => {
+  it('formats a UTC-encoded Date back into the naive wire format', () => {
+    expect(toNaiveDateTimeString(new Date('2026-05-29T14:30:00.000Z'))).toBe('2026-05-29T14:30:00');
+  });
+
+  it('round-trips through toUTCDate', () => {
+    const naive = '2026-05-29T09:05:03';
+    expect(toNaiveDateTimeString(toUTCDate(naive))).toBe(naive);
   });
 });
 

@@ -22,6 +22,7 @@ export type {
   TimeUnit,
   DragHandle,
   // Value shapes
+  NaiveDateTime,
   SliderValue,
   PointValue,
   RangeValue,

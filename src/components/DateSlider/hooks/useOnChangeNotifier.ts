@@ -1,7 +1,14 @@
 import { useRef, useEffect, useMemo } from 'react';
 import { TIMING } from '../constants';
 import type { SelectionResult, ViewMode } from '../type';
-import { createSelectionResult, debounce } from '../utils';
+import { createSelectionResult, debounce, toNaiveDateTimeString } from '../utils';
+import type { DateSelectionResult } from '../utils';
+
+function toNaiveSelection(selection: DateSelectionResult): SelectionResult {
+  return Object.fromEntries(
+    Object.entries(selection).map(([key, date]) => [key, toNaiveDateTimeString(date)]),
+  ) as SelectionResult;
+}
 
 type UseOnChangeNotifierParams = {
   onChange: (selection: SelectionResult) => void;
@@ -49,7 +56,7 @@ export function useOnChangeNotifier({
       pointPosition,
       viewMode,
     );
-    debouncedOnChange(selection);
+    debouncedOnChange(toNaiveSelection(selection));
   }, [
     debouncedOnChange,
     endDate,

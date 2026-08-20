@@ -87,11 +87,22 @@ export function isBeforeDays(a: string | Date, b: string | Date, days = 30): boo
 }
 
 /**
- * Parse a date string into a UTC `Date`. A bare `yyyy-mm-dd` is treated as
- * midnight UTC. Mirrors the helper in the self-contained DateSlider package so
- * the host app doesn't depend on that package's internals.
+ * Parse a naive (timezone-free) date string into a UTC `Date`. A bare
+ * `yyyy-mm-dd` is treated as midnight UTC. Throws on a `Z` suffix or a real
+ * timezone offset — this app's dates (and DateSlider's) are timezone-free by
+ * design, so an offset almost always means a real UTC instant was passed by
+ * mistake instead of a naive wall-clock value. Mirrors the helper in the
+ * self-contained DateSlider package so the host app doesn't depend on that
+ * package's internals.
  */
 export function toUTCDate(dateString: string): Date {
+  if (/(?:Z|[+-]\d{2}:?\d{2})$/i.test(dateString)) {
+    throw new Error(
+      `toUTCDate: "${dateString}" includes a timezone offset or "Z". Dates here are ` +
+        `timezone-free — pass a naive "yyyy-mm-dd" or "yyyy-mm-ddThh:mm:ss" string.`,
+    );
+  }
+
   // A bare `yyyy-mm-dd` is interpreted as midnight UTC; strings with a time
   // component are parsed as-is.
   const date = dayjs.utc(dateString);

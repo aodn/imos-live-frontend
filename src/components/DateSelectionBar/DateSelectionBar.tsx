@@ -57,18 +57,19 @@ export const DateSelectionBar = memo(function DateSelectionBar({
   useEffect(() => {
     //set date to latest available date when user has not selected date. Initial visit website.
     if (!latestDate || isDateInQueryParams) return;
-    imperativeHandlerRef.current?.setDateTime(new Date(latestDate));
+    imperativeHandlerRef.current?.setDateTime(latestDate);
   }, [latestDate, isDateInQueryParams]);
 
   useEffect(() => {
     //user click on to latest available date button in LayerCard to latest available date.
     if (!jumpDate || !jumpTrigger) return;
-    imperativeHandlerRef.current?.setDateTime(new Date(jumpDate));
+    imperativeHandlerRef.current?.setDateTime(jumpDate);
     clearJumpToDate();
   }, [jumpTrigger, jumpDate]);
 
   const handleSelect = useCallback((v: SelectionResult) => {
-    setDate(toISODateString((v as PointValue).point));
+    // DateSlider's naive datetime is "YYYY-MM-DDTHH:mm:ss" — the app only tracks day granularity.
+    setDate((v as PointValue).point.slice(0, 10));
   }, []);
 
   const toggleCollapsed = useCallback(() => {
@@ -104,10 +105,10 @@ export const DateSelectionBar = memo(function DateSelectionBar({
             imperativeRef={imperativeHandlerRef}
             stateStore={sliderStore}
             mode="point"
-            min={startDate}
-            max={endDate}
+            min={toISODateString(startDate)}
+            max={toISODateString(endDate)}
             value={{
-              point: date,
+              point: toISODateString(date),
             }}
             initialTimeUnit="day"
             dateFormat={dateFormat}

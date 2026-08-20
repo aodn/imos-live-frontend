@@ -5,7 +5,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { Button } from '../Button';
 import { DatePicker } from '../DatePicker';
 import { useDateSliderState, type DateSliderStore, type SliderExposedMethod } from '../DateSlider';
-import { cn } from '@/utils';
+import { cn, toISODateString, toUTCDate } from '@/utils';
 
 dayjs.extend(utc);
 
@@ -43,7 +43,7 @@ export function DateSelectionPanel({
   className,
 }: DateSelectionPanelProps) {
   const { pointDate } = useDateSliderState(store);
-  const date = pointDate ?? fallbackDate;
+  const date = pointDate ? toUTCDate(pointDate) : fallbackDate;
   const dateLabel = useMemo(() => dayjs.utc(date).format(LABEL_FORMAT), [date]);
 
   return (
@@ -72,7 +72,7 @@ export function DateSelectionPanel({
         value={date}
         min={min}
         max={max}
-        onChange={picked => sliderRef.current?.setDateTime(picked)}
+        onChange={picked => sliderRef.current?.setDateTime(toISODateString(picked))}
       />
       <Button
         variant="ghost"

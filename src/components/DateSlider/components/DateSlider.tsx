@@ -25,8 +25,15 @@ import {
   useOnChangeNotifier,
   useSliderRePosition,
 } from '../hooks';
-import type { SliderProps, TimeUnit, DragHandle } from '../type';
-import { cn, checkDateDuration, generateTrackWidth, getDateFromPercent } from '../utils';
+import type { SliderProps, TimeUnit, DragHandle, NaiveDateTime } from '../type';
+import {
+  cn,
+  checkDateDuration,
+  generateTrackWidth,
+  getDateFromPercent,
+  toUTCDate,
+  toNaiveDateTimeString,
+} from '../utils';
 import { DateSliderWrapper } from './DateSliderWrapper';
 import { customDateLabelRenderer } from './defaultRender';
 import { RenderSliderHandle } from './SliderHandle';
@@ -50,12 +57,15 @@ export const DateSlider = memo(function DateSlider({
   const { isSmallScreen } = useViewportSize();
 
   const { locale, scaleTypeResolver, initialValues, icons, layout, behavior, dateFormat } =
-    useSliderConfig(restProps as SliderProps, isSmallScreen);
+    useSliderConfig(
+      { ...restProps, min: propStartDate, max: propEndDate } as SliderProps,
+      isSmallScreen,
+    );
 
   const [timeUnit, setTimeUnit] = useState<TimeUnit>(initialTimeUnit);
 
-  const startDate = propStartDate;
-  const endDate = propEndDate;
+  const startDate = useMemo(() => toUTCDate(propStartDate), [propStartDate]);
+  const endDate = useMemo(() => toUTCDate(propEndDate), [propEndDate]);
 
   const { allScales, numberOfScales, totalScaleUnits } = useScales({
     startDate,
@@ -241,15 +251,20 @@ export const DateSlider = memo(function DateSlider({
     timeUnit,
   });
 
+  const setDateTimeFromNaive = useCallback(
+    (date: NaiveDateTime, target?: DragHandle) => setDateTime(toUTCDate(date), target),
+    [setDateTime],
+  );
+
   useImperativeHandle(
     imperativeRef,
     () => ({
-      setDateTime,
+      setDateTime: setDateTimeFromNaive,
       moveByStep,
       setTimeUnit: handleTimeUnitChange,
       focusHandle: (handleType: DragHandle) => requestHandleFocus(handleType, 'keyboard'),
     }),
-    [setDateTime, moveByStep, handleTimeUnitChange, requestHandleFocus],
+    [setDateTimeFromNaive, moveByStep, handleTimeUnitChange, requestHandleFocus],
   );
 
   // Publish live state to the external store so sibling controls (SelectionPanel,
@@ -282,9 +297,9 @@ export const DateSlider = memo(function DateSlider({
 
   useEffect(() => {
     stateStore?.setState({
-      pointDate,
-      rangeStartDate,
-      rangeEndDate,
+      pointDate: pointDate ? toNaiveDateTimeString(pointDate) : null,
+      rangeStartDate: rangeStartDate ? toNaiveDateTimeString(rangeStartDate) : null,
+      rangeEndDate: rangeEndDate ? toNaiveDateTimeString(rangeEndDate) : null,
       timeUnit,
       isMonthValid: moreThanOneMonth,
       isYearValid: moreThanOneYear,

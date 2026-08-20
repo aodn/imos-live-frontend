@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { memo, useState, useRef } from 'react';
 import type { SelectionResult, SliderProps, SliderExposedMethod, TimeUnit } from '../type';
-import { toUTCDate } from '../utils';
 import { DateSlider } from './DateSlider';
 
 /**
@@ -55,11 +54,11 @@ const SelectionDisplay = memo(({ selection }: { selection?: SelectionResult }) =
   if (!selection) return null;
   let result = '';
   if ('start' in selection && 'point' in selection) {
-    result = `start: ${selection.start.toISOString()}\nend: ${selection.end.toISOString()}\npoint: ${selection.point.toISOString()}`;
+    result = `start: ${selection.start}\nend: ${selection.end}\npoint: ${selection.point}`;
   } else if ('start' in selection) {
-    result = `start: ${selection.start.toISOString()}\nend: ${selection.end.toISOString()}`;
+    result = `start: ${selection.start}\nend: ${selection.end}`;
   } else if ('point' in selection) {
-    result = `point: ${selection.point.toISOString()}`;
+    result = `point: ${selection.point}`;
   }
   return (
     <div className="mt-6 font-mono">
@@ -92,9 +91,9 @@ export const Default: Story = {
   render: Template,
   args: {
     mode: 'point',
-    value: { point: toUTCDate('2024-06-15') },
-    min: toUTCDate('2024-01-01'),
-    max: toUTCDate('2024-12-31'),
+    value: { point: '2024-06-15' },
+    min: '2024-01-01',
+    max: '2024-12-31',
     initialTimeUnit: 'day' as TimeUnit,
     layout: {
       width: 600,
@@ -110,9 +109,9 @@ export const PointMode: Story = {
   render: Template,
   args: {
     mode: 'point',
-    value: { point: toUTCDate('2024-06-15') },
-    min: toUTCDate('2024-01-01'),
-    max: toUTCDate('2024-12-31'),
+    value: { point: '2024-06-15' },
+    min: '2024-01-01',
+    max: '2024-12-31',
     initialTimeUnit: 'day' as TimeUnit,
     layout: {
       width: 700,
@@ -130,11 +129,11 @@ export const RangeMode: Story = {
   args: {
     mode: 'range',
     value: {
-      start: toUTCDate('2024-03-01'),
-      end: toUTCDate('2024-09-01'),
+      start: '2024-03-01',
+      end: '2024-09-01',
     },
-    min: toUTCDate('2024-01-01'),
-    max: toUTCDate('2024-12-31'),
+    min: '2024-01-01',
+    max: '2024-12-31',
     initialTimeUnit: 'month' as TimeUnit,
     layout: {
       width: 800,
@@ -152,12 +151,12 @@ export const CombinedMode: Story = {
   args: {
     mode: 'combined',
     value: {
-      start: toUTCDate('2024-03-01'),
-      end: toUTCDate('2024-09-01'),
-      point: toUTCDate('2024-06-15'),
+      start: '2024-03-01',
+      end: '2024-09-01',
+      point: '2024-06-15',
     },
-    min: toUTCDate('2024-01-01'),
-    max: toUTCDate('2024-12-31'),
+    min: '2024-01-01',
+    max: '2024-12-31',
     initialTimeUnit: 'month' as TimeUnit,
     layout: {
       width: 900,
