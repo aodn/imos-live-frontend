@@ -22,7 +22,8 @@ export default meta;
 type Story = StoryObj<typeof DateSelectionPanel>;
 
 const MIN: NaiveDateTime = '2020-01-01';
-const MAX: NaiveDateTime = '2024-12-31';
+// Exclusive — last selectable day is 2024-12-31.
+const MAX: NaiveDateTime = '2025-01-01';
 
 /** Standalone harness: a seeded store + a fake imperative handle that steps the date. */
 function PanelHarness({ initialDate }: { initialDate: NaiveDateTime }) {

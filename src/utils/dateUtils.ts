@@ -4,12 +4,15 @@ import customParseFormat from 'dayjs/plugin/customParseFormat.js';
 dayjs.extend(utc);
 dayjs.extend(customParseFormat);
 
-/** Convert a local date string (yyyy-mm-dd) or Date to the nanosecond UTC format expected by the wave buoy API
- *
- * In frontend, we display dates in local time to users, but the wave buoy API expects dates in UTC with nanosecond precision.
- * We need to convert local dates to UTC and add the time component to ensure we are querying the correct date range.
+/**
+ * Format an already-resolved instant (`Date`, or a string with an explicit
+ * offset/`Z`) as the nanosecond-precision UTC datetime string the site APIs'
+ * `datetime` query param expects. A bare naive `yyyy-mm-dd`/`yyyy-mm-ddThh:mm:ss`
+ * string is parsed as browser-local time before conversion — pass one only if
+ * that's genuinely what you mean; callers here always pass a `Date` whose
+ * instant was already resolved against the app's `timezone` setting.
  */
-export function localToUTC(
+export function toUTCNanoString(
   date: string | Date,
   format = 'YYYY-MM-DDTHH:mm:ss.000000000[Z]',
 ): string {
@@ -86,6 +89,11 @@ function normalizeToLocalStarting(date: string | Date) {
 export function isBeforeDays(a: string | Date, b: string | Date, days = 30): boolean {
   const diff = normalizeToLocalStarting(b).diff(normalizeToLocalStarting(a), 'day');
   return diff >= 0 && diff <= days;
+}
+
+/** True when `date` is strictly a naive `yyyy-mm-dd` calendar-day string (no time, no offset/Z). */
+export function isNaiveDateString(date: string): boolean {
+  return dayjs(date, 'YYYY-MM-DD', true).isValid();
 }
 
 /**

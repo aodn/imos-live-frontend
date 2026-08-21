@@ -5,7 +5,7 @@ import type {
 } from '@/types';
 import { normalizeSiteDates } from '@/helpers';
 import type { TIMEZONE } from '@/store';
-import { formatUtcInstant, localToUTC } from '@/utils';
+import { formatUtcInstant, toUTCNanoString } from '@/utils';
 import axios from 'axios';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
@@ -15,7 +15,7 @@ dayjs.extend(utc);
 /**
  * Date convention for all site (wave buoy & mooring) APIs:
  *
- * Outbound — dates are always sent in UTC nanosecond format (via localToUTC). Naive
+ * Outbound — dates are always sent in UTC nanosecond format (via toUTCNanoString). Naive
  *   calendar-day strings (`yyyy-mm-dd`) passed in are resolved against the app's
  *   `timezone` setting (UTC or LOCAL) before conversion.
  *
@@ -43,7 +43,7 @@ const SITE_BASE_PATH = '/api/v1/ogc/collections/dummy_collection_id_satisfying_a
 function createGetDetails<T>(detailsPath: string, idParam: string) {
   return async (from: Date, to: Date, id: string): Promise<T> => {
     const details = await axios.get<T>(`${SITE_BASE_PATH}/${detailsPath}`, {
-      params: { [idParam]: id, datetime: `${localToUTC(from)}/${localToUTC(to)}` },
+      params: { [idParam]: id, datetime: `${toUTCNanoString(from)}/${toUTCNanoString(to)}` },
     });
     return details.data;
   };
@@ -57,8 +57,8 @@ function createGetDetails<T>(detailsPath: string, idParam: string) {
 function createGetSitesByDate(sitesPath: string) {
   return async (date: string, timezone: TIMEZONE): Promise<RawSiteFeatureCollection> => {
     const base = timezone === 'UTC' ? dayjs.utc(date) : dayjs(date);
-    const start = localToUTC(base.startOf('day').toDate());
-    const end = localToUTC(base.endOf('day').toDate());
+    const start = toUTCNanoString(base.startOf('day').toDate());
+    const end = toUTCNanoString(base.endOf('day').toDate());
     const sites = await axios.get<RawSiteFeatureCollection>(`${SITE_BASE_PATH}/${sitesPath}`, {
       params: { datetime: `${start}/${end}` },
     });

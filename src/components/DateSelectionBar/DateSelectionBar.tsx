@@ -15,7 +15,7 @@ import {
 import { cn, toDateOnly } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
 import { metaDataManifestQueryOptions, pickDateByTimezone } from '@/api';
-import { DATE_RANGE, PRODUCT } from '@/constants';
+import { PRODUCT } from '@/constants';
 import { useShallow } from 'zustand/shallow';
 import { dateFormat, renderDateLabel } from './renderProps';
 
@@ -87,7 +87,7 @@ export const DateSelectionBar = memo(function DateSelectionBar({
         sliderRef={imperativeHandlerRef}
         fallbackDate={date}
         min={startDate}
-        max={DATE_RANGE.end}
+        max={endDate}
         className={cn('shadow-xl', dragHandleClassName)}
       />
 

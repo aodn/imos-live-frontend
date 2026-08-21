@@ -28,7 +28,7 @@ type DateSelectionPanelProps = {
   fallbackDate: NaiveDateTime;
   /** Earliest selectable date (naive, timezone-free, inclusive) for the picker. */
   min: NaiveDateTime;
-  /** Latest selectable date (naive, timezone-free, inclusive) for the picker. */
+  /** Exclusive upper bound (naive, timezone-free) — one day past the last selectable date. */
   max: NaiveDateTime;
   className?: string;
 };

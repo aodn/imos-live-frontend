@@ -10,7 +10,7 @@ const meta: Meta<typeof DatePicker> = {
     docs: {
       description: {
         component:
-          'Frosted month-grid date picker used in the DateSelectionBar. Operates on naive (timezone-free) date strings and clamps selection to the slider range [min, max]. The calendar popover is portaled to the document body and opens above its trigger.',
+          'Frosted month-grid date picker used in the DateSelectionBar. Operates on naive (timezone-free) date strings and clamps selection to the slider range [min, max) — max exclusive. The calendar popover is portaled to the document body and opens above its trigger.',
       },
     },
   },
@@ -20,7 +20,8 @@ export default meta;
 type Story = StoryObj<typeof DatePicker>;
 
 const min = '2026-01-01';
-const max = '2026-12-31';
+// Exclusive — last selectable day is 2026-12-31.
+const max = '2027-01-01';
 
 export const Default: Story = {
   args: {

@@ -15,6 +15,7 @@ import {
 } from '@/constants';
 import type { LegendArgs, ProductType, TilesProduct } from '@/constants';
 import type { StyleTitle } from '@/styles';
+import { isNaiveDateString } from '@/utils';
 import { type LngLat } from 'mapbox-gl';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
@@ -93,7 +94,10 @@ export const useMapUIStore = create(
       setDistanceMeasurementEnabled: distanceMeasurementEnabled =>
         set({ distanceMeasurementEnabled }),
       setWorldBoundariesEnabled: worldBoundariesEnabled => set({ worldBoundariesEnabled }),
-      setDate: date => set({ date }),
+      setDate: date => {
+        assertNaiveDateString(date, 'setDate');
+        set({ date });
+      },
       setProductEnabledByProduct: (product, enabled) => {
         set(prev => {
           const next = { ...prev.productEnabled };
@@ -128,7 +132,10 @@ export const useMapUIStore = create(
             [product]: { ...prev.productLegends[product], ...legend },
           },
         })),
-      setJumpToDate: date => set({ jumpToDate: { date, trigger: Date.now() } }),
+      setJumpToDate: date => {
+        assertNaiveDateString(date, 'setJumpToDate');
+        set({ jumpToDate: { date, trigger: Date.now() } });
+      },
       clearJumpToDate: () => set({ jumpToDate: null }),
     }),
     storageOptions,
@@ -155,4 +162,10 @@ export const {
 
 export function getProductLegend(product: TilesProduct): LegendArgs {
   return useMapUIStore.getState().productLegends[product];
+}
+
+function assertNaiveDateString(date: string, source: string): void {
+  if (!isNaiveDateString(date)) {
+    throw new Error(`${source}: "${date}" is not a naive "YYYY-MM-DD" date string.`);
+  }
 }

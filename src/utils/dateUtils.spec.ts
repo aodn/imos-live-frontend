@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { isBeforeDays, localToUTC, toDateOnly, toUTCDate, utcToLocalDateTime } from './dateUtils';
+import {
+  isBeforeDays,
+  toDateOnly,
+  toUTCDate,
+  toUTCNanoString,
+  utcToLocalDateTime,
+} from './dateUtils';
 
 // Pin to a fixed local time so the "today is..." functions are deterministic. The Playwright
 // config uses Australia/Sydney for its E2E run; we match the host timezone here implicitly
@@ -51,10 +57,10 @@ describe('isBeforeDays', () => {
   });
 });
 
-describe('localToUTC', () => {
-  it('appends the nanosecond UTC suffix expected by the wave buoy API', () => {
+describe('toUTCNanoString', () => {
+  it('appends the nanosecond UTC suffix expected by the site APIs', () => {
     // Format = 'YYYY-MM-DDTHH:mm:ss.000000000Z' — the literal nanosecond zeros are required.
-    expect(localToUTC('2026-05-29T00:00:00Z')).toMatch(
+    expect(toUTCNanoString('2026-05-29T00:00:00Z')).toMatch(
       /^2026-05-29T\d{2}:\d{2}:\d{2}\.000000000Z$/,
     );
   });
