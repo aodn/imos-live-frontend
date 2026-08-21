@@ -3,7 +3,7 @@ import {
   isWithinDaysBefore,
   naiveToDateOnly,
   naiveToUTCDate,
-  instantToUTCNanoString,
+  instantToUTCString,
   utcToLocalDateTime,
 } from './dateUtils';
 
@@ -53,12 +53,9 @@ describe('isWithinDaysBefore', () => {
   });
 });
 
-describe('instantToUTCNanoString', () => {
-  it('appends the nanosecond UTC suffix expected by the site APIs', () => {
-    // Format = 'YYYY-MM-DDTHH:mm:ss.000000000Z' — the literal nanosecond zeros are required.
-    expect(instantToUTCNanoString('2026-05-29T00:00:00Z')).toMatch(
-      /^2026-05-29T\d{2}:\d{2}:\d{2}\.000000000Z$/,
-    );
+describe('instantToUTCString', () => {
+  it('appends the UTC suffix expected by the site APIs', () => {
+    expect(instantToUTCString('2026-05-29T00:00:00Z')).toMatch(/^2026-05-29T\d{2}:\d{2}:\d{2}Z$/);
   });
 });
 

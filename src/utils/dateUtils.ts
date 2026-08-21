@@ -6,16 +6,13 @@ dayjs.extend(customParseFormat);
 
 /**
  * Format an already-resolved instant (`Date`, or a string with an explicit
- * offset/`Z`) as the nanosecond-precision UTC datetime string the site APIs'
- * `datetime` query param expects. A bare naive `yyyy-mm-dd`/`yyyy-mm-ddThh:mm:ss`
- * string is parsed as browser-local time before conversion — pass one only if
- * that's genuinely what you mean; callers here always pass a `Date` whose
- * instant was already resolved against the app's `timezone` setting.
+ * offset/`Z`) as the UTC datetime string the site APIs' `datetime` query
+ * param expects. A bare naive `yyyy-mm-dd`/`yyyy-mm-ddThh:mm:ss` string is
+ * parsed as browser-local time before conversion — pass one only if that's
+ * genuinely what you mean; callers here always pass a `Date` whose instant
+ * was already resolved against the app's `timezone` setting.
  */
-export function instantToUTCNanoString(
-  date: string | Date,
-  format = 'YYYY-MM-DDTHH:mm:ss.000000000[Z]',
-): string {
+export function instantToUTCString(date: string | Date, format = 'YYYY-MM-DDTHH:mm:ss[Z]'): string {
   return dayjs(date).utc().format(format);
 }
 
