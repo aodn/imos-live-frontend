@@ -1,5 +1,5 @@
 import { type StyleTitle } from '@/styles';
-import { formatUtcInstant, generateValueByPercentage } from '@/utils';
+import { utcToTimezoneString, generateValueByPercentage } from '@/utils';
 import mapboxgl from 'mapbox-gl';
 import { PRODUCT } from './products';
 import type { ProductEnabled, TIMEZONE } from '@/store';
@@ -21,11 +21,11 @@ export const INITIAL_CENTER = new mapboxgl.LngLat(133.7751, -25.2744);
 // Naive (timezone-free) 'YYYY-MM-DD' bounds. `end` is "today" for INITIAL_TIMEZONE,
 // snapshotted once at load — it's only used as the initial default below.
 // Live consumers (e.g. useDateSliderDates) re-derive "today" from the current
-// timezone via formatUtcInstant rather than reading this stale snapshot.
+// timezone via utcToTimezoneString rather than reading this stale snapshot.
 export const DATE_RANGE = {
   start: '2024-01-01',
   // Because UTC or local timezone could be different calendar day
-  end: formatUtcInstant(new Date(), INITIAL_TIMEZONE),
+  end: utcToTimezoneString(new Date(), INITIAL_TIMEZONE),
 };
 export const INITIAL_DATE = DATE_RANGE.end;
 export const INITIAL_WORLD_BOUNDARIES_ENABLED = true;

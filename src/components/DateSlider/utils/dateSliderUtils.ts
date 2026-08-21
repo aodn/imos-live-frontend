@@ -430,11 +430,12 @@ export const getAllScalesPercentage = (
 /**
  * DateSlider Date Utilities
  *
- * Core Principle: UTC Everywhere, Display Locally
- *
- * - All dates are stored and manipulated as UTC timestamps
- * - Only convert to local timezone for display purposes
- * - Date-only data is represented as UTC midnight
+ * The public boundary is timezone-free naive strings (see README § Timezone
+ * model) — DateSlider never converts anything to the browser's local
+ * timezone. Internally, a naive value is encoded as a `Date` whose
+ * UTC-labeled fields hold the given wall-clock numbers, purely so position
+ * math can use plain epoch-ms arithmetic; that representation never leaves
+ * this internal layer, and callers only ever pass/receive naive strings.
  */
 
 const NAIVE_DATETIME_PATTERN = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}(:\d{2})?)?$/;

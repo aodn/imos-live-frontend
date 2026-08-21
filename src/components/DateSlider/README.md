@@ -92,9 +92,12 @@ is "supposed" to represent, you can use it to drive a UI in any timezone: just
 consistently encode that timezone's wall-clock time as the naive string (e.g.
 `"09:00:00"` for 9am Sydney time) and read `onChange`'s result the same way. In
 this app's actual usage (`useDateSliderDates.ts` → `DateSelectionBar.tsx`), the
-naive string is genuinely UTC, because the underlying satellite data (IMOS) is
-date-only / UTC-midnight — that's a property of this app's data, not a
-constraint of the slider itself.
+naive string represents a calendar day whose meaning — UTC midnight or local
+midnight — is decided by the app's own `timezone` setting (`'UTC' | 'LOCAL'`,
+default UTC since the underlying satellite data (IMOS) is date-only /
+UTC-midnight), resolved by each data-fetching consumer at the point of use —
+see `docs/DateTime-Design.md` at the repo root. The slider itself stays
+agnostic to that setting throughout.
 
 If you're extending the package internals (a custom `scaleTypeResolver` or
 `dateFormat` callback), note those still receive the internal `Date`

@@ -5,8 +5,8 @@ import type * as UtilsModule from '@/utils';
 
 // Fix the selectable range to Jan 1–5 2025 (endDate is exclusive → Jan 6) and
 // make the store's `date` controllable, so the clamping logic is deterministic.
-// The real date utils (toUTCDate/addTime/toISODateString) are used unmocked;
-// only formatUtcInstant is stubbed so "today" doesn't leak into the test.
+// The real date utils (naiveToUTCDate/addUTCTime/utcToDateOnly) are used unmocked;
+// only utcToTimezoneString is stubbed so "today" doesn't leak into the test.
 const store = vi.hoisted(() => ({ date: '2025-01-03', timezone: 'UTC' as const }));
 
 vi.mock('@/constants/mapInitialState', () => ({
@@ -19,7 +19,7 @@ vi.mock('@/utils', async importOriginal => {
   const actual = await importOriginal<typeof UtilsModule>();
   return {
     ...actual,
-    formatUtcInstant: () => '2025-01-05',
+    utcToTimezoneString: () => '2025-01-05',
   };
 });
 

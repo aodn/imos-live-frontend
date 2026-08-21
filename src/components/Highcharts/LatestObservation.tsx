@@ -1,5 +1,5 @@
 import type { BuoyItem, SiteDetailsFeature } from '@/types';
-import { cn, formatUtcInstant, prioritizeKey } from '@/utils';
+import { cn, utcToTimezoneString, prioritizeKey } from '@/utils';
 import { useMapUIStore } from '@/store';
 import { useMemo } from 'react';
 import { obseravtionVariants, preferredVariant, variantDescription } from './config';
@@ -83,7 +83,7 @@ export function ObservationPanel({ observationData }: { observationData: Observa
             <span>Latest Observations</span>
             {latestTimeStamp && (
               <span className="text-xs font-light ml-2" data-testid="latest-observation-timestamp">
-                {formatUtcInstant(latestTimeStamp, timezone, 'YYYY-MM-DD HH:mm:ss')}
+                {utcToTimezoneString(latestTimeStamp, timezone, 'YYYY-MM-DD HH:mm:ss')}
               </span>
             )}
           </h2>

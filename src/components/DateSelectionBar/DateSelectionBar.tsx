@@ -12,7 +12,7 @@ import {
   type PointValue,
   type SelectionResult,
 } from '../DateSlider';
-import { cn, toDateOnly } from '@/utils';
+import { cn, naiveToDateOnly } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
 import { metaDataManifestQueryOptions, pickDateByTimezone } from '@/api';
 import { PRODUCT } from '@/constants';
@@ -71,7 +71,7 @@ export const DateSelectionBar = memo(function DateSelectionBar({
   }, [jumpTrigger, jumpDate]);
 
   const handleSelect = useCallback((v: SelectionResult) => {
-    setDate(toDateOnly((v as PointValue).point));
+    setDate(naiveToDateOnly((v as PointValue).point));
   }, []);
 
   const toggleCollapsed = useCallback(() => {

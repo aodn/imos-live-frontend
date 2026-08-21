@@ -12,7 +12,7 @@ dayjs.extend(customParseFormat);
  * that's genuinely what you mean; callers here always pass a `Date` whose
  * instant was already resolved against the app's `timezone` setting.
  */
-export function toUTCNanoString(
+export function instantToUTCNanoString(
   date: string | Date,
   format = 'YYYY-MM-DDTHH:mm:ss.000000000[Z]',
 ): string {
@@ -36,7 +36,7 @@ export function utcToLocalDateTime(
 }
 
 // Truncate a UTC instant to its `yyyy-mm-dd` UTC calendar date.
-export function utcDateOnly(input: number | string | Date, format = 'YYYY-MM-DD'): string {
+export function utcToDateOnly(input: number | string | Date, format = 'YYYY-MM-DD'): string {
   const date = dayjs.utc(input);
 
   if (!date.isValid()) {
@@ -49,16 +49,12 @@ export function utcDateOnly(input: number | string | Date, format = 'YYYY-MM-DD'
 // Format a UTC instant in the given timezone frame — 'UTC' keeps it as UTC,
 // 'LOCAL' converts to the browser's local time. Defaults to a bare calendar
 // day; pass a time-inclusive format for datetime display.
-export function formatUtcInstant(
+export function utcToTimezoneString(
   input: number | string | Date,
   timezone: 'UTC' | 'LOCAL',
   format = 'YYYY-MM-DD',
 ): string {
-  return timezone === 'UTC' ? utcDateOnly(input, format) : utcToLocalDateTime(input, format);
-}
-
-export function today() {
-  return dayjs().format('YYYYMMDD');
+  return timezone === 'UTC' ? utcToDateOnly(input, format) : utcToLocalDateTime(input, format);
 }
 
 const FORMATS = [
@@ -71,7 +67,7 @@ const FORMATS = [
 ];
 
 // dayjs(input) always convert input to local datetime, no matter what input is, even 'Z' existing in input will also be ignored.
-function normalizeToLocalStarting(date: string | Date) {
+function toLocalStartOfDay(date: string | Date) {
   if (!date) {
     return dayjs().startOf('day');
   }
@@ -86,8 +82,8 @@ function normalizeToLocalStarting(date: string | Date) {
  * both ends — i.e. `0 ≤ (b − a) ≤ days`. Returns false when `a` is after `b`,
  * or more than `days` days before it. Default window is 30 days.
  */
-export function isBeforeDays(a: string | Date, b: string | Date, days = 30): boolean {
-  const diff = normalizeToLocalStarting(b).diff(normalizeToLocalStarting(a), 'day');
+export function isWithinDaysBefore(a: string | Date, b: string | Date, days = 30): boolean {
+  const diff = toLocalStartOfDay(b).diff(toLocalStartOfDay(a), 'day');
   return diff >= 0 && diff <= days;
 }
 
@@ -97,18 +93,19 @@ export function isNaiveDateString(date: string): boolean {
 }
 
 /**
- * Parse a naive (timezone-free) date string into a UTC `Date`. A bare
- * `yyyy-mm-dd` is treated as midnight UTC. Throws on a `Z` suffix or a real
- * timezone offset — this app's dates (and DateSlider's) are timezone-free by
- * design, so an offset almost always means a real UTC instant was passed by
- * mistake instead of a naive wall-clock value. Mirrors the helper in the
- * self-contained DateSlider package so the host app doesn't depend on that
- * package's internals.
+ * Parse a naive (timezone-free) date string into a UTC `Date`, imposing a UTC
+ * interpretation on it. A bare `yyyy-mm-dd` is treated as midnight UTC.
+ * Throws on a `Z` suffix or a real timezone offset — unlike `utcToDateOnly`,
+ * this expects input that is NOT already a resolved UTC instant. This app's
+ * dates (and DateSlider's) are timezone-free by design, so an offset almost
+ * always means a real UTC instant was passed by mistake instead of a naive
+ * wall-clock value. Mirrors the helper in the self-contained DateSlider
+ * package so the host app doesn't depend on that package's internals.
  */
-export function toUTCDate(dateString: string): Date {
+export function naiveToUTCDate(dateString: string): Date {
   if (/(?:Z|[+-]\d{2}:?\d{2})$/i.test(dateString)) {
     throw new Error(
-      `toUTCDate: "${dateString}" includes a timezone offset or "Z". Dates here are ` +
+      `naiveToUTCDate: "${dateString}" includes a timezone offset or "Z". Dates here are ` +
         `timezone-free — pass a naive "yyyy-mm-dd" or "yyyy-mm-ddThh:mm:ss" string.`,
     );
   }
@@ -124,7 +121,7 @@ export function toUTCDate(dateString: string): Date {
 }
 
 /** Add time units to a UTC date, operating purely on UTC components. */
-export function addTime(
+export function addUTCTime(
   date: Date,
   amount: number,
   unit: 'day' | 'month' | 'year' | 'hour' | 'minute',
@@ -132,15 +129,10 @@ export function addTime(
   return dayjs.utc(date).add(amount, unit).toDate();
 }
 
-/** Format a `Date` as a `yyyy-mm-dd` string using its UTC components. */
-export function toISODateString(date: Date): string {
-  return dayjs.utc(date).format('YYYY-MM-DD');
-}
-
 /**
  * Extract the `yyyy-mm-dd` portion from a naive datetime string, e.g. DateSlider's
  * `"YYYY-MM-DDTHH:mm:ss"` onChange output. This app only tracks day granularity.
  */
-export function toDateOnly(naiveDateTime: string): string {
+export function naiveToDateOnly(naiveDateTime: string): string {
   return naiveDateTime.slice(0, 10);
 }

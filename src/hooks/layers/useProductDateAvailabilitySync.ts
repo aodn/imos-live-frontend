@@ -10,7 +10,7 @@ export function useProductDateAvailabilitySync(product: TilesProduct, date: stri
   // Optimistically true while the manifest is loading — avoids blocking downstream
   // requests before we know whether the date is actually unavailable.
   const p = data?.products.find(p => p.id === product);
-  // find the matching date in the manifest's available_dates, based on the preproceseed UTC/local date strings depending on the timezone.
+  // find the matching date in the manifest's available_dates, based on the preprocessed UTC/local date strings depending on the timezone.
   // If timezone is UTC, we use the pregenerated UTC date compared to the selected date;
   // if timezone is LOCAL, we use the pregenerated LOCAL date compared to the selected date.
   const matchedDate = p?.available_dates.find(d => pickDateByTimezone(d, timezone) === date);

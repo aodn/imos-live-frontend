@@ -21,6 +21,7 @@ The platform visualises daily oceanographic data as a WebGL-accelerated particle
 ## Documentation
 
 - [Atlas Rendering System](./src/AtlasRenderingSystem/README.md) — WebGL atlas infrastructure, shader coordinate lookup, LOD blending, API reference
+- [Date/Time Design](./docs/DateTime-Design.md) — the naive-date convention, the UTC/LOCAL `timezone` config, and how tiles and site products each resolve a selected day against it
 
 ## Adding a New Product
 

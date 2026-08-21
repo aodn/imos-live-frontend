@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { useMemo, type RefObject } from 'react';
 import { DateSelectionPanel } from './DateSelectionPanel';
 import { createDateSliderStore, type NaiveDateTime, type SliderExposedMethod } from '../DateSlider';
-import { toISODateString, toUTCDate } from '@/utils';
+import { utcToDateOnly, naiveToUTCDate } from '@/utils';
 
 const meta: Meta<typeof DateSelectionPanel> = {
   title: 'Components/DateSelectionBar/DateSelectionPanel',
@@ -53,9 +53,9 @@ function PanelHarness({ initialDate }: { initialDate: NaiveDateTime }) {
         setDateTime: publish,
         moveByStep: direction => {
           const currentPointDate = store.getSnapshot().pointDate ?? initialDate;
-          const next = toUTCDate(currentPointDate);
+          const next = naiveToUTCDate(currentPointDate);
           next.setUTCDate(next.getUTCDate() + (direction === 'forward' ? 1 : -1));
-          publish(toISODateString(next));
+          publish(utcToDateOnly(next));
         },
         setTimeUnit: () => {},
         focusHandle: () => {},

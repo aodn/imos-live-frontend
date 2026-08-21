@@ -2,7 +2,7 @@ import type { ProductManifest } from '@/AtlasRenderingSystem';
 import type { PRODUCTS, TilesProduct } from '@/constants';
 import { extractProductVariables, getCollectionIdForProduct } from '@/constants';
 import type { TIMEZONE } from '@/store';
-import { utcDateOnly, utcToLocalDateTime } from '@/utils';
+import { utcToDateOnly, utcToLocalDateTime } from '@/utils';
 import { queryOptions } from '@tanstack/react-query';
 import axios from 'axios';
 
@@ -45,7 +45,7 @@ export function pickDateByTimezone(normalisedDate: NormalisedDate, timezone: TIM
 function normaliseDate(date: string): NormalisedDate {
   return {
     date,
-    utc_date: utcDateOnly(date, 'YYYY-MM-DD'),
+    utc_date: utcToDateOnly(date, 'YYYY-MM-DD'),
     local_date: utcToLocalDateTime(date, 'YYYY-MM-DD'),
   };
 }

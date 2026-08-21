@@ -5,7 +5,7 @@ import type {
 } from '@/types';
 import { normalizeSiteDates } from '@/helpers';
 import type { TIMEZONE } from '@/store';
-import { formatUtcInstant, toUTCNanoString } from '@/utils';
+import { utcToTimezoneString, instantToUTCNanoString } from '@/utils';
 import axios from 'axios';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
@@ -15,12 +15,12 @@ dayjs.extend(utc);
 /**
  * Date convention for all site (wave buoy & mooring) APIs:
  *
- * Outbound — dates are always sent in UTC nanosecond format (via toUTCNanoString). Naive
+ * Outbound — dates are always sent in UTC nanosecond format (via instantToUTCNanoString). Naive
  *   calendar-day strings (`yyyy-mm-dd`) passed in are resolved against the app's
  *   `timezone` setting (UTC or LOCAL) before conversion.
  *
  * Inbound — UTC date strings in responses are converted to a naive calendar-day string
- *   matching the app's `timezone` setting (via utcInstantToCalendarDate). The *Details
+ *   matching the app's `timezone` setting (via utcToTimezoneString). The *Details
  *   functions are the exception: they return [ms-timestamp, value][] pairs, which
  *   Highcharts and display formatting handle directly.
  *
@@ -43,7 +43,10 @@ const SITE_BASE_PATH = '/api/v1/ogc/collections/dummy_collection_id_satisfying_a
 function createGetDetails<T>(detailsPath: string, idParam: string) {
   return async (from: Date, to: Date, id: string): Promise<T> => {
     const details = await axios.get<T>(`${SITE_BASE_PATH}/${detailsPath}`, {
-      params: { [idParam]: id, datetime: `${toUTCNanoString(from)}/${toUTCNanoString(to)}` },
+      params: {
+        [idParam]: id,
+        datetime: `${instantToUTCNanoString(from)}/${instantToUTCNanoString(to)}`,
+      },
     });
     return details.data;
   };
@@ -57,8 +60,8 @@ function createGetDetails<T>(detailsPath: string, idParam: string) {
 function createGetSitesByDate(sitesPath: string) {
   return async (date: string, timezone: TIMEZONE): Promise<RawSiteFeatureCollection> => {
     const base = timezone === 'UTC' ? dayjs.utc(date) : dayjs(date);
-    const start = toUTCNanoString(base.startOf('day').toDate());
-    const end = toUTCNanoString(base.endOf('day').toDate());
+    const start = instantToUTCNanoString(base.startOf('day').toDate());
+    const end = instantToUTCNanoString(base.endOf('day').toDate());
     const sites = await axios.get<RawSiteFeatureCollection>(`${SITE_BASE_PATH}/${sitesPath}`, {
       params: { datetime: `${start}/${end}` },
     });
@@ -78,7 +81,7 @@ function createGetLatestSites(sitesPath: string) {
 function createGetLatestDate(latestDatePath: string) {
   return async (timezone: TIMEZONE): Promise<string> => {
     const latestDate = await axios.get(`${SITE_BASE_PATH}/${latestDatePath}`);
-    return formatUtcInstant(latestDate.data.time, timezone, 'YYYY-MM-DD');
+    return utcToTimezoneString(latestDate.data.time, timezone, 'YYYY-MM-DD');
   };
 }
 

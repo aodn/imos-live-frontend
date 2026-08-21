@@ -4,7 +4,7 @@ import utc from 'dayjs/plugin/utc.js';
 import type { MooringDataVariants, NominalDepthVariant, SiteFeature } from '@/types';
 import type { TIMEZONE } from '@/store';
 import { toSiteChartData } from '@/helpers';
-import { formatLatLngToDirectional, formatUtcInstant, today } from '@/utils';
+import { formatLatLngToDirectional, utcToTimezoneString } from '@/utils';
 import { Dropdown } from '@/components/Dropdown';
 import { useDidMountEffect } from '@/hooks';
 import { useQuery } from '@tanstack/react-query';
@@ -70,7 +70,7 @@ function buildMooringTooltipHTML(
   timezone: TIMEZONE,
 ): string {
   const points = context.points ?? [context.point];
-  const datetime = formatUtcInstant(
+  const datetime = utcToTimezoneString(
     (points[0]?.x ?? context.point.x) as number,
     timezone,
     'YYYY-MM-DD HH:mm:ss',
@@ -188,7 +188,7 @@ export function MooringChart({ mooringData }: MooringChartProps) {
 
   const { from, to } = useMemo(() => {
     const parse = timezone === 'UTC' ? dayjs.utc : dayjs;
-    const end = parse(latestMooringDate ?? today()).add(1, 'day'); // Include the full selectedDate day
+    const end = parse(latestMooringDate ?? utcToTimezoneString(new Date(), timezone)).add(1, 'day'); // Include the full selectedDate day
     const start = parse(selectedDate).subtract(MOORING_MIN_DATE, 'day'); // Start from 30 days before the selected date
     return { from: start.toDate(), to: end.toDate() };
   }, [selectedDate, latestMooringDate, timezone]);
@@ -318,8 +318,8 @@ export function MooringChart({ mooringData }: MooringChartProps) {
   const updateVisibleRange = useCallback(
     (min: number, max: number) => {
       visibleRangeRef.current = {
-        min: formatUtcInstant(min, timezone, 'YYYYMMDD'),
-        max: formatUtcInstant(max, timezone, 'YYYYMMDD'),
+        min: utcToTimezoneString(min, timezone, 'YYYYMMDD'),
+        max: utcToTimezoneString(max, timezone, 'YYYYMMDD'),
       };
     },
     [timezone],

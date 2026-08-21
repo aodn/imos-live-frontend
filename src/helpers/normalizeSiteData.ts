@@ -1,6 +1,6 @@
 import type { RawSiteFeatureCollection, SiteFeature } from '@/types';
 import type { TIMEZONE } from '@/store';
-import { formatUtcInstant } from '@/utils';
+import { utcToTimezoneString } from '@/utils';
 import type { GeoJSONFeature } from 'mapbox-gl';
 
 export function normalizeSiteDates(
@@ -13,7 +13,7 @@ export function normalizeSiteDates(
       ...f,
       properties: {
         ...f.properties,
-        date: formatUtcInstant(f.properties.date, timezone, 'YYYY-MM-DD'),
+        date: utcToTimezoneString(f.properties.date, timezone, 'YYYY-MM-DD'),
       },
     })),
   };

@@ -4,7 +4,7 @@ import utc from 'dayjs/plugin/utc.js';
 import type { SiteFeature } from '@/types';
 import type { TIMEZONE } from '@/store';
 import { toSiteChartData } from '@/helpers';
-import { formatLatLngToDirectional, formatUtcInstant, today } from '@/utils';
+import { formatLatLngToDirectional, utcToTimezoneString } from '@/utils';
 import { useDidMountEffect } from '@/hooks';
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useMemo, useRef } from 'react';
@@ -68,7 +68,7 @@ function buildBuoyTooltipHTML(context: TooltipFormatterContext, timezone: TIMEZO
   const points = context.points ?? (context.point ? [context.point] : []);
   if (points.length === 0) return '';
 
-  const datetime = formatUtcInstant(points[0].x as number, timezone, 'YYYY-MM-DD HH:mm:ss');
+  const datetime = utcToTimezoneString(points[0].x as number, timezone, 'YYYY-MM-DD HH:mm:ss');
   let html = `<div style="font-size: 12px;"><b>Time:</b> ${datetime}<br/>`;
 
   for (const point of points) {
@@ -203,7 +203,10 @@ export function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartPro
 
   const { from, to } = useMemo(() => {
     const parse = timezone === 'UTC' ? dayjs.utc : dayjs;
-    const end = parse(latestWaveBuoyDate ?? today()).add(1, 'day'); // Include the full selectedDate day
+    const end = parse(latestWaveBuoyDate ?? utcToTimezoneString(new Date(), timezone)).add(
+      1,
+      'day',
+    ); // Include the full selectedDate day
     const start = parse(selectedDate).subtract(WAVE_BUOY_MIN_DATE, 'day'); // Start from 30 days before the selected date
     return { from: start.toDate(), to: end.toDate() };
   }, [selectedDate, latestWaveBuoyDate, timezone]);
@@ -218,7 +221,7 @@ export function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartPro
       return getWaveBuoyDetails(from, to, buoy);
     },
     // Wait for latestWaveBuoyDate so `to` is final on first fetch — otherwise we'd
-    // fire once with the today() fallback and refetch when the date resolves.
+    // fire once with the today's-date fallback and refetch when the date resolves.
     enabled: !!buoy && !isLatestWaveBuoyDateLoading,
   });
 
@@ -296,8 +299,8 @@ export function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartPro
   const updateVisibleRange = useCallback(
     (min: number, max: number) => {
       visibleRangeRef.current = {
-        min: formatUtcInstant(min, timezone, 'YYYYMMDD'),
-        max: formatUtcInstant(max, timezone, 'YYYYMMDD'),
+        min: utcToTimezoneString(min, timezone, 'YYYYMMDD'),
+        max: utcToTimezoneString(max, timezone, 'YYYYMMDD'),
       };
     },
     [timezone],

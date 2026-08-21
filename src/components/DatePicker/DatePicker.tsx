@@ -11,7 +11,7 @@ import { createPortal } from 'react-dom';
 import dayjs, { type Dayjs } from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
 import { CalendarIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
-import { cn, toISODateString, toUTCDate } from '@/utils';
+import { cn, utcToDateOnly, naiveToUTCDate } from '@/utils';
 import { Button } from '../Button';
 import { Dropdown, type DropdownOption } from '../Dropdown';
 import type { NaiveDateTime } from '../DateSlider';
@@ -308,7 +308,7 @@ export function DatePicker({
 
   const [isOpen, setIsOpen] = useState(false);
   const [viewMonth, setViewMonth] = useState<Dayjs>(() =>
-    dayjs.utc(toUTCDate(value)).startOf('month'),
+    dayjs.utc(naiveToUTCDate(value)).startOf('month'),
   );
   const [coords, setCoords] = useState<{ left: number; top?: number; bottom?: number } | null>(
     null,
@@ -317,13 +317,13 @@ export function DatePicker({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
 
-  const selectedDay = dayjs.utc(toUTCDate(value)).startOf('day');
+  const selectedDay = dayjs.utc(naiveToUTCDate(value)).startOf('day');
   const availability = useMemo(
     () =>
       buildAvailability({
-        min: min ? toUTCDate(min) : undefined,
-        max: max ? toUTCDate(max) : undefined,
-        dateList: dateList?.map(toUTCDate),
+        min: min ? naiveToUTCDate(min) : undefined,
+        max: max ? naiveToUTCDate(max) : undefined,
+        dateList: dateList?.map(naiveToUTCDate),
         fallback: selectedDay,
       }),
     // selectedDay is derived from `value`; tracking value keeps the fallback fresh.
@@ -354,7 +354,7 @@ export function DatePicker({
   }, [placement]);
 
   const open = useCallback(() => {
-    setViewMonth(dayjs.utc(toUTCDate(value)).startOf('month'));
+    setViewMonth(dayjs.utc(naiveToUTCDate(value)).startOf('month'));
     positionPopover();
     setIsOpen(true);
   }, [value, positionPopover]);
@@ -412,7 +412,7 @@ export function DatePicker({
   );
 
   const handleSelect = (day: Dayjs) => {
-    onChange(toISODateString(day.startOf('day').toDate()));
+    onChange(utcToDateOnly(day.startOf('day').toDate()));
     close();
   };
 
