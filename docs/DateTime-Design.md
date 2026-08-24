@@ -45,7 +45,7 @@ export type TIMEZONE = 'UTC' | 'LOCAL';
   - `setDate` — `useMapUIStore.ts:97-100`
   - `setJumpToDate` — `useMapUIStore.ts:135-138`
   - via `assertNaiveDateString` (`useMapUIStore.ts:167-171`), backed by
-    `isNaiveDateString` (`src/utils/dateUtils.ts:95-97`, strict
+    `isNaiveDateString` (`src/utils/dateUtils.ts:87-90`, strict
     `dayjs(date, 'YYYY-MM-DD', true)` parsing — rejects offsets, wrong
     format, and invalid calendar dates like `2026-13-40`).
   - **Known gap:** `zustand/persist`'s URL rehydration
@@ -95,8 +95,8 @@ finding the manifest entry whose UTC-or-local calendar day matches it
 
 1. `normaliseDate` (`src/api/tiles.ts:45-51`) precomputes, per manifest
    entry, both calendar-day readings from the raw UTC instant:
-   `utc_date` via `utcToDateOnly` (`dateUtils.ts:39`), `local_date` via
-   `utcToLocalDateTime` (`dateUtils.ts:25`).
+   `utc_date` via `utcToDateOnly` (`dateUtils.ts:36`), `local_date` via
+   `utcToLocalDateTime` (`dateUtils.ts:22`).
 2. `pickDateByTimezone(normalisedDate, timezone)` (`src/api/tiles.ts:38-40`)
    picks whichever of those two matches the app's current frame.
 3. `useProductDateAvailabilitySync(product, date)`
@@ -118,8 +118,8 @@ independently for point-click popups
 ## Site products (Wave Buoys, Mooring Timeseries)
 
 `src/api/site.ts` documents its own convention at the top of the file
-(lines 15-32): outbound dates are always sent as UTC nanosecond strings;
-naive calendar-day strings are resolved against `timezone` before
+(lines 15-32): outbound dates are always sent as UTC datetime strings (second
+precision); naive calendar-day strings are resolved against `timezone` before
 conversion.
 
 - **`createGetSitesByDate`** (`site.ts:57-67`) — resolves the naive `date`
@@ -131,21 +131,22 @@ conversion.
   _already_ resolved the same way (`timezone === 'UTC' ? dayjs.utc(...) :
 dayjs(...)`, then `.toDate()`). Both chart components build these
   independently but identically.
-- **`instantToUTCNanoString`** (`dateUtils.ts:7-20`, formerly `localToUTC`) formats
-  whatever it's given as the nanosecond-precision UTC string the site APIs'
-  `datetime` param expects. On a `Date` input (every real call site above) it
-  is purely a formatter — `dayjs(dateObj).utc()` re-expresses the same
-  absolute instant, it does not re-interpret or shift it. The "interpret a
-  naive local string" behavior in its signature (`string | Date`) is legacy
-  generality: no current call site exercises it with a naive string, so
-  there's no double-conversion risk despite the timezone resolution already
-  having happened by the time it's called.
-- **Minor known quirk:** `instantToUTCNanoString`'s default format hardcodes
-  `.000000000[Z]` for the nanosecond portion regardless of the actual
-  sub-second value, so `endOf('day')`'s true `23:59:59.999` gets truncated to
-  `23:59:59.000000000` in the request — the end boundary is ~1 second short
-  of true end-of-day. Harmless in practice given site data reports at best
-  hourly.
+- **`instantToUTCString`** (`dateUtils.ts:7-17`, formerly
+  `instantToUTCNanoString`/`localToUTC`) formats whatever it's given as the
+  UTC datetime string the site APIs' `datetime` param expects. On a `Date`
+  input (every real call site above) it is purely a formatter —
+  `dayjs(dateObj).utc()` re-expresses the same absolute instant, it does not
+  re-interpret or shift it. The "interpret a naive local string" behavior in
+  its signature (`string | Date`) is legacy generality: no current call site
+  exercises it with a naive string, so there's no double-conversion risk
+  despite the timezone resolution already having happened by the time it's
+  called.
+- **Minor known quirk:** `instantToUTCString`'s default format
+  (`YYYY-MM-DDTHH:mm:ss[Z]`) is second-precision — it drops any fractional
+  seconds entirely rather than rounding — so `endOf('day')`'s true
+  `23:59:59.999` gets truncated to `23:59:59` in the request. The end
+  boundary is up to ~1 second short of true end-of-day. Harmless in practice
+  given site data reports at best hourly.
 
 ## Summary flow
 
@@ -159,7 +160,7 @@ flowchart TD
     C --> C1["pickDateByTimezone vs manifest\nprecomputed utc_date/local_date\n(exact match, no fallback)"]
     C1 --> C2["matched entry raw UTC instant\n-> tile source / manifest fetch"]
     D --> D1["dayjs.utc(date) or dayjs(date)\n-> day-window Date objects"]
-    D1 --> D2["instantToUTCNanoString formats the\nalready-resolved Date -> API datetime param"]
+    D1 --> D2["instantToUTCString formats the\nalready-resolved Date -> API datetime param"]
 ```
 
 ## Key utilities (`src/utils/dateUtils.ts`)
@@ -171,7 +172,7 @@ flowchart TD
 | `naiveToDateOnly`                      | Slice the `yyyy-mm-dd` portion off a naive datetime string (no parsing — distinct from `utcToDateOnly`, which parses and validates a real UTC instant).                                             |
 | `utcToTimezoneString`                  | Format a UTC instant in the given `timezone` frame (`'UTC'` keeps it as-is, `'LOCAL'` converts to browser-local). Used for all "what calendar day is 'now'/this instant in this frame" derivations. |
 | `utcToDateOnly` / `utcToLocalDateTime` | The UTC/local halves `utcToTimezoneString` dispatches to; also used directly by `normaliseDate` to precompute both readings once per manifest entry.                                                |
-| `instantToUTCNanoString`               | Format an already-resolved instant as the nanosecond UTC string the site APIs expect.                                                                                                               |
+| `instantToUTCString`                   | Format an already-resolved instant as the (second-precision) UTC datetime string the site APIs expect.                                                                                              |
 | `addUTCTime`                           | Add time units to a `Date`, operating purely on UTC components.                                                                                                                                     |
 | `isWithinDaysBefore`                   | True when `a` falls within N days before `b`, inclusive on both ends.                                                                                                                               |
 
