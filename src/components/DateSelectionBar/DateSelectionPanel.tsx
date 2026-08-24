@@ -4,7 +4,12 @@ import utc from 'dayjs/plugin/utc.js';
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { Button } from '../Button';
 import { DatePicker } from '../DatePicker';
-import { useDateSliderState, type DateSliderStore, type SliderExposedMethod } from '../DateSlider';
+import {
+  useDateSliderState,
+  type DateSliderStore,
+  type NaiveDateTime,
+  type SliderExposedMethod,
+} from '../DateSlider';
 import { cn } from '@/utils';
 
 dayjs.extend(utc);
@@ -20,11 +25,11 @@ type DateSelectionPanelProps = {
   /** Slider's imperative handle — drives prev/next stepping. */
   sliderRef: RefObject<SliderExposedMethod | null>;
   /** Shown until the slider has published its first live state. */
-  fallbackDate: Date;
-  /** Earliest selectable date (UTC, inclusive) for the picker. */
-  min: Date;
-  /** Latest selectable date (UTC, inclusive) for the picker. */
-  max: Date;
+  fallbackDate: NaiveDateTime;
+  /** Earliest selectable date (naive, timezone-free, inclusive) for the picker. */
+  min: NaiveDateTime;
+  /** Exclusive upper bound (naive, timezone-free) — one day past the last selectable date. */
+  max: NaiveDateTime;
   className?: string;
 };
 

@@ -10,7 +10,7 @@ const meta: Meta<typeof DatePicker> = {
     docs: {
       description: {
         component:
-          'Frosted month-grid date picker used in the DateSelectionBar. Operates entirely in UTC and clamps selection to the slider range [min, max]. The calendar popover is portaled to the document body and opens above its trigger.',
+          'Frosted month-grid date picker used in the DateSelectionBar. Operates on naive (timezone-free) date strings and clamps selection to the slider range [min, max) — max exclusive. The calendar popover is portaled to the document body and opens above its trigger.',
       },
     },
   },
@@ -19,22 +19,23 @@ const meta: Meta<typeof DatePicker> = {
 export default meta;
 type Story = StoryObj<typeof DatePicker>;
 
-const min = new Date('2026-01-01T00:00:00Z');
-const max = new Date('2026-12-31T00:00:00Z');
+const min = '2026-01-01';
+// Exclusive — last selectable day is 2026-12-31.
+const max = '2027-01-01';
 
 export const Default: Story = {
   args: {
-    value: new Date('2026-06-15T00:00:00Z'),
+    value: '2026-06-15',
     onChange: () => {},
   },
 };
 
 export const Interactive: Story = {
   render: () => {
-    const [value, setValue] = useState(new Date('2026-06-15T00:00:00Z'));
+    const [value, setValue] = useState('2026-06-15');
     return (
       <div className="flex items-center gap-3">
-        <span className="text-sm">{value.toISOString().slice(0, 10)}</span>
+        <span className="text-sm">{value}</span>
         <DatePicker value={value} min={min} max={max} onChange={setValue} />
       </div>
     );
@@ -55,11 +56,11 @@ export const DateListMode: Story = {
       '2026-06-24',
       '2026-08-05',
       '2026-08-19',
-    ].map(d => new Date(`${d}T00:00:00Z`));
+    ];
     const [value, setValue] = useState(dateList[0]);
     return (
       <div className="flex items-center gap-3">
-        <span className="text-sm">{value.toISOString().slice(0, 10)}</span>
+        <span className="text-sm">{value}</span>
         <DatePicker value={value} dateList={dateList} onChange={setValue} />
       </div>
     );
@@ -73,7 +74,7 @@ export const DateListMode: Story = {
  */
 export const Themed: Story = {
   args: {
-    value: new Date('2026-06-15T00:00:00Z'),
+    value: '2026-06-15',
     min,
     max,
     placement: 'bottom',

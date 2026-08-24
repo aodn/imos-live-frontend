@@ -2,8 +2,9 @@ import { getWaveBuoyDetails, getWaveBuoyLatestDate } from '@/api';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
 import type { SiteFeature } from '@/types';
+import type { TIMEZONE } from '@/store';
 import { toSiteChartData } from '@/helpers';
-import { formatLatLngToDirectional, utcToLocalDateTime, today } from '@/utils';
+import { formatLatLngToDirectional, utcToTimezoneString } from '@/utils';
 import { useDidMountEffect } from '@/hooks';
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useMemo, useRef } from 'react';
@@ -63,11 +64,11 @@ function BuoyTitleHeading({ buoy, lng, lat }: { buoy: string; lng: number; lat: 
 // tooltip) so both the wave-height line and the direction strip contribute — otherwise
 // the single `context.point` resolves to just one series and hovering an arrow would
 // only show wave height. The direction series shows direction + period; others wave height.
-function buildBuoyTooltipHTML(context: TooltipFormatterContext): string {
+function buildBuoyTooltipHTML(context: TooltipFormatterContext, timezone: TIMEZONE): string {
   const points = context.points ?? (context.point ? [context.point] : []);
   if (points.length === 0) return '';
 
-  const datetime = utcToLocalDateTime(points[0].x as number);
+  const datetime = utcToTimezoneString(points[0].x as number, timezone, 'YYYY-MM-DD HH:mm:ss');
   let html = `<div style="font-size: 12px;"><b>Time:</b> ${datetime}<br/>`;
 
   for (const point of points) {
@@ -120,15 +121,19 @@ function buildWaveYAxisConfig(showDirection?: boolean): Highcharts.YAxisOptions[
 
 // Dashed plot line marking the selected date — shared by the initial x-axis config
 // and the imperative date update (see useDidMountEffect on selectedDate).
-function buildBuoyDatePlotLine(selectedDate: string): Highcharts.XAxisPlotLinesOptions {
+function buildBuoyDatePlotLine(
+  selectedDate: string,
+  timezone: TIMEZONE,
+): Highcharts.XAxisPlotLinesOptions {
+  const date = timezone === 'UTC' ? dayjs.utc(selectedDate) : dayjs(selectedDate);
   return {
-    value: dayjs(selectedDate).valueOf(),
+    value: date.valueOf(),
     color: PRIMARY_COLOR,
     width: 2,
     dashStyle: 'Dash',
     zIndex: 5,
     label: {
-      text: dayjs(selectedDate).format('D MMM YYYY'),
+      text: date.format('D MMM YYYY'),
       rotation: 0,
       align: 'center',
       verticalAlign: 'top',
@@ -139,7 +144,7 @@ function buildBuoyDatePlotLine(selectedDate: string): Highcharts.XAxisPlotLinesO
 }
 
 // X axis with the dashed plot line marking the selected date.
-function buildBuoyXAxisConfig(selectedDate: string): Highcharts.XAxisOptions {
+function buildBuoyXAxisConfig(selectedDate: string, timezone: TIMEZONE): Highcharts.XAxisOptions {
   return {
     type: 'datetime',
     labels: { format: '{value:%b %e %H:%M}' },
@@ -148,7 +153,7 @@ function buildBuoyXAxisConfig(selectedDate: string): Highcharts.XAxisOptions {
     // For buoys that report every 3–6 hours, this gives a minRange of ~15–30 hours — larger than 6H or 12H, so Highcharts silently
     // rejects those zoom levels. Buoys with hourly or sub-hourly data land below 24H, so all buttons work. Therefore, we set this as 1 hour.
     minRange: 3600 * 1000,
-    plotLines: [buildBuoyDatePlotLine(selectedDate)],
+    plotLines: [buildBuoyDatePlotLine(selectedDate, timezone)],
   };
 }
 
@@ -187,19 +192,24 @@ export function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartPro
   );
   const buoy = buoyChartData?.site ?? '';
   const selectedDate = useMapUIStore(s => s.date);
+  const timezone = useMapUIStore(s => s.timezone);
   const visibleRangeRef = useRef<{ min: string; max: string } | null>(null);
   const chartRef = useRef<LineChartExposedMethods>(null);
 
   const { data: latestWaveBuoyDate, isLoading: isLatestWaveBuoyDateLoading } = useQuery({
-    queryKey: ['wave_buoy_latest_date'],
-    queryFn: getWaveBuoyLatestDate,
+    queryKey: ['wave_buoy_latest_date', timezone],
+    queryFn: () => getWaveBuoyLatestDate(timezone),
   });
 
   const { from, to } = useMemo(() => {
-    const end = dayjs(latestWaveBuoyDate ?? today()).add(1, 'day'); // Include the full selectedDate day in local time
-    const start = dayjs(selectedDate).subtract(WAVE_BUOY_MIN_DATE, 'day'); // Start from 30 days before the selected date
+    const parse = timezone === 'UTC' ? dayjs.utc : dayjs;
+    const end = parse(latestWaveBuoyDate ?? utcToTimezoneString(new Date(), timezone)).add(
+      1,
+      'day',
+    ); // Include the full selectedDate day
+    const start = parse(selectedDate).subtract(WAVE_BUOY_MIN_DATE, 'day'); // Start from 30 days before the selected date
     return { from: start.toDate(), to: end.toDate() };
-  }, [selectedDate, latestWaveBuoyDate]);
+  }, [selectedDate, latestWaveBuoyDate, timezone]);
 
   const {
     isLoading,
@@ -211,7 +221,7 @@ export function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartPro
       return getWaveBuoyDetails(from, to, buoy);
     },
     // Wait for latestWaveBuoyDate so `to` is final on first fetch — otherwise we'd
-    // fire once with the today() fallback and refetch when the date resolves.
+    // fire once with the today's-date fallback and refetch when the date resolves.
     enabled: !!buoy && !isLatestWaveBuoyDateLoading,
   });
 
@@ -266,13 +276,16 @@ export function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartPro
     : '';
 
   const tooltipFormatter = useCallback(
-    (context: TooltipFormatterContext) => buildBuoyTooltipHTML(context),
-    [],
+    (context: TooltipFormatterContext) => buildBuoyTooltipHTML(context, timezone),
+    [timezone],
   );
 
   const yAxisConfig = useMemo(() => buildWaveYAxisConfig(showDirection), [showDirection]);
 
-  const xAxisConfig = useMemo(() => buildBuoyXAxisConfig(selectedDate), [selectedDate]);
+  const xAxisConfig = useMemo(
+    () => buildBuoyXAxisConfig(selectedDate, timezone),
+    [selectedDate, timezone],
+  );
 
   useDidMountEffect(() => {
     chartRef.current?.updateSeries(seriesData);
@@ -280,15 +293,18 @@ export function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartPro
 
   useDidMountEffect(() => {
     const chart = chartRef.current?.getChartInstance();
-    chart?.xAxis[0]?.update({ plotLines: [buildBuoyDatePlotLine(selectedDate)] });
-  }, [selectedDate]);
+    chart?.xAxis[0]?.update({ plotLines: [buildBuoyDatePlotLine(selectedDate, timezone)] });
+  }, [selectedDate, timezone]);
 
-  const updateVisibleRange = useCallback((min: number, max: number) => {
-    visibleRangeRef.current = {
-      min: utcToLocalDateTime(min, 'YYYYMMDD'),
-      max: utcToLocalDateTime(max, 'YYYYMMDD'),
-    };
-  }, []);
+  const updateVisibleRange = useCallback(
+    (min: number, max: number) => {
+      visibleRangeRef.current = {
+        min: utcToTimezoneString(min, timezone, 'YYYYMMDD'),
+        max: utcToTimezoneString(max, timezone, 'YYYYMMDD'),
+      };
+    },
+    [timezone],
+  );
 
   const handleChartLoad = useCallback(
     (chart: Highcharts.Chart) => {

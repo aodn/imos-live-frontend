@@ -8,7 +8,7 @@ import {
 } from '@/constants';
 import { addLayerInOrder, addOrUpdateGeoJsonSource, mergeAndFilterBuoyFeatures } from '@/helpers';
 import { circleLayer, symbolLayer } from '@/layers';
-import { useMapUIStore, setProductErrorByProduct } from '@/store';
+import { useMapUIStore, setProductErrorByProduct, type TIMEZONE } from '@/store';
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
@@ -25,11 +25,11 @@ type UseSiteLayer = {
   // and cluster count label (the clustered layer + source IDs come from PRODUCTS).
   unclusteredLayerId: string;
   clusterLabelLayerId: string;
-  // Returns the sites active for the selected local date (marks hasDataForDate).
-  getSitesByDate: (localDate: string) => Promise<RawSiteFeatureCollection>;
+  // Returns the sites active for the selected date (interpreted per `timezone`, marks hasDataForDate).
+  getSitesByDate: (date: string, timezone: TIMEZONE) => Promise<RawSiteFeatureCollection>;
   // Returns all sites with their latest observation (the base set the date merge fills in).
-  getLatestSites: () => Promise<RawSiteFeatureCollection>;
-  getLatestDate: () => Promise<string>;
+  getLatestSites: (timezone: TIMEZONE) => Promise<RawSiteFeatureCollection>;
+  getLatestDate: (timezone: TIMEZONE) => Promise<string>;
   // Per-product paint/layout so site products are visually distinguishable.
   // Default to the wave-buoy styling.
   clusterConfig?: Partial<CircleLayerSpecification>;
@@ -60,32 +60,33 @@ export function useSiteLayer({
   clusterLabelConfig = WAVE_BUOY_CLUSTER_LABEL_LAYER_CONFIG,
 }: UseSiteLayer) {
   const { layerId, sourceId } = PRODUCTS[product];
-  const { enabled, date, isError } = useMapUIStore(
+  const { enabled, date, timezone, isError } = useMapUIStore(
     useShallow(s => ({
       enabled: s.productEnabled[product],
       date: s.date,
+      timezone: s.timezone,
       isError: s.productError[product],
     })),
   );
   const isMooring = product === PRODUCT.MOORING_TIMESERIES_REALTIME;
 
   const { data: latestDate, isLoading: isLatestDateLoading } = useQuery({
-    queryKey: [isMooring ? 'mooring_latest_date' : 'wave_buoy_latest_date'],
-    queryFn: getLatestDate,
+    queryKey: [isMooring ? 'mooring_latest_date' : 'wave_buoy_latest_date', timezone],
+    queryFn: () => getLatestDate(timezone),
   });
 
   const shouldFetchByDate =
     enabled && !!date && !isLatestDateLoading && !!latestDate && date <= latestDate;
 
   const sitesByDateQuery = useQuery({
-    queryKey: ['site_sites_by_date', product, date],
-    queryFn: () => getSitesByDate(date),
+    queryKey: ['site_sites_by_date', product, date, timezone],
+    queryFn: () => getSitesByDate(date, timezone),
     enabled: shouldFetchByDate,
   });
 
   const allSitesQuery = useQuery({
-    queryKey: ['site_sites_all', product],
-    queryFn: getLatestSites,
+    queryKey: ['site_sites_all', product, timezone],
+    queryFn: () => getLatestSites(timezone),
     enabled: enabled,
   });
 
@@ -194,5 +195,5 @@ export function useSiteLayer({
   useDidMountEffect(() => {
     if (!map.current || !loadComplete || !enabled) return;
     void setDataByDataset();
-  }, [loadComplete, date, enabled, shouldFetchByDate]);
+  }, [loadComplete, date, enabled, shouldFetchByDate, timezone]);
 }

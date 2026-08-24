@@ -11,9 +11,10 @@ import { createPortal } from 'react-dom';
 import dayjs, { type Dayjs } from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
 import { CalendarIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
-import { cn } from '@/utils';
+import { cn, utcToDateOnly, naiveToUTCDate } from '@/utils';
 import { Button } from '../Button';
 import { Dropdown, type DropdownOption } from '../Dropdown';
+import type { NaiveDateTime } from '../DateSlider';
 
 dayjs.extend(utc);
 
@@ -75,19 +76,22 @@ const DEFAULTS = {
   dayDisabled: 'opacity-30 cursor-not-allowed hover:bg-transparent',
 } as const;
 
-/** Contiguous range mode — every day within `[min, max]` is selectable. */
+/** Contiguous range mode — every day within `[min, max)` is selectable. */
 type RangeAvailabilityProps = {
-  /** Earliest selectable date (UTC, inclusive). */
-  min: Date;
-  /** Latest selectable date (UTC, inclusive). */
-  max: Date;
+  /** Earliest selectable date (naive, timezone-free, inclusive). */
+  min: NaiveDateTime;
+  /**
+   * Exclusive upper bound (naive, timezone-free) — one day past the latest
+   * selectable date, matching DateSlider's `max` convention.
+   */
+  max: NaiveDateTime;
   dateList?: never;
 };
 
 /** Explicit list mode — only the dates in `dateList` are selectable. */
 type ListAvailabilityProps = {
-  /** The only selectable dates (UTC). Bounds are derived from the list. */
-  dateList: Date[];
+  /** The only selectable dates (naive, timezone-free). Bounds are derived from the list. */
+  dateList: NaiveDateTime[];
   min?: never;
   max?: never;
 };
@@ -100,10 +104,10 @@ type UnconstrainedAvailabilityProps = {
 };
 
 export type DatePickerProps = {
-  /** Currently selected date (UTC). */
-  value: Date;
-  /** Called with the chosen UTC date (midnight UTC). */
-  onChange: (date: Date) => void;
+  /** Currently selected date (naive, timezone-free). */
+  value: NaiveDateTime;
+  /** Called with the chosen date (naive, timezone-free, midnight). */
+  onChange: (date: NaiveDateTime) => void;
   /** Which side of the trigger the popover opens toward. Defaults to `'top'`. */
   placement?: 'top' | 'bottom';
   /** Custom trigger content (defaults to a calendar icon). */
@@ -188,12 +192,16 @@ function buildAvailability(input: {
 
   // Range mode — every day within the contiguous bounds is pickable. An omitted
   // bound opens out to a wide window around `fallback`, so passing neither
-  // `min` nor `max` effectively makes every date selectable.
+  // `min` nor `max` effectively makes every date selectable. `max` is exclusive
+  // (one day past the last selectable day), so it's stepped back a day here —
+  // mirrors DateSlider's own `minusOneUTCDay` handling of the same convention.
   const minDay = (
     input.min ? dayjs.utc(input.min) : input.fallback.subtract(UNBOUNDED_YEARS, 'year')
   ).startOf('day');
   const maxDay = (
-    input.max ? dayjs.utc(input.max) : input.fallback.add(UNBOUNDED_YEARS, 'year')
+    input.max
+      ? dayjs.utc(input.max).subtract(1, 'day')
+      : input.fallback.add(UNBOUNDED_YEARS, 'year')
   ).startOf('day');
   const minMonth = minDay.startOf('month');
   const maxMonth = maxDay.startOf('month');
@@ -268,8 +276,10 @@ function HeaderSelect({ options, value, onChange, ariaLabel, className }: Header
 }
 
 /**
- * Month-grid date picker. Operates entirely in UTC. Selectable dates come from
- * a contiguous `[min, max]` range, an explicit `dateList` (only those dates are
+ * Month-grid date picker. Operates on naive (timezone-free) date strings — see
+ * the DateSlider package's README § Timezone model for the same convention.
+ * Selectable dates come from
+ * a contiguous `[min, max)` range (`max` exclusive), an explicit `dateList` (only those dates are
  * pickable, with empty months/years disabled), or — when none is passed — every
  * date. Passing both `min`/`max` and `dateList` throws. Styling is fully
  * themeable via `classNames` / `className` while structural classes (portal
@@ -297,7 +307,9 @@ export function DatePicker({
   }
 
   const [isOpen, setIsOpen] = useState(false);
-  const [viewMonth, setViewMonth] = useState<Dayjs>(() => dayjs.utc(value).startOf('month'));
+  const [viewMonth, setViewMonth] = useState<Dayjs>(() =>
+    dayjs.utc(naiveToUTCDate(value)).startOf('month'),
+  );
   const [coords, setCoords] = useState<{ left: number; top?: number; bottom?: number } | null>(
     null,
   );
@@ -305,9 +317,15 @@ export function DatePicker({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
 
-  const selectedDay = dayjs.utc(value).startOf('day');
+  const selectedDay = dayjs.utc(naiveToUTCDate(value)).startOf('day');
   const availability = useMemo(
-    () => buildAvailability({ min, max, dateList, fallback: selectedDay }),
+    () =>
+      buildAvailability({
+        min: min ? naiveToUTCDate(min) : undefined,
+        max: max ? naiveToUTCDate(max) : undefined,
+        dateList: dateList?.map(naiveToUTCDate),
+        fallback: selectedDay,
+      }),
     // selectedDay is derived from `value`; tracking value keeps the fallback fresh.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [min, max, dateList, value],
@@ -336,7 +354,7 @@ export function DatePicker({
   }, [placement]);
 
   const open = useCallback(() => {
-    setViewMonth(dayjs.utc(value).startOf('month'));
+    setViewMonth(dayjs.utc(naiveToUTCDate(value)).startOf('month'));
     positionPopover();
     setIsOpen(true);
   }, [value, positionPopover]);
@@ -394,7 +412,7 @@ export function DatePicker({
   );
 
   const handleSelect = (day: Dayjs) => {
-    onChange(day.startOf('day').toDate());
+    onChange(utcToDateOnly(day.startOf('day').toDate()));
     close();
   };
 

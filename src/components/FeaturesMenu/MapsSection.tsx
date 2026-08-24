@@ -21,7 +21,7 @@ export function MapsSection() {
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full flex flex-col gap-3">
       <Dropdown
         label="Map style"
         onChange={handleStyleChange}

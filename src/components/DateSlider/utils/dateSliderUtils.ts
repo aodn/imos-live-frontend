@@ -12,11 +12,20 @@ import type {
   ScaleType,
   ScaleTypeResolver,
   ScaleUnitConfig,
-  SelectionResult,
   TimeUnit,
   ViewMode,
 } from '../type';
 import { clampPercent } from './clamp';
+
+/**
+ * Date-based (internal) counterpart of the public, naive-string `SelectionResult`.
+ * `createSelectionResult` still computes in `Date`/percent space — the conversion
+ * to the naive wire format happens at the public boundary, in `useOnChangeNotifier`.
+ */
+export type DateSelectionResult =
+  | { start: Date; end: Date }
+  | { point: Date }
+  | { point: Date; start: Date; end: Date };
 
 /**
  * Add a certain amount of scale units to a date to get a new date.
@@ -366,7 +375,7 @@ export const createSelectionResult = (
   rangeEnd: number,
   pointPosition: number,
   viewMode: ViewMode,
-): SelectionResult => {
+): DateSelectionResult => {
   const startLabel = getDateFromPercent(rangeStart, startDate, endDate);
   const endLabel = getDateFromPercent(rangeEnd, startDate, endDate);
   const pointLabel = getDateFromPercent(pointPosition, startDate, endDate);
@@ -421,34 +430,46 @@ export const getAllScalesPercentage = (
 /**
  * DateSlider Date Utilities
  *
- * Core Principle: UTC Everywhere, Display Locally
- *
- * - All dates are stored and manipulated as UTC timestamps
- * - Only convert to local timezone for display purposes
- * - Date-only data is represented as UTC midnight
+ * The public boundary is timezone-free naive strings (see README § Timezone
+ * model) — DateSlider never converts anything to the browser's local
+ * timezone. Internally, a naive value is encoded as a `Date` whose
+ * UTC-labeled fields hold the given wall-clock numbers, purely so position
+ * math can use plain epoch-ms arithmetic; that representation never leaves
+ * this internal layer, and callers only ever pass/receive naive strings.
  */
+
+const NAIVE_DATETIME_PATTERN = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}(:\d{2})?)?$/;
 
 /**
- * Convert an ISO date string (YYYY-MM-DD) to UTC midnight
- *
- * USE THIS: When passing date strings to DateSlider props
- *
- * @param dateString - ISO date string (YYYY-MM-DD) or ISO datetime string
- * @returns UTC Date at midnight (for date strings) or as-is (for datetime strings)
+ * Parse a naive (timezone-free) datetime string into the internal UTC-encoded
+ * `Date` representation. Accepts `YYYY-MM-DD` (implicit midnight) or
+ * `YYYY-MM-DDTHH:mm:ss`. Throws on anything else, including a `Z` suffix or a
+ * real timezone offset — DateSlider dates are timezone-free by design, so an
+ * offset-bearing string almost always indicates a caller accidentally passed
+ * a real UTC instant instead of a naive wall-clock value.
  *
  * @example
- * toUTCDate("2024-01-15") → Date("2024-01-15T00:00:00.000Z")
- * toUTCDate("2024-01-15T14:30:00Z") → Date("2024-01-15T14:30:00.000Z")
+ * toUTCDate("2024-01-15") → Date encoding 2024-01-15T00:00:00
+ * toUTCDate("2024-01-15T14:30:00") → Date encoding 2024-01-15T14:30:00
+ * toUTCDate("2024-01-15T14:30:00Z") → throws
  */
 export function toUTCDate(dateString: string): Date {
-  // If the string doesn't include time, append midnight UTC
-  const isoString = dateString.includes('T') ? dateString : dateString + 'T00:00:00.000Z';
-  const date = new Date(isoString);
-
-  if (isNaN(date.getTime())) {
-    throw new Error(`Invalid date string: ${dateString}`);
+  if (!NAIVE_DATETIME_PATTERN.test(dateString)) {
+    throw new Error(
+      `toUTCDate: "${dateString}" is not a valid naive datetime. Expected "YYYY-MM-DD" or ` +
+        `"YYYY-MM-DDTHH:mm:ss" with no timezone offset or "Z" — DateSlider dates are timezone-free.`,
+    );
   }
-  return date;
+  const isoString = dateString.includes('T') ? dateString : `${dateString}T00:00:00`;
+  return dayjs.utc(isoString).toDate();
+}
+
+/**
+ * Format a `Date` (in the internal UTC-encoded representation) back into the
+ * naive `YYYY-MM-DDTHH:mm:ss` wire format — the inverse of {@link toUTCDate}.
+ */
+export function toNaiveDateTimeString(date: Date): string {
+  return dayjs.utc(date).format('YYYY-MM-DDTHH:mm:ss');
 }
 
 /**
@@ -624,27 +645,6 @@ export function getPercentFromDate(date: Date, startDate: Date, endDate: Date): 
 
   // Clamp to 0-100
   return Math.max(0, Math.min(100, percent));
-}
-
-/**
- * Convert UTC date to ISO date string (YYYY-MM-DD)
- *
- * Useful for API calls and storage that expect date strings.
- * Uses UTC date components to avoid timezone issues.
- *
- * @param date - UTC date
- * @returns ISO date string
- *
- * @example
- * toISODateString(new Date("2024-01-15T14:30:00Z"))
- * // → "2024-01-15"
- */
-export function toISODateString(date: Date): string {
-  const year = date.getUTCFullYear();
-  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-  const day = String(date.getUTCDate()).padStart(2, '0');
-
-  return `${year}-${month}-${day}`;
 }
 
 /**

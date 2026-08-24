@@ -137,12 +137,22 @@ describe('jumpToDate', () => {
     useMapUIStore.getState().clearJumpToDate();
     expect(useMapUIStore.getState().jumpToDate).toBeNull();
   });
+
+  it('setJumpToDate throws on a non-naive date string', () => {
+    expect(() => useMapUIStore.getState().setJumpToDate('2026-05-29T00:00:00Z')).toThrow(/naive/);
+  });
 });
 
 describe('miscellaneous setters', () => {
   it('setDate updates the date field', () => {
     useMapUIStore.getState().setDate('2026-05-29');
     expect(useMapUIStore.getState().date).toBe('2026-05-29');
+  });
+
+  it('setDate throws on a non-naive date string', () => {
+    expect(() => useMapUIStore.getState().setDate('2026-05-29T00:00:00Z')).toThrow(/naive/);
+    expect(() => useMapUIStore.getState().setDate('05/29/2026')).toThrow(/naive/);
+    expect(() => useMapUIStore.getState().setDate('2026-13-40')).toThrow(/naive/);
   });
 
   it('setDistanceMeasurementEnabled toggles the flag', () => {

@@ -3,11 +3,11 @@ import { describe, expect, it } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useSliderConfig } from './useSliderConfig';
 import { DEFAULT_SCALE_CONFIG, DEFAULTS, LAYOUT } from '../constants';
-import { labelDateFormatFn, scaleDateFormatFn } from '../utils';
+import { labelDateFormatFn, scaleDateFormatFn, toUTCDate } from '../utils';
 import type { SliderProps } from '../type';
 
-const startDate = new Date('2026-01-01T00:00:00Z');
-const endDate = new Date('2026-01-31T00:00:00Z');
+const startDate = '2026-01-01';
+const endDate = '2026-01-31';
 
 const makeProps = (overrides: Partial<SliderProps> = {}): SliderProps =>
   ({
@@ -98,37 +98,46 @@ describe('useSliderConfig', () => {
   describe('initialValues', () => {
     it('defaults point mode without a value to the start date', () => {
       const { result } = renderHook(() => useSliderConfig(makeProps({ mode: 'point' }), false));
-      expect(result.current.initialValues.point).toEqual(startDate);
+      expect(result.current.initialValues.point).toEqual(toUTCDate(startDate));
       expect(result.current.initialValues.range).toBeUndefined();
     });
 
     it('defaults range mode without a value to the min/max range', () => {
       const { result } = renderHook(() => useSliderConfig(makeProps({ mode: 'range' }), false));
       expect(result.current.initialValues.point).toBeUndefined();
-      expect(result.current.initialValues.range).toEqual({ start: startDate, end: endDate });
+      expect(result.current.initialValues.range).toEqual({
+        start: toUTCDate(startDate),
+        end: toUTCDate(endDate),
+      });
     });
 
     it('defaults combined mode without a value to the min/max range (no point)', () => {
       const { result } = renderHook(() => useSliderConfig(makeProps({ mode: 'combined' }), false));
-      expect(result.current.initialValues.range).toEqual({ start: startDate, end: endDate });
+      expect(result.current.initialValues.range).toEqual({
+        start: toUTCDate(startDate),
+        end: toUTCDate(endDate),
+      });
       expect(result.current.initialValues.point).toBeUndefined();
     });
 
     it('uses value.point when provided in point mode', () => {
-      const point = new Date('2026-01-15T00:00:00Z');
+      const point = '2026-01-15';
       const { result } = renderHook(() =>
         useSliderConfig(makeProps({ mode: 'point', value: { point } }), false),
       );
-      expect(result.current.initialValues.point).toBe(point);
+      expect(result.current.initialValues.point).toEqual(toUTCDate(point));
     });
 
     it('uses value.start/value.end when provided in range mode', () => {
-      const start = new Date('2026-01-10T00:00:00Z');
-      const end = new Date('2026-01-20T00:00:00Z');
+      const start = '2026-01-10';
+      const end = '2026-01-20';
       const { result } = renderHook(() =>
         useSliderConfig(makeProps({ mode: 'range', value: { start, end } }), false),
       );
-      expect(result.current.initialValues.range).toEqual({ start, end });
+      expect(result.current.initialValues.range).toEqual({
+        start: toUTCDate(start),
+        end: toUTCDate(end),
+      });
     });
   });
 

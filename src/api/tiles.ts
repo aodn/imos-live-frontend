@@ -1,6 +1,8 @@
 import type { ProductManifest } from '@/AtlasRenderingSystem';
 import type { PRODUCTS, TilesProduct } from '@/constants';
 import { extractProductVariables, getCollectionIdForProduct } from '@/constants';
+import type { TIMEZONE } from '@/store';
+import { utcToDateOnly, utcToLocalDateTime } from '@/utils';
 import { queryOptions } from '@tanstack/react-query';
 import axios from 'axios';
 
@@ -21,9 +23,47 @@ export type MetaDataManifest = {
   products: Products;
 };
 
+export type NormalisedDate = {
+  date: string;
+  utc_date: string;
+  local_date: string;
+};
+export type NormalisedProduct = Omit<Product, 'available_dates' | 'full_date_range'> & {
+  available_dates: NormalisedDate[];
+  full_date_range: { start: NormalisedDate; end: NormalisedDate };
+};
+export type NormalisedProducts = NormalisedProduct[];
+
+// normalisedDate has the preprocessed date in UTC and local.
+export function pickDateByTimezone(normalisedDate: NormalisedDate, timezone: TIMEZONE): string {
+  return timezone === 'UTC' ? normalisedDate.utc_date : normalisedDate.local_date;
+}
+
+// The manifest's dates are UTC instants; normalise each into its raw form
+// plus the UTC/local calendar-day readings so consumers can pick the one
+// that matches the app's `timezone` (UTC/LOCAL) setting without re-deriving it.
+function normaliseDate(date: string): NormalisedDate {
+  return {
+    date,
+    utc_date: utcToDateOnly(date, 'YYYY-MM-DD'),
+    local_date: utcToLocalDateTime(date, 'YYYY-MM-DD'),
+  };
+}
+
+function normaliseProduct(product: Product): NormalisedProduct {
+  return {
+    ...product,
+    available_dates: product.available_dates.map(normaliseDate),
+    full_date_range: {
+      start: normaliseDate(product.full_date_range.start),
+      end: normaliseDate(product.full_date_range.end),
+    },
+  };
+}
+
 export const TILE_BASE_PATH = '/api/v1/ogc/ext/tiles/collections';
 
-// ---------- Meta Data Manifest ----------
+// ---------- Meta Data Manifest - product availability ----------
 export const getMetaDataManifest = async (args: {
   collectionId: string;
 }): Promise<MetaDataManifest> => {
@@ -49,13 +89,13 @@ export const metaDataManifestQueryOptions = () =>
         const mergedProducts: Products = results.reduce((acc, manifest) => {
           return [...acc, ...manifest.products];
         }, [] as Products);
-
-        return { products: mergedProducts };
+        const normalisedProducts: NormalisedProducts = mergedProducts.map(normaliseProduct);
+        return { products: normalisedProducts };
       });
     },
   });
 
-// ---------- Product Manifest ----------
+// ---------- Product Manifest - product contract----------
 export const getProductManifest = async (args: {
   product: TilesProduct;
   date: string;

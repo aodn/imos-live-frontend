@@ -1,15 +1,22 @@
 import { Dropdown } from '../Dropdown';
 import { Switch } from '../Switch';
 import { LabeledSlider } from '../Slider';
+import type { TIMEZONE } from '@/store';
 import {
   useMapUIStore,
   setWorldBoundariesEnabled,
   setParticleConfig,
   setDistanceMeasurementEnabled,
+  setTimezone,
 } from '@/store';
 import { useShallow } from 'zustand/shallow';
 import type { ParticleConfig } from '@/AtlasRenderingSystem';
 import { FADE_OPACITY_RANGE, POINT_SIZE_RANGE, SPEED_FACTOR_RANGE } from '@/AtlasRenderingSystem';
+
+const TIMEZONE_OPTIONS: { label: string; value: TIMEZONE }[] = [
+  { label: 'UTC', value: 'UTC' },
+  { label: 'LOCAL', value: 'LOCAL' },
+];
 
 // Particle configuration options
 const NUM_PARTICLES_OPTIONS = [10000, 30000, 60000, 100000].map(num => ({
@@ -33,25 +40,29 @@ const SPEED_FACTOR_OPTIONS = {
 };
 
 export function OptionsSection() {
-  const { distanceMeasurementEnabled, worldBoundariesEnabled, particleConfig } = useMapUIStore(
-    useShallow(s => ({
-      distanceMeasurementEnabled: s.distanceMeasurementEnabled,
-      worldBoundariesEnabled: s.worldBoundariesEnabled,
-      particleConfig: s.particleConfig,
-    })),
-  );
+  const { distanceMeasurementEnabled, worldBoundariesEnabled, particleConfig, timezone } =
+    useMapUIStore(
+      useShallow(s => ({
+        distanceMeasurementEnabled: s.distanceMeasurementEnabled,
+        worldBoundariesEnabled: s.worldBoundariesEnabled,
+        particleConfig: s.particleConfig,
+        timezone: s.timezone,
+      })),
+    );
 
   const handleParticleConfigChange =
     (key: keyof ParticleConfig) => (value: string | number | (string | number)[]) => {
       setParticleConfig({ [key]: value as number });
     };
 
-  return (
-    <div className="w-full flex flex-col gap-y-2 items-start">
-      {/* Particle Controls */}
-      <div className="w-full">
-        <h3 className="text-xs font-semibold text-imos-grey uppercase mb-2">Particle Settings</h3>
+  const handleTimezoneChange = (value: string | number | (string | number)[]) => {
+    setTimezone(value as TIMEZONE);
+  };
 
+  return (
+    <div className="w-full flex flex-col items-start divide-y divide-gray-200">
+      {/* Particle Controls */}
+      <div className="w-full pb-3">
         <div className="flex flex-col gap-y-2">
           <Dropdown
             label="Number of particles"
@@ -95,9 +106,7 @@ export function OptionsSection() {
       </div>
 
       {/* Map Controls */}
-      <div className="w-full mt-2">
-        <h3 className="text-xs font-semibold text-imos-grey uppercase mb-2">Map Tools</h3>
-
+      <div className="w-full py-3">
         <div className="flex flex-col justify-self-start gap-y-2">
           <Switch
             label="Measure distance"
@@ -112,6 +121,21 @@ export function OptionsSection() {
             labelPosition="left"
             initialValue={worldBoundariesEnabled}
             onChange={setWorldBoundariesEnabled}
+          />
+        </div>
+      </div>
+
+      {/* General */}
+      <div className="w-full pt-3">
+        <div className="flex flex-col gap-y-2">
+          <Dropdown
+            label="Timezone selection"
+            className="w-full"
+            onChange={handleTimezoneChange}
+            options={TIMEZONE_OPTIONS}
+            initialValue={timezone || TIMEZONE_OPTIONS[0].value}
+            position="auto"
+            usePortal
           />
         </div>
       </div>

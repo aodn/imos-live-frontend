@@ -2,7 +2,7 @@ import { CircleIcon, MoveHorizontalIcon } from 'lucide-react';
 import { useMemo, type ReactNode } from 'react';
 import { LAYOUT, DEFAULTS, DEFAULT_SCALE_CONFIG } from '../constants';
 import type { SliderProps } from '../type';
-import { scaleDateFormatFn, labelDateFormatFn } from '../utils';
+import { scaleDateFormatFn, labelDateFormatFn, toUTCDate } from '../utils';
 
 /**
  * extract and process all configuration from SliderProps with defaults applied.
@@ -116,13 +116,20 @@ export function useSliderConfig(props: SliderProps, isSmallScreen: boolean) {
 
   // extract and normalize initial values from value prop
   const initialValues = useMemo(() => {
+    const startDateParsed = toUTCDate(startDate);
+    const endDateParsed = toUTCDate(endDate);
+
     const propInitialPoint =
-      value && 'point' in value ? value.point : viewMode === 'point' ? startDate : undefined;
+      value && 'point' in value
+        ? toUTCDate(value.point)
+        : viewMode === 'point'
+          ? startDateParsed
+          : undefined;
     const propInitialRange =
       value && 'start' in value && 'end' in value
-        ? { start: value.start, end: value.end }
+        ? { start: toUTCDate(value.start), end: toUTCDate(value.end) }
         : viewMode === 'range' || viewMode === 'combined'
-          ? { start: startDate, end: endDate }
+          ? { start: startDateParsed, end: endDateParsed }
           : undefined;
 
     return {

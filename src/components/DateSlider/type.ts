@@ -107,6 +107,13 @@ export type TimeLabel = {
 };
 
 /**
+ * A timezone-free ("naive") date/time string: `YYYY-MM-DD` or `YYYY-MM-DDTHH:mm:ss`.
+ * Never include a timezone offset or a trailing `Z` — DateSlider is timezone-free
+ * by design, and passing an offset throws. See README § Timezone model.
+ */
+export type NaiveDateTime = string;
+
+/**
  * Selection result type - now unified with SliderValue
  */
 export type SelectionResult = SliderValue;
@@ -159,7 +166,7 @@ export type ScaleUnitConfig = {
  * const sliderRef = useRef<SliderExposedMethod>(null);
  *
  * // Set a specific date
- * sliderRef.current?.setDateTime(new Date('2024-06-15'), 'point');
+ * sliderRef.current?.setDateTime('2024-06-15', 'point');
  *
  * // Move by configured step
  * sliderRef.current?.moveByStep('forward', 'point');
@@ -172,10 +179,10 @@ export type ScaleUnitConfig = {
 export type SliderExposedMethod = {
   /**
    * Programmatically set the date/time for a specific handle
-   * @param date - UTC Date to set
+   * @param date - Naive (timezone-free) date/time to set
    * @param target - Which handle to update ('start', 'end', 'point'). Defaults to the current active handle.
    */
-  setDateTime: (date: Date, target?: DragHandle) => void;
+  setDateTime: (date: NaiveDateTime, target?: DragHandle) => void;
 
   /**
    * Move the handle by the configured step amount
@@ -205,20 +212,20 @@ export type SliderExposedMethod = {
  */
 export type DateSliderState = {
   /**
-   * Currently selected point date (UTC). `null` in `range` mode (no point handle)
-   * and until the slider has mounted and published.
+   * Currently selected point date (naive, timezone-free). `null` in `range` mode
+   * (no point handle) and until the slider has mounted and published.
    */
-  pointDate: Date | null;
+  pointDate: NaiveDateTime | null;
   /**
-   * Range start date (UTC). `null` in `point` mode (no range handles) and until
-   * the slider has mounted and published.
+   * Range start date (naive, timezone-free). `null` in `point` mode (no range
+   * handles) and until the slider has mounted and published.
    */
-  rangeStartDate: Date | null;
+  rangeStartDate: NaiveDateTime | null;
   /**
-   * Range end date (UTC). `null` in `point` mode (no range handles) and until
-   * the slider has mounted and published.
+   * Range end date (naive, timezone-free). `null` in `point` mode (no range
+   * handles) and until the slider has mounted and published.
    */
-  rangeEndDate: Date | null;
+  rangeEndDate: NaiveDateTime | null;
   /** Current time unit granularity. */
   timeUnit: TimeUnit;
   /** Whether the month unit is valid for the current date range. */
@@ -423,24 +430,24 @@ export type LayoutConfig = {
  * Point mode value
  */
 export type PointValue = {
-  point: Date;
+  point: NaiveDateTime;
 };
 
 /**
  * Range mode value
  */
 export type RangeValue = {
-  start: Date;
-  end: Date;
+  start: NaiveDateTime;
+  end: NaiveDateTime;
 };
 
 /**
  * Combined mode value (both point and range)
  */
 export type CombinedValue = {
-  point: Date;
-  start: Date;
-  end: Date;
+  point: NaiveDateTime;
+  start: NaiveDateTime;
+  end: NaiveDateTime;
 };
 
 /**
@@ -512,10 +519,10 @@ export type RenderPropsConfig = {
  * Common props shared across all slider modes
  */
 type CommonSliderProps = {
-  /** Minimum date (must be UTC) */
-  min: Date;
-  /** Maximum date (must be UTC) */
-  max: Date;
+  /** Minimum date (naive, timezone-free — see README § Timezone model) */
+  min: NaiveDateTime;
+  /** Maximum date (naive, timezone-free — see README § Timezone model) */
+  max: NaiveDateTime;
   /** Initial time unit (day/month/year) */
   initialTimeUnit: TimeUnit;
   /** Change event handler */
@@ -716,7 +723,7 @@ type CombinedModeSliderProps = {
  * ```tsx
  * <DateSlider
  *   mode="point"
- *   value={{ point: new Date() }}
+ *   value={{ point: '2024-06-15' }}
  *   onChange={(value) => console.log(value.point)}  // TypeScript knows value has 'point'
  *   icons={{ point: <Icon /> }}  // Only point icon allowed
  * />

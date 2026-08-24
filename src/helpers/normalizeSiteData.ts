@@ -1,13 +1,20 @@
 import type { RawSiteFeatureCollection, SiteFeature } from '@/types';
-import { utcToLocalDateTime } from '@/utils';
+import type { TIMEZONE } from '@/store';
+import { utcToTimezoneString } from '@/utils';
 import type { GeoJSONFeature } from 'mapbox-gl';
 
-export function normalizeSiteDates(collection: RawSiteFeatureCollection): RawSiteFeatureCollection {
+export function normalizeSiteDates(
+  collection: RawSiteFeatureCollection,
+  timezone: TIMEZONE,
+): RawSiteFeatureCollection {
   return {
     ...collection,
     features: collection.features.map(f => ({
       ...f,
-      properties: { ...f.properties, date: utcToLocalDateTime(f.properties.date, 'YYYY-MM-DD') },
+      properties: {
+        ...f.properties,
+        date: utcToTimezoneString(f.properties.date, timezone, 'YYYY-MM-DD'),
+      },
     })),
   };
 }

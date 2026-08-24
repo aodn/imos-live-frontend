@@ -17,9 +17,9 @@ function isSameState(a: DateSliderState, b: DateSliderState): boolean {
     a.isMonthValid === b.isMonthValid &&
     a.isYearValid === b.isYearValid &&
     a.isDragging === b.isDragging &&
-    a.pointDate?.getTime() === b.pointDate?.getTime() &&
-    a.rangeStartDate?.getTime() === b.rangeStartDate?.getTime() &&
-    a.rangeEndDate?.getTime() === b.rangeEndDate?.getTime()
+    a.pointDate === b.pointDate &&
+    a.rangeStartDate === b.rangeStartDate &&
+    a.rangeEndDate === b.rangeEndDate
   );
 }
 

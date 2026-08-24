@@ -1,6 +1,6 @@
 import { WAVE_BUOY_MIN_DATE } from '@/components/Highcharts/WaveBuoyChart';
 import type { RawSiteFeatureCollection } from '@/types';
-import { isBeforeDays } from '@/utils';
+import { isWithinDaysBefore } from '@/utils';
 
 /**
  * Merges active buoy sites (with data for the selected date) into the full list of all buoy sites,
@@ -25,5 +25,5 @@ export const mergeAndFilterBuoyFeatures = (
       }
       return { ...f, properties: { ...f.properties, hasDataForDate: false } };
     })
-    .filter(b => isBeforeDays(b.properties.date, selectedDate, WAVE_BUOY_MIN_DATE)); // Only display the wave buoys less than 30 days before and not after selected date
+    .filter(b => isWithinDaysBefore(b.properties.date, selectedDate, WAVE_BUOY_MIN_DATE)); // Only display the wave buoys less than 30 days before and not after selected date
 };

@@ -1,8 +1,8 @@
 import { type StyleTitle } from '@/styles';
-import { getLast10Dates, generateValueByPercentage, getLast365Dates } from '@/utils';
+import { utcToTimezoneString, generateValueByPercentage } from '@/utils';
 import mapboxgl from 'mapbox-gl';
 import { PRODUCT } from './products';
-import type { ProductEnabled } from '@/store';
+import type { ProductEnabled, TIMEZONE } from '@/store';
 import {
   type ParticleConfig,
   FADE_OPACITY_RANGE,
@@ -14,15 +14,22 @@ export const CLUSTER_MAX_ZOOM = 7;
 
 export const MAX_ZOOM = CLUSTER_MAX_ZOOM;
 
+export const INITIAL_TIMEZONE: TIMEZONE = 'UTC';
 export const INITIAL_ZOOM = 3;
 export const INITIAL_STYLE: StyleTitle = 'Streets';
 export const INITIAL_CENTER = new mapboxgl.LngLat(133.7751, -25.2744);
-export const DATE_RANGE = getLast365Dates();
-export const INITIAL_DATE = DATE_RANGE.at(-1)!;
+// Naive (timezone-free) 'YYYY-MM-DD' bounds. `end` is "today" for INITIAL_TIMEZONE,
+// snapshotted once at load — it's only used as the initial default below.
+// Live consumers (e.g. useDateSliderDates) re-derive "today" from the current
+// timezone via utcToTimezoneString rather than reading this stale snapshot.
+export const DATE_RANGE = {
+  start: '2024-01-01',
+  // Because UTC or local timezone could be different calendar day
+  end: utcToTimezoneString(new Date(), INITIAL_TIMEZONE),
+};
+export const INITIAL_DATE = DATE_RANGE.end;
 export const INITIAL_WORLD_BOUNDARIES_ENABLED = true;
 export const INITIAL_DISTANCE_MEASUREMENT_ENABLED = false;
-
-export const QUERY_DATE_RANGE = getLast10Dates('yyyymmdd');
 
 // Minimum map width in CSS (logical) pixels below which the export button is disabled.
 export const MIN_EXPORT_MAP_WIDTH = 640;

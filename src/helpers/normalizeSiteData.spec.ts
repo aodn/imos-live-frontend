@@ -19,16 +19,22 @@ function featureCollection(
 describe('normalizeSiteDates', () => {
   it('reformats each feature date as YYYY-MM-DD', () => {
     const fc = featureCollection([{ date: '2026-05-29T00:00:00Z', site: 'A' }]);
-    const result = normalizeSiteDates(fc);
+    const result = normalizeSiteDates(fc, 'UTC');
     expect(result.features[0].properties.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 
   it('preserves the rest of the feature shape', () => {
     const fc = featureCollection([{ date: '2026-05-29T00:00:00Z', site: 'HOBARITO' }]);
-    const result = normalizeSiteDates(fc);
+    const result = normalizeSiteDates(fc, 'UTC');
     expect(result.type).toBe('FeatureCollection');
     expect(result.features[0].properties.site).toBe('HOBARITO');
     expect(result.features[0].geometry.coordinates).toEqual([150, -30]);
+  });
+
+  it('reads the UTC instant as its UTC calendar day when timezone is UTC', () => {
+    const fc = featureCollection([{ date: '2026-05-29T23:30:00Z', site: 'A' }]);
+    const result = normalizeSiteDates(fc, 'UTC');
+    expect(result.features[0].properties.date).toBe('2026-05-29');
   });
 });
 

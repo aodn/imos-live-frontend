@@ -26,7 +26,7 @@ function SelectorHarness({ monthValid }: { monthValid: boolean }) {
     const s = createDateSliderStore('day');
     s.setState({
       ...s.getSnapshot(),
-      pointDate: new Date(Date.UTC(2023, 5, 15)),
+      pointDate: '2023-06-15',
       timeUnit: 'day',
       isMonthValid: monthValid,
       isYearValid: false,

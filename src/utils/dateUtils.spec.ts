@@ -1,34 +1,61 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { getLastDates, isBeforeDays, localToUTC, utcToLocalDateTime } from './dateUtils';
+import { describe, expect, it } from 'vitest';
+import {
+  isWithinDaysBefore,
+  naiveToDateOnly,
+  naiveToUTCDate,
+  instantToUTCString,
+  utcToLocalDateTime,
+} from './dateUtils';
 
-// Pin to a fixed local time so the "today is..." functions are deterministic. The Playwright
-// config uses Australia/Sydney for its E2E run; we match the host timezone here implicitly
-// and assert in ranges that don't depend on it.
-
-describe('isBeforeDays', () => {
-  it('returns true when a is within `days` days before b', () => {
-    expect(isBeforeDays('2026-05-01', '2026-05-29', 30)).toBe(true);
+describe('naiveToUTCDate', () => {
+  it('treats a bare yyyy-mm-dd as midnight UTC', () => {
+    expect(naiveToUTCDate('2026-05-29').toISOString()).toBe('2026-05-29T00:00:00.000Z');
   });
 
-  it('returns false when a is more than `days` days before b', () => {
-    expect(isBeforeDays('2026-01-01', '2026-05-29', 30)).toBe(false);
+  it('reads a naive datetime string as UTC-encoded fields', () => {
+    expect(naiveToUTCDate('2026-05-29T14:30:00').toISOString()).toBe('2026-05-29T14:30:00.000Z');
   });
 
-  it('returns false when a is after b', () => {
-    expect(isBeforeDays('2026-06-01', '2026-05-29', 30)).toBe(false);
+  it('throws on a trailing "Z" (a real UTC instant, not a naive datetime)', () => {
+    expect(() => naiveToUTCDate('2026-05-29T14:30:00Z')).toThrow(/timezone-free/);
   });
 
-  it('returns true on the same day', () => {
-    expect(isBeforeDays('2026-05-29', '2026-05-29', 30)).toBe(true);
+  it('throws on a real timezone offset', () => {
+    expect(() => naiveToUTCDate('2026-05-29T14:30:00+10:00')).toThrow(/timezone-free/);
   });
 });
 
-describe('localToUTC', () => {
-  it('appends the nanosecond UTC suffix expected by the wave buoy API', () => {
-    // Format = 'YYYY-MM-DDTHH:mm:ss.000000000Z' — the literal nanosecond zeros are required.
-    expect(localToUTC('2026-05-29T00:00:00Z')).toMatch(
-      /^2026-05-29T\d{2}:\d{2}:\d{2}\.000000000Z$/,
-    );
+describe('naiveToDateOnly', () => {
+  it('extracts the yyyy-mm-dd portion from a naive datetime string', () => {
+    expect(naiveToDateOnly('2026-05-29T14:30:00')).toBe('2026-05-29');
+  });
+
+  it('passes a bare yyyy-mm-dd through unchanged', () => {
+    expect(naiveToDateOnly('2026-05-29')).toBe('2026-05-29');
+  });
+});
+
+describe('isWithinDaysBefore', () => {
+  it('returns true when a is within `days` days before b', () => {
+    expect(isWithinDaysBefore('2026-05-01', '2026-05-29', 30)).toBe(true);
+  });
+
+  it('returns false when a is more than `days` days before b', () => {
+    expect(isWithinDaysBefore('2026-01-01', '2026-05-29', 30)).toBe(false);
+  });
+
+  it('returns false when a is after b', () => {
+    expect(isWithinDaysBefore('2026-06-01', '2026-05-29', 30)).toBe(false);
+  });
+
+  it('returns true on the same day', () => {
+    expect(isWithinDaysBefore('2026-05-29', '2026-05-29', 30)).toBe(true);
+  });
+});
+
+describe('instantToUTCString', () => {
+  it('appends the UTC suffix expected by the site APIs', () => {
+    expect(instantToUTCString('2026-05-29T00:00:00Z')).toMatch(/^2026-05-29T\d{2}:\d{2}:\d{2}Z$/);
   });
 });
 
@@ -41,25 +68,5 @@ describe('utcToLocalDateTime', () => {
 
   it('throws on an invalid input', () => {
     expect(() => utcToLocalDateTime('not a date')).toThrow('Invalid UTC date');
-  });
-});
-
-describe('getLastDates', () => {
-  beforeEach(() => {
-    // Pin "now" to a known instant so the generated dates are deterministic.
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-05-29T12:00:00'));
-  });
-  afterEach(() => vi.useRealTimers());
-
-  it('returns exactly N dates ending today', () => {
-    const dates = getLastDates(3)('yyyy-mm-dd');
-    expect(dates).toHaveLength(3);
-    expect(dates[2]).toBe('2026-05-29');
-  });
-
-  it('supports yy / mm / dd format tokens', () => {
-    const dates = getLastDates(2)('dd/mm/yy');
-    expect(dates[1]).toBe('29/05/26');
   });
 });

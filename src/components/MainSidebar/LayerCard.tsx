@@ -8,7 +8,12 @@ import {
 import { cn } from '@/utils';
 import type { ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getMooringLatestDate, getWaveBuoyLatestDate, metaDataManifestQueryOptions } from '@/api';
+import {
+  getMooringLatestDate,
+  getWaveBuoyLatestDate,
+  metaDataManifestQueryOptions,
+  pickDateByTimezone,
+} from '@/api';
 import { setJumpToDate, setProductLegend, useMapUIStore } from '@/store';
 import { Button } from '../Button';
 import type { TriggerArgs } from '../Collapsible';
@@ -109,17 +114,21 @@ export function LayerCard({
 function useLatestDate(product: ProductType) {
   const isMooring = product === PRODUCT.MOORING_TIMESERIES_REALTIME;
   const isSiteProduct = product === PRODUCT.WAVE_BUOYS || isMooring;
+  const timezone = useMapUIStore(s => s.timezone);
 
   const { data: tilesDate, isLoading: isTilesLoading } = useQuery({
     ...metaDataManifestQueryOptions(),
-    select: ({ products }) => products.find(p => p.id === product)?.full_date_range.end,
+    select: ({ products }) => {
+      const end = products.find(p => p.id === product)?.full_date_range.end;
+      return end && pickDateByTimezone(end, timezone);
+    },
     enabled: !isSiteProduct,
   });
   // Site products expose their own latest-time endpoint. Keep the query keys aligned
   // with the drawer charts (WaveBuoyChart/MooringChart) so the cache is shared.
   const { data: siteDate, isLoading: isSiteLoading } = useQuery({
-    queryKey: [isMooring ? 'mooring_latest_date' : 'wave_buoy_latest_date'],
-    queryFn: isMooring ? getMooringLatestDate : getWaveBuoyLatestDate,
+    queryKey: [isMooring ? 'mooring_latest_date' : 'wave_buoy_latest_date', timezone],
+    queryFn: () => (isMooring ? getMooringLatestDate(timezone) : getWaveBuoyLatestDate(timezone)),
     enabled: isSiteProduct,
   });
 

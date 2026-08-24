@@ -4,21 +4,25 @@ import type {
   MooringSiteDetailsFeature,
 } from '@/types';
 import { normalizeSiteDates } from '@/helpers';
-import { utcToLocalDateTime, localToUTC } from '@/utils';
+import type { TIMEZONE } from '@/store';
+import { utcToTimezoneString, instantToUTCString } from '@/utils';
 import axios from 'axios';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc.js';
+
+dayjs.extend(utc);
 
 /**
  * Date convention for all site (wave buoy & mooring) APIs:
  *
- * Outbound — dates are always sent in UTC nanosecond format (via utcToLocalDateTime).
- *   The app stores and displays dates in local time; callers convert to UTC before calling these functions.
+ * Outbound — dates are always sent in UTC format (via instantToUTCString). Naive
+ *   calendar-day strings (`yyyy-mm-dd`) passed in are resolved against the app's
+ *   `timezone` setting (UTC or LOCAL) before conversion.
  *
- * Inbound — UTC date strings in responses are converted to local date strings (via toLocalDateTime)
- *   at the call site (React Query select). The *Details functions are the exception: they return
- *   [ms-timestamp, value][] pairs, which Highcharts and toLocalDateTime handle directly.
- *
- * Because data sources are all in UTC, and in this application, we display local datetime to user.
+ * Inbound — UTC date strings in responses are converted to a naive calendar-day string
+ *   matching the app's `timezone` setting (via utcToTimezoneString). The *Details
+ *   functions are the exception: they return [ms-timestamp, value][] pairs, which
+ *   Highcharts and display formatting handle directly.
  *
  * datetime: either a date-time or an interval, open or closed. Date and time expressions adhere to RFC 3339. Open intervals are expressed using double-dots.
  * Examples:
@@ -34,44 +38,50 @@ const SITE_BASE_PATH = '/api/v1/ogc/collections/dummy_collection_id_satisfying_a
 // per-product paths at the bottom of the file.
 
 // Fetch a single site's timeseries between two dates. Returns [ms-timestamp, value][]
-// pairs, which Highcharts and toLocalDateTime handle directly (no date conversion here).
+// pairs, which Highcharts and display formatting handle directly (no date conversion here).
+// `from`/`to` are already-resolved instants, so no timezone param is needed.
 function createGetDetails<T>(detailsPath: string, idParam: string) {
   return async (from: Date, to: Date, id: string): Promise<T> => {
     const details = await axios.get<T>(`${SITE_BASE_PATH}/${detailsPath}`, {
-      params: { [idParam]: id, datetime: `${localToUTC(from)}/${localToUTC(to)}` },
+      params: {
+        [idParam]: id,
+        datetime: `${instantToUTCString(from)}/${instantToUTCString(to)}`,
+      },
     });
     return details.data;
   };
 }
 
-// Bound the query to the selected *local* day (converted to UTC) so a site counts as
-// "active" only when it reported on that date — not merely any time before it. Marks the
-// active set the merge uses for hasDataForDate. Dates in the response are converted back
-// to local date strings for display.
+// Bound the query to the selected calendar day (resolved against `timezone`, then
+// converted to UTC) so a site counts as "active" only when it reported on that date —
+// not merely any time before it. Marks the active set the merge uses for
+// hasDataForDate. Dates in the response are converted back to a calendar-day string
+// matching `timezone`.
 function createGetSitesByDate(sitesPath: string) {
-  return async (localDate: string): Promise<RawSiteFeatureCollection> => {
-    const start = localToUTC(dayjs(localDate).startOf('day').toDate());
-    const end = localToUTC(dayjs(localDate).endOf('day').toDate());
+  return async (date: string, timezone: TIMEZONE): Promise<RawSiteFeatureCollection> => {
+    const base = timezone === 'UTC' ? dayjs.utc(date) : dayjs(date);
+    const start = instantToUTCString(base.startOf('day').toDate());
+    const end = instantToUTCString(base.endOf('day').toDate());
     const sites = await axios.get<RawSiteFeatureCollection>(`${SITE_BASE_PATH}/${sitesPath}`, {
       params: { datetime: `${start}/${end}` },
     });
-    return normalizeSiteDates(sites.data);
+    return normalizeSiteDates(sites.data, timezone);
   };
 }
 
 // Get all sites with their latest available observation (no datetime bound).
 function createGetLatestSites(sitesPath: string) {
-  return async (): Promise<RawSiteFeatureCollection> => {
+  return async (timezone: TIMEZONE): Promise<RawSiteFeatureCollection> => {
     const sites = await axios.get<RawSiteFeatureCollection>(`${SITE_BASE_PATH}/${sitesPath}`);
-    return normalizeSiteDates(sites.data);
+    return normalizeSiteDates(sites.data, timezone);
   };
 }
 
-// date in this response is converted to local date string, which is what the app displays
+// date in this response is converted to a calendar-day string matching `timezone`
 function createGetLatestDate(latestDatePath: string) {
-  return async (): Promise<string> => {
+  return async (timezone: TIMEZONE): Promise<string> => {
     const latestDate = await axios.get(`${SITE_BASE_PATH}/${latestDatePath}`);
-    return utcToLocalDateTime(latestDate.data.time, 'YYYY-MM-DD');
+    return utcToTimezoneString(latestDate.data.time, timezone, 'YYYY-MM-DD');
   };
 }
 

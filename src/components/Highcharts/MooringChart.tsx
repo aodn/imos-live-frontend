@@ -2,8 +2,9 @@ import { getMooringDetails, getMooringLatestDate } from '@/api';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
 import type { MooringDataVariants, NominalDepthVariant, SiteFeature } from '@/types';
+import type { TIMEZONE } from '@/store';
 import { toSiteChartData } from '@/helpers';
-import { formatLatLngToDirectional, utcToLocalDateTime, today } from '@/utils';
+import { formatLatLngToDirectional, utcToTimezoneString } from '@/utils';
 import { Dropdown } from '@/components/Dropdown';
 import { useDidMountEffect } from '@/hooks';
 import { useQuery } from '@tanstack/react-query';
@@ -63,9 +64,17 @@ function MooringTitleHeading({ site, lng, lat }: { site: string; lng: number; la
 
 // Shared tooltip for the active variable: one row per depth, values labelled with
 // the variable's unit.
-function buildMooringTooltipHTML(context: TooltipFormatterContext, unit: string): string {
+function buildMooringTooltipHTML(
+  context: TooltipFormatterContext,
+  unit: string,
+  timezone: TIMEZONE,
+): string {
   const points = context.points ?? [context.point];
-  const datetime = utcToLocalDateTime((points[0]?.x ?? context.point.x) as number);
+  const datetime = utcToTimezoneString(
+    (points[0]?.x ?? context.point.x) as number,
+    timezone,
+    'YYYY-MM-DD HH:mm:ss',
+  );
 
   let html = `<div style="font-size: 12px;"><b>Time:</b> ${datetime}<br/>`;
   for (const point of points) {
@@ -77,15 +86,19 @@ function buildMooringTooltipHTML(context: TooltipFormatterContext, unit: string)
 
 // Dashed plot line marking the selected date — shared by the initial x-axis config
 // and the imperative date update (see useDidMountEffect on selectedDate).
-function buildMooringDatePlotLine(selectedDate: string): Highcharts.XAxisPlotLinesOptions {
+function buildMooringDatePlotLine(
+  selectedDate: string,
+  timezone: TIMEZONE,
+): Highcharts.XAxisPlotLinesOptions {
+  const date = timezone === 'UTC' ? dayjs.utc(selectedDate) : dayjs(selectedDate);
   return {
-    value: dayjs(selectedDate).valueOf(),
+    value: date.valueOf(),
     color: PRIMARY_COLOR,
     width: 2,
     dashStyle: 'Dash',
     zIndex: 5,
     label: {
-      text: dayjs(selectedDate).format('D MMM YYYY'),
+      text: date.format('D MMM YYYY'),
       rotation: 0,
       align: 'center',
       verticalAlign: 'top',
@@ -96,13 +109,16 @@ function buildMooringDatePlotLine(selectedDate: string): Highcharts.XAxisPlotLin
 }
 
 // X axis with the dashed plot line marking the selected date.
-function buildMooringXAxisConfig(selectedDate: string): Highcharts.XAxisOptions {
+function buildMooringXAxisConfig(
+  selectedDate: string,
+  timezone: TIMEZONE,
+): Highcharts.XAxisOptions {
   return {
     type: 'datetime',
     labels: { format: '{value:%b %e %H:%M}' },
     offset: 0,
     minRange: 3600 * 1000,
-    plotLines: [buildMooringDatePlotLine(selectedDate)],
+    plotLines: [buildMooringDatePlotLine(selectedDate, timezone)],
   };
 }
 
@@ -159,21 +175,23 @@ export function MooringChart({ mooringData }: MooringChartProps) {
   );
   const site = mooringChartData?.site ?? '';
   const selectedDate = useMapUIStore(s => s.date);
+  const timezone = useMapUIStore(s => s.timezone);
   const visibleRangeRef = useRef<{ min: string; max: string } | null>(null);
   const chartRef = useRef<LineChartExposedMethods>(null);
   // The single variable currently shown; defaults to temperature.
   const [selectedVar, setSelectedVar] = useState<MooringDataVariants>('TEMP');
 
   const { data: latestMooringDate, isLoading: isLatestMooringDateLoading } = useQuery({
-    queryKey: ['mooring_latest_date'],
-    queryFn: getMooringLatestDate,
+    queryKey: ['mooring_latest_date', timezone],
+    queryFn: () => getMooringLatestDate(timezone),
   });
 
   const { from, to } = useMemo(() => {
-    const end = dayjs(latestMooringDate ?? today()).add(1, 'day'); // Include the full selectedDate day in local time
-    const start = dayjs(selectedDate).subtract(MOORING_MIN_DATE, 'day'); // Start from 30 days before the selected date
+    const parse = timezone === 'UTC' ? dayjs.utc : dayjs;
+    const end = parse(latestMooringDate ?? utcToTimezoneString(new Date(), timezone)).add(1, 'day'); // Include the full selectedDate day
+    const start = parse(selectedDate).subtract(MOORING_MIN_DATE, 'day'); // Start from 30 days before the selected date
     return { from: start.toDate(), to: end.toDate() };
-  }, [selectedDate, latestMooringDate]);
+  }, [selectedDate, latestMooringDate, timezone]);
 
   const {
     isLoading,
@@ -276,11 +294,14 @@ export function MooringChart({ mooringData }: MooringChartProps) {
 
   const tooltipFormatter = useCallback(
     (context: TooltipFormatterContext) =>
-      buildMooringTooltipHTML(context, activeVarRef.current?.unit ?? ''),
-    [],
+      buildMooringTooltipHTML(context, activeVarRef.current?.unit ?? '', timezone),
+    [timezone],
   );
 
-  const xAxisConfig = useMemo(() => buildMooringXAxisConfig(selectedDate), [selectedDate]);
+  const xAxisConfig = useMemo(
+    () => buildMooringXAxisConfig(selectedDate, timezone),
+    [selectedDate, timezone],
+  );
 
   useDidMountEffect(() => {
     const chart = chartRef.current?.getChartInstance();
@@ -291,15 +312,18 @@ export function MooringChart({ mooringData }: MooringChartProps) {
 
   useDidMountEffect(() => {
     const chart = chartRef.current?.getChartInstance();
-    chart?.xAxis[0]?.update({ plotLines: [buildMooringDatePlotLine(selectedDate)] });
-  }, [selectedDate]);
+    chart?.xAxis[0]?.update({ plotLines: [buildMooringDatePlotLine(selectedDate, timezone)] });
+  }, [selectedDate, timezone]);
 
-  const updateVisibleRange = useCallback((min: number, max: number) => {
-    visibleRangeRef.current = {
-      min: utcToLocalDateTime(min, 'YYYYMMDD'),
-      max: utcToLocalDateTime(max, 'YYYYMMDD'),
-    };
-  }, []);
+  const updateVisibleRange = useCallback(
+    (min: number, max: number) => {
+      visibleRangeRef.current = {
+        min: utcToTimezoneString(min, timezone, 'YYYYMMDD'),
+        max: utcToTimezoneString(max, timezone, 'YYYYMMDD'),
+      };
+    },
+    [timezone],
+  );
 
   const handleChartLoad = useCallback(
     (chart: Highcharts.Chart) => {
