@@ -1,10 +1,5 @@
 import type { ProductType, TilesProduct } from '@/constants';
-import {
-  COLOR_OPTIONS,
-  CONTINOUS_PRODUCT_COLOR_OPTIONS,
-  PRODUCT,
-  PRODUCTLEGENDS,
-} from '@/constants';
+import { COLOR_OPTIONS, PRODUCT, PRODUCTLEGENDS } from '@/constants';
 import { cn } from '@/utils';
 import type { ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -161,6 +156,7 @@ function TilesLegendSection({ product }: { product: TilesProduct }) {
   const colorKey = productLegend?.colorKey ?? 'RdBu_r';
   const isCategoryLegend = PRODUCTLEGENDS[product]?.scale === 'category';
   const colors = COLOR_OPTIONS[colorKey];
+  const paletteOptionKeys = PRODUCTLEGENDS[product]?.colorKeyOptions ?? [];
 
   return (
     <>
@@ -170,7 +166,8 @@ function TilesLegendSection({ product }: { product: TilesProduct }) {
             className="flex-1"
             size="sm"
             label="Color palette"
-            options={Object.keys(CONTINOUS_PRODUCT_COLOR_OPTIONS).map(key => ({
+            disabled={paletteOptionKeys.length <= 1}
+            options={paletteOptionKeys.map(key => ({
               label: key,
               value: key,
             }))}
