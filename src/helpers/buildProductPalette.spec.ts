@@ -7,6 +7,7 @@ describe('buildProductPalette', () => {
     const palette = buildProductPalette({
       label: 'test',
       colorKey: 'RdBu_r',
+      colorKeyOptions: ['RdBu_r'],
       range: [-1, 1],
       scale: 'linear',
     });
@@ -17,6 +18,7 @@ describe('buildProductPalette', () => {
     const palette = buildProductPalette({
       label: 'test',
       colorKey: 'X Rainbow',
+      colorKeyOptions: ['X Rainbow'],
       range: [-1.2, 1.2],
       scale: 'linear',
     });
@@ -28,6 +30,7 @@ describe('buildProductPalette', () => {
     const palette = buildProductPalette({
       label: 'particles',
       colorKey: 'Ocean to Terrain',
+      colorKeyOptions: ['Ocean to Terrain'],
       range: [0.01, 3],
       scale: 'log',
     });
