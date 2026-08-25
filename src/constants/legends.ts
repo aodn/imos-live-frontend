@@ -50,8 +50,8 @@ export const PRODUCTLEGENDS = {
     scales: [-1.2, -0.6, 0, 0.6, 1.2],
     label: 'sea level anomaly (m)',
     range: [-1.2, 1.2],
-    colorKey: 'RdBu_r' as ColorOptionKey,
-    colorKeyOptions: ['RdBu_r'] as ColorOptionKey[],
+    colorKey: 'X Rainbow' as ColorOptionKey,
+    colorKeyOptions: ['X Rainbow'] as ColorOptionKey[],
     scale: 'linear',
   },
   [PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC]: {

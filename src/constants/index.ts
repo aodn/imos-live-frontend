@@ -37,6 +37,7 @@ export {
   ocean_to_terrain,
   cmocean_thermal,
   classic_rainbow,
+  x_rainbow,
   MHW_CATEGORY_LEGEND_COLORS,
   COLOR_OPTIONS,
   CONTINOUS_PRODUCT_COLOR_OPTIONS,
