@@ -34,7 +34,6 @@ export { LOD_ZOOM_THRESHOLDS } from './lodZoomThresholds';
 // Colors / palettes
 export {
   rdBuR,
-  x_rainbow,
   ocean_to_terrain,
   MHW_CATEGORY_LEGEND_COLORS,
   COLOR_OPTIONS,
