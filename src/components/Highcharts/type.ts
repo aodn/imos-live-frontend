@@ -198,6 +198,9 @@ export type LineChartProps = {
   legend?: Highcharts.LegendOptions;
   plotOptions?: Highcharts.PlotOptions;
   chart?: Partial<Highcharts.ChartOptions>;
+  // Highcharts' own time engine — governs axis ticks, navigator, and range-selector
+  // input date rendering. Independent of `tooltip.customFormatter`'s own date formatting.
+  time?: Highcharts.TimeOptions;
 
   // Interaction
   zoomType?: 'x' | 'y' | 'xy';
