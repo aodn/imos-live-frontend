@@ -298,7 +298,20 @@ export function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartPro
 
   useDidMountEffect(() => {
     const chart = chartRef.current?.getChartInstance();
-    chart?.xAxis[0]?.update({ plotLines: [buildBuoyDatePlotLine(selectedDate, timezone)] });
+    if (!chart) return;
+    chart.xAxis[0]?.update({ plotLines: [buildBuoyDatePlotLine(selectedDate, timezone)] });
+    chart.update(
+      {
+        // @ts-expect-error — `useUTC` is a valid runtime `time` option; the public type omits it.
+        time: { useUTC: timezone === 'UTC' },
+        tooltip: {
+          formatter: function (this: TooltipFormatterContext) {
+            return buildBuoyTooltipHTML(this, timezone);
+          } as unknown as Highcharts.TooltipFormatterCallbackFunction,
+        },
+      },
+      true,
+    );
   }, [selectedDate, timezone]);
 
   const updateVisibleRange = useCallback(
@@ -374,6 +387,8 @@ export function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartPro
           marginBottom: 40,
           spacing: [10, 10, 10, 10],
         }}
+        // @ts-expect-error — `useUTC` is a valid runtime `time` option; the public type omits it.
+        time={{ useUTC: timezone === 'UTC' }}
         scrollbar={{ enabled: true, height: 20 }}
         responsive={true}
         xAxis={xAxisConfig}

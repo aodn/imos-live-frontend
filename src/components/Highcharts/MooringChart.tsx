@@ -319,7 +319,20 @@ export function MooringChart({ mooringData }: MooringChartProps) {
 
   useDidMountEffect(() => {
     const chart = chartRef.current?.getChartInstance();
-    chart?.xAxis[0]?.update({ plotLines: [buildMooringDatePlotLine(selectedDate, timezone)] });
+    if (!chart) return;
+    chart.xAxis[0]?.update({ plotLines: [buildMooringDatePlotLine(selectedDate, timezone)] });
+    chart.update(
+      {
+        // @ts-expect-error — `useUTC` is a valid runtime `time` option; the public type omits it.
+        time: { useUTC: timezone === 'UTC' },
+        tooltip: {
+          formatter: function (this: TooltipFormatterContext) {
+            return buildMooringTooltipHTML(this, activeVarRef.current?.unit ?? '', timezone);
+          } as unknown as Highcharts.TooltipFormatterCallbackFunction,
+        },
+      },
+      true,
+    );
   }, [selectedDate, timezone]);
 
   const updateVisibleRange = useCallback(
@@ -407,6 +420,8 @@ export function MooringChart({ mooringData }: MooringChartProps) {
           marginBottom: 40,
           spacing: [10, 10, 10, 10],
         }}
+        // @ts-expect-error — `useUTC` is a valid runtime `time` option; the public type omits it.
+        time={{ useUTC: timezone === 'UTC' }}
         scrollbar={{ enabled: true, height: 20 }}
         responsive={true}
         xAxis={xAxisConfig}

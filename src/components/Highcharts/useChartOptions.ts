@@ -47,6 +47,7 @@ export const useChartOptions = (props: LineChartProps) => {
     onRangeButtonClick, // Add this
     accessibility,
     chart,
+    time,
   } = props;
 
   const themedColors = useMemo(() => theme?.colors || DEFAULT_THEME.colors, [theme?.colors]);
@@ -68,6 +69,8 @@ export const useChartOptions = (props: LineChartProps) => {
         ),
         ...chart,
       },
+
+      time,
 
       ...buildTitleConfig(title, subtitle, theme),
 
@@ -167,6 +170,7 @@ export const useChartOptions = (props: LineChartProps) => {
     exporting,
     boost,
     chart,
+    time,
     turboThreshold,
     onPointClick,
     onSeriesClick,
