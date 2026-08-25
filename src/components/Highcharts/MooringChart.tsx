@@ -115,6 +115,13 @@ function buildMooringXAxisConfig(
 ): Highcharts.XAxisOptions {
   return {
     type: 'datetime',
+    // Mooring data arrives at irregular real-world intervals (15min to several hours).
+    // Highstock's default ordinal axis spaces points evenly by index and derives tick
+    // labels from those positions, which makes label time-deltas look inconsistent
+    // (e.g. 2h then 1h) even though the pixel spacing looks even. Disabling ordinal
+    // makes the axis a true linear time scale so tick labels land on evenly-spaced,
+    // "nice" time intervals regardless of the underlying data gaps.
+    ordinal: false,
     labels: { format: '{value:%b %e %H:%M}' },
     offset: 0,
     minRange: 3600 * 1000,

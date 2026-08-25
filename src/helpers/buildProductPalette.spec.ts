@@ -17,8 +17,8 @@ describe('buildProductPalette', () => {
   it('preserves scale and range on the resulting palette', () => {
     const palette = buildProductPalette({
       label: 'test',
-      colorKey: 'X Rainbow',
-      colorKeyOptions: ['X Rainbow'],
+      colorKey: 'Classic Rainbow',
+      colorKeyOptions: ['Classic Rainbow'],
       range: [-1.2, 1.2],
       scale: 'linear',
     });
