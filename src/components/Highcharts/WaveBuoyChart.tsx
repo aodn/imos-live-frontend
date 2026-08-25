@@ -147,6 +147,11 @@ function buildBuoyDatePlotLine(
 function buildBuoyXAxisConfig(selectedDate: string, timezone: TIMEZONE): Highcharts.XAxisOptions {
   return {
     type: 'datetime',
+    // Highstock's default ordinal axis spaces points evenly by index and derives tick
+    // labels from those positions, which can make label time-deltas look inconsistent
+    // whenever a buoy's data isn't perfectly regular. Disabling ordinal makes the axis a
+    // true linear time scale so tick labels land on evenly-spaced, "nice" time intervals.
+    ordinal: false,
     labels: { format: '{value:%b %e %H:%M}' },
     offset: 0,
     // When no xAxis.minRange is set, Highcharts Stock auto-computes it as roughly 5× the data point interval for the loaded series.
