@@ -50,14 +50,14 @@ const featuredPresentation: FeaturedPresentation[] = ((products: ProductType[]) 
     },
     {
       product: PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC,
-      title: 'Marine heatwave sea surface temperature anomaly (SSTA) mosaic',
-      image: { src: sstImage, alt: 'Marine heatwave SSTA Mosaic' },
+      title: 'AusTemp: Sea Surface Temperature anomaly (SSTa) 14d mosaic',
+      image: { src: sstImage, alt: 'AusTemp: Sea Surface Temperature anomaly (SSTa) 14d mosaic' },
       icon: <ThermometerIcon size="lg" />,
     },
     {
       product: PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC,
-      title: 'Marine heatwave sea surface temperature (SST) Mosaic',
-      image: { src: sstImage, alt: 'Marine heatwave SST Mosaic' },
+      title: 'AusTemp: Sea Surface Temperature (SST) 14d Mosaic',
+      image: { src: sstImage, alt: 'AusTemp: Sea Surface Temperature (SST) 14d Mosaic' },
       icon: <ThermometerIcon size="lg" />,
     },
     {
@@ -84,7 +84,7 @@ const featuredPresentation: FeaturedPresentation[] = ((products: ProductType[]) 
   PRODUCT.GSLA_ANOMALY_SEA_LEVELS,
   PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC,
   PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC,
-  PRODUCT.AUSTEMP_HEATWAVE_MHW_CATEGORY_MOSAIC,
+  // PRODUCT.AUSTEMP_HEATWAVE_MHW_CATEGORY_MOSAIC,
   PRODUCT.WAVE_BUOYS,
   PRODUCT.MOORING_TIMESERIES_REALTIME,
 ]);

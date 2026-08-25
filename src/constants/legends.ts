@@ -1,10 +1,15 @@
 import type { ColorOptionKey } from './colors';
+import { CATEGORY_PRODUCT_COLOR_OPTIONS, CONTINOUS_PRODUCT_COLOR_OPTIONS } from './colors';
 import { PRODUCT, type TilesProduct, MAX_VECTOR_SPEED } from './products';
+
+const ALL_CONTINUOUS_COLOR_KEYS = Object.keys(CONTINOUS_PRODUCT_COLOR_OPTIONS) as ColorOptionKey[];
+const ALL_CATEGORY_COLOR_KEYS = Object.keys(CATEGORY_PRODUCT_COLOR_OPTIONS) as ColorOptionKey[];
 
 export type LegendArgs = {
   label: string;
   numStops?: number;
   colorKey: ColorOptionKey;
+  colorKeyOptions: ColorOptionKey[];
   range: [number, number];
   threshold?: number;
   scales?: (number | string)[];
@@ -33,6 +38,7 @@ export const PRODUCTLEGENDS = {
   [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: {
     label: 'ocean current speed (m/s)',
     colorKey: 'Ocean to Terrain' as ColorOptionKey,
+    colorKeyOptions: ALL_CONTINUOUS_COLOR_KEYS,
     range: [0.01, MAX_VECTOR_SPEED],
     scale: 'log',
   },
@@ -40,7 +46,8 @@ export const PRODUCTLEGENDS = {
     scales: [-1.2, -0.6, 0, 0.6, 1.2],
     label: 'sea level anomaly (m)',
     range: [-1.2, 1.2],
-    colorKey: 'X Rainbow' as ColorOptionKey,
+    colorKey: 'RdBu_r' as ColorOptionKey,
+    colorKeyOptions: ['RdBu_r'] as ColorOptionKey[],
     scale: 'linear',
   },
   [PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC]: {
@@ -48,13 +55,15 @@ export const PRODUCTLEGENDS = {
     label: 'degrees Celsius (°C)',
     range: [-4, 4],
     colorKey: 'RdBu_r' as ColorOptionKey,
+    colorKeyOptions: ['RdBu_r'] as ColorOptionKey[],
     scale: 'linear',
   },
   [PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC]: {
     scales: [0, 10, 20, 30, 40, 50],
     label: 'degrees Celsius (°C)',
     range: [0, 50],
-    colorKey: 'X SST' as ColorOptionKey,
+    colorKey: 'Cmocean Thermal' as ColorOptionKey,
+    colorKeyOptions: ['Cmocean Thermal'] as ColorOptionKey[],
     scale: 'linear',
   },
   [PRODUCT.AUSTEMP_HEATWAVE_MHW_CATEGORY_MOSAIC]: {
@@ -62,6 +71,7 @@ export const PRODUCTLEGENDS = {
     range: [0, 4],
     label: 'MHW Category mosaic',
     colorKey: 'MHW_CATEGORY_LEGEND_COLORS' as ColorOptionKey,
+    colorKeyOptions: ALL_CATEGORY_COLOR_KEYS,
     scale: 'category',
   },
 } as const satisfies Record<TilesProduct, LegendArgs>;

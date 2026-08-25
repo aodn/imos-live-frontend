@@ -85,7 +85,7 @@ export const PRODUCTS = {
     portalLink: WAVE_BUOYS_PORTAL_LINK,
   },
   [PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC]: {
-    name: 'Austemp heatwave SST Mosaic',
+    name: 'AusTemp: Sea Surface Temperature (SST) 14d Mosaic',
     layerId: 'austemp-heatwave-sst-mosaic-layer',
     sourceId: 'austemp-heatwave-sst-mosaic-source',
     variables: ['sst_mosaic'],
@@ -95,7 +95,7 @@ export const PRODUCTS = {
     collectionId: '2ffccdad-1197-4e41-b412-a9033517cfb2',
   },
   [PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC]: {
-    name: 'Austemp heatwave SSTA Mosaic',
+    name: 'AusTemp: Sea Surface Temperature anomaly (SSTa) 14d mosaic',
     layerId: 'austemp-heatwave-ssta-mosaic-layer',
     sourceId: 'austemp-heatwave-ssta-mosaic-source',
     variables: ['ssta_mosaic'],
