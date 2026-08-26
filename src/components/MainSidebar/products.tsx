@@ -2,6 +2,7 @@ import logoImage from '@/assets/imos_logo_with_title.png';
 import oceanCurrentImage from '@/assets/ocean-current.webp';
 import anomalySeaLevelImage from '@/assets/sea-levels.webp';
 import waveBuoysImage from '@/assets/wave-buoys.webp';
+import mooringImage from '@/assets/mooring.webp';
 import sstImage from '@/assets/sst.jpg';
 import type { ProductType } from '@/constants';
 import { PRODUCT, PRODUCTS } from '@/constants';
@@ -75,7 +76,7 @@ const featuredPresentation: FeaturedPresentation[] = ((products: ProductType[]) 
     {
       product: PRODUCT.MOORING_TIMESERIES_REALTIME,
       title: 'Mooring timeseries realtime',
-      image: { src: sstImage, alt: 'Mooring timeseries realtime' },
+      image: { src: mooringImage, alt: 'Mooring timeseries realtime' },
       icon: <ThermometerIcon size="lg" />,
     },
   ].filter(({ product }) => products.includes(product));
