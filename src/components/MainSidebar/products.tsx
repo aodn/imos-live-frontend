@@ -77,7 +77,7 @@ const featuredPresentation: FeaturedPresentation[] = ((products: ProductType[]) 
       product: PRODUCT.MOORING_TIMESERIES_REALTIME,
       title: 'Mooring timeseries realtime',
       image: { src: mooringImage, alt: 'Mooring timeseries realtime' },
-      icon: <ThermometerIcon size="lg" />,
+      icon: <WaveBuoyIcon size="lg" />,
     },
   ].filter(({ product }) => products.includes(product));
 })([
