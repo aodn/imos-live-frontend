@@ -75,8 +75,8 @@ const featuredPresentation: FeaturedPresentation[] = ((products: ProductType[]) 
     },
     {
       product: PRODUCT.MOORING_TIMESERIES_REALTIME,
-      title: 'Mooring timeseries realtime',
-      image: { src: mooringImage, alt: 'Mooring timeseries realtime' },
+      title: 'Mooring timeseries real-time',
+      image: { src: mooringImage, alt: 'Mooring timeseries real-time' },
       icon: <WaveBuoyIcon size="lg" />,
     },
   ].filter(({ product }) => products.includes(product));

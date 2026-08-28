@@ -41,12 +41,14 @@ type ProductValue = {
 
 const AUSTEMP_HEATWAVE_PORTAL_LINK =
   'https://catalogue-imos.aodn.org.au/geonetwork/srv/eng/catalog.search#/search?any=IMOS%20-%20AusTemp%20-%20Marine%20Heatwave';
+const AUSTEMP_HEATWAVE_MOSAIC_PORTAL_LINK =
+  'https://portal-beta.aodn.org.au/details/62f6b449-90dc-45bf-8acb-ae52e8a58c5c?tab=summary';
 const GSLA_PORTAL_LINK =
   'https://portal-beta.aodn.org.au/details/0c9eb39c-9cbe-4c6a-8a10-5867087e703a';
 const WAVE_BUOYS_PORTAL_LINK =
   'https://portal-beta.aodn.org.au/details/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc';
 const MOORING_TIMESERIES_REALTIME_PORTAL_LINK =
-  'https://portal-beta.aodn.org.au/details/mooring-timeseries-realtime';
+  'https://portal-beta.aodn.org.au/details/a8f5c736-6eaa-47fb-a9eb-d778beb71701';
 
 export const PRODUCTS = {
   [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: {
@@ -81,7 +83,7 @@ export const PRODUCTS = {
     layerId: 'wave-buoys-layer',
     sourceId: 'wave-buoys-source',
     description:
-      'Buoys provide integral wave parameters. Buoy data from the following organisations contribute to the National Wave Archive: Manly Hydraulics Laboratory, Bureau of Meteorology, DOT, DES, IMOS, Gippsland Ports, DPE, UWA, Deakin University, Pilbara Ports Authority and Flinders University and SARDI.',
+      'Key wave measurements and parameters from a network of buoys across Australia managed by a range of national, state and regional authorities',
     portalLink: WAVE_BUOYS_PORTAL_LINK,
   },
   [PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC]: {
@@ -91,7 +93,7 @@ export const PRODUCTS = {
     variables: ['sst_mosaic'],
     description:
       'Sea Surface Temperature (SST) mosaic for the Australasian region, showing absolute sea surface temperatures used to identify marine heatwave conditions.',
-    portalLink: AUSTEMP_HEATWAVE_PORTAL_LINK,
+    portalLink: AUSTEMP_HEATWAVE_MOSAIC_PORTAL_LINK,
     collectionId: '2ffccdad-1197-4e41-b412-a9033517cfb2',
   },
   [PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC]: {
@@ -101,7 +103,7 @@ export const PRODUCTS = {
     variables: ['ssta_mosaic'],
     description:
       'Sea Surface Temperature Anomaly (SSTA) mosaic for the Australasian region, showing deviations from the long-term mean to identify marine heatwave conditions.',
-    portalLink: AUSTEMP_HEATWAVE_PORTAL_LINK,
+    portalLink: AUSTEMP_HEATWAVE_MOSAIC_PORTAL_LINK,
     collectionId: '2ffccdad-1197-4e41-b412-a9033517cfb2',
   },
   [PRODUCT.AUSTEMP_HEATWAVE_MHW_CATEGORY_MOSAIC]: {
@@ -115,7 +117,7 @@ export const PRODUCTS = {
     collectionId: '2ffccdad-1197-4e41-b412-a9033517cfb2',
   },
   [PRODUCT.MOORING_TIMESERIES_REALTIME]: {
-    name: 'Mooring Timeseries Realtime',
+    name: 'Mooring timeseries real-time',
     layerId: 'mooring-timeseries-realtime-layer',
     sourceId: 'mooring-timeseries-realtime-source',
     description:
