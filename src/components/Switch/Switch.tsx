@@ -162,7 +162,7 @@ export function Switch({
 
   return (
     <div
-      className={cn('flex items-center gap-4', {
+      className={cn('flex items-center gap-4 self-start', {
         'flex-row-reverse': labelPosition === 'left',
         'flex-col-reverse items-start': labelPosition === 'top',
         'flex-col': labelPosition === 'bottom',
