@@ -1,5 +1,5 @@
 import { SiteHoverPopupContent } from '@/components';
-import { ZOOM_LIMIT_TEMP_POINTS_LAYER_ID } from '@/constants';
+import { type SiteProduct, ZOOM_LIMIT_TEMP_POINTS_LAYER_ID } from '@/constants';
 import { type ClosePopupFn, coordinateToLngLat, showPopup } from '@/helpers';
 import type { SitePoint, SiteProperties } from '@/types';
 import { useEffect, useRef } from 'react';
@@ -15,6 +15,7 @@ export function useSiteHover(
   unclusteredLayerId: string,
   // Label for the popup's site row (e.g. "Buoy", "Mooring").
   label?: string,
+  product?: SiteProduct,
 ) {
   const hoverPopupRef = useRef<mapboxgl.Popup | null>(null);
   const popupCloseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -25,6 +26,11 @@ export function useSiteHover(
 
     const handleMouseEnter = (e: mapboxgl.MapMouseEvent) => {
       if (!e.features?.length) return;
+      // The temp-points layer is shared across site products — only handle
+      // hovers on points that belong to this product (unclustered-layer
+      // features aren't tagged, so they're unaffected by this check).
+      const featureProduct = e.features[0].properties?.product;
+      if (featureProduct && featureProduct !== product) return;
 
       const { geometry, properties } = e.features[0];
       const { coordinates } = geometry as SitePoint;
@@ -113,5 +119,5 @@ export function useSiteHover(
         hoverPopupRef.current = null;
       }
     };
-  }, [enabled, map, unclusteredLayerId, label]);
+  }, [enabled, map, unclusteredLayerId, label, product]);
 }

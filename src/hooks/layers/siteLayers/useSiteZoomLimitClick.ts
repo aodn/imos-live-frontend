@@ -1,4 +1,4 @@
-import { CLUSTER_MAX_ZOOM } from '@/constants';
+import { CLUSTER_MAX_ZOOM, type SiteProduct } from '@/constants';
 import { ZOOM_LIMIT_TEMP_POINTS_LAYER_ID, ZOOM_LIMIT_TEMP_POINTS_SOURCE_ID } from '@/constants';
 import { normalizeSitesData, removeZoomLimitTempPoints } from '@/helpers';
 import { type SiteFeature } from '@/types';
@@ -13,6 +13,7 @@ export function useSiteZoomLimitClick(
   enabled: boolean,
   shouldHandle: () => boolean,
   setClickedPointData: (data: Omit<SiteFeature, 'type'>[] | null) => void,
+  product: SiteProduct,
 ) {
   useEffect(() => {
     if (!map.current || !enabled || !shouldHandle()) return;
@@ -20,6 +21,10 @@ export function useSiteZoomLimitClick(
 
     const handleClick = (e: mapboxgl.MapMouseEvent) => {
       if (!e.features?.length) return;
+      // The temp-points layer is shared across site products (wave buoys,
+      // moorings) — only handle clicks on points that belong to this product,
+      // otherwise every product's handler fires for the same click.
+      if (e.features[0].properties?.product !== product) return;
       if (e.features[0].properties?.hasDataForDate === false) return;
 
       setClickedPointData(normalizeSitesData(e.features));
@@ -29,7 +34,7 @@ export function useSiteZoomLimitClick(
     return () => {
       mapInstance?.off('click', ZOOM_LIMIT_TEMP_POINTS_LAYER_ID, handleClick);
     };
-  }, [enabled, map, shouldHandle, setClickedPointData]);
+  }, [enabled, map, shouldHandle, setClickedPointData, product]);
 
   useEffect(() => {
     // Handle zoom limit temp points removal when clicking outside of them

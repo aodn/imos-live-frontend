@@ -1,4 +1,4 @@
-import { CLUSTER_MAX_ZOOM } from '@/constants';
+import { CLUSTER_MAX_ZOOM, type SiteProduct } from '@/constants';
 import { createZoomLimitPoints } from '@/helpers';
 import type { Point } from 'geojson';
 import { useEffect } from 'react';
@@ -13,6 +13,7 @@ export function useSiteClusterClick(
   shouldHandle: () => boolean,
   clusterLayerId: string,
   sourceId: string,
+  product: SiteProduct,
 ) {
   useEffect(() => {
     if (!map.current || !enabled || !shouldHandle()) return;
@@ -40,7 +41,7 @@ export function useSiteClusterClick(
         } else {
           source.getClusterLeaves(clusterId, Infinity, 0, (err, leaves) => {
             if (err || !leaves) return;
-            createZoomLimitPoints(map, leaves, center);
+            createZoomLimitPoints(map, leaves, center, product);
           });
         }
       });
@@ -50,5 +51,5 @@ export function useSiteClusterClick(
     return () => {
       mapInstance?.off('click', clusterLayerId, handleClick);
     };
-  }, [enabled, map, shouldHandle, clusterLayerId, sourceId]);
+  }, [enabled, map, shouldHandle, clusterLayerId, sourceId, product]);
 }

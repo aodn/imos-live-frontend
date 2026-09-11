@@ -5,6 +5,7 @@ import {
   ZOOM_LIMIT_TEMP_POINTS_CONNECTION_LINES_SOURCE_ID,
   ZOOM_LIMIT_TEMP_POINTS_LAYER_ID,
   ZOOM_LIMIT_TEMP_POINTS_SOURCE_ID,
+  type SiteProduct,
 } from '@/constants';
 import type { GeoJsonProperties, Geometry, Feature } from 'geojson';
 import { removeZoomLimitTempPoints } from './removeZoomLimitTempPoints';
@@ -35,6 +36,7 @@ export function createZoomLimitPoints(
   map: React.RefObject<mapboxgl.Map | null>,
   points: Feature<Geometry, GeoJsonProperties>[],
   clusterCenter: [number, number],
+  product: SiteProduct,
 ) {
   const mapInstace = map.current;
   if (!mapInstace) return;
@@ -63,7 +65,10 @@ export function createZoomLimitPoints(
         type: 'Point',
         coordinates: [offsetLng, offsetLat], //TODO: the coordinates are not the original, so either put original value in property or invetigate on it finding other ways.
       },
-      properties: point.properties ?? {},
+      // Tag with the owning product so the shared zoom-limit-temp-points layer's
+      // click/hover handlers (registered once per site product) can tell which
+      // product a given temp point actually belongs to.
+      properties: { ...(point.properties ?? {}), product },
     });
 
     lineFeatures.push({
