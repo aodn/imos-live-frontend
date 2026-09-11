@@ -62,7 +62,7 @@ export function useSiteLayerEventHandler(
 
   useSiteCursorStyle(map, enabled, clusterLayerId, unclusteredLayerId);
 
-  useSiteClusterClick(map, enabled, shouldHandleMapClick, clusterLayerId, sourceId);
+  useSiteClusterClick(map, enabled, shouldHandleMapClick, clusterLayerId, sourceId, product);
 
   useSiteUnclusteredClick(
     map,
@@ -73,9 +73,9 @@ export function useSiteLayerEventHandler(
     unclusteredLayerId,
   );
 
-  useSiteHover(map, enabled, unclusteredLayerId, SITE_HOVER_LABEL[product]);
+  useSiteHover(map, enabled, unclusteredLayerId, SITE_HOVER_LABEL[product], product);
 
-  useSiteZoomLimitClick(map, enabled, shouldHandleMapClick, setClickedPointData);
+  useSiteZoomLimitClick(map, enabled, shouldHandleMapClick, setClickedPointData, product);
 
   // Clear selection when the drawer closes.
   useEffect(() => {
