@@ -35,7 +35,7 @@ import type Highcharts from 'highcharts/highstock';
 dayjs.extend(utc);
 
 export const WAVE_BUOY_MIN_DATE = 30;
-const WAVE_BUOY_DATA_GAP_THRESHOLD_MS = 24 * 60 * 60 * 1000;
+const WAVE_BUOY_DATA_GAP_THRESHOLD_MS = 60 * 60 * 1000;
 
 type WaveBuoyChartProps = {
   waveBuoysData: Omit<SiteFeature, 'type'>[];
