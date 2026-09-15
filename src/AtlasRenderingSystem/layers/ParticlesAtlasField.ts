@@ -121,6 +121,10 @@ export function createParticlesAtlasField(
   // Incremented on every setSource call; stale tile callbacks check against
   // this value and discard their result if a newer call has superseded them.
   let fetchGeneration = 0;
+  /** Aborts the previous setSource's in-flight LOD1 fetches so a rapid date
+   *  change actually cancels the prior date's network requests instead of
+   *  just ignoring their results on arrival. */
+  let lod1AbortController: AbortController | null = null;
 
   // ── Data state ───────────────────────────────────────────────────────────
   // u_data_bounds format: [lonMin, latMax, lonMax, latMin]
@@ -468,6 +472,9 @@ export function createParticlesAtlasField(
     legendRange: [number, number],
   ): Promise<void> {
     const gen = ++fetchGeneration;
+    lod1AbortController?.abort();
+    const controller = new AbortController();
+    lod1AbortController = controller;
     currentPalette = { ...currentPalette, legendRange };
 
     const lodsSorted = sortManifestLods(manifest);
@@ -499,6 +506,7 @@ export function createParticlesAtlasField(
       lod1Ids: lod1ChunkIds(lod1),
       atlas,
       isStale: () => gen !== fetchGeneration,
+      signal: controller.signal,
     });
 
     if (gen !== fetchGeneration) return; // superseded during preload
@@ -580,6 +588,8 @@ export function createParticlesAtlasField(
     }
     // Invalidate any in-flight setSource callbacks.
     fetchGeneration++;
+    lod1AbortController?.abort();
+    lod1AbortController = null;
 
     schedulers.forEach(s => s.destroy());
     schedulers = [];

@@ -113,6 +113,10 @@ export function createHeatmapAtlasField(
   // Incremented on every setSource call; stale tile callbacks check against
   // this value and discard their result if a newer call has superseded them.
   let fetchGeneration = 0;
+  /** Aborts the previous setSource's in-flight LOD1 fetches so a rapid date
+   *  change actually cancels the prior date's network requests instead of
+   *  just ignoring their results on arrival. */
+  let lod1AbortController: AbortController | null = null;
 
   // ── Private helpers ───────────────────────────────────────────────────────
 
@@ -191,6 +195,9 @@ export function createHeatmapAtlasField(
     newLegendRange: [number, number],
   ): Promise<void> {
     const gen = ++fetchGeneration;
+    lod1AbortController?.abort();
+    const controller = new AbortController();
+    lod1AbortController = controller;
 
     const lodsSorted = sortManifestLods(manifest);
     const lod1 = lodsSorted[0]!;
@@ -239,6 +246,7 @@ export function createHeatmapAtlasField(
       lod1Ids: lod1ChunkIds(lod1),
       atlas,
       isStale: () => gen !== fetchGeneration,
+      signal: controller.signal,
       onTileUploaded: () => map.triggerRepaint(),
     });
   }
@@ -316,6 +324,8 @@ export function createHeatmapAtlasField(
     visible = false;
     // Invalidate any in-flight setSource callbacks.
     fetchGeneration++;
+    lod1AbortController?.abort();
+    lod1AbortController = null;
 
     schedulers.forEach(s => s.destroy());
     schedulers = [];

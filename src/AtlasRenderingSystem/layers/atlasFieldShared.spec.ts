@@ -9,6 +9,7 @@ import {
   computeActiveLodCount,
   computeRamp,
   computeUvTransform,
+  createLodSchedulers,
   dataBoundsFromManifest,
   lod1ChunkIds,
   mercatorBoundsArray,
@@ -266,6 +267,7 @@ describe('preloadLod1 (progressive)', () => {
       lod1Ids: ids,
       atlas,
       isStale: () => false,
+      signal: new AbortController().signal,
     });
 
     // Wait a tick — the two non-first tiles should resolve and upload, settling the promise.
@@ -298,6 +300,7 @@ describe('preloadLod1 (progressive)', () => {
         lod1Ids: ['1/0/0', '1/1/0'],
         atlas,
         isStale: () => false,
+        signal: new AbortController().signal,
       }),
     ).rejects.toThrow('All LOD1 tile fetches failed');
   });
@@ -314,6 +317,7 @@ describe('preloadLod1 (progressive)', () => {
       lod1Ids: ['1/0/0'],
       atlas,
       isStale: () => true,
+      signal: new AbortController().signal,
     });
     expect(uploads).toEqual([]);
   });
@@ -325,6 +329,45 @@ describe('preloadLod1 (progressive)', () => {
       lod1Ids: [],
       atlas,
       isStale: () => false,
+      signal: new AbortController().signal,
+    });
+    expect(uploads).toEqual([]);
+  });
+
+  it('passes the given signal through to fetch', async () => {
+    const fetchMock = vi.fn(async () => ({ ok: true, blob: async () => new Blob() }) as Response);
+    vi.stubGlobal('fetch', fetchMock);
+
+    const { atlas } = makeAtlas();
+    const controller = new AbortController();
+    await preloadLod1({
+      buildTileUrl: (id: string) => `http://x/${id}`,
+      lod1Ids: ['1/0/0'],
+      atlas,
+      isStale: () => false,
+      signal: controller.signal,
+    });
+    expect(fetchMock).toHaveBeenCalledWith('http://x/1/0/0', { signal: controller.signal });
+  });
+
+  it('resolves without uploading when the request is aborted after being superseded', async () => {
+    const controller = new AbortController();
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        throw Object.assign(new Error('aborted'), { name: 'AbortError' });
+      }),
+    );
+
+    const { atlas, uploads } = makeAtlas();
+    // isStale() true mirrors production: the caller only aborts once a newer
+    // setSource has already bumped its generation counter.
+    await preloadLod1({
+      buildTileUrl: (id: string) => `http://x/${id}`,
+      lod1Ids: ['1/0/0'],
+      atlas,
+      isStale: () => true,
+      signal: controller.signal,
     });
     expect(uploads).toEqual([]);
   });
@@ -356,6 +399,7 @@ describe('preloadAllLod1 (blocking)', () => {
       lod1Ids: ['1/0/0', '1/1/0', '1/2/0'],
       atlas,
       isStale: () => false,
+      signal: new AbortController().signal,
     });
     expect(uploads.sort()).toEqual(['1/0/0', '1/1/0', '1/2/0']);
   });
@@ -371,8 +415,71 @@ describe('preloadAllLod1 (blocking)', () => {
       lod1Ids: ['1/0/0', '1/1/0'],
       atlas,
       isStale: () => true,
+      signal: new AbortController().signal,
     });
     expect(uploads).toEqual([]);
+  });
+
+  it('passes the given signal through to fetch', async () => {
+    const fetchMock = vi.fn(async () => ({ ok: true, blob: async () => new Blob() }) as Response);
+    vi.stubGlobal('fetch', fetchMock);
+    const atlas = { upload: vi.fn() } as unknown as AtlasManagerAPI;
+    const controller = new AbortController();
+
+    await preloadAllLod1({
+      buildTileUrl: (id: string) => `http://x/${id}`,
+      lod1Ids: ['1/0/0'],
+      atlas,
+      isStale: () => false,
+      signal: controller.signal,
+    });
+    expect(fetchMock).toHaveBeenCalledWith('http://x/1/0/0', { signal: controller.signal });
+  });
+
+  it('resolves without rejecting when a superseded request is aborted', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        throw Object.assign(new Error('aborted'), { name: 'AbortError' });
+      }),
+    );
+    const uploads: string[] = [];
+    const atlas = {
+      upload: vi.fn((id: string) => uploads.push(id)),
+    } as unknown as AtlasManagerAPI;
+
+    // isStale() true mirrors production: the caller only aborts once a newer
+    // setSource has already bumped its generation counter.
+    await expect(
+      preloadAllLod1({
+        buildTileUrl: (id: string) => `http://x/${id}`,
+        lod1Ids: ['1/0/0', '1/1/0'],
+        atlas,
+        isStale: () => true,
+        signal: new AbortController().signal,
+      }),
+    ).resolves.toBeUndefined();
+    expect(uploads).toEqual([]);
+  });
+
+  it('still rejects on a genuine (non-abort) fetch failure', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        throw new Error('network down');
+      }),
+    );
+    const atlas = { upload: vi.fn() } as unknown as AtlasManagerAPI;
+
+    await expect(
+      preloadAllLod1({
+        buildTileUrl: (id: string) => `http://x/${id}`,
+        lod1Ids: ['1/0/0'],
+        atlas,
+        isStale: () => false,
+        signal: new AbortController().signal,
+      }),
+    ).rejects.toThrow('network down');
   });
 });
 
@@ -396,5 +503,92 @@ describe('syncSchedulersOnMove', () => {
     for (const s of schedulers) {
       expect(s.update).toHaveBeenCalledWith({ west: 110, east: 160, south: -45, north: -10 }, 8);
     }
+  });
+});
+
+describe('date change while zoomed in (LOD2+LOD3 active) — integration', () => {
+  // Mirrors the real GSLA/SSTA product thresholds (src/constants/lodZoomThresholds.ts):
+  // LOD2 activates above zoom 4, LOD3 above zoom 5. At zoom 5.5 both are active
+  // simultaneously alongside the always-on LOD1 preload.
+  const PRODUCT_LOD_ZOOM_THRESHOLDS = { '2': 4, '3': 5, '4': 6 };
+  const ZOOM = 5.5;
+  const VIEWPORT = { west: 120, east: 130, south: -40, north: -30 };
+
+  function makeAtlas(): AtlasManagerAPI {
+    return {
+      upload: vi.fn(),
+      has: vi.fn(() => false),
+      touch: vi.fn(),
+      getTexture: vi.fn(),
+      getSlotsData: vi.fn(() => new Float32Array()),
+      getChunkSlots: vi.fn(() => new Int32Array()),
+      getLodOffsets: vi.fn(() => new Int32Array()),
+      getLodCount: vi.fn(() => 3),
+      getTotalSlots: vi.fn(() => 0),
+      getTotalVirtualChunks: vi.fn(() => 0),
+      getAtlasW: vi.fn(() => 0),
+      getAtlasH: vi.fn(() => 0),
+      destroy: vi.fn(),
+    } as unknown as AtlasManagerAPI;
+  }
+
+  /** Fetch that never settles — lets the test inspect the abort signal each
+   *  chunk request was issued with, the way a real slow network request would
+   *  still be pending when the next date change arrives. */
+  function neverSettlingFetch() {
+    const signals = new Map<string, AbortSignal>();
+    const fetchMock = vi.fn((url: string, init?: RequestInit) => {
+      signals.set(url, init!.signal as AbortSignal);
+      return new Promise<Response>(() => {});
+    });
+    return { fetchMock, signals };
+  }
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it('aborts every in-flight LOD2+LOD3 chunk fetch when schedulers are torn down for a new date', () => {
+    const { fetchMock, signals } = neverSettlingFetch();
+    vi.stubGlobal('fetch', fetchMock);
+
+    const lodsSorted = sortManifestLods(MANIFEST); // [LOD1(3x2), LOD2(6x4), LOD3(12x10)]
+    const schedulers = createLodSchedulers({
+      atlas: makeAtlas(),
+      buildTileUrl: (id: string) => `http://x/${id}`,
+      onChunkLoaded: () => {},
+      bounds: MANIFEST.bounds,
+      lodsSorted,
+      lodZoomThresholds: PRODUCT_LOD_ZOOM_THRESHOLDS,
+    });
+    expect(schedulers).toHaveLength(2); // one per on-demand LOD: LOD2, LOD3
+
+    // Simulate the user parked at zoom 5.5 — both schedulers activate and start
+    // fetching their in-view chunks (mirrors Field.onMapMove → syncSchedulersOnMove).
+    syncSchedulersOnMove({
+      bounds: {
+        getWest: () => VIEWPORT.west,
+        getEast: () => VIEWPORT.east,
+        getSouth: () => VIEWPORT.south,
+        getNorth: () => VIEWPORT.north,
+      } as unknown as mapboxgl.LngLatBounds,
+      zoom: ZOOM,
+      schedulers,
+    });
+
+    const lod2Fetches = [...signals.keys()].filter(url => url.includes('/2/'));
+    const lod3Fetches = [...signals.keys()].filter(url => url.includes('/3/'));
+    expect(lod2Fetches.length).toBeGreaterThan(0);
+    expect(lod3Fetches.length).toBeGreaterThan(0);
+    // Nothing aborted yet — the previous date's tiles are still legitimately loading.
+    for (const signal of signals.values()) expect(signal.aborted).toBe(false);
+
+    // Date change: Field.setSource tears down the old schedulers before creating
+    // fresh ones, regardless of which LODs were active at the current zoom.
+    schedulers.forEach(s => s.destroy());
+
+    expect(signals.size).toBeGreaterThan(0);
+    for (const signal of signals.values()) expect(signal.aborted).toBe(true);
   });
 });
