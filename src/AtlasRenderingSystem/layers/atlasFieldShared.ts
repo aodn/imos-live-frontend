@@ -167,9 +167,12 @@ export function preloadLod1(params: {
   lod1Ids: string[];
   atlas: AtlasManagerAPI;
   isStale: () => boolean;
+  /** Aborted by the caller when a newer setSource supersedes this one, so the
+   *  in-flight requests are actually cancelled rather than just ignored on arrival. */
+  signal: AbortSignal;
   onTileUploaded?: (id: string) => void;
 }): Promise<void> {
-  const { buildTileUrl, lod1Ids, atlas, isStale, onTileUploaded } = params;
+  const { buildTileUrl, lod1Ids, atlas, isStale, signal, onTileUploaded } = params;
   if (lod1Ids.length === 0) return Promise.resolve();
 
   return new Promise<void>((resolve, reject) => {
@@ -186,7 +189,7 @@ export function preloadLod1(params: {
     for (const id of lod1Ids) {
       void (async () => {
         try {
-          const blob = await fetch(buildTileUrl(id)).then(r => r.blob());
+          const blob = await fetch(buildTileUrl(id), { signal }).then(r => r.blob());
           const img = await createImageBitmap(blob, {
             premultiplyAlpha: 'none',
             colorSpaceConversion: 'none',
@@ -224,11 +227,21 @@ export async function preloadAllLod1(params: {
   lod1Ids: string[];
   atlas: AtlasManagerAPI;
   isStale: () => boolean;
+  /** Aborted by the caller when a newer setSource supersedes this one, so the
+   *  in-flight requests are actually cancelled rather than just ignored on arrival. */
+  signal: AbortSignal;
 }): Promise<void> {
-  const { buildTileUrl, lod1Ids, atlas, isStale } = params;
+  const { buildTileUrl, lod1Ids, atlas, isStale, signal } = params;
   await Promise.all(
     lod1Ids.map(async id => {
-      const blob = await fetch(buildTileUrl(id)).then(r => r.blob());
+      let blob: Blob;
+      try {
+        blob = await fetch(buildTileUrl(id), { signal }).then(r => r.blob());
+      } catch (err) {
+        // Superseded — the abort is expected, not a failure the caller should surface.
+        if (isStale()) return;
+        throw err;
+      }
       const img = await createImageBitmap(blob, {
         premultiplyAlpha: 'none',
         colorSpaceConversion: 'none',
