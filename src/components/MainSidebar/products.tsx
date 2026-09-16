@@ -1,9 +1,9 @@
-import logoImage from '@/assets/imos_logo_with_title.png';
+import logoImage from '@/assets/imos_logo_with_title.webp';
 import oceanCurrentImage from '@/assets/ocean-current.webp';
 import anomalySeaLevelImage from '@/assets/sea-levels.webp';
 import waveBuoysImage from '@/assets/wave-buoys.webp';
 import mooringImage from '@/assets/mooring.webp';
-import sstImage from '@/assets/sst.jpg';
+import sstImage from '@/assets/sst.webp';
 import type { ProductType } from '@/constants';
 import { PRODUCT, PRODUCTS } from '@/constants';
 import { ThermometerIcon, WaterSurfaceIcon, WaveBuoyIcon, WaveIcon } from '../Icons';

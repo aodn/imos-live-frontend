@@ -1,4 +1,4 @@
-import { WAVE_BUOY_MIN_DATE } from '@/components/Highcharts/WaveBuoyChart';
+import { WAVE_BUOY_MIN_DATE } from '@/constants';
 import type { RawSiteFeatureCollection } from '@/types';
 import { isWithinDaysBefore } from '@/utils';
 

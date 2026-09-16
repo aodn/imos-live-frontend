@@ -17,7 +17,7 @@ export const Primary: Story = {
   args: {
     title: 'IMOS Live',
     image: {
-      src: 'src/assets/imos_logo_with_title.png',
+      src: 'src/assets/imos_logo_with_title.webp',
       alt: 'IMOS Logo',
       height: 63,
       width: 147,

@@ -1,4 +1,3 @@
-export * from './MapComponent';
 export * from './PopupContent';
 export * from './Layout';
 export * from './DistanceMeasurement';

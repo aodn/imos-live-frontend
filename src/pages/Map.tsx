@@ -1,5 +1,5 @@
 import { Helmet } from 'react-helmet-async';
-import logImage from '@/assets/imos_logo_with_title.png';
+import logImage from '@/assets/imos_logo_with_title.webp';
 import {
   DateSelectionBar,
   DragWrapper,
@@ -9,7 +9,6 @@ import {
   LayersIcon,
   LayersIndicator,
   MainSidebarContent,
-  MapComponent,
   Header as MapHeader,
   MapsIcon,
   Sidebar,
@@ -18,11 +17,15 @@ import {
   WaveBuoyIcon,
   WaveIcon,
 } from '@/components';
+import { Skeleton } from '@/components/Skeleton';
 import { PRODUCT } from '@/constants';
 import { useViewportSize } from '@/hooks';
 import { useDrawerStore, closeLeftDrawer, openLeftDrawer } from '@/store';
-import 'mapbox-gl/dist/mapbox-gl.css';
-import { useCallback, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useMemo, useState } from 'react';
+
+const MapComponent = lazy(() =>
+  import('@/components/MapComponent').then(m => ({ default: m.MapComponent })),
+);
 
 const MODE_TITLE_PREFIX: Record<string, string> = {
   development: '[DEV] ',
@@ -76,7 +79,9 @@ export function Map() {
               { Icon: ThermometerIcon, product: PRODUCT.AUSTEMP_HEATWAVE_MHW_CATEGORY_MOSAIC },
             ]}
           />
-          <MapComponent key={isSmallScreen ? 'mobile' : 'desktop'} />
+          <Suspense fallback={<Skeleton className="absolute inset-0 rounded-none" fill />}>
+            <MapComponent key={isSmallScreen ? 'mobile' : 'desktop'} />
+          </Suspense>
           <DragWrapper
             boundary="parent"
             dragHandleClassName={DATE_SELECTION_BAR_DRAG_HANDLE}

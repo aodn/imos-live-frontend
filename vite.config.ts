@@ -18,16 +18,22 @@ export default defineConfig(({ mode }) => {
     googleAnalyticsPlugin(VITE_GA_MEASUREMENT_ID),
   ];
 
+  const apiProxy = {
+    '/api': {
+      target: 'https://portal.edge.aodn.org.au',
+      changeOrigin: true,
+    },
+  };
+
   const server: UserConfig['server'] = {
     ...(mode === 'development' &&
       !process.env['VITE_AUTOMATED_TEST_RUNNING'] && {
-        proxy: {
-          '/api': {
-            target: 'https://portal.edge.aodn.org.au',
-            changeOrigin: true,
-          },
-        },
+        proxy: apiProxy,
       }),
+  };
+
+  const preview: UserConfig['preview'] = {
+    proxy: apiProxy,
   };
 
   if (VITE_STATS_ENABLED === 'true') {
@@ -45,12 +51,17 @@ export default defineConfig(({ mode }) => {
   return {
     plugins,
     server,
+    preview,
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
       },
     },
     build: {
+      sourcemap: true,
+      modulePreload: {
+        resolveDependencies: (_filename, deps) => deps.filter(dep => !dep.includes('mapbox')),
+      },
       rollupOptions: {
         output: {
           manualChunks(id) {
@@ -58,7 +69,11 @@ export default defineConfig(({ mode }) => {
               return 'mapbox';
             }
 
-            if (id.includes('node_modules') && !id.includes('node_modules/highcharts')) {
+            if (
+              id.includes('node_modules') &&
+              !id.includes('node_modules/highcharts') &&
+              !id.includes('node_modules/@zumer/snapdom')
+            ) {
               return 'vendor';
             }
           },
