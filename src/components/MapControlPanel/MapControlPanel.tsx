@@ -11,7 +11,6 @@ import {
 import { COLOR_OPTIONS, INITIAL_ZOOM, MIN_EXPORT_MAP_WIDTH } from '@/constants';
 import { useIsMapDragging, useIsMapZooming, useMapCanvasWidth } from '@/hooks';
 import { setSidebarOpen, useMapUIStore, useSidebarStore } from '@/store';
-import { exportMapImage } from '@/helpers';
 import { useShallow } from 'zustand/shallow';
 import { SCALAR_TILES_GROUP, PRODUCTS } from '@/constants';
 import { CategoryColorScaleBar, LinearColorScaleBar, LogColorScaleBar } from '../ColorScaleBar';
@@ -81,7 +80,9 @@ export function MapControlPanel({
       : undefined;
 
     mapRef.current.once('render', () => {
-      void exportMapImage(mapRef.current!.getCanvas(), date, productArg, bounds);
+      void import('@/helpers/mapImageExport').then(({ exportMapImage }) =>
+        exportMapImage(mapRef.current!.getCanvas(), date, productArg, bounds),
+      );
     });
 
     mapRef.current.triggerRepaint();

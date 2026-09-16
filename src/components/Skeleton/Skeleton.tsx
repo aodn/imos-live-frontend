@@ -11,13 +11,15 @@ type SkeletonProps = {
 export function Skeleton({ className, width, height, fill = false, style }: SkeletonProps) {
   return (
     <div
-      className={cn('bg-gray-300 animate-pulse rounded', className)}
+      className={cn('relative overflow-hidden bg-gray-300 rounded', className)}
       style={{
         ...(typeof height === 'number' ? { height } : {}),
         ...(typeof width === 'number' ? { width } : {}),
         ...(fill ? { height: '100%', width: '100%' } : {}),
         ...style,
       }}
-    />
+    >
+      <div className="absolute inset-0 animate-[shimmer_1.6s_ease-in-out_infinite] bg-linear-to-r from-transparent via-white/50 to-transparent" />
+    </div>
   );
 }

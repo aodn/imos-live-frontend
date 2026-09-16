@@ -22,6 +22,7 @@ import {
 import { useMapUIStore, openBottomDrawer } from '@/store';
 import { cn, isSmallScreen } from '@/utils';
 import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 import { lazy, memo, Suspense, useEffect } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { DistanceMeasurement } from '../DistanceMeasurement';

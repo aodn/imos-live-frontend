@@ -1,4 +1,5 @@
 import { getWaveBuoyDetails, getWaveBuoyLatestDate } from '@/api';
+import { WAVE_BUOY_MIN_DATE } from '@/constants';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
 import type { SiteFeature } from '@/types';
@@ -34,7 +35,6 @@ import type Highcharts from 'highcharts/highstock';
 
 dayjs.extend(utc);
 
-export const WAVE_BUOY_MIN_DATE = 30;
 const WAVE_BUOY_DATA_GAP_THRESHOLD_MS = 60 * 60 * 1000;
 
 type WaveBuoyChartProps = {

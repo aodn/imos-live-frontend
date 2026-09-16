@@ -11,7 +11,7 @@ import 'highcharts/modules/offline-exporting';
 import { ExportPanel } from '@/components';
 import { canvasRootGenerator, pinExportLogoImg } from '@/helpers';
 import { doubleRAF } from '@/utils';
-import imosLogo from '@/assets/imos_logo_with_title.png';
+import imosLogo from '@/assets/imos_logo_with_title.webp';
 import type { ExportConfig } from '../type';
 
 /** Decodes the IMOS logo into the browser cache so the ExportPanel's `<img>` is

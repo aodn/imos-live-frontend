@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { cn } from '@/utils';
-import imosLogo from '@/assets/imos_logo_with_title.png';
+import imosLogo from '@/assets/imos_logo_with_title.webp';
 
 export type PanelProduct = {
   name: string;

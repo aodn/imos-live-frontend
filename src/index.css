@@ -113,6 +113,15 @@ body {
   }
 }
 
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
 /* Reposition Mapbox logo top-right of the map */
 .mapboxgl-ctrl-bottom-right {
   top: 4px !important;
