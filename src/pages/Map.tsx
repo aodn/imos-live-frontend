@@ -79,7 +79,20 @@ export function Map() {
               { Icon: ThermometerIcon, product: PRODUCT.AUSTEMP_HEATWAVE_MHW_CATEGORY_MOSAIC },
             ]}
           />
-          <Suspense fallback={<Skeleton className="absolute inset-0 rounded-none" fill />}>
+          <Suspense
+            fallback={
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Skeleton className="absolute inset-0 rounded-none" fill />
+                <img
+                  src={logImage}
+                  alt="IMOS Logo"
+                  width={147}
+                  height={63}
+                  className="relative z-10 w-32 h-auto aspect-147/63 animate-pulse opacity-70"
+                />
+              </div>
+            }
+          >
             <MapComponent key={isSmallScreen ? 'mobile' : 'desktop'} />
           </Suspense>
           <DragWrapper
