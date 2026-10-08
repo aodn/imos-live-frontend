@@ -42,7 +42,7 @@ type ProductValue = {
 const AUSTEMP_HEATWAVE_PORTAL_LINK =
   'https://catalogue-imos.aodn.org.au/geonetwork/srv/eng/catalog.search#/search?any=IMOS%20-%20AusTemp%20-%20Marine%20Heatwave';
 const AUSTEMP_HEATWAVE_MOSAIC_PORTAL_LINK =
-  'https://portal-beta.aodn.org.au/details/62f6b449-90dc-45bf-8acb-ae52e8a58c5c?tab=summary';
+  'https://portal-beta.aodn.org.au/details/2ffccdad-1197-4e41-b412-a9033517cfb2';
 const GSLA_PORTAL_LINK =
   'https://portal-beta.aodn.org.au/details/0c9eb39c-9cbe-4c6a-8a10-5867087e703a';
 const WAVE_BUOYS_PORTAL_LINK =
