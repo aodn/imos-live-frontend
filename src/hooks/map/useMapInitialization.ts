@@ -6,7 +6,7 @@ import { useEffect, useRef } from 'react';
 import { useShallow } from 'zustand/shallow';
 
 const maxBounds: LngLatBoundsLike = [
-  [68, -55],
+  [68, -58],
   [178, -7],
 ]; // [SW, NE] — lon 68–178, lat -55 to -7
 
