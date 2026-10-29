@@ -85,13 +85,22 @@ export const metaDataManifestQueryOptions = () =>
         '2ffccdad-1197-4e41-b412-a9033517cfb2',
       ];
       const promises = collectionIDS.map(collectionId => getMetaDataManifest({ collectionId }));
-      return Promise.all(promises).then(results => {
-        const mergedProducts: Products = results.reduce((acc, manifest) => {
-          return [...acc, ...manifest.products];
-        }, [] as Products);
-        const normalisedProducts: NormalisedProducts = mergedProducts.map(normaliseProduct);
-        return { products: normalisedProducts };
-      });
+      return Promise.allSettled(promises)
+        .then(results =>
+          results
+            .filter(
+              (result): result is PromiseFulfilledResult<MetaDataManifest> =>
+                result.status === 'fulfilled',
+            )
+            .map(result => result.value),
+        )
+        .then(results => {
+          const mergedProducts: Products = results.reduce((acc, manifest) => {
+            return [...acc, ...manifest.products];
+          }, [] as Products);
+          const normalisedProducts: NormalisedProducts = mergedProducts.map(normaliseProduct);
+          return { products: normalisedProducts };
+        });
     },
   });
 

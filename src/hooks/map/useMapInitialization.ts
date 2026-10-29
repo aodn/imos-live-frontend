@@ -6,9 +6,9 @@ import { useEffect, useRef } from 'react';
 import { useShallow } from 'zustand/shallow';
 
 const maxBounds: LngLatBoundsLike = [
-  [89.90022172949003, -60.0997150997151],
-  [180.09977827050997, 10.0997150997151],
-]; // Australia + New Zealand
+  [68, -55],
+  [178, -7],
+]; // [SW, NE] — lon 68–178, lat -55 to -7
 
 export function useMapInitialization() {
   const { center, zoom } = useMapUIStore(
