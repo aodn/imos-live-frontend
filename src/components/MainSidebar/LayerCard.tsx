@@ -1,13 +1,12 @@
 import type { ProductType, TilesProduct } from '@/constants';
-import { COLOR_OPTIONS, PRODUCT, PRODUCTLEGENDS } from '@/constants';
+import { COLOR_OPTIONS, isSiteProduct, PRODUCT, PRODUCTLEGENDS } from '@/constants';
 import { cn } from '@/utils';
 import type { ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
-  getMooringLatestDate,
-  getWaveBuoyLatestDate,
   metaDataManifestQueryOptions,
   pickDateByTimezone,
+  siteLatestDateQueryOptions,
 } from '@/api';
 import { setJumpToDate, setProductLegend, useMapUIStore } from '@/store';
 import { Button } from '../Button';
@@ -34,15 +33,12 @@ export function LayerCard({
   product,
   portalLink,
 }: LayerCardProps) {
-  const isSiteProduct =
-    product === PRODUCT.WAVE_BUOYS || product === PRODUCT.MOORING_TIMESERIES_REALTIME;
-
   const handleClick = () => {
     if (addToMap) addToMap(product, !visible);
     // Fire-and-forget prefetch of the matching drawer chart chunk.
     if (product === PRODUCT.WAVE_BUOYS) {
       void import('../Highcharts/WaveBuoyChart');
-    } else if (product === PRODUCT.MOORING_TIMESERIES_REALTIME) {
+    } else if (isSiteProduct(product)) {
       void import('../Highcharts/MooringChart');
     }
   };
@@ -100,15 +96,14 @@ export function LayerCard({
           </Button>
         </div>
 
-        {!isSiteProduct && <TilesLegendSection product={product as TilesProduct} />}
+        {!isSiteProduct(product) && <TilesLegendSection product={product as TilesProduct} />}
       </div>
     </CollapsibleComponent>
   );
 }
 
 function useLatestDate(product: ProductType) {
-  const isMooring = product === PRODUCT.MOORING_TIMESERIES_REALTIME;
-  const isSiteProduct = product === PRODUCT.WAVE_BUOYS || isMooring;
+  const siteProduct = isSiteProduct(product) ? product : null;
   const timezone = useMapUIStore(s => s.timezone);
 
   const { data: tilesDate, isLoading: isTilesLoading } = useQuery({
@@ -117,18 +112,17 @@ function useLatestDate(product: ProductType) {
       const end = products.find(p => p.id === product)?.full_date_range.end;
       return end && pickDateByTimezone(end, timezone);
     },
-    enabled: !isSiteProduct,
+    enabled: !siteProduct,
   });
-  // Site products expose their own latest-time endpoint. Keep the query keys aligned
-  // with the drawer charts (WaveBuoyChart/MooringChart) so the cache is shared.
+  // Site products expose their own latest-time endpoint, cached with the drawer charts.
+  // The fallback product is never fetched: the query is disabled without a site product.
   const { data: siteDate, isLoading: isSiteLoading } = useQuery({
-    queryKey: [isMooring ? 'mooring_latest_date' : 'wave_buoy_latest_date', timezone],
-    queryFn: () => (isMooring ? getMooringLatestDate(timezone) : getWaveBuoyLatestDate(timezone)),
-    enabled: isSiteProduct,
+    ...siteLatestDateQueryOptions(siteProduct ?? PRODUCT.WAVE_BUOYS, timezone),
+    enabled: !!siteProduct,
   });
 
-  const date = isSiteProduct ? siteDate : tilesDate;
-  const isLoading = isSiteProduct ? isSiteLoading : isTilesLoading;
+  const date = siteProduct ? siteDate : tilesDate;
+  const isLoading = siteProduct ? isSiteLoading : isTilesLoading;
 
   const jumpToLatest = () => {
     if (date) setJumpToDate(date);

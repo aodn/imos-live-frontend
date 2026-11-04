@@ -4,6 +4,7 @@ import anomalySeaLevelImage from '@/assets/sea-levels.webp';
 import waveBuoysImage from '@/assets/wave-buoys.webp';
 import mooringImage from '@/assets/mooring.webp';
 import sstImage from '@/assets/sst.webp';
+import mooringEstuarineImage from '@/assets/mooring-estuarine.webp';
 import type { ProductType } from '@/constants';
 import { PRODUCT, PRODUCTS } from '@/constants';
 import { ThermometerIcon, WaterSurfaceIcon, WaveBuoyIcon, WaveIcon } from '../Icons';
@@ -79,6 +80,15 @@ const featuredPresentation: FeaturedPresentation[] = ((products: ProductType[]) 
       image: { src: mooringImage, alt: 'Mooring timeseries real-time' },
       icon: <WaveBuoyIcon size="lg" />,
     },
+    {
+      product: PRODUCT.MOORING_ESTUARINE_COASTAL_WATER_QUALITY_MONITORING_REALTIME_QC,
+      title: 'Estuarine & coastal water quality monitoring real-time QC',
+      image: {
+        src: mooringEstuarineImage,
+        alt: 'Estuarine & coastal water quality monitoring real-time QC',
+      },
+      icon: <WaveBuoyIcon size="lg" />,
+    },
   ].filter(({ product }) => products.includes(product));
 })([
   PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT,
@@ -88,6 +98,7 @@ const featuredPresentation: FeaturedPresentation[] = ((products: ProductType[]) 
   // PRODUCT.AUSTEMP_HEATWAVE_MHW_CATEGORY_MOSAIC,
   PRODUCT.WAVE_BUOYS,
   PRODUCT.MOORING_TIMESERIES_REALTIME,
+  PRODUCT.MOORING_ESTUARINE_COASTAL_WATER_QUALITY_MONITORING_REALTIME_QC,
 ]);
 
 export const featuredDataset: LayersDataset[] = featuredPresentation.map(

@@ -12,12 +12,12 @@ import {
   useWorldLandLayer,
 } from '@/hooks';
 import {
+  getEstuarineMooringSitesByDate,
+  getLatestEstuarineMooringSites,
   getLatestMooringSites,
   getLatestWaveBuoySites,
   getMooringSitesByDate,
   getWaveBuoySitesByDate,
-  getWaveBuoyLatestDate,
-  getMooringLatestDate,
 } from '@/api';
 import { useMapUIStore, openBottomDrawer } from '@/store';
 import { cn, isSmallScreen } from '@/utils';
@@ -28,10 +28,14 @@ import { useShallow } from 'zustand/shallow';
 import { DistanceMeasurement } from '../DistanceMeasurement';
 import { MapControlPanel } from '../MapControlPanel';
 import {
+  ESTUARINE_MOORING_CLUSTER_LABEL_LAYER_ID,
+  ESTUARINE_MOORING_LAYER_CONFIG,
   MOORING_CLUSTER_LABEL_LAYER_ID,
   MOORING_LAYER_CONFIG,
   PRODUCT,
   PRODUCTS,
+  UNCLUSTERED_ESTUARINE_MOORING_LAYER_CONFIG,
+  UNCLUSTERED_ESTUARINE_MOORING_LAYER_ID,
   UNCLUSTERED_MOORING_LAYER_CONFIG,
   UNCLUSTERED_MOORING_LAYER_ID,
   UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
@@ -58,6 +62,7 @@ export const MapComponent = memo(function MapComponent() {
     distanceMeasurementEnabled,
     waveBuoysEnabled,
     mooringEnabled,
+    estuarineMooringEnabled,
     oceanCurrentEnabled,
     gslaAnomalySeaLevelsEnabled,
     marineHeatwaveSstMosaicEnabled,
@@ -68,6 +73,8 @@ export const MapComponent = memo(function MapComponent() {
       distanceMeasurementEnabled: s.distanceMeasurementEnabled,
       waveBuoysEnabled: s.productEnabled[PRODUCT.WAVE_BUOYS],
       mooringEnabled: s.productEnabled[PRODUCT.MOORING_TIMESERIES_REALTIME],
+      estuarineMooringEnabled:
+        s.productEnabled[PRODUCT.MOORING_ESTUARINE_COASTAL_WATER_QUALITY_MONITORING_REALTIME_QC],
       oceanCurrentEnabled: s.productEnabled[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT],
       gslaAnomalySeaLevelsEnabled: s.productEnabled[PRODUCT.GSLA_ANOMALY_SEA_LEVELS],
       marineHeatwaveSstMosaicEnabled: s.productEnabled[PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC],
@@ -110,7 +117,6 @@ export const MapComponent = memo(function MapComponent() {
     clusterLabelLayerId: WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID,
     getSitesByDate: getWaveBuoySitesByDate,
     getLatestSites: getLatestWaveBuoySites,
-    getLatestDate: getWaveBuoyLatestDate,
   });
   useSiteLayer({
     map,
@@ -119,9 +125,18 @@ export const MapComponent = memo(function MapComponent() {
     clusterLabelLayerId: MOORING_CLUSTER_LABEL_LAYER_ID,
     getSitesByDate: getMooringSitesByDate,
     getLatestSites: getLatestMooringSites,
-    getLatestDate: getMooringLatestDate,
     clusterConfig: MOORING_LAYER_CONFIG,
     unclusteredConfig: UNCLUSTERED_MOORING_LAYER_CONFIG,
+  });
+  useSiteLayer({
+    map,
+    product: PRODUCT.MOORING_ESTUARINE_COASTAL_WATER_QUALITY_MONITORING_REALTIME_QC,
+    unclusteredLayerId: UNCLUSTERED_ESTUARINE_MOORING_LAYER_ID,
+    clusterLabelLayerId: ESTUARINE_MOORING_CLUSTER_LABEL_LAYER_ID,
+    getSitesByDate: getEstuarineMooringSitesByDate,
+    getLatestSites: getLatestEstuarineMooringSites,
+    clusterConfig: ESTUARINE_MOORING_LAYER_CONFIG,
+    unclusteredConfig: UNCLUSTERED_ESTUARINE_MOORING_LAYER_CONFIG,
   });
 
   //3. add click event listners to map and layers.
@@ -141,6 +156,17 @@ export const MapComponent = memo(function MapComponent() {
     clusterLayerId: PRODUCTS[PRODUCT.MOORING_TIMESERIES_REALTIME].layerId,
     unclusteredLayerId: UNCLUSTERED_MOORING_LAYER_ID,
     sourceId: PRODUCTS[PRODUCT.MOORING_TIMESERIES_REALTIME].sourceId,
+  });
+
+  const { clickedPointData: estuarineMooringClickedPointData } = useSiteLayerEventHandler(map, {
+    product: PRODUCT.MOORING_ESTUARINE_COASTAL_WATER_QUALITY_MONITORING_REALTIME_QC,
+    enabled: estuarineMooringEnabled,
+    distanceMeasurementEnabled,
+    clusterLayerId:
+      PRODUCTS[PRODUCT.MOORING_ESTUARINE_COASTAL_WATER_QUALITY_MONITORING_REALTIME_QC].layerId,
+    unclusteredLayerId: UNCLUSTERED_ESTUARINE_MOORING_LAYER_ID,
+    sourceId:
+      PRODUCTS[PRODUCT.MOORING_ESTUARINE_COASTAL_WATER_QUALITY_MONITORING_REALTIME_QC].sourceId,
   });
 
   useTilesLayersEventHandlers({
@@ -176,12 +202,31 @@ export const MapComponent = memo(function MapComponent() {
     if (mooringClickedPointData) {
       openBottomDrawer(
         <Suspense fallback={<div>Loading...</div>}>
-          <MooringChart mooringData={mooringClickedPointData} />
+          <MooringChart
+            key={PRODUCT.MOORING_TIMESERIES_REALTIME}
+            product={PRODUCT.MOORING_TIMESERIES_REALTIME}
+            mooringData={mooringClickedPointData}
+          />
         </Suspense>,
         SITE_SNAP_POINTS,
       );
     }
   }, [mooringClickedPointData]);
+
+  useEffect(() => {
+    if (estuarineMooringClickedPointData) {
+      openBottomDrawer(
+        <Suspense fallback={<div>Loading...</div>}>
+          <MooringChart
+            key={PRODUCT.MOORING_ESTUARINE_COASTAL_WATER_QUALITY_MONITORING_REALTIME_QC}
+            product={PRODUCT.MOORING_ESTUARINE_COASTAL_WATER_QUALITY_MONITORING_REALTIME_QC}
+            mooringData={estuarineMooringClickedPointData}
+          />
+        </Suspense>,
+        SITE_SNAP_POINTS,
+      );
+    }
+  }, [estuarineMooringClickedPointData]);
 
   //4. enable to toggle style.
   useMapStyle(map);

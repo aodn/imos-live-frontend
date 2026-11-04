@@ -144,6 +144,61 @@ export const UNCLUSTERED_MOORING_LAYER_CONFIG: Partial<CircleLayerSpecification>
   },
 } as const;
 
+// Estuarine & coastal moorings use a teal ramp, distinct from wave buoys and the
+// amber mooring timeseries points.
+export const ESTUARINE_MOORING_LAYER_CONFIG: Partial<CircleLayerSpecification> = {
+  filter: ['has', 'point_count'], // Only show clustered points
+  paint: {
+    'circle-color': [
+      'step',
+      ['get', 'point_count'],
+      '#5eead4', // < 100
+      100,
+      '#2dd4bf', // 100–750
+      750,
+      '#0d9488', // > 750
+    ],
+    'circle-radius': ['step', ['get', 'point_count'], 20, 100, 30, 750, 40],
+  },
+} as const;
+
+export const UNCLUSTERED_ESTUARINE_MOORING_LAYER_CONFIG: Partial<CircleLayerSpecification> = {
+  filter: ['!', ['has', 'point_count']],
+  paint: {
+    'circle-color': [
+      'case',
+      ['boolean', ['feature-state', 'selected'], false],
+      '#ffffff', // selected: white fill
+      ['boolean', ['get', 'hasDataForDate'], true],
+      '#14b8a6', // active: teal
+      '#aaaaaa', // inactive: gray
+    ],
+    'circle-opacity': 1,
+    'circle-radius': [
+      'case',
+      ['boolean', ['feature-state', 'selected'], false],
+      10, // slightly larger when selected
+      8, // normal size
+    ],
+    'circle-stroke-width': [
+      'case',
+      ['boolean', ['feature-state', 'selected'], false],
+      3, // thicker stroke when selected
+      2,
+    ],
+    'circle-stroke-color': '#000000',
+    'circle-stroke-opacity': 1,
+    'circle-radius-transition': {
+      duration: 200,
+      delay: 0,
+    },
+    'circle-stroke-width-transition': {
+      duration: 200,
+      delay: 0,
+    },
+  },
+} as const;
+
 export const ZOOM_LIMIT_TEMPPOINT_LAYER_PARTIAL: Partial<CircleLayerSpecification> = {
   paint: {
     'circle-color': [

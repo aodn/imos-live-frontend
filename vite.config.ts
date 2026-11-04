@@ -20,7 +20,7 @@ export default defineConfig(({ mode }) => {
 
   const apiProxy = {
     '/api': {
-      target: 'https://portal.edge.aodn.org.au',
+      target: 'http://localhost:8080',
       changeOrigin: true,
     },
   };

@@ -2,8 +2,8 @@ import { useMapUIStore } from '@/store';
 import { useShallow } from 'zustand/shallow';
 import type { LngLat } from 'mapbox-gl';
 import type { ClosePopupFn } from '@/helpers';
-import type { TilesProduct } from '@/constants';
-import { MHW_CATEGORY_LOOKUP, PRODUCT, PRODUCTLEGENDS } from '@/constants';
+import type { ProductType, TilesProduct } from '@/constants';
+import { isSiteProduct, MHW_CATEGORY_LOOKUP, PRODUCT, PRODUCTLEGENDS } from '@/constants';
 import { useQueries, useQuery } from '@tanstack/react-query';
 import type { ProductManifest } from '@/AtlasRenderingSystem';
 import {
@@ -32,9 +32,7 @@ export function ClickedMapPopupContent({ onClose, lngLat }: ClickedMapPopupConte
       const products = s.productEnabled;
       return Object.keys(products)
         .filter(p => products[p as keyof typeof products] === true)
-        .filter(
-          p => p !== PRODUCT.WAVE_BUOYS && p !== PRODUCT.MOORING_TIMESERIES_REALTIME,
-        ) as TilesProduct[];
+        .filter(p => !isSiteProduct(p as ProductType)) as TilesProduct[];
     }),
   );
   const date = useMapUIStore(s => s.date);

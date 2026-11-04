@@ -1,7 +1,13 @@
-import { getMooringDetails, getMooringLatestDate } from '@/api';
+import { getEstuarineMooringDetails, getMooringDetails, siteLatestDateQueryOptions } from '@/api';
+import { PRODUCT, type MooringProduct } from '@/constants';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
-import type { MooringDataVariants, NominalDepthVariant, SiteFeature } from '@/types';
+import type {
+  MooringDataVariants,
+  MooringSiteDetailsFeature,
+  NominalDepthVariant,
+  SiteFeature,
+} from '@/types';
 import type { TIMEZONE } from '@/store';
 import { toSiteChartData } from '@/helpers';
 import { formatLatLngToDirectional, utcToTimezoneString } from '@/utils';
@@ -29,13 +35,38 @@ export const MOORING_MIN_DATE = 30;
 const MOORING_DATA_GAP_THRESHOLD_MS = 60 * 60 * 1000;
 
 type MooringVariableMeta = { key: MooringDataVariants; label: string; unit: string };
-const MOORING_VARIABLES: readonly MooringVariableMeta[] = [
-  { key: 'TEMP', label: 'Temperature', unit: '°C' },
-  { key: 'PSAL', label: 'Salinity', unit: '' },
-  { key: 'DOX1', label: 'Dissolved O₂', unit: 'µmol L⁻¹' },
-];
+
+type MooringChartConfig = {
+  getDetails: (from: Date, to: Date, id: string) => Promise<MooringSiteDetailsFeature>;
+  variables: readonly MooringVariableMeta[];
+};
+
+const MOORING_CHART_CONFIG: Record<MooringProduct, MooringChartConfig> = {
+  [PRODUCT.MOORING_TIMESERIES_REALTIME]: {
+    getDetails: getMooringDetails,
+    variables: [
+      { key: 'TEMP', label: 'Temperature', unit: '°C' },
+      { key: 'PSAL', label: 'Salinity', unit: '' },
+      { key: 'DOX1', label: 'Dissolved O₂', unit: 'µmol L⁻¹' },
+    ],
+  },
+  [PRODUCT.MOORING_ESTUARINE_COASTAL_WATER_QUALITY_MONITORING_REALTIME_QC]: {
+    getDetails: getEstuarineMooringDetails,
+    variables: [
+      { key: 'TEMP', label: 'Temperature', unit: '°C' },
+      { key: 'PSAL', label: 'Salinity', unit: '' },
+      { key: 'CPHL', label: 'Chlorophyll-a', unit: 'mg m⁻³' },
+      { key: 'DOXS', label: 'Dissolved O₂ sat.', unit: '%' },
+      { key: 'TURB', label: 'Turbidity', unit: 'FNU' },
+      { key: 'FDOM', label: 'fDOM', unit: 'QSU' },
+      { key: 'PHYCO', label: 'Phycoerythrin', unit: 'mg m⁻³' },
+      { key: 'FLUSI', label: 'Spectral shift index', unit: '' },
+    ],
+  },
+};
 
 type MooringChartProps = {
+  product: MooringProduct;
   mooringData: Omit<SiteFeature, 'type'>[];
 };
 
@@ -175,7 +206,8 @@ const MOORING_RANGE_SELECTOR: Omit<RangeSelectorConfig, 'selected' | 'buttons'> 
   y: -48,
 };
 
-export function MooringChart({ mooringData }: MooringChartProps) {
+export function MooringChart({ product, mooringData }: MooringChartProps) {
+  const { getDetails, variables } = MOORING_CHART_CONFIG[product];
   const mooringChartData = useMemo(
     () => (mooringData.length > 0 ? toSiteChartData(mooringData) : null),
     [mooringData],
@@ -188,10 +220,9 @@ export function MooringChart({ mooringData }: MooringChartProps) {
   // The single variable currently shown; defaults to temperature.
   const [selectedVar, setSelectedVar] = useState<MooringDataVariants>('TEMP');
 
-  const { data: latestMooringDate, isLoading: isLatestMooringDateLoading } = useQuery({
-    queryKey: ['mooring_latest_date', timezone],
-    queryFn: () => getMooringLatestDate(timezone),
-  });
+  const { data: latestMooringDate, isLoading: isLatestMooringDateLoading } = useQuery(
+    siteLatestDateQueryOptions(product, timezone),
+  );
 
   const { from, to } = useMemo(() => {
     const parse = timezone === 'UTC' ? dayjs.utc : dayjs;
@@ -205,8 +236,8 @@ export function MooringChart({ mooringData }: MooringChartProps) {
     isError,
     data: feature,
   } = useQuery({
-    queryKey: ['mooringDetails', site, from.toISOString(), to.toISOString()],
-    queryFn: () => getMooringDetails(from, to, site),
+    queryKey: ['mooringDetails', product, site, from.toISOString(), to.toISOString()],
+    queryFn: () => getDetails(from, to, site),
     // Wait for latestMooringDate so `to` is final on first fetch.
     enabled: !!site && !isLatestMooringDateLoading,
   });
@@ -223,10 +254,10 @@ export function MooringChart({ mooringData }: MooringChartProps) {
   // Variables that actually have data at some depth — only these get a selector button.
   const availableVars = useMemo(() => {
     if (isFeatureEmpty) return [];
-    return MOORING_VARIABLES.filter(v =>
+    return variables.filter(v =>
       depthKeys.some(key => (feature.properties[key]?.[v.key]?.length ?? 0) > 0),
     );
-  }, [feature?.properties, isFeatureEmpty, depthKeys]);
+  }, [feature?.properties, isFeatureEmpty, depthKeys, variables]);
 
   // The chart shows one variable at a time; fall back to the first available one
   // if the chosen variable has no data for this mooring.
@@ -385,7 +416,7 @@ export function MooringChart({ mooringData }: MooringChartProps) {
           <Dropdown
             key={activeVar?.key}
             size="sm"
-            className="w-32"
+            className="w-44"
             options={availableVars.map(v => ({ value: v.key, label: v.label }))}
             initialValue={activeVar?.key}
             onChange={value => setSelectedVar(value as MooringDataVariants)}

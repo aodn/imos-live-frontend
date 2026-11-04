@@ -1,6 +1,6 @@
-import type { ProductType } from '@/constants';
+import { siteLatestDateQueryOptions } from '@/api';
+import type { SiteProduct } from '@/constants';
 import {
-  PRODUCT,
   PRODUCTS,
   UNCLUSTERED_WAVE_BUOYS_LAYER_CONFIG,
   WAVE_BUOY_CLUSTER_LABEL_LAYER_CONFIG,
@@ -20,7 +20,7 @@ import type { CircleLayerSpecification, SymbolLayerSpecification } from 'mapbox-
 
 type UseSiteLayer = {
   map: React.RefObject<mapboxgl.Map | null>;
-  product: ProductType;
+  product: SiteProduct;
   // The intermediate, on-the-fly layer IDs for this product's unclustered points
   // and cluster count label (the clustered layer + source IDs come from PRODUCTS).
   unclusteredLayerId: string;
@@ -29,7 +29,6 @@ type UseSiteLayer = {
   getSitesByDate: (date: string, timezone: TIMEZONE) => Promise<RawSiteFeatureCollection>;
   // Returns all sites with their latest observation (the base set the date merge fills in).
   getLatestSites: (timezone: TIMEZONE) => Promise<RawSiteFeatureCollection>;
-  getLatestDate: (timezone: TIMEZONE) => Promise<string>;
   // Per-product paint/layout so site products are visually distinguishable.
   // Default to the wave-buoy styling.
   clusterConfig?: Partial<CircleLayerSpecification>;
@@ -54,7 +53,6 @@ export function useSiteLayer({
   clusterLabelLayerId,
   getSitesByDate,
   getLatestSites,
-  getLatestDate,
   clusterConfig = WAVE_BUOYS_LAYER_CONFIG,
   unclusteredConfig = UNCLUSTERED_WAVE_BUOYS_LAYER_CONFIG,
   clusterLabelConfig = WAVE_BUOY_CLUSTER_LABEL_LAYER_CONFIG,
@@ -68,12 +66,10 @@ export function useSiteLayer({
       isError: s.productError[product],
     })),
   );
-  const isMooring = product === PRODUCT.MOORING_TIMESERIES_REALTIME;
 
-  const { data: latestDate, isLoading: isLatestDateLoading } = useQuery({
-    queryKey: [isMooring ? 'mooring_latest_date' : 'wave_buoy_latest_date', timezone],
-    queryFn: () => getLatestDate(timezone),
-  });
+  const { data: latestDate, isLoading: isLatestDateLoading } = useQuery(
+    siteLatestDateQueryOptions(product, timezone),
+  );
 
   const shouldFetchByDate =
     enabled && !!date && !isLatestDateLoading && !!latestDate && date <= latestDate;

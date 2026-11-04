@@ -62,6 +62,7 @@ export const INITIAL_PRODUCT_ENABLED = {
   [PRODUCT.AUSTEMP_HEATWAVE_MHW_CATEGORY_MOSAIC]: false,
   [PRODUCT.WAVE_BUOYS]: true,
   [PRODUCT.MOORING_TIMESERIES_REALTIME]: true,
+  [PRODUCT.MOORING_ESTUARINE_COASTAL_WATER_QUALITY_MONITORING_REALTIME_QC]: true,
 } as const satisfies ProductEnabled;
 
 function buildProductBooleanMap(value: boolean): ProductEnabled {

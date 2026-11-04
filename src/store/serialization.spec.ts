@@ -32,6 +32,7 @@ describe('per-key round-trip', () => {
         [PRODUCT.AUSTEMP_HEATWAVE_MHW_CATEGORY_MOSAIC]: false,
         [PRODUCT.WAVE_BUOYS]: true,
         [PRODUCT.MOORING_TIMESERIES_REALTIME]: false,
+        [PRODUCT.MOORING_ESTUARINE_COASTAL_WATER_QUALITY_MONITORING_REALTIME_QC]: false,
       },
     },
   ];
@@ -79,7 +80,8 @@ describe('compact output format (no type tags, no JSON noise)', () => {
       [PRODUCT.AUSTEMP_HEATWAVE_MHW_CATEGORY_MOSAIC]: false,
       [PRODUCT.WAVE_BUOYS]: true,
       [PRODUCT.MOORING_TIMESERIES_REALTIME]: false,
+      [PRODUCT.MOORING_ESTUARINE_COASTAL_WATER_QUALITY_MONITORING_REALTIME_QC]: false,
     };
-    expect(serialize(enabled, 'productEnabled')).toBe('1100010');
+    expect(serialize(enabled, 'productEnabled')).toBe('11000100');
   });
 });

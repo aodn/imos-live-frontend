@@ -6,6 +6,10 @@ export const UNCLUSTERED_WAVE_BUOYS_LAYER_ID = 'unclustered_wave-buoys-layer';
 export const MOORING_CLUSTER_LABEL_LAYER_ID = 'mooring-cluster-label-layer';
 export const UNCLUSTERED_MOORING_LAYER_ID = 'unclustered_mooring-layer';
 
+// estuarine & coastal mooring intermediate layers
+export const ESTUARINE_MOORING_CLUSTER_LABEL_LAYER_ID = 'mooring-estuarine-cluster-label-layer';
+export const UNCLUSTERED_ESTUARINE_MOORING_LAYER_ID = 'unclustered_mooring-estuarine-layer';
+
 export const ZOOM_LIMIT_TEMP_POINTS_SOURCE_ID = 'zoom-limit-temp-points-source';
 export const ZOOM_LIMIT_TEMP_POINTS_CONNECTION_LINES_SOURCE_ID =
   'zoom-limit-temp-points-connection-lines-source';

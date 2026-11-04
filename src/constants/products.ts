@@ -12,22 +12,23 @@ export const PRODUCT = {
   AUSTEMP_HEATWAVE_MHW_CATEGORY_MOSAIC: 'satellite_austemp_heatwave_14day:mhw_category_mosaic',
   WAVE_BUOYS: 'wave-buoys',
   MOORING_TIMESERIES_REALTIME: 'mooring_timeseries_realtime',
+  MOORING_ESTUARINE_COASTAL_WATER_QUALITY_MONITORING_REALTIME_QC:
+    'mooring_estuarine_coastal_water_quality_monitoring_realtime_qc',
 } as const;
 
 export type ProductType = (typeof PRODUCT)[keyof typeof PRODUCT];
-export type TilesProduct = Exclude<
-  ProductType,
-  typeof PRODUCT.WAVE_BUOYS | typeof PRODUCT.MOORING_TIMESERIES_REALTIME
->;
+export type TilesProduct = Exclude<ProductType, SiteProduct>;
 export type ParticleTilesProduct = Extract<
   TilesProduct,
   typeof PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT
 >;
 export type ScalarTilesProduct = Exclude<TilesProduct, ParticleTilesProduct>;
-export type SiteProduct = Extract<
+export type MooringProduct = Extract<
   ProductType,
-  typeof PRODUCT.WAVE_BUOYS | typeof PRODUCT.MOORING_TIMESERIES_REALTIME
+  | typeof PRODUCT.MOORING_TIMESERIES_REALTIME
+  | typeof PRODUCT.MOORING_ESTUARINE_COASTAL_WATER_QUALITY_MONITORING_REALTIME_QC
 >;
+export type SiteProduct = typeof PRODUCT.WAVE_BUOYS | MooringProduct;
 
 type ProductValue = {
   name: string;
@@ -49,6 +50,8 @@ const WAVE_BUOYS_PORTAL_LINK =
   'https://portal-beta.aodn.org.au/details/b299cdcd-3dee-48aa-abdd-e0fcdbb9cadc';
 const MOORING_TIMESERIES_REALTIME_PORTAL_LINK =
   'https://portal-beta.aodn.org.au/details/a8f5c736-6eaa-47fb-a9eb-d778beb71701';
+const ESTUARINE_MOORING_PORTAL_LINK =
+  'https://portal-beta.aodn.org.au/details/f3c16fdb-72fc-4b55-bff1-3b5b5722f38f';
 
 export const PRODUCTS = {
   [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: {
@@ -124,6 +127,14 @@ export const PRODUCTS = {
       'Mooring timeseries data in near real-time. Moorings provide point measurements of oceanographic parameters such as temperature, salinity, and currents at fixed locations.',
     portalLink: MOORING_TIMESERIES_REALTIME_PORTAL_LINK,
   },
+  [PRODUCT.MOORING_ESTUARINE_COASTAL_WATER_QUALITY_MONITORING_REALTIME_QC]: {
+    name: 'Estuarine & coastal water quality monitoring real-time QC',
+    layerId: 'mooring-estuarine-water-quality-layer',
+    sourceId: 'mooring-estuarine-water-quality-source',
+    description:
+      'Near real-time water quality observations from a national network of estuarine and coastal moorings, including temperature, salinity, chlorophyll-a, dissolved oxygen, turbidity and fDOM. Data are quality controlled in accordance with QARTOD protocols.',
+    portalLink: ESTUARINE_MOORING_PORTAL_LINK,
+  },
 } as const satisfies Record<ProductType, ProductValue>;
 
 export const MAX_VECTOR_SPEED = 3.0 as const;
@@ -142,6 +153,16 @@ export const TILES_GROUP = [
   PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC,
   PRODUCT.AUSTEMP_HEATWAVE_MHW_CATEGORY_MOSAIC,
 ] as const satisfies TilesProduct[];
+
+export const SITE_GROUP = [
+  PRODUCT.WAVE_BUOYS,
+  PRODUCT.MOORING_TIMESERIES_REALTIME,
+  PRODUCT.MOORING_ESTUARINE_COASTAL_WATER_QUALITY_MONITORING_REALTIME_QC,
+] as const satisfies SiteProduct[];
+
+export function isSiteProduct(product: ProductType): product is SiteProduct {
+  return (SITE_GROUP as readonly ProductType[]).includes(product);
+}
 
 export const SCALAR_TILES_GROUP = TILES_GROUP.filter(
   p => p !== PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT,
