@@ -182,6 +182,8 @@ export type LineChartProps = {
   width?: number | string;
   height?: number | string;
   responsive?: boolean;
+  // Extra rules applied alongside the defaults when `responsive` is on.
+  responsiveRules?: Highcharts.ResponsiveRulesOptions[];
 
   // Axes configuration
   xAxis?: Highcharts.XAxisOptions | Highcharts.XAxisOptions[];

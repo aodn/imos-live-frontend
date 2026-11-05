@@ -3,13 +3,13 @@ import { PRODUCT, type MooringProduct } from '@/constants';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
 import type {
+  EstuarineMooringSiteDetailsFeature,
   MooringDataVariants,
   MooringSiteDetailsFeature,
-  NominalDepthVariant,
   SiteFeature,
 } from '@/types';
 import type { TIMEZONE } from '@/store';
-import { toSiteChartData } from '@/helpers';
+import { toMooringChannels, toSiteChartData, type MooringChannel } from '@/helpers';
 import { formatLatLngToDirectional, utcToTimezoneString } from '@/utils';
 import { Dropdown } from '@/components/Dropdown';
 import { useDidMountEffect } from '@/hooks';
@@ -34,10 +34,15 @@ export const MOORING_MIN_DATE = 30;
 
 const MOORING_DATA_GAP_THRESHOLD_MS = 60 * 60 * 1000;
 
+// Stable fallback so memos and effects don't re-run on every render while loading.
+const NO_CHANNELS: MooringChannel[] = [];
+
 type MooringVariableMeta = { key: MooringDataVariants; label: string; unit: string };
 
+type MooringDetailsFeature = MooringSiteDetailsFeature | EstuarineMooringSiteDetailsFeature;
+
 type MooringChartConfig = {
-  getDetails: (from: Date, to: Date, id: string) => Promise<MooringSiteDetailsFeature>;
+  getDetails: (from: Date, to: Date, id: string) => Promise<MooringDetailsFeature>;
   variables: readonly MooringVariableMeta[];
 };
 
@@ -65,15 +70,15 @@ const MOORING_CHART_CONFIG: Record<MooringProduct, MooringChartConfig> = {
   },
 };
 
+// For `select`, so the cache keeps the raw API response. Stable so it only re-runs on new data.
+function selectChannels(feature?: MooringDetailsFeature): MooringChannel[] {
+  return toMooringChannels(feature?.properties);
+}
+
 type MooringChartProps = {
   product: MooringProduct;
   mooringData: Omit<SiteFeature, 'type'>[];
 };
-
-// Nominal-depth property keys look like `NOMINAL_DEPTH_12.5`; pull out the numeric depth.
-function depthValue(key: string): number {
-  return Number(key.replace('NOMINAL_DEPTH_', ''));
-}
 
 // HTML string for the Highcharts title (rendered via useHTML on the chart).
 function formatMooringTitle(site: string, lng: number, lat: number): string {
@@ -180,6 +185,18 @@ function buildMooringYAxis(variable?: MooringVariableMeta): Highcharts.YAxisOpti
   ];
 }
 
+// Tailwind's `md` breakpoint, which is where the app treats a screen as mobile.
+const MOBILE_MAX_WIDTH_PX = 767;
+
+// On mobile the dropdowns sit over the chart, under its export button, so the plot starts
+// lower to make room for them. Uses the window width to switch at the same point as the CSS.
+const MOBILE_RESPONSIVE_RULES: Highcharts.ResponsiveRulesOptions[] = [
+  {
+    condition: { callback: () => window.innerWidth <= MOBILE_MAX_WIDTH_PX },
+    chartOptions: { chart: { marginTop: 58 } },
+  },
+];
+
 // Static range-selector chrome; `selected` and `buttons` are filled in per render.
 const MOORING_RANGE_SELECTOR: Omit<RangeSelectorConfig, 'selected' | 'buttons'> = {
   enabled: true,
@@ -219,6 +236,8 @@ export function MooringChart({ product, mooringData }: MooringChartProps) {
   const chartRef = useRef<LineChartExposedMethods>(null);
   // The single variable currently shown; defaults to temperature.
   const [selectedVar, setSelectedVar] = useState<MooringDataVariants>('TEMP');
+  // The instrument currently shown, where the site can choose between several.
+  const [selectedInstrument, setSelectedInstrument] = useState<string>();
 
   const { data: latestMooringDate, isLoading: isLatestMooringDateLoading } = useQuery(
     siteLatestDateQueryOptions(product, timezone),
@@ -234,33 +253,41 @@ export function MooringChart({ product, mooringData }: MooringChartProps) {
   const {
     isLoading,
     isError,
-    data: feature,
+    data: channels = NO_CHANNELS,
   } = useQuery({
     queryKey: ['mooringDetails', product, site, from.toISOString(), to.toISOString()],
     queryFn: () => getDetails(from, to, site),
+    select: selectChannels,
     // Wait for latestMooringDate so `to` is final on first fetch.
     enabled: !!site && !isLatestMooringDateLoading,
   });
 
-  const isFeatureEmpty = !feature || !feature.properties;
+  // Instruments with something to chart, so one without data can't leave the chart empty.
+  const instruments = useMemo(() => {
+    const names = channels
+      .filter(c => variables.some(v => (c.variables[v.key]?.length ?? 0) > 0))
+      .flatMap(c => (c.instrument ? [c.instrument] : []));
+    return [...new Set(names)];
+  }, [channels, variables]);
 
-  const depthKeys = useMemo(() => {
-    if (isFeatureEmpty) return [];
-    return Object.keys(feature.properties)
-      .filter(key => key.startsWith('NOMINAL_DEPTH_'))
-      .sort((a, b) => depthValue(a) - depthValue(b)) as NominalDepthVariant[];
-  }, [feature?.properties, isFeatureEmpty]);
+  // Falls back to the first instrument if this site doesn't have the chosen one. Stays
+  // undefined for products that don't report instruments, which keeps all their channels.
+  const activeInstrument = instruments.find(i => i === selectedInstrument) ?? instruments[0];
 
-  // Variables that actually have data at some depth — only these get a selector button.
-  const availableVars = useMemo(() => {
-    if (isFeatureEmpty) return [];
-    return variables.filter(v =>
-      depthKeys.some(key => (feature.properties[key]?.[v.key]?.length ?? 0) > 0),
-    );
-  }, [feature?.properties, isFeatureEmpty, depthKeys, variables]);
+  const instrumentChannels = useMemo(
+    () => channels.filter(c => c.instrument === activeInstrument),
+    [channels, activeInstrument],
+  );
+
+  // Variables the active instrument has data for — only these get a selector option.
+  const availableVars = useMemo(
+    () =>
+      variables.filter(v => instrumentChannels.some(c => (c.variables[v.key]?.length ?? 0) > 0)),
+    [instrumentChannels, variables],
+  );
 
   // The chart shows one variable at a time; fall back to the first available one
-  // if the chosen variable has no data for this mooring.
+  // if the chosen variable has no data for this mooring or instrument.
   const activeVar = useMemo(
     () => availableVars.find(v => v.key === selectedVar) ?? availableVars[0],
     [availableVars, selectedVar],
@@ -270,43 +297,40 @@ export function MooringChart({ product, mooringData }: MooringChartProps) {
   const activeVarRef = useRef(activeVar);
   activeVarRef.current = activeVar;
 
-  const seriesData: SeriesData[] = useMemo(() => {
-    if (isFeatureEmpty || !activeVar) return [];
-    return depthKeys.flatMap((key, i): SeriesData[] => {
-      const depth = depthValue(key);
-      const raw = feature.properties[key]?.[activeVar.key] ?? [];
-      if (raw.length === 0) return [];
-      return [
-        {
-          name: `${depth} m`,
-          data: [...raw].sort((a, b) => a[0] - b[0]),
-          color: colors[i % colors.length],
-          type: 'line',
-          lineWidth: 2,
-          marker: { enabled: true, radius: 2, symbol: 'circle' },
-          yAxis: 0,
-        },
-      ];
+  // The depths reporting the active variable, each with a colour that stays the same when
+  // switching variables.
+  const activeChannels = useMemo(() => {
+    if (!activeVar) return [];
+    return instrumentChannels.flatMap((channel, i) => {
+      const data = channel.variables[activeVar.key] ?? [];
+      if (data.length === 0) return [];
+      return [{ label: `${channel.depth} m`, data, color: colors[i % colors.length] }];
     });
-  }, [feature?.properties, isFeatureEmpty, depthKeys, activeVar]);
+  }, [instrumentChannels, activeVar]);
 
-  // Latest reading of the active variable at each depth — one cell per depth.
-  const observationData: ObservationData = useMemo(() => {
-    if (isFeatureEmpty || !activeVar) return [];
-    return depthKeys.flatMap((key): ObservationData => {
-      const last = (feature.properties[key]?.[activeVar.key] ?? []).at(-1);
-      if (!Array.isArray(last)) return [];
-      const [timeStamp, value] = last;
-      return [
-        {
-          timeStamp,
-          label: `${depthValue(key)} m`,
-          value: value?.toFixed(2),
-          unit: activeVar.unit,
-        },
-      ];
-    });
-  }, [feature?.properties, isFeatureEmpty, depthKeys, activeVar]);
+  const seriesData: SeriesData[] = useMemo(
+    () =>
+      activeChannels.map(({ label, data, color }) => ({
+        name: label,
+        data: [...data].sort((a, b) => a[0] - b[0]),
+        color,
+        type: 'line',
+        lineWidth: 2,
+        marker: { enabled: true, radius: 2, symbol: 'circle' },
+        yAxis: 0,
+      })),
+    [activeChannels],
+  );
+
+  // Latest reading of the active variable at each depth — one cell per line on the chart.
+  const observationData: ObservationData = useMemo(
+    () =>
+      activeChannels.map(({ label, data }) => {
+        const [timeStamp, value] = data[data.length - 1];
+        return { timeStamp, label, value: value?.toFixed(2), unit: activeVar?.unit };
+      }),
+    [activeChannels, activeVar],
+  );
 
   const yAxisConfig = useMemo(() => buildMooringYAxis(activeVar), [activeVar]);
 
@@ -401,7 +425,7 @@ export function MooringChart({ product, mooringData }: MooringChartProps) {
         <p>Loading…</p>
       </div>
     );
-  if (isFeatureEmpty || seriesData.length === 0)
+  if (seriesData.length === 0)
     return (
       <div>
         <MooringTitleHeading site={site} lng={lng} lat={lat} />
@@ -410,78 +434,101 @@ export function MooringChart({ product, mooringData }: MooringChartProps) {
     );
 
   return (
-    <div className="relative w-full">
-      {availableVars.length > 1 && (
-        <div className="absolute right-10 top-2 z-10">
-          <Dropdown
-            key={activeVar?.key}
-            size="sm"
-            className="w-44"
-            options={availableVars.map(v => ({ value: v.key, label: v.label }))}
-            initialValue={activeVar?.key}
-            onChange={value => setSelectedVar(value as MooringDataVariants)}
-          />
-        </div>
-      )}
-      <LineChart
-        ref={chartRef}
-        // Drive updates imperatively via the ref (see useDidMountEffect above) instead of
-        // re-rendering from props: an in-place chart.update after a series swap leaves the
-        // range-selector buttons unresponsive and resets the zoom.
-        allowChartUpdate={false}
-        width={'100%'}
-        height={500}
-        series={seriesData}
-        title={title}
-        turboThreshold={4000}
-        onChartLoad={handleChartLoad}
-        onRangeSelect={updateVisibleRange}
-        rangeSelector={{
-          ...MOORING_RANGE_SELECTOR,
-          selected: defaultSelected,
-          buttons: dynamicButtons,
-        }}
-        navigator={{
-          enabled: true,
-          height: 50,
-          margin: 10,
-        }}
-        chart={{
-          marginTop: 28,
-          marginBottom: 40,
-          spacing: [10, 10, 10, 10],
-        }}
-        // @ts-expect-error — `useUTC` is a valid runtime `time` option; the public type omits it.
-        time={{ useUTC: timezone === 'UTC' }}
-        scrollbar={{ enabled: true, height: 20 }}
-        responsive={true}
-        xAxis={xAxisConfig}
-        yAxis={yAxisConfig}
-        plotOptions={{
-          series: {
-            clip: true,
-            cropThreshold: 0,
-            gapSize: MOORING_DATA_GAP_THRESHOLD_MS,
-            gapUnit: 'value',
-          },
-        }}
-        legend={{ enabled: true }}
-        exporting={{
-          enabled: true,
-          selectedDate,
-          filename: () => {
-            const { min, max } = visibleRangeRef.current ?? {};
-            return min && max ? `${site}_${min}_${max}` : `${site}`;
-          },
-          formats: ['png', 'csv', 'xls'],
-        }}
-        tooltip={{
-          shared: true,
-          split: false,
-          useHTML: true,
-          customFormatter: tooltipFormatter,
-        }}
-      />
+    <div className="relative w-full md:max-lg:[&_.highcharts-title]:invisible">
+      <div className="hidden pb-2 md:block lg:hidden">
+        <MooringTitleHeading site={site} lng={lng} lat={lat} />
+      </div>
+      {/* Highcharts' inline z-index would trap the export menu underneath the dropdowns. */}
+      <div className="relative [&_.highcharts-container]:z-auto!">
+        {/* Inside the chart on wide screens and under its export button on mobile. In between
+          they get their own row, as they would cover the chart title and zoom buttons. */}
+        {(instruments.length > 0 || availableVars.length > 1) && (
+          <div className="flex gap-2 px-2 pb-2 md:justify-end max-md:absolute max-md:inset-x-0 max-md:top-[38px] max-md:z-10 max-md:pb-0 xl:absolute xl:right-10 xl:top-2 xl:z-10 xl:p-0">
+            {/* Shown even with one instrument so the user can always see the data's source. */}
+            {instruments.length > 0 && (
+              <Dropdown
+                key={activeInstrument}
+                disabled={instruments.length === 1}
+                size="sm"
+                className="w-44 min-w-0"
+                options={instruments.map(i => ({ value: i, label: i }))}
+                initialValue={activeInstrument}
+                onChange={value => setSelectedInstrument(value as string)}
+              />
+            )}
+            {availableVars.length > 1 && (
+              <Dropdown
+                key={activeVar?.key}
+                size="sm"
+                className="w-44 min-w-0"
+                options={availableVars.map(v => ({ value: v.key, label: v.label }))}
+                initialValue={activeVar?.key}
+                onChange={value => setSelectedVar(value as MooringDataVariants)}
+              />
+            )}
+          </div>
+        )}
+        <LineChart
+          ref={chartRef}
+          // Drive updates imperatively via the ref (see useDidMountEffect above) instead of
+          // re-rendering from props: an in-place chart.update after a series swap leaves the
+          // range-selector buttons unresponsive and resets the zoom.
+          allowChartUpdate={false}
+          width={'100%'}
+          height={500}
+          series={seriesData}
+          title={title}
+          turboThreshold={4000}
+          onChartLoad={handleChartLoad}
+          onRangeSelect={updateVisibleRange}
+          rangeSelector={{
+            ...MOORING_RANGE_SELECTOR,
+            selected: defaultSelected,
+            buttons: dynamicButtons,
+          }}
+          navigator={{
+            enabled: true,
+            height: 50,
+            margin: 10,
+          }}
+          chart={{
+            marginTop: 28,
+            marginBottom: 40,
+            spacing: [10, 10, 10, 10],
+          }}
+          // @ts-expect-error — `useUTC` is a valid runtime `time` option; the public type omits it.
+          time={{ useUTC: timezone === 'UTC' }}
+          scrollbar={{ enabled: true, height: 20 }}
+          responsive={true}
+          responsiveRules={MOBILE_RESPONSIVE_RULES}
+          xAxis={xAxisConfig}
+          yAxis={yAxisConfig}
+          plotOptions={{
+            series: {
+              clip: true,
+              cropThreshold: 0,
+              gapSize: MOORING_DATA_GAP_THRESHOLD_MS,
+              gapUnit: 'value',
+            },
+          }}
+          legend={{ enabled: true }}
+          exporting={{
+            enabled: true,
+            selectedDate,
+            filename: () => {
+              const { min, max } = visibleRangeRef.current ?? {};
+              return min && max ? `${site}_${min}_${max}` : `${site}`;
+            },
+            formats: ['png', 'csv', 'xls'],
+          }}
+          tooltip={{
+            shared: true,
+            split: false,
+            useHTML: true,
+            customFormatter: tooltipFormatter,
+          }}
+        />
+      </div>
       <ObservationPanel observationData={observationData} />
     </div>
   );

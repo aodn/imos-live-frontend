@@ -29,17 +29,41 @@ const TIMESERIES_PROPERTIES = {
 };
 
 const ESTUARINE_PROPERTIES = {
-  'NOMINAL_DEPTH_0.9': {
-    TEMP: buildSeries(18, 1),
-    PSAL: buildSeries(35.2, 0.1),
-    CPHL: buildSeries(0.5, 0.2),
-    DOXS: buildSeries(101, 3),
-    TURB: buildSeries(1.2, 0.2),
-    FDOM: buildSeries(0.4, 0.1),
-    PHYCO: [],
-    FLUSI: buildSeries(1.7, 0.2),
+  'instrument_EXO2-SONDE': {
+    'NOMINAL_DEPTH_0.9': {
+      TEMP: buildSeries(18, 1),
+      PSAL: buildSeries(35.2, 0.1),
+      CPHL: buildSeries(0.5, 0.2),
+      DOXS: buildSeries(101, 3),
+      TURB: buildSeries(1.2, 0.2),
+      FDOM: buildSeries(0.4, 0.1),
+      PHYCO: [],
+      FLUSI: [],
+    },
+  },
+  'instrument_HAI-AHIW2A-CAD': {
+    'NOMINAL_DEPTH_0.9': {
+      TEMP: buildSeries(17.8, 1),
+      PSAL: [],
+      CPHL: [],
+      DOXS: [],
+      TURB: [],
+      FDOM: [],
+      PHYCO: [],
+      FLUSI: buildSeries(1.7, 0.2),
+    },
   },
 };
+
+const SINGLE_INSTRUMENT_SITE = 'TAS-DERWENT-RIVER-B1';
+
+const SINGLE_INSTRUMENT_PROPERTIES = {
+  'instrument_EXO2-SONDE': ESTUARINE_PROPERTIES['instrument_EXO2-SONDE'],
+};
+
+function estuarineProperties(site: unknown) {
+  return site === SINGLE_INSTRUMENT_SITE ? SINGLE_INSTRUMENT_PROPERTIES : ESTUARINE_PROPERTIES;
+}
 
 // Answers the chart's requests with sample data so the story runs without a backend.
 const sampleDataAdapter: AxiosAdapter = async config => {
@@ -50,7 +74,7 @@ const sampleDataAdapter: AxiosAdapter = async config => {
         type: 'Feature',
         geometry: { type: 'Point', coordinates: [138.314, -34.728] },
         properties: url.includes('mooring_estuarine')
-          ? ESTUARINE_PROPERTIES
+          ? estuarineProperties(config.params?.mooring)
           : TIMESERIES_PROPERTIES,
       };
   return { data, status: 200, statusText: 'OK', headers: {}, config };
@@ -92,5 +116,12 @@ export const EstuarineWaterQuality: Story = {
   args: {
     product: PRODUCT.MOORING_ESTUARINE_COASTAL_WATER_QUALITY_MONITORING_REALTIME_QC,
     mooringData: buildMooringData('SA-ST-KILDA'),
+  },
+};
+
+export const EstuarineSingleInstrument: Story = {
+  args: {
+    product: PRODUCT.MOORING_ESTUARINE_COASTAL_WATER_QUALITY_MONITORING_REALTIME_QC,
+    mooringData: buildMooringData(SINGLE_INSTRUMENT_SITE),
   },
 };

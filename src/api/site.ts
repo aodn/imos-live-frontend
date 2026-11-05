@@ -2,6 +2,7 @@ import type {
   RawSiteFeatureCollection,
   WaveBuoySiteDetailsFeature,
   MooringSiteDetailsFeature,
+  EstuarineMooringSiteDetailsFeature,
 } from '@/types';
 import { PRODUCT, type SiteProduct } from '@/constants';
 import { normalizeSiteDates } from '@/helpers';
@@ -106,7 +107,7 @@ export const getLatestMooringSites = createGetLatestSites('moorings_between_date
 export const getMooringLatestDate = createGetLatestDate('moorings_latest_available_date');
 
 // Estuarine & coastal moorings
-export const getEstuarineMooringDetails = createGetDetails<MooringSiteDetailsFeature>(
+export const getEstuarineMooringDetails = createGetDetails<EstuarineMooringSiteDetailsFeature>(
   'mooring_estuarine_water_quality_details_between_dates',
   'mooring',
 );

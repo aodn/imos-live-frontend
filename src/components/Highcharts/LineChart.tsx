@@ -2,6 +2,7 @@ import type React from 'react';
 import { useRef, useImperativeHandle, useMemo, memo } from 'react';
 import Highcharts from 'highcharts/highstock';
 import HighchartsReact from 'highcharts-react-official';
+import { cn } from '@/utils';
 import type { LineChartProps } from './type';
 import { useChartOptions } from './useChartOptions';
 import { useChartMethods } from './useChartMethods';
@@ -52,7 +53,14 @@ export const LineChart = memo(function LineChart({ ref, ...props }: LineChartPro
   );
 
   return (
-    <div className={className} style={containerStyle}>
+    <div
+      className={cn(
+        // No room for the zoom buttons on mobile; the navigator below the chart still zooms.
+        'max-md:[&_.highcharts-range-selector-buttons]:hidden',
+        className,
+      )}
+      style={containerStyle}
+    >
       <HighchartsReact
         ref={chartRef}
         highcharts={Highcharts}
