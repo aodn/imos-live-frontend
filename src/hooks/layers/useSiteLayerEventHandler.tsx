@@ -23,9 +23,9 @@ type SiteLayerEventConfig = {
 
 // Hover popup site-row label per site product.
 const SITE_HOVER_LABEL: Record<SiteProduct, string> = {
-  [PRODUCT.WAVE_BUOYS]: 'Buoy',
-  [PRODUCT.MOORING_TIMESERIES_REALTIME]: 'Mooring',
-  [PRODUCT.MOORING_ESTUARINE_COASTAL_WATER_QUALITY_MONITORING_REALTIME_QC]: 'Estuarine mooring',
+  [PRODUCT.WAVE_BUOYS]: 'Wave Buoy',
+  [PRODUCT.MOORING_TIMESERIES_REALTIME]: 'NRS Mooring',
+  [PRODUCT.MOORING_ESTUARINE_COASTAL_WATER_QUALITY_MONITORING_REALTIME_QC]: 'Estuarine Mooring',
 };
 
 /**
