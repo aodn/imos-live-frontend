@@ -1,5 +1,5 @@
-import { getWaveBuoyDetails, getWaveBuoyLatestDate } from '@/api';
-import { WAVE_BUOY_MIN_DATE } from '@/constants';
+import { getWaveBuoyDetails, siteLatestDateQueryOptions } from '@/api';
+import { PRODUCT, WAVE_BUOY_MIN_DATE } from '@/constants';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
 import type { SiteFeature } from '@/types';
@@ -201,10 +201,9 @@ export function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartPro
   const visibleRangeRef = useRef<{ min: string; max: string } | null>(null);
   const chartRef = useRef<LineChartExposedMethods>(null);
 
-  const { data: latestWaveBuoyDate, isLoading: isLatestWaveBuoyDateLoading } = useQuery({
-    queryKey: ['wave_buoy_latest_date', timezone],
-    queryFn: () => getWaveBuoyLatestDate(timezone),
-  });
+  const { data: latestWaveBuoyDate, isLoading: isLatestWaveBuoyDateLoading } = useQuery(
+    siteLatestDateQueryOptions(PRODUCT.WAVE_BUOYS, timezone),
+  );
 
   const { from, to } = useMemo(() => {
     const parse = timezone === 'UTC' ? dayjs.utc : dayjs;

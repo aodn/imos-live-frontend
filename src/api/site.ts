@@ -2,10 +2,13 @@ import type {
   RawSiteFeatureCollection,
   WaveBuoySiteDetailsFeature,
   MooringSiteDetailsFeature,
+  EstuarineMooringSiteDetailsFeature,
 } from '@/types';
+import { PRODUCT, type SiteProduct } from '@/constants';
 import { normalizeSiteDates } from '@/helpers';
 import type { TIMEZONE } from '@/store';
 import { utcToTimezoneString, instantToUTCString } from '@/utils';
+import { queryOptions } from '@tanstack/react-query';
 import axios from 'axios';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
@@ -102,3 +105,33 @@ export const getMooringDetails = createGetDetails<MooringSiteDetailsFeature>(
 export const getMooringSitesByDate = createGetSitesByDate('moorings_between_dates');
 export const getLatestMooringSites = createGetLatestSites('moorings_between_dates');
 export const getMooringLatestDate = createGetLatestDate('moorings_latest_available_date');
+
+// Estuarine & coastal moorings
+export const getEstuarineMooringDetails = createGetDetails<EstuarineMooringSiteDetailsFeature>(
+  'mooring_estuarine_water_quality_details_between_dates',
+  'mooring',
+);
+export const getEstuarineMooringSitesByDate = createGetSitesByDate(
+  'mooring_estuarine_water_quality_between_dates',
+);
+export const getLatestEstuarineMooringSites = createGetLatestSites(
+  'mooring_estuarine_water_quality_between_dates',
+);
+export const getEstuarineMooringLatestDate = createGetLatestDate(
+  'mooring_estuarine_water_quality_latest_available_date',
+);
+
+const SITE_LATEST_DATE_FETCHERS: Record<SiteProduct, (timezone: TIMEZONE) => Promise<string>> = {
+  [PRODUCT.WAVE_BUOYS]: getWaveBuoyLatestDate,
+  [PRODUCT.MOORING_TIMESERIES_REALTIME]: getMooringLatestDate,
+  [PRODUCT.MOORING_ESTUARINE_COASTAL_WATER_QUALITY_MONITORING_REALTIME_QC]:
+    getEstuarineMooringLatestDate,
+};
+
+// Shared by the site layers, sidebar cards and drawer charts so they hit one cache entry.
+export function siteLatestDateQueryOptions(product: SiteProduct, timezone: TIMEZONE) {
+  return queryOptions({
+    queryKey: ['site_latest_date', product, timezone] as const,
+    queryFn: () => SITE_LATEST_DATE_FETCHERS[product](timezone),
+  });
+}

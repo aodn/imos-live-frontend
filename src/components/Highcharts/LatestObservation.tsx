@@ -54,7 +54,17 @@ function gridColsClass(numOfCols: number): string | undefined {
   }[numOfCols];
 }
 
-function ObservationCell({ field, isLast }: { field: ObservationField; isLast: boolean }) {
+function ObservationCell({
+  field,
+  isLast,
+  showTime,
+}: {
+  field: ObservationField;
+  isLast: boolean;
+  showTime: boolean;
+}) {
+  const timezone = useMapUIStore(s => s.timezone);
+
   return (
     <div className={cn('col-span-1', { 'border-r': !isLast })}>
       <div className="px-3 py-2">
@@ -64,6 +74,11 @@ function ObservationCell({ field, isLast }: { field: ObservationField; isLast: b
         <div className="text-sm font-medium text-gray-900" data-testid="latest-observation-value">
           {field.value}
         </div>
+        {showTime && field.timeStamp && (
+          <div className="text-xs font-light mt-1" data-testid="latest-observation-cell-timestamp">
+            {utcToTimezoneString(field.timeStamp, timezone, 'YYYY-MM-DD HH:mm:ss')}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -74,6 +89,9 @@ function ObservationCell({ field, isLast }: { field: ObservationField; isLast: b
 export function ObservationPanel({ observationData }: { observationData: ObservationData }) {
   const timezone = useMapUIStore(s => s.timezone);
   const latestTimeStamp = observationData[0]?.timeStamp;
+  // Readings can come from different times (e.g. one instrument stopped reporting first),
+  // so one shared time in the header would mislabel some of them.
+  const hasMixedTimes = new Set(observationData.map(field => field.timeStamp)).size > 1;
 
   return (
     <div className="w-full">
@@ -81,7 +99,7 @@ export function ObservationPanel({ observationData }: { observationData: Observa
         <div className="bg-gray-50 border-b border-gray-300 px-3 py-2">
           <h2 className="text-sm font-medium text-gray-800">
             <span>Latest Observations</span>
-            {latestTimeStamp && (
+            {latestTimeStamp && !hasMixedTimes && (
               <span className="text-xs font-light ml-2" data-testid="latest-observation-timestamp">
                 {utcToTimezoneString(latestTimeStamp, timezone, 'YYYY-MM-DD HH:mm:ss')}
               </span>
@@ -95,6 +113,7 @@ export function ObservationPanel({ observationData }: { observationData: Observa
               key={field.label ?? index}
               field={field}
               isLast={index === observationData.length - 1}
+              showTime={hasMixedTimes}
             />
           ))}
         </div>

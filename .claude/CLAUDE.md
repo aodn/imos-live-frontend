@@ -66,7 +66,7 @@ Each product is visualized via a layer hook in `src/hooks/layers/`:
 
 - `useParticleAtlasLayer` — GSLA Ocean Geostrophic Current (WebGL particle animation)
 - `useScalarAtlasLayer` — used by all four scalar tiles products: GSLA Anomaly Sea Levels, Marine Heatwave SST Mosaic, SSTA Mosaic, and MCS Category (WebGL atlas scalar overlay)
-- `useSiteLayer` — shared by the clustered-point **site products** (Wave Buoys, Mooring Timeseries Realtime). Parameterized by `product`, the by-date/latest fetch fns, the intermediate layer IDs, and optional per-product paint configs. Paired with `useSiteLayerEventHandler` (cluster/hover/click/selection), which wraps the per-interaction hooks in `src/hooks/layers/siteLayers/` and is keyed by `product` for product-specific bits like the hover-popup label
+- `useSiteLayer` — shared by the clustered-point **site products** (Wave Buoys, Mooring Timeseries Realtime, Estuarine & Coastal Water Quality). Parameterized by `product`, the by-date/latest fetch fns, the intermediate layer IDs, and optional per-product paint configs. Paired with `useSiteLayerEventHandler` (cluster/hover/click/selection), which wraps the per-interaction hooks in `src/hooks/layers/siteLayers/` and is keyed by `product` for product-specific bits like the hover-popup label
 
 When adding a new product, touch these files in order:
 

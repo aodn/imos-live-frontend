@@ -74,6 +74,10 @@ export function Map() {
               { Icon: WaterSurfaceIcon, product: PRODUCT.GSLA_ANOMALY_SEA_LEVELS },
               { Icon: WaveBuoyIcon, product: PRODUCT.WAVE_BUOYS },
               { Icon: WaveBuoyIcon, product: PRODUCT.MOORING_TIMESERIES_REALTIME },
+              {
+                Icon: WaveBuoyIcon,
+                product: PRODUCT.MOORING_ESTUARINE_COASTAL_WATER_QUALITY_MONITORING_REALTIME_QC,
+              },
               { Icon: ThermometerIcon, product: PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC },
               { Icon: ThermometerIcon, product: PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC },
               { Icon: ThermometerIcon, product: PRODUCT.AUSTEMP_HEATWAVE_MHW_CATEGORY_MOSAIC },

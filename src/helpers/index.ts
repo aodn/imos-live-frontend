@@ -12,3 +12,4 @@ export * from './mergeAndFilterBuoyFeatures.ts';
 export * from './normalizeSiteData.ts';
 export * from './coordinateToLngLat';
 export * from './addIdToFeatures';
+export * from './mooringChannels';

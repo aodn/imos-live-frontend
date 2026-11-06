@@ -4,6 +4,7 @@ import type {
   LineLayerSpecification,
   SymbolLayerSpecification,
 } from 'mapbox-gl';
+import { PRODUCT } from './products';
 
 export const WAVE_BUOYS_LAYER_CONFIG: Partial<CircleLayerSpecification> = {
   filter: ['has', 'point_count'], // Only show clustered points
@@ -144,12 +145,50 @@ export const UNCLUSTERED_MOORING_LAYER_CONFIG: Partial<CircleLayerSpecification>
   },
 } as const;
 
+// Estuarine & coastal moorings share the mooring layer styling with their own colour, which
+// is the same for clusters and individual sites. Violet keeps them distinct from the
+// wave-buoy blue and the timeseries-mooring amber.
+const ESTUARINE_MOORING_COLOR = '#8b5cf6';
+
+export const ESTUARINE_MOORING_LAYER_CONFIG: Partial<CircleLayerSpecification> = {
+  ...MOORING_LAYER_CONFIG,
+  paint: {
+    ...MOORING_LAYER_CONFIG.paint,
+    'circle-color': ESTUARINE_MOORING_COLOR,
+  },
+};
+
+export const UNCLUSTERED_ESTUARINE_MOORING_LAYER_CONFIG: Partial<CircleLayerSpecification> = {
+  ...UNCLUSTERED_MOORING_LAYER_CONFIG,
+  paint: {
+    ...UNCLUSTERED_MOORING_LAYER_CONFIG.paint,
+    'circle-color': [
+      'case',
+      ['boolean', ['feature-state', 'selected'], false],
+      '#ffffff', // selected: white fill
+      ['boolean', ['get', 'hasDataForDate'], true],
+      ESTUARINE_MOORING_COLOR, // active
+      '#aaaaaa', // inactive: gray
+    ],
+  },
+};
+
+// Spread-out points shown when a cluster can't zoom further. Each point carries its
+// owning `product` (see createZoomLimitPoints), so colour it to match that product.
 export const ZOOM_LIMIT_TEMPPOINT_LAYER_PARTIAL: Partial<CircleLayerSpecification> = {
   paint: {
     'circle-color': [
       'case',
       ['boolean', ['get', 'hasDataForDate'], true],
-      '#11b4da', // active: blue
+      [
+        'match',
+        ['get', 'product'],
+        PRODUCT.MOORING_TIMESERIES_REALTIME,
+        '#f97316', // timeseries mooring: amber
+        PRODUCT.MOORING_ESTUARINE_COASTAL_WATER_QUALITY_MONITORING_REALTIME_QC,
+        ESTUARINE_MOORING_COLOR,
+        '#11b4da', // wave buoys (default): blue
+      ],
       '#aaaaaa', // inactive: gray
     ],
     'circle-radius': 8,

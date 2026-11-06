@@ -23,6 +23,7 @@ export const useChartOptions = (props: LineChartProps) => {
     width = '100%',
     height = 400,
     responsive = true,
+    responsiveRules,
     xAxis,
     yAxis,
     theme,
@@ -117,6 +118,7 @@ export const useChartOptions = (props: LineChartProps) => {
                   },
                 },
               },
+              ...(responsiveRules ?? []),
             ],
           }
         : undefined,
@@ -154,6 +156,7 @@ export const useChartOptions = (props: LineChartProps) => {
     width,
     height,
     responsive,
+    responsiveRules,
     xAxis,
     yAxis,
     theme,
