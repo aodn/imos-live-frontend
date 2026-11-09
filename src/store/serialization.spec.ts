@@ -4,7 +4,7 @@ import { deserialize, serialize } from './serialization';
 
 describe('per-key round-trip', () => {
   const cases: { key: string; value: unknown }[] = [
-    { key: 'center', value: { lng: 133.7751, lat: -25.2744 } },
+    { key: 'center', value: { lng: 133.775, lat: -25.274 } },
     { key: 'zoom', value: 3 },
     { key: 'zoom', value: 5.5 },
     { key: 'style', value: 'Streets' },
@@ -46,7 +46,14 @@ describe('per-key round-trip', () => {
 
 describe('compact output format (no type tags, no JSON noise)', () => {
   it('writes center as lng*lat', () => {
-    expect(serialize({ lng: 133.7751, lat: -25.2744 }, 'center')).toBe('133.7751*-25.2744');
+    expect(serialize({ lng: 133.775, lat: -25.274 }, 'center')).toBe('133.775*-25.274');
+  });
+
+  it('truncates center and zoom to 3 decimal places', () => {
+    expect(serialize({ lng: 137.37228080278703, lat: -36.53327784135474 }, 'center')).toBe(
+      '137.372*-36.533',
+    );
+    expect(serialize(3.1729020707172544, 'zoom')).toBe('3.172');
   });
 
   it('writes numbers and strings bare', () => {
