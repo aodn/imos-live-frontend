@@ -1,0 +1,10 @@
+name: Build/Deploy Staging
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/build-deploy.yml
+    with:
+      env: staging
