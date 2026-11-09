@@ -1,8 +1,8 @@
 /**
  * URL-state codec
  *
- *   center         → `<lng>*<lat>`            e.g. `133.7751*-25.2744`
- *   zoom           → `<number>`               e.g. `3`
+ *   center         → `<lng>*<lat>`            e.g. `133.775*-25.274` (3 dp, truncated)
+ *   zoom           → `<number>`               e.g. `3.172` (3 dp, truncated)
  *   style / date   → `<string>`               e.g. `Streets`, `2026-05-31`
  *   *Enabled flags → `1` | `0`
  *   particleConfig → `<n1>*<n2>*…`            values in `PARTICLE_FIELDS` order
@@ -29,14 +29,25 @@ const PARTICLE_FIELDS = Object.keys(INITIAL_PARTICLE_CONFIG) as (keyof ParticleC
 // share this array, so the round-trip is order-independent by construction.
 const PRODUCT_ORDER = Object.values(PRODUCT);
 
-const numCodec: KeyCodec = { encode: v => String(v), decode: s => Number(s) };
+// Map position in the URL is truncated to 3 decimal places (~100 m for
+// lng/lat), which keeps links short without a noticeable shift on restore.
+const URL_DECIMALS = 3;
+const URL_SCALE = 10 ** URL_DECIMALS;
+
+// Truncate (not round) to URL_DECIMALS. The intermediate `toFixed` absorbs
+// float error so e.g. 1.005 stays 1.005 instead of becoming 1.004.
+function truncateDecimals(n: number): string {
+  return String(Math.trunc(Number((n * URL_SCALE).toFixed(6))) / URL_SCALE);
+}
+
 const strCodec: KeyCodec = { encode: v => String(v), decode: s => s };
 const boolCodec: KeyCodec = { encode: v => (v ? '1' : '0'), decode: s => s === '1' };
+const zoomCodec: KeyCodec = { encode: v => truncateDecimals(v as number), decode: s => Number(s) };
 
 const centerCodec: KeyCodec = {
   encode: v => {
     const c = v as { lng: number; lat: number };
-    return `${c.lng}${LIST_SEP}${c.lat}`;
+    return `${truncateDecimals(c.lng)}${LIST_SEP}${truncateDecimals(c.lat)}`;
   },
   decode: s => {
     const [lng, lat] = s.split(LIST_SEP);
@@ -75,7 +86,7 @@ const productEnabledCodec: KeyCodec = {
 
 const KEY_CODECS: Record<string, KeyCodec> = {
   center: centerCodec,
-  zoom: numCodec,
+  zoom: zoomCodec,
   style: strCodec,
   date: strCodec,
   worldBoundariesEnabled: boolCodec,
