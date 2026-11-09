@@ -10,6 +10,9 @@ export const UNCLUSTERED_MOORING_LAYER_ID = 'unclustered_mooring-layer';
 export const ESTUARINE_MOORING_CLUSTER_LABEL_LAYER_ID = 'mooring-estuarine-cluster-label-layer';
 export const UNCLUSTERED_ESTUARINE_MOORING_LAYER_ID = 'unclustered_mooring-estuarine-layer';
 
+// triangle marker image id, used by `icon-image`
+export const TRIANGLE_MARKER_IMAGE_ID = 'site-triangle-marker';
+
 export const ZOOM_LIMIT_TEMP_POINTS_SOURCE_ID = 'zoom-limit-temp-points-source';
 export const ZOOM_LIMIT_TEMP_POINTS_CONNECTION_LINES_SOURCE_ID =
   'zoom-limit-temp-points-connection-lines-source';
