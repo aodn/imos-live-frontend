@@ -6,7 +6,7 @@ on:
       env:
         required: true
         type: string
-        description: 'The environment to deploy to (e.g. production, edge)'
+        description: 'The environment to deploy to (e.g. production, staging, edge)'
 
 concurrency:
   group: build-deploy-${{ inputs.env }}
