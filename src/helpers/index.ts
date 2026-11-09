@@ -1,6 +1,7 @@
 export * from './showPopup';
 export * from './addOrUpdateGeoJsonSource.ts';
 export * from './addLayerInOrder.ts';
+export * from './drawTriangleMarkerImage.ts';
 export * from './createZoomLimitPoints.ts';
 export * from './removeZoomLimitTempPoints.ts';
 export * from './addOrUpdateVectorSource.ts';

@@ -1,5 +1,5 @@
 import { siteLatestDateQueryOptions } from '@/api';
-import type { SiteProduct } from '@/constants';
+import type { SiteLayerConfig, SiteProduct } from '@/constants';
 import {
   PRODUCTS,
   UNCLUSTERED_WAVE_BUOYS_LAYER_CONFIG,
@@ -7,7 +7,7 @@ import {
   WAVE_BUOYS_LAYER_CONFIG,
 } from '@/constants';
 import { addLayerInOrder, addOrUpdateGeoJsonSource, mergeAndFilterBuoyFeatures } from '@/helpers';
-import { circleLayer, symbolLayer } from '@/layers';
+import { createLayer, symbolLayer } from '@/layers';
 import { useMapUIStore, setProductErrorByProduct, type TIMEZONE } from '@/store';
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useMemo } from 'react';
@@ -17,6 +17,8 @@ import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
 import type { RawSiteFeatureCollection } from '@/types';
 import type { CircleLayerSpecification, SymbolLayerSpecification } from 'mapbox-gl';
+
+type SiteLayerSpecification = CircleLayerSpecification | SymbolLayerSpecification;
 
 type UseSiteLayer = {
   map: React.RefObject<mapboxgl.Map | null>;
@@ -30,9 +32,9 @@ type UseSiteLayer = {
   // Returns all sites with their latest observation (the base set the date merge fills in).
   getLatestSites: (timezone: TIMEZONE) => Promise<RawSiteFeatureCollection>;
   // Per-product paint/layout so site products are visually distinguishable.
-  // Default to the wave-buoy styling.
-  clusterConfig?: Partial<CircleLayerSpecification>;
-  unclusteredConfig?: Partial<CircleLayerSpecification>;
+  // Default to the wave-buoy styling. Each config's `type` decides circle vs symbol.
+  clusterConfig?: SiteLayerConfig;
+  unclusteredConfig?: SiteLayerConfig;
   clusterLabelConfig?: Partial<SymbolLayerSpecification>;
 };
 
@@ -42,7 +44,7 @@ const EMPTY_COLLECTION: RawSiteFeatureCollection = {
 };
 
 /**
- * Generic clustered-circle layer for site products (wave buoys, moorings, …).
+ * Generic clustered layer for site products (wave buoys, moorings, …).
  * Registers the clustered, unclustered and cluster-label layers immediately with
  * an empty source, then fills in data asynchronously and re-fetches on date change.
  */
@@ -88,24 +90,16 @@ export function useSiteLayer({
 
   const clusterLayer = useMemo(
     () =>
-      circleLayer(
-        {
-          id: layerId,
-          source: sourceId,
-          ...clusterConfig,
-        },
+      createLayer<SiteLayerSpecification>(clusterConfig.type)(
+        { id: layerId, source: sourceId, ...clusterConfig },
         enabled,
       ),
     [enabled, layerId, sourceId, clusterConfig],
   );
   const unclusteredLayer = useMemo(
     () =>
-      circleLayer(
-        {
-          id: unclusteredLayerId,
-          source: sourceId,
-          ...unclusteredConfig,
-        },
+      createLayer<SiteLayerSpecification>(unclusteredConfig.type)(
+        { id: unclusteredLayerId, source: sourceId, ...unclusteredConfig },
         enabled,
       ),
     [enabled, sourceId, unclusteredLayerId, unclusteredConfig],

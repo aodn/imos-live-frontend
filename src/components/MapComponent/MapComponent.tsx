@@ -2,6 +2,7 @@ import {
   useDistanceMeasurementLayers,
   useDistanceMeasurementLayersEventHandler,
   useMapInitialization,
+  useMapImages,
   useMapResize,
   useMapStyle,
   useParticleAtlasLayer,
@@ -86,6 +87,8 @@ export const MapComponent = memo(function MapComponent() {
 
   //1. map initialization.
   const { map, mapContainer } = useMapInitialization();
+  // add map images like used in icons to the map. These are used by layers and must be added before the layers are added.
+  useMapImages(map);
 
   //2. create layer, set data to layer and add layer to map.
   const { measurePointsGeojson, setMeasurePointsGeojson } = useDistanceMeasurementLayers(map);
