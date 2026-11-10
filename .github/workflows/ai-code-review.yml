@@ -1,0 +1,48 @@
+name: AI code review (Kiro)
+
+# Advisory AI review from the shared aodn/common-workflow workflow. This repo
+# owns the triggers, skip rules, engine choice and credential, and the review
+# direction in .github/ai-code-review/prompt.md and instructions.md.
+on:
+  pull_request:
+    branches: ['main']
+    types: [opened, synchronize, reopened]
+  # Manual run, e.g. to re-run after the credential is added.
+  workflow_dispatch:
+    inputs:
+      pr-number:
+        description: Pull request number to review
+        type: number
+        required: true
+
+permissions: {}
+
+# One review per PR; a new push cancels the review of the previous commit.
+concurrency:
+  group: kiro-code-review-${{ github.event.pull_request.number || inputs.pr-number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    name: Code Review
+    # Skip fork PRs (the review config comes from the PR head, so it must be
+    # trusted) and PRs labelled skip-ai-review, to save credits. Drafts are
+    # reviewed too.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.pull_request.head.repo.full_name == github.repository &&
+       !contains(github.event.pull_request.labels.*.name, 'skip-ai-review'))
+    permissions:
+      contents: read
+      pull-requests: write
+    # Floating major tag: gets every compatible ai-code-review-v1.x.x release.
+    uses: aodn/common-workflow/.github/workflows/ai-code-review.yaml@ai-code-review-v1
+    with:
+      pr-number: ${{ github.event.pull_request.number || inputs.pr-number }}
+      engine: kiro
+      model: ${{ vars.KIRO_MODEL }}
+      prompt-file: .github/ai-code-review/prompt.md
+      instruction-files: |
+        .github/ai-code-review/instructions.md
+    secrets:
+      ai-code-review-api-key: ${{ secrets.KIRO_API_KEY }}
