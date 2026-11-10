@@ -73,3 +73,7 @@ build/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+
+.codegraph/daemon.pid  
+.codegraph/daemon.sock
