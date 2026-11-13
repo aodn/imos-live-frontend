@@ -324,6 +324,27 @@ describe('ChunkScheduler', () => {
     expect(scheduler.allVisibleLoaded()).toBe(true);
   });
 
+  it('shifts a wrapped viewport across the antimeridian into an east-of-180 region', () => {
+    const { fetchMock, pendingUrls } = controllableFetch();
+    vi.stubGlobal('fetch', fetchMock);
+    const atlas = makeAtlas();
+    // 10° chunks spanning lon 150..210 — i.e. crossing the antimeridian.
+    const region: ChunkRegion = { ...REGION, lonMin: 150, lonMax: 210 };
+    const scheduler = createChunkScheduler(
+      atlas,
+      (id: string) => `http://x/${id}`,
+      vi.fn(),
+      region,
+      2,
+      0,
+    );
+
+    // -178..-172 is 182..188, i.e. chunk cx=3 (lon 180..190); lat 21..29 is cy=1.
+    scheduler.update({ west: -178, east: -172, south: 21, north: 29 }, 8);
+
+    expect(pendingUrls()).toContain('http://x/2/3/1');
+  });
+
   it('destroy aborts everything', async () => {
     const { fetchMock, pendingCount } = controllableFetch();
     vi.stubGlobal('fetch', fetchMock);

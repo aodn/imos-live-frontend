@@ -35,6 +35,9 @@ vec2 returnLonLat(float x_domain, float y_domain, vec2 pos) {
     float mercator_x = fract(u_bounds.x + pos.x * x_domain);
     float mercator_y = u_bounds.w + pos.y * y_domain;
     float lon  = mercator_x * 360.0 - 180.0;
+    // fract() yields lon in [-180, 180); unwrap so data crossing the antimeridian
+    // (e.g. lonMax = 185) stays continuous with u_data_bounds.
+    if (lon < u_data_bounds.x) lon += 360.0;
     float lat2 = 180.0 - mercator_y * 360.0;
     float lat  = 360.0 / 3.141592654 * atan(exp(lat2 * 3.141592654 / 180.0)) - 90.0;
     return vec2(lon, lat);

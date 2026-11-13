@@ -21,8 +21,14 @@ export type ClickedMapPopupContentProps = {
 };
 
 function isPointInBounds(bounds: ProductManifest['bounds'], lng: number, lat: number): boolean {
+  // lng arrives wrapped to [-180, 180]; unwrap it to match bounds that cross the
+  // antimeridian (e.g. 57..185). Only for this check — the point query keeps the wrapped lng.
+  const unwrappedLng = lng < bounds.lonMin ? lng + 360 : lng;
   return (
-    lng >= bounds.lonMin && lng <= bounds.lonMax && lat >= bounds.latMin && lat <= bounds.latMax
+    unwrappedLng >= bounds.lonMin &&
+    unwrappedLng <= bounds.lonMax &&
+    lat >= bounds.latMin &&
+    lat <= bounds.latMax
   );
 }
 
