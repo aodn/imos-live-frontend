@@ -5,7 +5,6 @@ import type { ClosePopupFn } from '@/helpers';
 import type { ProductType, TilesProduct } from '@/constants';
 import { isSiteProduct, MHW_CATEGORY_LOOKUP, PRODUCT, PRODUCTLEGENDS } from '@/constants';
 import { useQueries, useQuery } from '@tanstack/react-query';
-import type { ProductManifest } from '@/AtlasRenderingSystem';
 import {
   getPointData,
   metaDataManifestQueryOptions,
@@ -13,24 +12,12 @@ import {
   productManifestQueryOptions,
 } from '@/api/tiles';
 import { LoaderIcon } from '@/components/Icons';
-import { roundToTwo, velocityToReadable } from '@/utils';
+import { isPointInBounds, roundToTwo, velocityToReadable } from '@/utils';
 
 export type ClickedMapPopupContentProps = {
   onClose?: ClosePopupFn;
   lngLat: LngLat;
 };
-
-function isPointInBounds(bounds: ProductManifest['bounds'], lng: number, lat: number): boolean {
-  // lng arrives wrapped to [-180, 180]; unwrap it to match bounds that cross the
-  // antimeridian (e.g. 57..185). Only for this check — the point query keeps the wrapped lng.
-  const unwrappedLng = lng < bounds.lonMin ? lng + 360 : lng;
-  return (
-    unwrappedLng >= bounds.lonMin &&
-    unwrappedLng <= bounds.lonMax &&
-    lat >= bounds.latMin &&
-    lat <= bounds.latMax
-  );
-}
 
 export function ClickedMapPopupContent({ onClose, lngLat }: ClickedMapPopupContentProps) {
   const enabledProducts = useMapUIStore(
