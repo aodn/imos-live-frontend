@@ -21,6 +21,10 @@ Use regular functions for all named, exported declarations. Reserve arrow functi
 - **Hooks** — `export function useFoo() { ... }`
 - **Utils** — `export function foo() { ... }`
 
+### Comments
+
+Keep comments simple, short and easy to understand — say what or why in a line or two. No long explanatory paragraphs.
+
 ### Components
 
 When creating a UI component, also create a Storybook story alongside it (`MyComponent.tsx` → `MyComponent.stories.tsx`). Each story should include:

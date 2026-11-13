@@ -15,6 +15,8 @@ import { CollapsibleComponent } from '../Collapsible';
 import { Dropdown } from '../Dropdown';
 import { AddCircleIcon, ArrowIcon, MinusCircleIcon, VectorIcon } from '../Icons';
 import { Image } from '../Image';
+import { useProductLabels } from '@/hooks';
+import { formatLegendLabel } from '@/helpers';
 import { CategoryColorScaleBar, LinearColorScaleBar, LogColorScaleBar } from '../ColorScaleBar';
 import type { LayersDataset } from './MainSidebarContent';
 
@@ -151,6 +153,7 @@ function TilesLegendSection({ product }: { product: TilesProduct }) {
   const isCategoryLegend = PRODUCTLEGENDS[product]?.scale === 'category';
   const colors = COLOR_OPTIONS[colorKey];
   const paletteOptionKeys = PRODUCTLEGENDS[product]?.colorKeyOptions ?? [];
+  const { flagMeanings, unit } = useProductLabels(product);
 
   return (
     <>
@@ -180,7 +183,7 @@ function TilesLegendSection({ product }: { product: TilesProduct }) {
               colors={colors}
               min={productLegend.range[0]}
               max={productLegend.range[1]}
-              label={productLegend.label}
+              label={formatLegendLabel(productLegend.label, unit)}
             />
           )}
           {productLegend.scale === 'linear' && (
@@ -189,16 +192,16 @@ function TilesLegendSection({ product }: { product: TilesProduct }) {
               colors={colors}
               min={productLegend.range[0]}
               max={productLegend.range[1]}
-              label={productLegend.label}
-              scales={productLegend.scales as number[]}
+              label={formatLegendLabel(productLegend.label, unit)}
+              scales={productLegend.scales}
             />
           )}
           {productLegend.scale === 'category' && (
             <CategoryColorScaleBar
               className="w-full"
               colors={colors}
-              label={productLegend.label}
-              scales={productLegend.scales as string[]}
+              label={formatLegendLabel(productLegend.label, unit)}
+              scales={flagMeanings}
             />
           )}
         </div>

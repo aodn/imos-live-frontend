@@ -7,3 +7,4 @@ export * from './useViewPortSize';
 export * from './useCurrentPage';
 export * from './useDateSliderDates';
 export * from './useHasInitialQueryParam';
+export * from './useProductLabels';

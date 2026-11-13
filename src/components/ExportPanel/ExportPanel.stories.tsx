@@ -2,10 +2,11 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { ExportPanel } from './ExportPanel';
 import { CategoryColorScaleBar } from '@/components/ColorScaleBar';
 import { LinearColorScaleBar } from '@/components/ColorScaleBar';
-import { MHW_CATEGORY_LEGEND_SCALES } from '@/constants';
 import { COLOR_OPTIONS } from '@/constants';
 
 const MHW_CATEGORY_LEGEND_COLORS = COLOR_OPTIONS.MHW_CATEGORY_LEGEND_COLORS;
+// Mirrors the manifest's CF `flag_meanings` for the MHW category product.
+const MHW_CATEGORY_FLAG_MEANINGS = ['none', 'moderate', 'strong', 'severe', 'extreme'];
 const SST_COLORS = COLOR_OPTIONS.RdBu_r;
 
 const meta = {
@@ -32,7 +33,7 @@ export const WithCategoricalLegend: Story = {
       legend: (
         <CategoryColorScaleBar
           colors={MHW_CATEGORY_LEGEND_COLORS}
-          scales={MHW_CATEGORY_LEGEND_SCALES}
+          scales={MHW_CATEGORY_FLAG_MEANINGS}
         />
       ),
     },
@@ -45,7 +46,12 @@ export const WithLinearLegend: Story = {
     product: {
       name: 'SST Anomaly',
       legend: (
-        <LinearColorScaleBar min={-4} max={4} colors={SST_COLORS} label="degrees Celsius (°C)" />
+        <LinearColorScaleBar
+          min={-4}
+          max={4}
+          colors={SST_COLORS}
+          label="sea surface temperature anomaly (degrees Celsius)"
+        />
       ),
     },
   },

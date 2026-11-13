@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { COLOR_OPTIONS } from '@/constants';
-import { buildProductPalette } from './buildProductPalette';
+import { buildProductPalette, getLegendRange } from './buildProductPalette';
 
 describe('buildProductPalette', () => {
   it('selects the palette referenced by colorKey', () => {
@@ -36,5 +36,28 @@ describe('buildProductPalette', () => {
     });
     expect(palette.scale).toBe('log');
     expect(palette.legendRange).toEqual([0.01, 3]);
+  });
+
+  it('gives category legends an inert placeholder range', () => {
+    const palette = buildProductPalette({
+      label: 'categories',
+      colorKey: 'MHW_CATEGORY_LEGEND_COLORS',
+      colorKeyOptions: ['MHW_CATEGORY_LEGEND_COLORS'],
+      scale: 'category',
+    });
+    expect(palette.scale).toBe('category');
+    expect(palette.legendRange).toEqual([0, 1]);
+  });
+
+  it("getLegendRange returns a continuous legend's own range", () => {
+    expect(
+      getLegendRange({
+        label: 'test',
+        colorKey: 'RdBu_r',
+        colorKeyOptions: ['RdBu_r'],
+        range: [-4, 4],
+        scale: 'linear',
+      }),
+    ).toEqual([-4, 4]);
   });
 });

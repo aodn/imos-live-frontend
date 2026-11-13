@@ -8,13 +8,12 @@ import {
   LAYERS_ORDER,
   LOD_ZOOM_THRESHOLDS,
 } from '@/constants';
-import { buildProductPalette, validateCategoricalManifest } from '@/helpers';
+import { buildProductPalette, getLegendRange, validateCategoricalManifest } from '@/helpers';
 import type { AtlasLayerHandle, ScalarAtlasLayerOptions } from '@/AtlasRenderingSystem';
 import {
   useMapUIStore,
   setProductErrorByProduct,
   setProductLoadingByProduct,
-  setProductLegend,
   getProductLegend,
 } from '@/store';
 import { useCallback, useEffect, useRef } from 'react';
@@ -79,7 +78,7 @@ export function useAtlasLayer<H extends AtlasLayerHandle>({
     date,
   );
 
-  const legendRange = PRODUCTLEGENDS[product].range as [number, number];
+  const legendRange = getLegendRange(PRODUCTLEGENDS[product]);
 
   const handleRef = useRef<H | null>(null);
 
@@ -106,16 +105,6 @@ export function useAtlasLayer<H extends AtlasLayerHandle>({
       fetchManifest: async d => {
         const manifest = await queryClient.fetchQuery(productManifestQueryOptions(product, d));
         validateCategoricalManifest(product, manifest);
-        // Categorical products: rewrite the legend's tick labels with the
-        // manifest's CF `flag_meanings`. Popups read flag_values/flag_meanings
-        // directly from the query cache via `productManifestQueryOptions`.
-        if (
-          PRODUCTLEGENDS[product].scale === 'category' &&
-          manifest.flagMeanings &&
-          manifest.flagValues
-        ) {
-          setProductLegend(product, { scales: manifest.flagMeanings });
-        }
         return manifest;
       },
       tileBaseUrl: `${TILE_BASE_PATH}/${PRODUCTS[product].collectionId}/data_tiles`,

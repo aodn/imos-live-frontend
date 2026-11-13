@@ -39,7 +39,7 @@ Pay particular attention to:
 - Products: product slugs, names, layer/source IDs, descriptions, portal
   links, legends and palettes are defined only in `src/constants/products.ts`,
   `legends.ts` and `colors.ts`. Flag any of these hard-coded elsewhere. A new
-  product should follow the steps in `.claude/CLAUDE.md` (constants → layer
+  product should follow the steps in `CLAUDE.md` (constants → layer
   hook → `MapComponent` → `MainSidebar/products.tsx` → `LayersIndicator` in
   `src/pages/Map.tsx`); a missing step is worth reporting. Site products must
   reuse `useSiteLayer` + `useSiteLayerEventHandler`, not a new hook.

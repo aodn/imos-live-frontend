@@ -39,9 +39,9 @@ type PopupContent =
   | (OceanCurrentPopupContent & SeaLevelAnomalyPopupContent);
 
 // aria-labels emitted by ClickedMapPopupContent are derived from PRODUCTLEGENDS[product].label
-// — keep these in sync if the legend labels change.
-const OCEAN_CURRENT_POPUP_LABEL = 'ocean current speed (m/s) details';
-const SEA_LEVEL_ANOMALY_POPUP_LABEL = 'sea level anomaly (m) details';
+// (quantity name only; units come from the manifest) — keep these in sync if the labels change.
+const OCEAN_CURRENT_POPUP_LABEL = 'ocean current speed details';
+const SEA_LEVEL_ANOMALY_POPUP_LABEL = 'sea level anomaly details';
 
 const mapComponent = {
   waitUntilIdle: async (page: Page) => {

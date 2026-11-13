@@ -28,7 +28,7 @@ export type {
 } from './products';
 
 // Legends
-export { PRODUCTLEGENDS, MHW_CATEGORY_LOOKUP, MHW_CATEGORY_LEGEND_SCALES } from './legends';
+export { PRODUCTLEGENDS } from './legends';
 export type { LegendArgs } from './legends';
 
 // LOD zoom-activation thresholds

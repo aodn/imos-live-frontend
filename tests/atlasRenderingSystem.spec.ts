@@ -72,7 +72,10 @@ const SCALAR_MANIFEST = {
 // load on this resolving (via `manifestLoaded`) and validate the selected date
 // against `available_dates`, so the products under test must list the dates
 // these tests exercise (default day and the +1 day).
-const AVAILABLE_DATES = [defaultDaySelected, nextDaySelected];
+// The extra last date keeps the latest date apart from `nextDaySelected`:
+// `useProductLabels` pre-caches the latest date's manifest, which would
+// otherwise hide the day-change manifest request these tests wait for.
+const AVAILABLE_DATES = [defaultDaySelected, nextDaySelected, '2025-07-03'];
 const METADATA_MANIFEST = {
   products: (
     [

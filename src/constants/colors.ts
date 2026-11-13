@@ -397,13 +397,7 @@ export const x_rainbow: { colors: [number, number, number][] } = {
 // slot N is the colour for flag value N. The real source of truth is the CF
 // `flag_values` on the product manifest; `validateCategoricalManifest` compares
 // the two at load time and warns in dev if the lengths drift apart.
-export const MHW_CATEGORY_LEGEND_COLORS = [
-  '#00078f', // extreme
-  '#007bff', // severe
-  '#67ff96', // strong
-  '#ff9701', // moderate
-  '#8c0000', // none
-];
+export const MHW_CATEGORY_LEGEND_COLORS = ['#00078f', '#007bff', '#67ff96', '#ff9701', '#8c0000'];
 
 export const CONTINOUS_PRODUCT_COLOR_OPTIONS = {
   RdBu_r: rdBuR.colors as [number, number, number][],
