@@ -15,7 +15,7 @@ export const CLUSTER_MAX_ZOOM = 7;
 export const MAX_ZOOM = CLUSTER_MAX_ZOOM;
 
 export const INITIAL_TIMEZONE: TIMEZONE = 'UTC';
-export const INITIAL_ZOOM = 3;
+export const INITIAL_ZOOM = 3.65;
 export const INITIAL_STYLE: StyleTitle = 'Streets';
 export const INITIAL_CENTER = new mapboxgl.LngLat(133.7751, -25.2744);
 // Naive (timezone-free) 'YYYY-MM-DD' bounds. `end` is "today" for INITIAL_TIMEZONE,
