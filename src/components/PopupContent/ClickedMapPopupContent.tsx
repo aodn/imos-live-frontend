@@ -5,7 +5,6 @@ import type { ClosePopupFn } from '@/helpers';
 import type { ProductType, TilesProduct } from '@/constants';
 import { isSiteProduct, MHW_CATEGORY_LOOKUP, PRODUCT, PRODUCTLEGENDS } from '@/constants';
 import { useQueries, useQuery } from '@tanstack/react-query';
-import type { ProductManifest } from '@/AtlasRenderingSystem';
 import {
   getPointData,
   metaDataManifestQueryOptions,
@@ -13,18 +12,12 @@ import {
   productManifestQueryOptions,
 } from '@/api/tiles';
 import { LoaderIcon } from '@/components/Icons';
-import { roundToTwo, velocityToReadable } from '@/utils';
+import { isPointInBounds, roundToTwo, velocityToReadable } from '@/utils';
 
 export type ClickedMapPopupContentProps = {
   onClose?: ClosePopupFn;
   lngLat: LngLat;
 };
-
-function isPointInBounds(bounds: ProductManifest['bounds'], lng: number, lat: number): boolean {
-  return (
-    lng >= bounds.lonMin && lng <= bounds.lonMax && lat >= bounds.latMin && lat <= bounds.latMax
-  );
-}
 
 export function ClickedMapPopupContent({ onClose, lngLat }: ClickedMapPopupContentProps) {
   const enabledProducts = useMapUIStore(

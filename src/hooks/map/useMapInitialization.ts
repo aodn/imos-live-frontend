@@ -8,7 +8,7 @@ import { useShallow } from 'zustand/shallow';
 const maxBounds: LngLatBoundsLike = [
   [68, -58],
   [178, -7],
-]; // [SW, NE] — lon 68–178, lat -55 to -7
+]; // [SW, NE] — lon 68–178 (crosses the antimeridian to show GSLA's eastern edge), lat -58 to -7
 
 export function useMapInitialization() {
   const { center, zoom } = useMapUIStore(

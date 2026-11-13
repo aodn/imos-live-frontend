@@ -61,7 +61,8 @@ export function useTilesLayersEventHandlers({
         map,
         lngLat,
         PopupContent: (closeFn: ClosePopupFn) => (
-          <ClickedMapPopupContent lngLat={lngLat} onClose={closeFn} />
+          // Normalise lng to [-180, 180] for the point query.
+          <ClickedMapPopupContent lngLat={lngLat.wrap()} onClose={closeFn} />
         ),
       });
     },

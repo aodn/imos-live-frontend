@@ -75,5 +75,5 @@ build/
 /playwright/.cache/
 
 
-.codegraph/daemon.pid  
+.codegraph/daemon.pid
 .codegraph/daemon.sock

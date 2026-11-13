@@ -72,8 +72,11 @@ function chunksInBounds(
   const chunkLon = (region.lonMax - region.lonMin) / region.cols;
   const chunkLat = (region.latMax - region.latMin) / region.rows;
 
-  const west = bounds.west - expandChunks * chunkLon;
-  const east = bounds.east + expandChunks * chunkLon;
+  // A viewport entirely west of lonMin may be the same longitudes on the other
+  // side of the antimeridian (e.g. -178..-170 for data spanning 57..185); shift it by 360.
+  const lonShift = bounds.east < region.lonMin ? 360 : 0;
+  const west = bounds.west + lonShift - expandChunks * chunkLon;
+  const east = bounds.east + lonShift + expandChunks * chunkLon;
   const south = bounds.south - expandChunks * chunkLat;
   const north = bounds.north + expandChunks * chunkLat;
 

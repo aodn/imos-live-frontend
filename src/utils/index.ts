@@ -15,3 +15,4 @@ export * from './throttle';
 export * from './formatLatLngToDirectional';
 export * from './doubleRAF';
 export * from './roundToTwo';
+export * from './isPointInBounds';
