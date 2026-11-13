@@ -5,6 +5,7 @@ import { PRODUCT, type TilesProduct, MAX_VECTOR_SPEED } from './products';
 const ALL_CATEGORY_COLOR_KEYS = Object.keys(CATEGORY_PRODUCT_COLOR_OPTIONS) as ColorOptionKey[];
 
 type BaseLegendArgs = {
+  /** Quantity name only — the unit is appended from the product manifest (`formatLegendLabel`). */
   label: string;
   numStops?: number;
   colorKey: ColorOptionKey;
@@ -31,7 +32,7 @@ export type LegendArgs = ContinuousLegendArgs | CategoryLegendArgs;
 
 export const PRODUCTLEGENDS = {
   [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: {
-    label: 'ocean current speed (m/s)',
+    label: 'ocean current speed',
     colorKey: 'Ocean to Terrain' as ColorOptionKey,
     colorKeyOptions: [
       'Ocean to Terrain',
@@ -44,7 +45,7 @@ export const PRODUCTLEGENDS = {
   },
   [PRODUCT.GSLA_ANOMALY_SEA_LEVELS]: {
     scales: [-1.2, -0.6, 0, 0.6, 1.2],
-    label: 'sea level anomaly (m)',
+    label: 'sea level anomaly',
     range: [-1.2, 1.2],
     colorKey: 'X Rainbow' as ColorOptionKey,
     colorKeyOptions: ['X Rainbow'] as ColorOptionKey[],
@@ -52,7 +53,7 @@ export const PRODUCTLEGENDS = {
   },
   [PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC]: {
     scales: [-4, -2, 0, 2, 4],
-    label: 'degrees Celsius (°C)',
+    label: 'sea surface temperature anomaly',
     range: [-4, 4],
     colorKey: 'RdBu_r' as ColorOptionKey,
     colorKeyOptions: ['RdBu_r'] as ColorOptionKey[],
@@ -60,7 +61,7 @@ export const PRODUCTLEGENDS = {
   },
   [PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC]: {
     scales: [0, 10, 20, 30, 40],
-    label: 'degrees Celsius (°C)',
+    label: 'sea surface temperature',
     range: [0, 40],
     colorKey: 'Classic Rainbow' as ColorOptionKey,
     colorKeyOptions: ['Cmocean Thermal', 'Classic Rainbow'] as ColorOptionKey[],

@@ -103,7 +103,9 @@ The manifest is the primary configuration file for each product. It controls til
 | -------------------- | --------------------------------------------------------------------------------------------------------------------- |
 | `bounds`             | Geographic extent of the dataset                                                                                      |
 | `valueRange`         | `[rawMin, rawMax]` of the encoded scalar — used for RGB24 decoding                                                    |
+| `valueUnit`          | Unit of the scalar value, e.g. `"degrees Celsius"` — not used by the renderer; for host legends/labels                |
 | `uRange`, `vRange`   | Velocity encoding ranges for particle products                                                                        |
+| `uUnit`, `vUnit`     | Units of the u/v velocity components, e.g. `"m/s"` — not used by the renderer; for host legends/labels                |
 | `flagValues`         | _(categorical only)_ Sequential integer flag values, e.g. `[0,1,2,3,4]`. Presence flips the heatmap to discrete mode. |
 | `flagMeanings`       | _(categorical only)_ Human-readable label per flag value (same length as `flagValues`)                                |
 | `lods['N'].grid`     | `[cols, rows]` — how many chunks tile the region at this LOD                                                          |

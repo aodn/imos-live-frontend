@@ -10,8 +10,13 @@ export type LodEntry = {
 export type ProductManifest = {
   bounds: { lonMin: number; lonMax: number; latMin: number; latMax: number };
   valueRange?: [number, number];
+  /** Scalar products: unit of the decoded value, e.g. `'degrees Celsius'`. Host-display only. */
+  valueUnit?: string;
   uRange?: [number, number];
   vRange?: [number, number];
+  /** Particle products: units of the u/v velocity components, e.g. `'m/s'`. Host-display only. */
+  uUnit?: string;
+  vUnit?: string;
   lods: Record<string, LodEntry>;
   /**
    * Categorical products only: integer flag values present in the data, e.g.

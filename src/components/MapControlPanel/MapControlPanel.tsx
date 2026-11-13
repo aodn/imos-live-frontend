@@ -10,12 +10,7 @@ import {
 } from '../Icons';
 import type { LegendArgs } from '@/constants';
 import { COLOR_OPTIONS, INITIAL_CENTER, INITIAL_ZOOM, MIN_EXPORT_MAP_WIDTH } from '@/constants';
-import {
-  useIsMapDragging,
-  useIsMapZooming,
-  useMapCanvasWidth,
-  useProductFlagMeanings,
-} from '@/hooks';
+import { useIsMapDragging, useIsMapZooming, useMapCanvasWidth, useProductLabels } from '@/hooks';
 import { setSidebarOpen, useMapUIStore, useSidebarStore } from '@/store';
 import { useShallow } from 'zustand/shallow';
 import { SCALAR_TILES_GROUP, PRODUCTS } from '@/constants';
@@ -41,7 +36,7 @@ export function MapControlPanel({
   );
 
   const activeProduct = SCALAR_TILES_GROUP.find(p => productEnabled[p]);
-  const activeFlagMeanings = useProductFlagMeanings(activeProduct);
+  const { flagMeanings: activeFlagMeanings } = useProductLabels(activeProduct);
 
   const isMapOnOperation = isDragging || isZooming;
   const isMapTooNarrow = mapCanvasWidth > 0 && mapCanvasWidth < MIN_EXPORT_MAP_WIDTH;

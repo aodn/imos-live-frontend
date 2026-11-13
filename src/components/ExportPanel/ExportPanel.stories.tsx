@@ -46,7 +46,12 @@ export const WithLinearLegend: Story = {
     product: {
       name: 'SST Anomaly',
       legend: (
-        <LinearColorScaleBar min={-4} max={4} colors={SST_COLORS} label="degrees Celsius (°C)" />
+        <LinearColorScaleBar
+          min={-4}
+          max={4}
+          colors={SST_COLORS}
+          label="sea surface temperature anomaly (degrees Celsius)"
+        />
       ),
     },
   },
