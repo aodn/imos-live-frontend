@@ -78,5 +78,5 @@ build/
 .codegraph/daemon.pid
 .codegraph/daemon.sock
 # Claude Code (personal settings / runtime files)
-.claude/settings.local.json
-.claude/*.lock
+.claude
+.mcp.json
