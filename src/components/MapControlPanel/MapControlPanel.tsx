@@ -8,7 +8,7 @@ import {
   CloseFullScreenIcon,
   DownloadIcon,
 } from '../Icons';
-import { COLOR_OPTIONS, INITIAL_ZOOM, MIN_EXPORT_MAP_WIDTH } from '@/constants';
+import { COLOR_OPTIONS, INITIAL_CENTER, INITIAL_ZOOM, MIN_EXPORT_MAP_WIDTH } from '@/constants';
 import { useIsMapDragging, useIsMapZooming, useMapCanvasWidth } from '@/hooks';
 import { setSidebarOpen, useMapUIStore, useSidebarStore } from '@/store';
 import { useShallow } from 'zustand/shallow';
@@ -49,7 +49,7 @@ export function MapControlPanel({
   };
 
   const handleResetZoom = () => {
-    mapRef.current?.setZoom(INITIAL_ZOOM);
+    mapRef.current?.easeTo({ center: INITIAL_CENTER, zoom: INITIAL_ZOOM, duration: 300 });
   };
 
   const handleOpenFullScreen = () => {
