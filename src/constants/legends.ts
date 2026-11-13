@@ -4,34 +4,30 @@ import { PRODUCT, type TilesProduct, MAX_VECTOR_SPEED } from './products';
 
 const ALL_CATEGORY_COLOR_KEYS = Object.keys(CATEGORY_PRODUCT_COLOR_OPTIONS) as ColorOptionKey[];
 
-export type LegendArgs = {
+type BaseLegendArgs = {
   label: string;
   numStops?: number;
   colorKey: ColorOptionKey;
   colorKeyOptions: ColorOptionKey[];
-  range: [number, number];
   threshold?: number;
-  scales?: (number | string)[];
-  scale: 'log' | 'linear' | 'category';
 };
 
-// Initial-render fallback for the MCS Category product's popup labels and
-// legend tick labels. The real source of truth is the CF `flag_meanings` on
-// the product manifest: the popup reads it via React Query
-// (`productManifestQueryOptions`) and `useAtlasLayer` overwrites the legend's
-// `scales` field with the manifest's `flag_meanings` after the manifest loads.
-// This map is only used until the manifest is in the cache.
-// `validateCategoricalManifest` warns in dev if this fallback drifts away
-// from the manifest data.
-export const MHW_CATEGORY_LOOKUP = {
-  0: 'none',
-  1: 'moderate',
-  2: 'strong',
-  3: 'severe',
-  4: 'extreme',
-} as const;
+// Continuous legends own their colour-ramp range and tick values.
+type ContinuousLegendArgs = BaseLegendArgs & {
+  scale: 'log' | 'linear';
+  range: [number, number];
+  scales?: number[];
+};
 
-export const MHW_CATEGORY_LEGEND_SCALES = Object.values(MHW_CATEGORY_LOOKUP);
+// Categorical legends carry neither: the value range, flag values and labels
+// all come from the product manifest's CF `flag_values` / `flag_meanings`.
+type CategoryLegendArgs = BaseLegendArgs & {
+  scale: 'category';
+  range?: never;
+  scales?: never;
+};
+
+export type LegendArgs = ContinuousLegendArgs | CategoryLegendArgs;
 
 export const PRODUCTLEGENDS = {
   [PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT]: {
@@ -71,8 +67,6 @@ export const PRODUCTLEGENDS = {
     scale: 'linear',
   },
   [PRODUCT.AUSTEMP_HEATWAVE_MHW_CATEGORY_MOSAIC]: {
-    scales: MHW_CATEGORY_LEGEND_SCALES,
-    range: [0, 4],
     label: 'MHW Category mosaic',
     colorKey: 'MHW_CATEGORY_LEGEND_COLORS' as ColorOptionKey,
     colorKeyOptions: ALL_CATEGORY_COLOR_KEYS,

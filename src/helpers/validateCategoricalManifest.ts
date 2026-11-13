@@ -1,26 +1,22 @@
-import {
-  COLOR_OPTIONS,
-  MHW_CATEGORY_LOOKUP,
-  PRODUCT,
-  PRODUCTLEGENDS,
-  type TilesProduct,
-} from '@/constants';
+import { COLOR_OPTIONS, PRODUCTLEGENDS, type TilesProduct } from '@/constants';
 import type { ProductManifest } from '@/AtlasRenderingSystem';
 
 const warned = new Set<string>();
 
-// Checks that the fallback category constants in `src/constants/` still line
-// up with the CF-conventions `flag_values` / `flag_meanings` published in the
-// loaded `ProductManifest`. A mismatch means the colour ramp or popup labels
-// are out of sync with the rendered tiles, so the visualisation looks fine
-// but is silently wrong. Runs in prod too — drift is a data-side event, not a
-// code bug, so dev-only would miss the case that actually matters; the
-// `warned` Set dedupes so each distinct mismatch logs once per session.
+// Checks that a categorical product's manifest matches what the renderer
+// assumes: the palette in `src/constants/colors.ts` has one colour per CF
+// `flag_values` entry, and the flags are consecutive integers from
+// `valueRange[0]` (the shader's indexing scheme). Labels need no check — they
+// are read straight from the manifest's `flag_meanings`. A mismatch means the
+// map looks fine but is silently wrong. Runs in prod too — drift is a
+// data-side event, not a code bug, so dev-only would miss the case that
+// actually matters; the `warned` Set dedupes so each distinct mismatch logs
+// once per session.
 export function validateCategoricalManifest(product: TilesProduct, manifest: ProductManifest) {
   const legend = PRODUCTLEGENDS[product];
   if (legend.scale !== 'category') return;
 
-  const { flagValues, flagMeanings } = manifest;
+  const { flagValues, valueRange } = manifest;
 
   const expectedColors = COLOR_OPTIONS[legend.colorKey];
   if (flagValues && expectedColors.length !== flagValues.length) {
@@ -29,20 +25,15 @@ export function validateCategoricalManifest(product: TilesProduct, manifest: Pro
     );
   }
 
-  if (product === PRODUCT.AUSTEMP_HEATWAVE_MHW_CATEGORY_MOSAIC && flagMeanings) {
-    const expectedLabels = Object.values(MHW_CATEGORY_LOOKUP);
-    if (expectedLabels.length !== flagMeanings.length) {
-      warnOnce(
-        `[${product}] MHW_CATEGORY_LOOKUP has ${expectedLabels.length} labels but manifest flag_meanings has ${flagMeanings.length} — popup category labels will be wrong.`,
-      );
-    } else {
-      const mismatchIdx = expectedLabels.findIndex((label, i) => label !== flagMeanings[i]);
-      if (mismatchIdx !== -1) {
-        warnOnce(
-          `[${product}] MHW_CATEGORY_LOOKUP[${mismatchIdx}]='${expectedLabels[mismatchIdx]}' but manifest flag_meanings[${mismatchIdx}]='${flagMeanings[mismatchIdx]}'.`,
-        );
-      }
-    }
+  // The shader only reads `flagValues.length`: it maps a raw value to colour
+  // slot `round(raw - valueRange[0])`, so the flags must be consecutive
+  // integers starting at `valueRange[0]`. Anything else (offset start, gaps,
+  // unsorted) paints the wrong colours while the popup — which looks values up
+  // by `flagValues.indexOf` — still reports the correct category.
+  if (flagValues && valueRange && flagValues.some((v, i) => v !== valueRange[0] + i)) {
+    warnOnce(
+      `[${product}] manifest flag_values [${flagValues.join(', ')}] are not consecutive integers starting at valueRange[0]=${valueRange[0]} — rendered category colours will be wrong.`,
+    );
   }
 }
 

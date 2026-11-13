@@ -15,6 +15,7 @@ import { CollapsibleComponent } from '../Collapsible';
 import { Dropdown } from '../Dropdown';
 import { AddCircleIcon, ArrowIcon, MinusCircleIcon, VectorIcon } from '../Icons';
 import { Image } from '../Image';
+import { useProductFlagMeanings } from '@/hooks';
 import { CategoryColorScaleBar, LinearColorScaleBar, LogColorScaleBar } from '../ColorScaleBar';
 import type { LayersDataset } from './MainSidebarContent';
 
@@ -151,6 +152,7 @@ function TilesLegendSection({ product }: { product: TilesProduct }) {
   const isCategoryLegend = PRODUCTLEGENDS[product]?.scale === 'category';
   const colors = COLOR_OPTIONS[colorKey];
   const paletteOptionKeys = PRODUCTLEGENDS[product]?.colorKeyOptions ?? [];
+  const flagMeanings = useProductFlagMeanings(product);
 
   return (
     <>
@@ -190,7 +192,7 @@ function TilesLegendSection({ product }: { product: TilesProduct }) {
               min={productLegend.range[0]}
               max={productLegend.range[1]}
               label={productLegend.label}
-              scales={productLegend.scales as number[]}
+              scales={productLegend.scales}
             />
           )}
           {productLegend.scale === 'category' && (
@@ -198,7 +200,7 @@ function TilesLegendSection({ product }: { product: TilesProduct }) {
               className="w-full"
               colors={colors}
               label={productLegend.label}
-              scales={productLegend.scales as string[]}
+              scales={flagMeanings}
             />
           )}
         </div>

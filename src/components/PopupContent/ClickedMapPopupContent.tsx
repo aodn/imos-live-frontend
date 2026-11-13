@@ -3,7 +3,7 @@ import { useShallow } from 'zustand/shallow';
 import type { LngLat } from 'mapbox-gl';
 import type { ClosePopupFn } from '@/helpers';
 import type { ProductType, TilesProduct } from '@/constants';
-import { isSiteProduct, MHW_CATEGORY_LOOKUP, PRODUCT, PRODUCTLEGENDS } from '@/constants';
+import { isSiteProduct, PRODUCT, PRODUCTLEGENDS } from '@/constants';
 import { useQueries, useQuery } from '@tanstack/react-query';
 import {
   getPointData,
@@ -107,16 +107,10 @@ export function ClickedMapPopupContent({ onClose, lngLat }: ClickedMapPopupConte
       .map(([varKey, v]) => {
         if (product === PRODUCT.AUSTEMP_HEATWAVE_MHW_CATEGORY_MOSAIC) {
           const category = v.value as number;
-          // Prefer the data-driven mapping from the manifest's flag_values /
-          // flag_meanings; fall back to the static constant only when the
-          // manifest hasn't loaded yet.
-          const flagValues = mcsCategoryManifest?.flagValues;
-          const flagMeanings = mcsCategoryManifest?.flagMeanings;
-          const idx = flagValues?.indexOf(category) ?? -1;
-          const meaning =
-            idx >= 0 && flagMeanings
-              ? flagMeanings[idx]
-              : MHW_CATEGORY_LOOKUP[category as keyof typeof MHW_CATEGORY_LOOKUP];
+          // Label from the manifest's CF flag_values / flag_meanings. The point
+          // fetch is gated on the manifest having loaded, so it's always here.
+          const idx = mcsCategoryManifest?.flagValues?.indexOf(category) ?? -1;
+          const meaning = idx >= 0 ? mcsCategoryManifest?.flagMeanings?.[idx] : undefined;
           return {
             key: `${product}:${varKey}`,
             label,
