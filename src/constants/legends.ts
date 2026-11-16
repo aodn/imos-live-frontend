@@ -60,9 +60,9 @@ export const PRODUCTLEGENDS = {
     scale: 'linear',
   },
   [PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC]: {
-    scales: [0, 10, 20, 30, 40],
+    scales: [5, 15, 25, 35],
     label: 'sea surface temperature',
-    range: [0, 40],
+    range: [5, 35],
     colorKey: 'Classic Rainbow' as ColorOptionKey,
     colorKeyOptions: ['Cmocean Thermal', 'Classic Rainbow'] as ColorOptionKey[],
     scale: 'linear',
