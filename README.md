@@ -71,4 +71,4 @@ All HTTP calls (wave-buoy/mooring REST and tile/manifest data) use relative
 paths under `/api/v1/...` — `SITE_BASE_PATH` in `src/api/site.ts` and
 `TILE_BASE_PATH` in `src/api/tiles.ts`. In production these are routed by
 CloudFront to the OGC API; in development `vite.config.ts` proxies `/api` to
-`https://portal.edge.aodn.org.au`.
+`https://ogcapi.edge.aodn.org.au/`.
