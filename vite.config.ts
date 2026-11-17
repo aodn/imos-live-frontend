@@ -20,7 +20,7 @@ export default defineConfig(({ mode }) => {
 
   const apiProxy = {
     '/api': {
-      target: 'https://portal.edge.aodn.org.au',
+      target: 'https://ogcapi.edge.aodn.org.au',
       changeOrigin: true,
     },
   };

@@ -1,11 +1,12 @@
 import { Helmet } from 'react-helmet-async';
 import logImage from '@/assets/imos_logo_with_title.webp';
 import {
+  CollapsibleComponent,
+  CollapsibleTrigger,
   DateSelectionBar,
   DragWrapper,
   Drawer,
   FeaturesMenu,
-  FloatingPanel,
   LayersIcon,
   LayersIndicator,
   MainSidebarContent,
@@ -33,6 +34,7 @@ const MODE_TITLE_PREFIX: Record<string, string> = {
 };
 
 const DATE_SELECTION_BAR_DRAG_HANDLE = 'date-selection-bar-drag-handle';
+const FEATURES_PANEL_DRAG_HANDLE = 'features-panel-drag-handle';
 
 export function Map() {
   const { isSmallScreen } = useViewportSize();
@@ -113,21 +115,32 @@ export function Map() {
             />
           </DragWrapper>
 
-          <FloatingPanel
-            wrapperClassName="w-14 md:min-w-72 bg-imos-light rounded-xl"
+          <DragWrapper
             boundary="parent"
-            collapsible
-            initialOpen={!isSmallScreen}
-            children={
+            dragHandleClassName={FEATURES_PANEL_DRAG_HANDLE}
+            initialPosition={{ x: 10, y: 20 }}
+            relative="topRight"
+          >
+            <CollapsibleComponent
+              defaultOpen={!isSmallScreen}
+              wrapperClassName="w-14 md:min-w-72 bg-imos-light rounded-xl"
+              trigger={({ open, toggle, toggleIconHidden }) => (
+                <CollapsibleTrigger
+                  open={open}
+                  toggle={toggle}
+                  toggleIconHidden={toggleIconHidden}
+                  dragHandleClass={FEATURES_PANEL_DRAG_HANDLE}
+                />
+              )}
+            >
               <FeaturesMenu
                 features={[
                   { icon: LayersIcon, label: 'Options' },
                   { icon: MapsIcon, label: 'Maps' },
                 ]}
               />
-            }
-            initialPosition={{ x: 10, y: 20 }}
-          />
+            </CollapsibleComponent>
+          </DragWrapper>
         </div>
       </div>
     ),
