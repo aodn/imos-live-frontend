@@ -140,7 +140,7 @@ imos-live-frontend/
 │   ├── components/       # React components (26+ components)
 │   │   ├── MapComponent/      # Main map component
 │   │   ├── DateSlider/        # Date selection UI
-│   │   ├── FloatingPanel/     # Draggable control panel
+│   │   ├── DragWrapper/       # Draggable container
 │   │   ├── ColorScaleBar/     # Legend components
 │   │   └── ...               # UI components (Button, Drawer, etc.)
 │   ├── config/           # Configuration files

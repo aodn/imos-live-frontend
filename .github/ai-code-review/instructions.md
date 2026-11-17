@@ -72,7 +72,7 @@ Reusable code, for the duplicate-implementation check:
   `addOrUpdateVectorSource`, `showPopup`, `buildProductPalette`,
   `normalizeSiteData`, ...).
 - Shared UI: `src/components/` (`Button`, `Dropdown`, `Input`, `Switch`,
-  `Slider`, `DatePicker`, `Collapsible`, `Drawer`, `FloatingPanel`, `Toast`,
+  `Slider`, `DatePicker`, `Collapsible`, `Drawer`, `DragWrapper`, `Toast`,
   `Skeleton`, `Icons`, ...), each in its own folder with an `index.ts`.
 - API: Axios instances and React Query `queryOptions` in `src/api/`; a new
   Axios instance or fetch function may duplicate an existing one.
