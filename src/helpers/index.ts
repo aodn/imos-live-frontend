@@ -15,3 +15,4 @@ export * from './normalizeSiteData.ts';
 export * from './coordinateToLngLat';
 export * from './addIdToFeatures';
 export * from './mooringChannels';
+export * from './fitDefaultView';

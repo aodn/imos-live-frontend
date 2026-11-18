@@ -1,11 +1,9 @@
 import type { ParticleConfig } from '@/AtlasRenderingSystem';
 import {
-  INITIAL_CENTER,
   INITIAL_DATE,
   INITIAL_DISTANCE_MEASUREMENT_ENABLED,
   INITIAL_STYLE,
   INITIAL_WORLD_BOUNDARIES_ENABLED,
-  INITIAL_ZOOM,
   INITIAL_PARTICLE_CONFIG,
   PRODUCTLEGENDS,
   INITIAL_PRODUCT_ENABLED,
@@ -37,8 +35,9 @@ export type TIMEZONE = 'UTC' | 'LOCAL';
 
 export type MapUIState = {
   timezone: TIMEZONE;
-  center: LngLat;
-  zoom: number;
+  // null = default view (fitted to Australia), not stored in the URL
+  center: LngLat | null;
+  zoom: number | null;
   style: StyleTitle;
   particleConfig: ParticleConfig;
   distanceMeasurementEnabled: boolean;
@@ -50,8 +49,8 @@ export type MapUIState = {
   productLegends: ProductLegend;
   jumpToDate: JumpToDate | null;
   setTimezone: (timezone: TIMEZONE) => void;
-  setCenter: (center: LngLat) => void;
-  setZoom: (zoom: number) => void;
+  setCenter: (center: LngLat | null) => void;
+  setZoom: (zoom: number | null) => void;
   setStyle: (style: StyleTitle) => void;
   setParticleConfig: (config: Partial<ParticleConfig>) => void;
   setDistanceMeasurementEnabled: (v: boolean) => void;
@@ -69,8 +68,8 @@ export const useMapUIStore = create(
   persist<MapUIState>(
     set => ({
       timezone: INITIAL_TIMEZONE,
-      center: INITIAL_CENTER,
-      zoom: INITIAL_ZOOM,
+      center: null,
+      zoom: null,
       style: INITIAL_STYLE,
       particleConfig: INITIAL_PARTICLE_CONFIG,
       distanceMeasurementEnabled: INITIAL_DISTANCE_MEASUREMENT_ENABLED,

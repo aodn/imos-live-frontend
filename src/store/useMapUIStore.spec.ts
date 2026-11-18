@@ -179,10 +179,10 @@ describe('URL sync carries only non-default state', () => {
   });
 
   it('writes a param once it differs from initial, then drops it on reset', () => {
-    useMapUIStore.getState().setZoom(INITIAL_STATE.zoom + 4);
-    expect(new URLSearchParams(location.search).get('zoom')).toBe(String(INITIAL_STATE.zoom + 4));
+    useMapUIStore.getState().setZoom(7);
+    expect(new URLSearchParams(location.search).get('zoom')).toBe('7');
 
-    useMapUIStore.getState().setZoom(INITIAL_STATE.zoom);
+    useMapUIStore.getState().setZoom(null);
     expect(new URLSearchParams(location.search).has('zoom')).toBe(false);
   });
 

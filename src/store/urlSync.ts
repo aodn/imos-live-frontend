@@ -1,11 +1,9 @@
 import {
-  INITIAL_CENTER,
   INITIAL_DATE,
   INITIAL_PARTICLE_CONFIG,
   INITIAL_PRODUCT_ENABLED,
   INITIAL_STYLE,
   INITIAL_WORLD_BOUNDARIES_ENABLED,
-  INITIAL_ZOOM,
 } from '@/constants';
 import type { StateStorage } from 'zustand/middleware';
 import { createJSONStorage } from 'zustand/middleware';
@@ -25,8 +23,8 @@ export const URL_SYNCED_KEYS = [
 const URL_SYNCED_KEY_SET = new Set<string>(URL_SYNCED_KEYS);
 
 const INITIAL_URL_STATE = {
-  center: INITIAL_CENTER,
-  zoom: INITIAL_ZOOM,
+  center: null,
+  zoom: null,
   style: INITIAL_STYLE,
   particleConfig: INITIAL_PARTICLE_CONFIG,
   worldBoundariesEnabled: INITIAL_WORLD_BOUNDARIES_ENABLED,
@@ -34,8 +32,12 @@ const INITIAL_URL_STATE = {
   productEnabled: INITIAL_PRODUCT_ENABLED,
 } satisfies Record<(typeof URL_SYNCED_KEYS)[number], unknown>;
 
+// null (default view) has no encoded form; setItem drops those params directly.
 const SERIALIZED_INITIAL_STATE = new Map<string, string>(
-  URL_SYNCED_KEYS.map(key => [key, serialize(INITIAL_URL_STATE[key], key)]),
+  URL_SYNCED_KEYS.flatMap(key => {
+    const value = INITIAL_URL_STATE[key];
+    return value === null ? [] : [[key, serialize(value, key)] as [string, string]];
+  }),
 );
 
 // Must be kept
@@ -72,6 +74,10 @@ const hashStorage: StateStorage = {
     const { state } = JSON.parse(newValue);
     const url = new URL(location.href);
     for (const [k, v] of Object.entries(state)) {
+      if (v == null) {
+        url.searchParams.delete(k);
+        continue;
+      }
       const encoded = serialize(v, k);
       // Omit defaults (and drop any stale param) so the URL carries only the
       // state that actually differs from the initial state.

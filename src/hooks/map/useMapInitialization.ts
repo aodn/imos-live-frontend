@@ -1,6 +1,7 @@
 import { MAX_ZOOM } from '@/constants';
+import { fitDefaultView } from '@/helpers';
 import { useMapUIStore, setCenter, setZoom } from '@/store';
-import type { LngLatBoundsLike } from 'mapbox-gl';
+import type { LngLatBoundsLike, MapEvent } from 'mapbox-gl';
 import mapboxgl from 'mapbox-gl';
 import { useEffect, useRef } from 'react';
 import { useShallow } from 'zustand/shallow';
@@ -39,12 +40,23 @@ export function useMapInitialization() {
     });
 
     map.current.touchZoomRotate.disableRotation();
-    map.current.setZoom(zoom);
-    map.current.setCenter(center);
+    // No URL/saved view: fit to Australia.
+    if (center === null || zoom === null) {
+      fitDefaultView(map.current);
+    } else {
+      map.current.setZoom(zoom);
+      map.current.setCenter(center);
+    }
 
     if (import.meta.env.VITE_AUTOMATED_TEST_RUNNING) window.map = map.current;
 
-    const handleMapMove = () => {
+    const handleMapMove = (e: MapEvent & { isDefaultView?: boolean }) => {
+      // Default view is stored as null so the URL stays clean.
+      if (e.isDefaultView) {
+        setCenter(null);
+        setZoom(null);
+        return;
+      }
       setCenter(map.current!.getCenter());
       setZoom(map.current!.getZoom());
     };
