@@ -9,8 +9,9 @@ import {
   DownloadIcon,
 } from '../Icons';
 import type { LegendArgs } from '@/constants';
-import { COLOR_OPTIONS, INITIAL_CENTER, INITIAL_ZOOM, MIN_EXPORT_MAP_WIDTH } from '@/constants';
+import { COLOR_OPTIONS, MIN_EXPORT_MAP_WIDTH } from '@/constants';
 import { useIsMapDragging, useIsMapZooming, useMapCanvasWidth, useProductLabels } from '@/hooks';
+import { fitDefaultView } from '@/helpers';
 import { setSidebarOpen, useMapUIStore, useSidebarStore } from '@/store';
 import { useShallow } from 'zustand/shallow';
 import { SCALAR_TILES_GROUP, PRODUCTS } from '@/constants';
@@ -51,7 +52,7 @@ export function MapControlPanel({
   };
 
   const handleResetZoom = () => {
-    mapRef.current?.easeTo({ center: INITIAL_CENTER, zoom: INITIAL_ZOOM, duration: 300 });
+    if (mapRef.current) fitDefaultView(mapRef.current, 300);
   };
 
   const handleOpenFullScreen = () => {

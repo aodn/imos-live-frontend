@@ -1,6 +1,6 @@
 import { type StyleTitle } from '@/styles';
 import { utcToTimezoneString, generateValueByPercentage } from '@/utils';
-import mapboxgl from 'mapbox-gl';
+import type { LngLatBoundsLike } from 'mapbox-gl';
 import { PRODUCT } from './products';
 import type { ProductEnabled, TIMEZONE } from '@/store';
 import {
@@ -15,9 +15,12 @@ export const CLUSTER_MAX_ZOOM = 7;
 export const MAX_ZOOM = CLUSTER_MAX_ZOOM;
 
 export const INITIAL_TIMEZONE: TIMEZONE = 'UTC';
-export const INITIAL_ZOOM = 4;
 export const INITIAL_STYLE: StyleTitle = 'Streets';
-export const INITIAL_CENTER = new mapboxgl.LngLat(134, -28);
+// Default view: fitted to Australia so it is centered at any viewport size.
+export const DEFAULT_VIEW_BOUNDS: LngLatBoundsLike = [
+  [110, -46],
+  [158, -10],
+]; // [SW, NE]
 // Naive (timezone-free) 'YYYY-MM-DD' bounds. `end` is "today" for INITIAL_TIMEZONE,
 // snapshotted once at load — it's only used as the initial default below.
 // Live consumers (e.g. useDateSliderDates) re-derive "today" from the current
