@@ -32,8 +32,9 @@ export default defineConfig(({ mode }) => {
       }),
   };
 
+  // No proxy under E2E so tests can't reach the real API
   const preview: UserConfig['preview'] = {
-    proxy: apiProxy,
+    ...(!process.env['VITE_AUTOMATED_TEST_RUNNING'] && { proxy: apiProxy }),
   };
 
   if (VITE_STATS_ENABLED === 'true') {

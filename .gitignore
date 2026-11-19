@@ -80,3 +80,4 @@ build/
 # Claude Code (personal settings / runtime files)
 .claude
 .mcp.json
+dist-e2e

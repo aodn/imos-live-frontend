@@ -15,15 +15,15 @@ const imosLiveBaseURL = 'http://localhost:5174';
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
-  testDir: './tests',
+  testDir: './e2e',
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
-  /* Opt out of parallel tests on CI. */
-  workers: 1,
+  /* Limit workers on CI; the map tests are CPU-heavy. */
+  workers: process.env.CI ? 2 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
@@ -52,7 +52,10 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'npm run dev -- --port 5174',
+    // CI serves the prebuilt app (faster than on-demand dev transforms)
+    command: process.env.CI
+      ? 'pnpm exec vite preview --outDir dist-e2e --port 5174 --strictPort'
+      : 'npm run dev -- --port 5174',
     url: imosLiveBaseURL,
     env: {
       VITE_AUTOMATED_TEST_RUNNING: 'true',
