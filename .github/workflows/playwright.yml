@@ -2,6 +2,9 @@ name: Playwright Tests
 on:
   pull_request:
     branches: [main]
+concurrency:
+  group: playwright-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   e2e-tests:
     timeout-minutes: 20
@@ -21,6 +24,11 @@ jobs:
           cache: 'pnpm'
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+      - name: Build app
+        run: pnpm exec vite build --outDir dist-e2e
+        env:
+          VITE_AUTOMATED_TEST_RUNNING: true
+          VITE_MAPBOX_KEY: ${{ vars.MAPBOX_KEY }}
       - name: Run Playwright tests
         run: pnpm exec playwright test
         env:
