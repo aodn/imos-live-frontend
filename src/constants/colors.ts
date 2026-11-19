@@ -399,7 +399,7 @@ export const x_rainbow: { colors: [number, number, number][] } = {
 // the two at load time and warns in dev if the lengths drift apart.
 export const MHW_CATEGORY_LEGEND_COLORS = ['#00078f', '#007bff', '#67ff96', '#ff9701', '#8c0000'];
 
-export const CONTINOUS_PRODUCT_COLOR_OPTIONS = {
+export const CONTINUOUS_PRODUCT_COLOR_OPTIONS = {
   RdBu_r: rdBuR.colors as [number, number, number][],
   'Ocean to Terrain': ocean_to_terrain.colors as [number, number, number][],
   'Cmocean Thermal': cmocean_thermal.colors as [number, number, number][],
@@ -416,10 +416,10 @@ export const CATEGORY_PRODUCT_COLOR_OPTIONS = {
 } as const;
 
 export const COLOR_OPTIONS = {
-  ...CONTINOUS_PRODUCT_COLOR_OPTIONS,
+  ...CONTINUOUS_PRODUCT_COLOR_OPTIONS,
   ...CATEGORY_PRODUCT_COLOR_OPTIONS,
 } as const;
 
 export type ColorOptionKey = keyof typeof COLOR_OPTIONS;
-export type ContinuousDataColorOptionKey = keyof typeof CONTINOUS_PRODUCT_COLOR_OPTIONS;
+export type ContinuousDataColorOptionKey = keyof typeof CONTINUOUS_PRODUCT_COLOR_OPTIONS;
 export type CategoryDataColorOptionKey = keyof typeof CATEGORY_PRODUCT_COLOR_OPTIONS;

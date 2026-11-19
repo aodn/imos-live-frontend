@@ -43,7 +43,7 @@ export {
   x_rainbow,
   MHW_CATEGORY_LEGEND_COLORS,
   COLOR_OPTIONS,
-  CONTINOUS_PRODUCT_COLOR_OPTIONS,
+  CONTINUOUS_PRODUCT_COLOR_OPTIONS,
 } from './colors';
 export type { ColorOptionKey, ContinuousDataColorOptionKey } from './colors';
 
