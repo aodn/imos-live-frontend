@@ -85,6 +85,16 @@ When adding a new product, touch these files in order:
 
 Layer paint/layout config belongs in `src/constants/layerSpecs.ts`. Always add layers to the map via `addLayerInOrder` (not Mapbox's `addLayer` directly) — and register the new layer's ID in `LAYERS_ORDER` in `src/constants/layerOrder.ts`, where the last entry is the top-most layer.
 
+## E2E Tests
+
+Playwright specs live in `e2e/`, one file per feature (`oceanCurrent.spec.ts`, `siteProducts.spec.ts`, ...). Unit tests are colocated in `src/` (Vitest).
+
+- E2E tests only use mocked APIs, never the real one. Import `test`/`expect` from `e2e/fixtures.ts`: its auto fixture installs the site and tiles mocks and the page clock for every test.
+- Mocks live in `e2e/utils/` (`mockSiteApi.ts`, `mockTilesApi.ts`). When the app calls a new or renamed endpoint, update the mock there, not in the spec.
+- Reuse the page helpers in `e2e/utils/` (`mapComponent`, `sidebarComponent`, `dateSlider`, `atlasLayer`) and `productEnabledURL()` from `constants.ts` before writing new ones.
+- Wait on app state (`expect.poll`, `waitForStable`), not `waitForTimeout`.
+- CI (`.github/workflows/playwright.yml`) builds with `VITE_AUTOMATED_TEST_RUNNING=true` into `dist-e2e/` and serves it with `vite preview`. Locally, `pnpm test:e2e` uses the dev server.
+
 ## Performance
 
 - Memoize Mapbox layer objects with `useMemo` in layer hooks — passing new objects on every render causes unnecessary layer re-registration

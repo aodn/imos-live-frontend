@@ -53,8 +53,9 @@ Pay particular attention to:
 - Tests: behaviour changes and bug fixes in utils, helpers, hooks and store
   should have Vitest coverage in a colocated `*.spec.ts(x)` file. Map
   rendering is not pixel-tested by design; shader colour logic is checked by
-  the isolated Playwright readback in `tests/scalarColor.spec.ts`, and UI
-  flow changes may need `tests/happyPath.spec.ts` updated. New UI components
+  the isolated Playwright readback in `e2e/scalarColor.spec.ts`, and UI
+  flow changes may need a spec under `e2e/` updated (and its API mocks in
+  `e2e/utils/`). New UI components
   should come with a `*.stories.tsx` Storybook story (default state plus a
   variant where applicable).
 

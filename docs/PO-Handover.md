@@ -168,7 +168,7 @@ imos-live-frontend/
 │   ├── DataProcessing.md     # Data processing documentation
 │   └── TechnicalDoc.md       # Technical implementation details
 ├── public/               # Static assets
-├── tests/                # E2E tests
+├── e2e/                  # E2E tests (Playwright)
 └── .github/workflows/    # CI/CD pipelines
 ```
 
@@ -264,7 +264,7 @@ imos-live-frontend/
 - Install: `npm install`
 - Development: `npm run dev` (with real data) or `npm run dev:mock` (with mock data)
 - Build: `npm run build`
-- Test: `npm test` (unit) and `npm run test:e2e` (E2E)
+- Test: `npm test` (unit) and `npm run test:e2e` (E2E, against mocked APIs; the CI run serves a prebuilt app from `dist-e2e/`)
 
 ## 7. Dependencies and External Services
 
