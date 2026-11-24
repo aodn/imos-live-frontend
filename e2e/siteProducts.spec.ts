@@ -1,4 +1,4 @@
-import { PRODUCT, PRODUCTS } from '@/constants';
+import { PRODUCT, SITE_CLUSTER_SOURCE_ID } from '@/constants';
 import { expect, test } from './fixtures';
 import { productEnabledURL } from './utils/constants';
 import { mapComponent } from './utils/mapComponent';
@@ -18,9 +18,20 @@ test.describe('Site products', () => {
     test(`${product} loads its sites from the mocked API`, async ({ page }) => {
       await page.goto(productEnabledURL([product]));
 
-      await mapComponent.waitUntilSiteInSource(page, PRODUCTS[product].sourceId, site.name);
+      await mapComponent.waitUntilSiteInSource(page, SITE_CLUSTER_SOURCE_ID, site.name);
     });
   }
+});
+
+test.describe('Site clusters', () => {
+  // One clustered source for all site products, so nearby sites of any product group together.
+  test('puts sites of every enabled product into the shared cluster source', async ({ page }) => {
+    await page.goto(productEnabledURL(SITE_PRODUCTS.map(({ product }) => product)));
+
+    for (const { site } of SITE_PRODUCTS) {
+      await mapComponent.waitUntilSiteInSource(page, SITE_CLUSTER_SOURCE_ID, site.name);
+    }
+  });
 });
 
 test.describe('Site details panel', () => {
@@ -30,7 +41,7 @@ test.describe('Site details panel', () => {
     }) => {
       await page.goto(productEnabledURL([product]));
 
-      await mapComponent.waitUntilSiteInSource(page, PRODUCTS[product].sourceId, site.name);
+      await mapComponent.waitUntilSiteInSource(page, SITE_CLUSTER_SOURCE_ID, site.name);
       await mapComponent.waitUntilIdle(page);
 
       // Retry the click: the layer's click handler can attach just after the source loads.

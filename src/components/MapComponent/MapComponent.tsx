@@ -8,8 +8,10 @@ import {
   useParticleAtlasLayer,
   useTilesLayersEventHandlers,
   useScalarAtlasLayer,
-  useSiteLayer,
-  useSiteLayerEventHandler,
+  useSiteClusterEventHandler,
+  useSiteClusterLayer,
+  useUnclusteredSiteLayer,
+  useSiteUnclusteredLayerEventHandler,
   useWorldLandLayer,
 } from '@/hooks';
 import {
@@ -29,18 +31,12 @@ import { useShallow } from 'zustand/shallow';
 import { DistanceMeasurement } from '../DistanceMeasurement';
 import { MapControlPanel } from '../MapControlPanel';
 import {
-  ESTUARINE_MOORING_CLUSTER_LABEL_LAYER_ID,
-  MOORING_CLUSTER_LABEL_LAYER_ID,
-  ESTUARINE_MOORING_LAYER_CONFIG,
-  MOORING_LAYER_CONFIG,
   PRODUCT,
-  PRODUCTS,
   UNCLUSTERED_ESTUARINE_MOORING_LAYER_ID,
   UNCLUSTERED_ESTUARINE_MOORING_LAYER_CONFIG,
   UNCLUSTERED_MOORING_LAYER_CONFIG,
   UNCLUSTERED_MOORING_LAYER_ID,
   UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
-  WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID,
 } from '@/constants';
 import type { DrawerProps } from '../Drawer';
 
@@ -113,64 +109,58 @@ export const MapComponent = memo(function MapComponent() {
     map,
     product: PRODUCT.AUSTEMP_HEATWAVE_MHW_CATEGORY_MOSAIC,
   });
-  useSiteLayer({
+  useUnclusteredSiteLayer({
     map,
     product: PRODUCT.WAVE_BUOYS,
     unclusteredLayerId: UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
-    clusterLabelLayerId: WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID,
     getSitesByDate: getWaveBuoySitesByDate,
     getLatestSites: getLatestWaveBuoySites,
   });
-  useSiteLayer({
+  useUnclusteredSiteLayer({
     map,
     product: PRODUCT.MOORING_TIMESERIES_REALTIME,
     unclusteredLayerId: UNCLUSTERED_MOORING_LAYER_ID,
-    clusterLabelLayerId: MOORING_CLUSTER_LABEL_LAYER_ID,
     getSitesByDate: getMooringSitesByDate,
     getLatestSites: getLatestMooringSites,
-    clusterConfig: MOORING_LAYER_CONFIG,
     unclusteredConfig: UNCLUSTERED_MOORING_LAYER_CONFIG,
   });
-  useSiteLayer({
+  useUnclusteredSiteLayer({
     map,
     product: PRODUCT.MOORING_ESTUARINE_COASTAL_WATER_QUALITY_MONITORING_REALTIME_QC,
     unclusteredLayerId: UNCLUSTERED_ESTUARINE_MOORING_LAYER_ID,
-    clusterLabelLayerId: ESTUARINE_MOORING_CLUSTER_LABEL_LAYER_ID,
     getSitesByDate: getEstuarineMooringSitesByDate,
     getLatestSites: getLatestEstuarineMooringSites,
-    clusterConfig: ESTUARINE_MOORING_LAYER_CONFIG,
     unclusteredConfig: UNCLUSTERED_ESTUARINE_MOORING_LAYER_CONFIG,
   });
 
+  useSiteClusterLayer(map, waveBuoysEnabled || mooringEnabled || estuarineMooringEnabled);
+
   //3. add click event listners to map and layers.
-  const { clickedPointData: waveBuoysClickedPointData } = useSiteLayerEventHandler(map, {
+  useSiteClusterEventHandler(map, {
+    enabled: waveBuoysEnabled || mooringEnabled || estuarineMooringEnabled,
+    distanceMeasurementEnabled,
+  });
+  const { clickedPointData: waveBuoysClickedPointData } = useSiteUnclusteredLayerEventHandler(map, {
     product: PRODUCT.WAVE_BUOYS,
     enabled: waveBuoysEnabled,
     distanceMeasurementEnabled,
-    clusterLayerId: PRODUCTS[PRODUCT.WAVE_BUOYS].layerId,
     unclusteredLayerId: UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
-    sourceId: PRODUCTS[PRODUCT.WAVE_BUOYS].sourceId,
   });
 
-  const { clickedPointData: mooringClickedPointData } = useSiteLayerEventHandler(map, {
+  const { clickedPointData: mooringClickedPointData } = useSiteUnclusteredLayerEventHandler(map, {
     product: PRODUCT.MOORING_TIMESERIES_REALTIME,
     enabled: mooringEnabled,
     distanceMeasurementEnabled,
-    clusterLayerId: PRODUCTS[PRODUCT.MOORING_TIMESERIES_REALTIME].layerId,
     unclusteredLayerId: UNCLUSTERED_MOORING_LAYER_ID,
-    sourceId: PRODUCTS[PRODUCT.MOORING_TIMESERIES_REALTIME].sourceId,
   });
 
-  const { clickedPointData: estuarineMooringClickedPointData } = useSiteLayerEventHandler(map, {
-    product: PRODUCT.MOORING_ESTUARINE_COASTAL_WATER_QUALITY_MONITORING_REALTIME_QC,
-    enabled: estuarineMooringEnabled,
-    distanceMeasurementEnabled,
-    clusterLayerId:
-      PRODUCTS[PRODUCT.MOORING_ESTUARINE_COASTAL_WATER_QUALITY_MONITORING_REALTIME_QC].layerId,
-    unclusteredLayerId: UNCLUSTERED_ESTUARINE_MOORING_LAYER_ID,
-    sourceId:
-      PRODUCTS[PRODUCT.MOORING_ESTUARINE_COASTAL_WATER_QUALITY_MONITORING_REALTIME_QC].sourceId,
-  });
+  const { clickedPointData: estuarineMooringClickedPointData } =
+    useSiteUnclusteredLayerEventHandler(map, {
+      product: PRODUCT.MOORING_ESTUARINE_COASTAL_WATER_QUALITY_MONITORING_REALTIME_QC,
+      enabled: estuarineMooringEnabled,
+      distanceMeasurementEnabled,
+      unclusteredLayerId: UNCLUSTERED_ESTUARINE_MOORING_LAYER_ID,
+    });
 
   useTilesLayersEventHandlers({
     map,

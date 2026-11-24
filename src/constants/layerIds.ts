@@ -1,13 +1,15 @@
-// these two are intermediate layer on fly
-export const WAVE_BUOYS_CLUSTER_LABEL_LAYER_ID = 'wave-buoys-cluster-label-layer';
+// All site products share one clustered source, so sites of any product group into the same cluster.
+export const SITE_CLUSTER_SOURCE_ID = 'site-cluster-source';
+export const SITE_CLUSTER_LAYER_ID = 'site-cluster-layer';
+export const SITE_CLUSTER_LABEL_LAYER_ID = 'site-cluster-label-layer';
+
+// wave buoys unclustered layer (intermediate, on the fly)
 export const UNCLUSTERED_WAVE_BUOYS_LAYER_ID = 'unclustered_wave-buoys-layer';
 
-// mooring intermediate layers
-export const MOORING_CLUSTER_LABEL_LAYER_ID = 'mooring-cluster-label-layer';
+// mooring unclustered layer
 export const UNCLUSTERED_MOORING_LAYER_ID = 'unclustered_mooring-layer';
 
-// estuarine & coastal mooring intermediate layers
-export const ESTUARINE_MOORING_CLUSTER_LABEL_LAYER_ID = 'mooring-estuarine-cluster-label-layer';
+// estuarine & coastal mooring unclustered layer
 export const UNCLUSTERED_ESTUARINE_MOORING_LAYER_ID = 'unclustered_mooring-estuarine-layer';
 
 // triangle marker image id, used by `icon-image`

@@ -7,14 +7,17 @@ export function addOrUpdateGeoJsonSource({
   data,
   enableCluster = false,
   clusterRadius,
+  assignIds = true,
 }: {
   map: mapboxgl.Map;
   id: string;
   data: GeoJSON.FeatureCollection | GeoJSON.Feature;
   enableCluster?: boolean;
   clusterRadius?: number;
+  // Set false when the features already carry a stable `_id`.
+  assignIds?: boolean;
 }) {
-  if ('features' in data) {
+  if (assignIds && 'features' in data) {
     addIdToFeatures(data.features);
   }
 

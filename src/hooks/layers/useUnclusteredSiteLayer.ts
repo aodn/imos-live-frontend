@@ -1,41 +1,42 @@
 import { siteLatestDateQueryOptions } from '@/api';
 import type { SiteLayerConfig, SiteProduct } from '@/constants';
+import { SITE_CLUSTER_SOURCE_ID, UNCLUSTERED_WAVE_BUOYS_LAYER_CONFIG } from '@/constants';
 import {
-  PRODUCTS,
-  UNCLUSTERED_WAVE_BUOYS_LAYER_CONFIG,
-  WAVE_BUOY_CLUSTER_LABEL_LAYER_CONFIG,
-  WAVE_BUOYS_LAYER_CONFIG,
-} from '@/constants';
-import { addLayerInOrder, addOrUpdateGeoJsonSource, mergeAndFilterBuoyFeatures } from '@/helpers';
-import { createLayer, symbolLayer } from '@/layers';
+  addLayerInOrder,
+  mergeAndFilterBuoyFeatures,
+  setSiteProductFeatures,
+  updateSiteClusterSource,
+} from '@/helpers';
+import { createLayer } from '@/layers';
 import { useMapUIStore, setProductErrorByProduct, type TIMEZONE } from '@/store';
 import { useQuery } from '@tanstack/react-query';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useShallow } from 'zustand/shallow';
 import { useDidMountEffect } from '../common';
 import { useMapboxLayerSetup } from './useMapboxLayerSetup';
 import { useMapboxLayerVisibility } from './useMapboxLayerVisibility';
 import type { RawSiteFeatureCollection } from '@/types';
-import type { CircleLayerSpecification, SymbolLayerSpecification } from 'mapbox-gl';
+import type {
+  CircleLayerSpecification,
+  ExpressionSpecification,
+  SymbolLayerSpecification,
+} from 'mapbox-gl';
 
 type SiteLayerSpecification = CircleLayerSpecification | SymbolLayerSpecification;
 
-type UseSiteLayer = {
+type UseUnclusteredSiteLayer = {
   map: React.RefObject<mapboxgl.Map | null>;
   product: SiteProduct;
-  // The intermediate, on-the-fly layer IDs for this product's unclustered points
-  // and cluster count label (the clustered layer + source IDs come from PRODUCTS).
+  // The on-the-fly layer ID for this product's unclustered points. Clusters are drawn
+  // by the shared `useSiteClusterLayer`, so sites of all products group together.
   unclusteredLayerId: string;
-  clusterLabelLayerId: string;
   // Returns the sites active for the selected date (interpreted per `timezone`, marks hasDataForDate).
   getSitesByDate: (date: string, timezone: TIMEZONE) => Promise<RawSiteFeatureCollection>;
   // Returns all sites with their latest observation (the base set the date merge fills in).
   getLatestSites: (timezone: TIMEZONE) => Promise<RawSiteFeatureCollection>;
-  // Per-product paint/layout so site products are visually distinguishable.
-  // Default to the wave-buoy styling. Each config's `type` decides circle vs symbol.
-  clusterConfig?: SiteLayerConfig;
+  // Per-product paint/layout so unclustered sites are visually distinguishable.
+  // Defaults to the wave-buoy styling. The config's `type` decides circle vs symbol.
   unclusteredConfig?: SiteLayerConfig;
-  clusterLabelConfig?: Partial<SymbolLayerSpecification>;
 };
 
 const EMPTY_COLLECTION: RawSiteFeatureCollection = {
@@ -44,22 +45,18 @@ const EMPTY_COLLECTION: RawSiteFeatureCollection = {
 };
 
 /**
- * Generic clustered layer for site products (wave buoys, moorings, …).
- * Registers the clustered, unclustered and cluster-label layers immediately with
- * an empty source, then fills in data asynchronously and re-fetches on date change.
+ * Generic layer for site products (wave buoys, moorings, …).
+ * Fetches the product's sites and writes them to the shared clustered source, then
+ * draws its unclustered points. Re-fetches on date change.
  */
-export function useSiteLayer({
+export function useUnclusteredSiteLayer({
   map,
   product,
   unclusteredLayerId,
-  clusterLabelLayerId,
   getSitesByDate,
   getLatestSites,
-  clusterConfig = WAVE_BUOYS_LAYER_CONFIG,
   unclusteredConfig = UNCLUSTERED_WAVE_BUOYS_LAYER_CONFIG,
-  clusterLabelConfig = WAVE_BUOY_CLUSTER_LABEL_LAYER_CONFIG,
-}: UseSiteLayer) {
-  const { layerId, sourceId } = PRODUCTS[product];
+}: UseUnclusteredSiteLayer) {
   const { enabled, date, timezone, isError } = useMapUIStore(
     useShallow(s => ({
       enabled: s.productEnabled[product],
@@ -88,38 +85,25 @@ export function useSiteLayer({
     enabled: enabled,
   });
 
-  const clusterLayer = useMemo(
-    () =>
-      createLayer<SiteLayerSpecification>(clusterConfig.type)(
-        { id: layerId, source: sourceId, ...clusterConfig },
-        enabled,
-      ),
-    [enabled, layerId, sourceId, clusterConfig],
-  );
+  // Only this product's unclustered points: the shared source holds every product.
   const unclusteredLayer = useMemo(
     () =>
       createLayer<SiteLayerSpecification>(unclusteredConfig.type)(
-        { id: unclusteredLayerId, source: sourceId, ...unclusteredConfig },
-        enabled,
-      ),
-    [enabled, sourceId, unclusteredLayerId, unclusteredConfig],
-  );
-  const clusterLabelLayer = useMemo(
-    () =>
-      symbolLayer(
         {
-          id: clusterLabelLayerId,
-          source: sourceId,
-          ...clusterLabelConfig,
+          id: unclusteredLayerId,
+          source: SITE_CLUSTER_SOURCE_ID,
+          ...unclusteredConfig,
+          filter: [
+            'all',
+            ...(unclusteredConfig.filter ? [unclusteredConfig.filter] : []),
+            ['==', ['get', 'product'], product],
+          ] as ExpressionSpecification,
         },
         enabled,
       ),
-    [enabled, sourceId, clusterLabelLayerId, clusterLabelConfig],
+    [enabled, product, unclusteredLayerId, unclusteredConfig],
   );
-  const layers = useMemo(
-    () => [clusterLayer, unclusteredLayer, clusterLabelLayer],
-    [clusterLayer, unclusteredLayer, clusterLabelLayer],
-  );
+  const layers = useMemo(() => [unclusteredLayer], [unclusteredLayer]);
 
   const setDataByDataset = useCallback(async () => {
     setProductErrorByProduct(product, false);
@@ -141,42 +125,23 @@ export function useSiteLayer({
 
     const [allSites, sitesByDate] = await Promise.all([allSitesPromise, sitesByDatePromise]);
 
-    addOrUpdateGeoJsonSource({
-      map: map.current!,
-      id: sourceId,
-      data: {
-        ...allSites,
-        features: mergeAndFilterBuoyFeatures(allSites, sitesByDate, date),
-      },
-      enableCluster: true,
-      clusterRadius: 40,
-    });
-  }, [
-    allSitesQuery.promise,
-    sitesByDateQuery.promise,
-    shouldFetchByDate,
-    date,
-    map,
-    sourceId,
-    product,
-  ]);
+    setSiteProductFeatures(
+      map.current!,
+      product,
+      mergeAndFilterBuoyFeatures(allSites, sitesByDate, date),
+    );
+  }, [allSitesQuery.promise, sitesByDateQuery.promise, shouldFetchByDate, date, map, product]);
 
   const setupLayer = useCallback(async () => {
     if (layers.some(layer => !layer)) return;
-    // Always add layers immediately with an empty source so the layer is registered on the
-    // map without blocking on API responses. Data is filled in asynchronously by setDataByDataset.
-    addOrUpdateGeoJsonSource({
-      map: map.current!,
-      id: sourceId,
-      data: { type: 'FeatureCollection', features: [] },
-      enableCluster: true,
-      clusterRadius: 40,
-    });
+    // Make sure the shared source exists, then add the layer immediately so it is registered
+    // without blocking on API responses. Data is filled in asynchronously by setDataByDataset.
+    updateSiteClusterSource(map.current!);
     layers.forEach(layer => addLayerInOrder(map, layer));
     if (enabled) {
       void setDataByDataset();
     }
-  }, [layers, enabled, map, setDataByDataset, sourceId]);
+  }, [layers, enabled, map, setDataByDataset]);
 
   const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [setupLayer]);
 
@@ -186,4 +151,10 @@ export function useSiteLayer({
     if (!map.current || !loadComplete || !enabled) return;
     void setDataByDataset();
   }, [loadComplete, date, enabled, shouldFetchByDate, timezone]);
+
+  // Drop this product's sites from the shared source (and its clusters) when disabled.
+  useEffect(() => {
+    if (!map.current || !loadComplete || enabled) return;
+    setSiteProductFeatures(map.current, product, []);
+  }, [map, loadComplete, enabled, product]);
 }

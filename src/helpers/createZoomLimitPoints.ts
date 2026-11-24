@@ -1,13 +1,10 @@
 import {
-  PRODUCT,
   ZOOM_LIMIT_TEMP_CONNECTION_LINES_LAYER_PARTIAL,
   ZOOM_LIMIT_TEMPPOINT_LAYER_PARTIAL,
-  ZOOM_LIMIT_TEMP_TRIANGLE_LAYER_PARTIAL,
   ZOOM_LIMIT_TEMP_POINTS_CONNECTION_LINES_LAYER_ID,
   ZOOM_LIMIT_TEMP_POINTS_CONNECTION_LINES_SOURCE_ID,
   ZOOM_LIMIT_TEMP_POINTS_LAYER_ID,
   ZOOM_LIMIT_TEMP_POINTS_SOURCE_ID,
-  type SiteProduct,
 } from '@/constants';
 import type { GeoJsonProperties, Geometry, Feature } from 'geojson';
 import { removeZoomLimitTempPoints } from './removeZoomLimitTempPoints';
@@ -38,7 +35,6 @@ export function createZoomLimitPoints(
   map: React.RefObject<mapboxgl.Map | null>,
   points: Feature<Geometry, GeoJsonProperties>[],
   clusterCenter: [number, number],
-  product: SiteProduct,
 ) {
   const mapInstace = map.current;
   if (!mapInstace) return;
@@ -67,10 +63,9 @@ export function createZoomLimitPoints(
         type: 'Point',
         coordinates: [offsetLng, offsetLat], //TODO: the coordinates are not the original, so either put original value in property or invetigate on it finding other ways.
       },
-      // Tag with the owning product so the shared zoom-limit-temp-points layer's
-      // click/hover handlers (registered once per site product) can tell which
-      // product a given temp point actually belongs to.
-      properties: { ...(point.properties ?? {}), product },
+      // Cluster leaves already carry their owning `product`, which the shared layer's
+      // click/hover handlers (registered once per site product) use to pick the owner.
+      properties: { ...(point.properties ?? {}) },
     });
 
     lineFeatures.push({
@@ -99,17 +94,6 @@ export function createZoomLimitPoints(
     source: ZOOM_LIMIT_TEMP_POINTS_CONNECTION_LINES_SOURCE_ID,
     ...ZOOM_LIMIT_TEMP_CONNECTION_LINES_LAYER_PARTIAL,
   });
-
-  // Estuarine fan-outs use triangles.
-  if (product === PRODUCT.MOORING_ESTUARINE_COASTAL_WATER_QUALITY_MONITORING_REALTIME_QC) {
-    mapInstace.addLayer({
-      id: ZOOM_LIMIT_TEMP_POINTS_LAYER_ID,
-      type: 'symbol',
-      source: ZOOM_LIMIT_TEMP_POINTS_SOURCE_ID,
-      ...ZOOM_LIMIT_TEMP_TRIANGLE_LAYER_PARTIAL,
-    });
-    return;
-  }
 
   mapInstace.addLayer({
     id: ZOOM_LIMIT_TEMP_POINTS_LAYER_ID,
