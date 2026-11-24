@@ -1,11 +1,12 @@
-import { PRODUCT, PRODUCTS } from '@/constants';
+import { PRODUCT, PRODUCTS, UNCLUSTERED_WAVE_BUOYS_LAYER_ID } from '@/constants';
 import { serialize } from '@/store/serialization';
 
 export const GSLA_PARTICLE_PRODUCT = PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT;
 export const GSLA_ANOMALY_PRODUCT = PRODUCT.GSLA_ANOMALY_SEA_LEVELS;
 export const GSLA_PARTICLE_LAYER_ID = PRODUCTS[GSLA_PARTICLE_PRODUCT].layerId;
 export const GSLA_ANOMALY_LAYER_ID = PRODUCTS[GSLA_ANOMALY_PRODUCT].layerId;
-export const WAVE_BUOYS_LAYER_ID = PRODUCTS[PRODUCT.WAVE_BUOYS].layerId;
+// Clusters are shared across site products, so the unclustered layer is the wave-buoy one.
+export const WAVE_BUOYS_LAYER_ID = UNCLUSTERED_WAVE_BUOYS_LAYER_ID;
 
 // The page clock is pinned here; the dates below are the days the mocks serve.
 export const CURRENT_DATE = new Date('2025-08-01T00:00:00.000Z');

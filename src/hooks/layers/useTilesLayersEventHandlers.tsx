@@ -6,9 +6,8 @@ import {
   UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
   UNCLUSTERED_ESTUARINE_MOORING_LAYER_ID,
   UNCLUSTERED_MOORING_LAYER_ID,
+  SITE_CLUSTER_LAYER_ID,
   ZOOM_LIMIT_TEMP_POINTS_LAYER_ID,
-  PRODUCTS,
-  PRODUCT,
 } from '@/constants';
 import { ClickedMapPopupContent } from '@/components';
 
@@ -31,11 +30,9 @@ export function useTilesLayersEventHandlers({
         map,
         distanceMeasurementEnabled,
         higherPriorityLayers: [
-          PRODUCTS[PRODUCT.WAVE_BUOYS].layerId,
+          SITE_CLUSTER_LAYER_ID,
           UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
-          PRODUCTS[PRODUCT.MOORING_TIMESERIES_REALTIME].layerId,
           UNCLUSTERED_MOORING_LAYER_ID,
-          PRODUCTS[PRODUCT.MOORING_ESTUARINE_COASTAL_WATER_QUALITY_MONITORING_REALTIME_QC].layerId,
           UNCLUSTERED_ESTUARINE_MOORING_LAYER_ID,
           ZOOM_LIMIT_TEMP_POINTS_LAYER_ID,
         ],

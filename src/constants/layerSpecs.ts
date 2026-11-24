@@ -12,7 +12,8 @@ export type SiteLayerConfig =
   | (Partial<CircleLayerSpecification> & Pick<CircleLayerSpecification, 'type'>)
   | (Partial<SymbolLayerSpecification> & Pick<SymbolLayerSpecification, 'type'>);
 
-export const WAVE_BUOYS_LAYER_CONFIG: SiteLayerConfig = {
+// One cluster style for every site product, so mixed clusters look the same.
+export const SITE_CLUSTER_LAYER_CONFIG: SiteLayerConfig = {
   type: 'circle',
   filter: ['has', 'point_count'], // Only show clustered points
   paint: {
@@ -88,31 +89,12 @@ export const UNCLUSTERED_WAVE_BUOYS_LAYER_CONFIG: SiteLayerConfig = {
   },
 } as const;
 
-export const WAVE_BUOY_CLUSTER_LABEL_LAYER_CONFIG: Partial<SymbolLayerSpecification> = {
+export const SITE_CLUSTER_LABEL_LAYER_CONFIG: Partial<SymbolLayerSpecification> = {
   filter: ['has', 'point_count'],
   layout: {
     'text-field': '{point_count_abbreviated}',
     'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
     'text-size': 12,
-  },
-} as const;
-
-// Mooring clusters use a warm amber ramp (vs the wave-buoy blue/yellow/pink) so the
-// two site products are visually distinguishable on the map at a glance.
-export const MOORING_LAYER_CONFIG: SiteLayerConfig = {
-  type: 'circle',
-  filter: ['has', 'point_count'], // Only show clustered points
-  paint: {
-    'circle-color': [
-      'step',
-      ['get', 'point_count'],
-      '#fdba74', // < 100
-      100,
-      '#fb923c', // 100–750
-      750,
-      '#ea580c', // > 750
-    ],
-    'circle-radius': ['step', ['get', 'point_count'], 20, 100, 30, 750, 40],
   },
 } as const;
 
@@ -158,21 +140,6 @@ export const UNCLUSTERED_MOORING_LAYER_CONFIG: SiteLayerConfig = {
 // Estuarine moorings use violet triangles, to stand out from the other site products.
 // These symbol layers use the triangle image via `icon-image`.
 const ESTUARINE_MOORING_COLOR = '#8b5cf6';
-
-// Cluster triangles grow with point count.
-export const ESTUARINE_MOORING_LAYER_CONFIG: SiteLayerConfig = {
-  type: 'symbol',
-  filter: ['has', 'point_count'], // Only show clustered points
-  layout: {
-    'icon-image': TRIANGLE_MARKER_IMAGE_ID,
-    'icon-size': ['step', ['get', 'point_count'], 2, 100, 2.6, 750, 3.2],
-    'icon-allow-overlap': true,
-    'icon-ignore-placement': true,
-  },
-  paint: {
-    'icon-color': ESTUARINE_MOORING_COLOR,
-  },
-};
 
 // Halo draws the outline. Selection can't resize icons, so it changes fill and outline.
 export const UNCLUSTERED_ESTUARINE_MOORING_LAYER_CONFIG: SiteLayerConfig = {
@@ -230,27 +197,6 @@ export const ZOOM_LIMIT_TEMPPOINT_LAYER_PARTIAL: Partial<CircleLayerSpecificatio
     'circle-radius': 8,
     'circle-stroke-width': 1,
     'circle-stroke-color': '#fff',
-  },
-};
-
-// Estuarine fan-out points as triangles.
-export const ZOOM_LIMIT_TEMP_TRIANGLE_LAYER_PARTIAL: Partial<SymbolLayerSpecification> = {
-  layout: {
-    'icon-image': TRIANGLE_MARKER_IMAGE_ID,
-    'icon-size': 1,
-    'icon-allow-overlap': true,
-    'icon-ignore-placement': true,
-  },
-  paint: {
-    'icon-color': [
-      'case',
-      ['boolean', ['get', 'hasDataForDate'], true],
-      ESTUARINE_MOORING_COLOR,
-      '#aaaaaa', // inactive: gray
-    ],
-    'icon-halo-color': '#fff',
-    'icon-halo-width': 1,
-    'icon-halo-blur': 0,
   },
 };
 
