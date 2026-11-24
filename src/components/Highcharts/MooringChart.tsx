@@ -1,5 +1,5 @@
 import { getEstuarineMooringDetails, getMooringDetails, siteLatestDateQueryOptions } from '@/api';
-import { PRODUCT, type MooringProduct } from '@/constants';
+import { PRODUCT, SITE_MIN_DATE, type MooringProduct } from '@/constants';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
 import type {
@@ -15,7 +15,7 @@ import { Dropdown } from '@/components/Dropdown';
 import { useDidMountEffect } from '@/hooks';
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { colors, PRIMARY_COLOR, SITE_MIN_DATE } from './config';
+import { colors, PRIMARY_COLOR } from './config';
 import { LineChart } from './LineChart';
 import type {
   LineChartExposedMethods,

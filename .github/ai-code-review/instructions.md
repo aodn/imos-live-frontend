@@ -16,7 +16,7 @@ Pay particular attention to:
   removed, and work done before the map or style has loaded (a style switch
   removes custom layers). Layers must be added through `addLayerInOrder`
   (`src/helpers/`), never `map.addLayer` directly, and every new layer ID
-  must be registered in `LAYERS_ORDER` (`src/constants/layerOrder.ts`).
+  must be registered in `LAYERS_ORDER` (`src/constants/layers.ts`).
   Layer objects passed to hooks should be memoised with `useMemo`.
 - WebGL / `src/AtlasRenderingSystem/`: leaked textures, buffers, framebuffers
   or programs; missing cleanup on layer removal or context loss; changes to

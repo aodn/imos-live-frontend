@@ -18,7 +18,7 @@ import { type LngLat } from 'mapbox-gl';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { storageOptions } from './urlSync';
-import { INITIAL_TIMEZONE } from '@/constants/mapInitialState';
+import { INITIAL_TIMEZONE } from '@/constants/mapConfig';
 
 type ProductError = Record<ProductType, boolean>;
 type ProductLoading = Record<ProductType, boolean>;

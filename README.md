@@ -29,13 +29,13 @@ A product is _rendered_ by the Atlas Rendering System but _defined_ and _wired_ 
 
 1. **`src/constants/products.ts`** — add an entry to `PRODUCT` and `PRODUCTS` (`name`, `layerId`, `sourceId`, optional `variables`, `description`, `portalLink`). For a scalar/particle tiles product, also add the slug to `TILES_GROUP`.
 2. **`src/constants/legends.ts`** — add a `PRODUCTLEGENDS` entry whose `colorKey` selects a palette from `COLOR_OPTIONS` (`src/constants/colors.ts`). `buildProductPalette` (`src/helpers/buildProductPalette.ts`) converts the legend into the `ColorPalette` the WebGL layer uploads.
-3. **`src/hooks/layers/`** — wire the layer. **Tiles products** (scalar/particle) get a dedicated `use<ProductName>Layer.ts` that calls `createScalarAtlasLayer` / `createParticleAtlasLayer` from the package, reusing `useMapboxLayerSetup` and `useDidMountEffect`. **Site products** (clustered map points like wave buoys and moorings) instead reuse the shared `useUnclusteredSiteLayer` + `useSiteUnclusteredLayerEventHandler` (parameterized by product, fetch fns, and the unclustered layer ID) — register the unclustered layer ID in `src/constants/layerIds.ts`, and point styling in `src/constants/layerSpecs.ts`. Clusters are shared across all site products via `useSiteClusterLayer`.
+3. **`src/hooks/layers/`** — wire the layer. **Tiles products** (scalar/particle) get a dedicated `use<ProductName>Layer.ts` that calls `createScalarAtlasLayer` / `createParticleAtlasLayer` from the package, reusing `useMapboxLayerSetup` and `useDidMountEffect`. **Site products** (clustered map points like wave buoys and moorings) instead reuse the shared `useUnclusteredSiteLayer` + `useSiteUnclusteredLayerEventHandler` (parameterized by product, fetch fns, and the unclustered layer ID) — register the unclustered layer ID in `src/constants/layers.ts`, and point styling in `src/constants/layers.ts`. Clusters are shared across all site products via `useSiteClusterLayer`.
 4. **`src/components/MapComponent/MapComponent.tsx`** — register the new hook.
-5. **`src/constants/layerOrder.ts`** — register the layer id in `LAYERS_ORDER` (the last entry is the top-most layer); always add layers via `addLayerInOrder`, not Mapbox's `addLayer` directly.
+5. **`src/constants/layers.ts`** — register the layer id in `LAYERS_ORDER` (the last entry is the top-most layer); always add layers via `addLayerInOrder`, not Mapbox's `addLayer` directly.
 6. **`src/components/MainSidebar/products.tsx`** — add a `featuredPresentation` entry (`product`, `title`, `image`, `icon`); `featuredDataset` derives `description`/`portalLink`/`layerId` from `PRODUCTS`.
 7. **`src/pages/Map.tsx`** — add the product icon entry to `LayersIndicator`.
 
-Layer paint/layout config lives in `src/constants/layerSpecs.ts`.
+Layer paint/layout config lives in `src/constants/layers.ts`.
 
 ## Setup and Usage
 

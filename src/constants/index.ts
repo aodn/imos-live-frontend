@@ -33,7 +33,7 @@ export { PRODUCTLEGENDS } from './legends';
 export type { LegendArgs } from './legends';
 
 // LOD zoom-activation thresholds
-export { LOD_ZOOM_THRESHOLDS } from './lodZoomThresholds';
+export { LOD_ZOOM_THRESHOLDS } from './products';
 
 // Colors / palettes
 export {
@@ -68,7 +68,7 @@ export {
   WORLD_LAND_SOURCE_ID,
   WORLD_LAND_BORDER_LAYER_ID,
   WORLD_LAND_FILL_LAYER_ID,
-} from './layerIds';
+} from './layers';
 
 // Mapbox layer paint/layout specs
 export {
@@ -83,11 +83,11 @@ export {
   MEASURE_LINES_CONFIG,
   WORLD_LAND_BORDER_CONFIG,
   WORLD_LAND_FILL_CONFIG,
-} from './layerSpecs';
-export type { SiteLayerConfig } from './layerSpecs';
+} from './layers';
+export type { SiteLayerConfig } from './layers';
 
 // Render-order registry
-export { LAYERS_ORDER } from './layerOrder';
+export { LAYERS_ORDER } from './layers';
 
 // Initial map state + map-related numeric thresholds
 export {
@@ -104,7 +104,10 @@ export {
   INITIAL_PRODUCT_ERROR,
   INITIAL_PRODUCT_LOADING,
   INITIAL_PARTICLE_CONFIG,
-} from './mapInitialState';
+} from './mapConfig';
 
 // Viewport
 export { BREAKPOINT } from './layout';
+
+// Site product thresholds
+export { SITE_MIN_DATE } from './mapConfig';

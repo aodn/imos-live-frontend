@@ -1,5 +1,5 @@
 import { getWaveBuoyDetails, siteLatestDateQueryOptions } from '@/api';
-import { PRODUCT } from '@/constants';
+import { PRODUCT, SITE_MIN_DATE } from '@/constants';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
 import type { SiteFeature } from '@/types';
@@ -14,7 +14,6 @@ import {
   noneDirectionVariants,
   PRIMARY_COLOR,
   readableVariantName,
-  SITE_MIN_DATE,
   VariantReadableName,
 } from './config';
 import { LatestObservation } from './LatestObservation';

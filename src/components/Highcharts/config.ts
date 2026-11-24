@@ -2,9 +2,6 @@ import type { BuoyDataVariants } from '@/types';
 
 export const PRIMARY_COLOR = '#3b6e8f';
 
-// Days of history shown in site charts and kept on the map
-export const SITE_MIN_DATE = 30;
-
 export const colors = [
   PRIMARY_COLOR,
   '#0984e3',

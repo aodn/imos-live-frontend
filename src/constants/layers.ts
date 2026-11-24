@@ -4,9 +4,45 @@ import type {
   LineLayerSpecification,
   SymbolLayerSpecification,
 } from 'mapbox-gl';
-import { PRODUCT } from './products';
-import { TRIANGLE_MARKER_IMAGE_ID } from './layerIds';
+import { PRODUCT, PRODUCTS } from './products';
 
+// ---------- Layer / source IDs ----------
+// All site products share one clustered source, so sites of any product group into the same cluster.
+export const SITE_CLUSTER_SOURCE_ID = 'site-cluster-source';
+export const SITE_CLUSTER_LAYER_ID = 'site-cluster-layer';
+export const SITE_CLUSTER_LABEL_LAYER_ID = 'site-cluster-label-layer';
+
+// wave buoys unclustered layer (intermediate, on the fly)
+export const UNCLUSTERED_WAVE_BUOYS_LAYER_ID = 'unclustered_wave-buoys-layer';
+
+// mooring unclustered layer
+export const UNCLUSTERED_MOORING_LAYER_ID = 'unclustered_mooring-layer';
+
+// estuarine & coastal mooring unclustered layer
+export const UNCLUSTERED_ESTUARINE_MOORING_LAYER_ID = 'unclustered_mooring-estuarine-layer';
+
+// triangle marker image id, used by `icon-image`
+export const TRIANGLE_MARKER_IMAGE_ID = 'site-triangle-marker';
+
+export const ZOOM_LIMIT_TEMP_POINTS_SOURCE_ID = 'zoom-limit-temp-points-source';
+export const ZOOM_LIMIT_TEMP_POINTS_CONNECTION_LINES_SOURCE_ID =
+  'zoom-limit-temp-points-connection-lines-source';
+export const ZOOM_LIMIT_TEMP_POINTS_LAYER_ID = 'zoom-limit-temp-points-layer';
+export const ZOOM_LIMIT_TEMP_POINTS_CONNECTION_LINES_LAYER_ID =
+  'zoom-limit-temp-points-connection-lines-layer';
+
+//measure points layer and measure lines layer share the same source
+export const MEASURE_POINTS_LAYER_ID = 'measure-points-layer';
+export const MEASURE_POINTS_SOURCE_ID = 'measure-points-source';
+export const MEASURE_LINES_LAYER_ID = 'measure-lines-layer';
+export const MEASURE_LINES_SOURCE_ID = MEASURE_POINTS_SOURCE_ID;
+
+//land border
+export const WORLD_LAND_SOURCE_ID = 'world-land-source';
+export const WORLD_LAND_BORDER_LAYER_ID = 'world-land-border-layer';
+export const WORLD_LAND_FILL_LAYER_ID = 'world-land-fill-layer';
+
+// ---------- Layer specs ----------
 // Site marker config. Its `type` decides circle or symbol.
 export type SiteLayerConfig =
   | (Partial<CircleLayerSpecification> & Pick<CircleLayerSpecification, 'type'>)
@@ -242,3 +278,22 @@ export const WORLD_LAND_FILL_CONFIG: Partial<FillLayerSpecification> = {
     'fill-outline-color': 'transparent',
   },
 } as const;
+
+// ---------- Render order ----------
+//last one is the top layer.
+export const LAYERS_ORDER = [
+  PRODUCTS[PRODUCT.GSLA_ANOMALY_SEA_LEVELS].layerId,
+  PRODUCTS[PRODUCT.AUSTEMP_HEATWAVE_SSTA_MOSAIC].layerId,
+  PRODUCTS[PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC].layerId,
+  PRODUCTS[PRODUCT.AUSTEMP_HEATWAVE_MHW_CATEGORY_MOSAIC].layerId,
+  PRODUCTS[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT].layerId,
+  WORLD_LAND_BORDER_LAYER_ID,
+  WORLD_LAND_FILL_LAYER_ID,
+  SITE_CLUSTER_LAYER_ID,
+  UNCLUSTERED_WAVE_BUOYS_LAYER_ID,
+  UNCLUSTERED_MOORING_LAYER_ID,
+  UNCLUSTERED_ESTUARINE_MOORING_LAYER_ID,
+  SITE_CLUSTER_LABEL_LAYER_ID,
+  MEASURE_LINES_LAYER_ID,
+  MEASURE_POINTS_LAYER_ID,
+] as const;

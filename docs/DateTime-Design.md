@@ -27,7 +27,7 @@ export type TIMEZONE = 'UTC' | 'LOCAL';
 
 `src/store/useMapUIStore.ts:36`
 
-- Default: `INITIAL_TIMEZONE: TIMEZONE = 'UTC'` (`src/constants/mapInitialState.ts:17`).
+- Default: `INITIAL_TIMEZONE: TIMEZONE = 'UTC'` (`src/constants/mapConfig.ts:17`).
 - Lives in `useMapUIStore` as `timezone`, changed via `setTimezone`, surfaced
   to the user via the "Timezone selection" dropdown in
   `src/components/FeaturesMenu/MapsSection.tsx`.
@@ -60,7 +60,7 @@ export type TIMEZONE = 'UTC' | 'LOCAL';
 
 ## Date range & "today"
 
-`DATE_RANGE` (`src/constants/mapInitialState.ts:21-29`):
+`DATE_RANGE` (`src/constants/mapConfig.ts:21-29`):
 
 ```ts
 export const DATE_RANGE = {

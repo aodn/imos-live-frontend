@@ -9,7 +9,7 @@ import type * as UtilsModule from '@/utils';
 // only utcToTimezoneString is stubbed so "today" doesn't leak into the test.
 const store = vi.hoisted(() => ({ date: '2025-01-03', timezone: 'UTC' as const }));
 
-vi.mock('@/constants/mapInitialState', () => ({
+vi.mock('@/constants/mapConfig', () => ({
   DATE_RANGE: { start: '2025-01-01', end: '2025-01-05' },
 }));
 vi.mock('@/store', () => ({

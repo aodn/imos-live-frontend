@@ -1,4 +1,4 @@
-import { SITE_MIN_DATE } from '@/components/Highcharts/config';
+import { SITE_MIN_DATE } from '@/constants';
 import type { RawSiteFeatureCollection } from '@/types';
 import { isWithinDaysBefore } from '@/utils';
 
