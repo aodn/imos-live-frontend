@@ -180,3 +180,12 @@ export const getCollectionIdForProduct = (product: TilesProduct): string | undef
   const productInfo = PRODUCTS[product];
   return productInfo?.collectionId;
 };
+
+// Unique collection IDs across all products
+export const COLLECTION_IDS = [
+  ...new Set(
+    Object.values<ProductValue>(PRODUCTS)
+      .map(product => product.collectionId)
+      .filter((id): id is string => Boolean(id)),
+  ),
+];

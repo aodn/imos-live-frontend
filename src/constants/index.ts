@@ -12,6 +12,7 @@ export {
   isSiteProduct,
   extractProductVariables,
   getCollectionIdForProduct,
+  COLLECTION_IDS,
 } from './products';
 export type {
   ProductType,
@@ -107,6 +108,3 @@ export {
 
 // Viewport
 export { BREAKPOINT } from './layout';
-
-// Wave buoy thresholds
-export { WAVE_BUOY_MIN_DATE } from './waveBuoy';

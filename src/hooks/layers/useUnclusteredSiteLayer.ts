@@ -3,7 +3,7 @@ import type { SiteLayerConfig, SiteProduct } from '@/constants';
 import { SITE_CLUSTER_SOURCE_ID, UNCLUSTERED_WAVE_BUOYS_LAYER_CONFIG } from '@/constants';
 import {
   addLayerInOrder,
-  mergeAndFilterBuoyFeatures,
+  mergeAndFilterSiteFeatures,
   setSiteProductFeatures,
   updateSiteClusterSource,
 } from '@/helpers';
@@ -128,7 +128,7 @@ export function useUnclusteredSiteLayer({
     setSiteProductFeatures(
       map.current!,
       product,
-      mergeAndFilterBuoyFeatures(allSites, sitesByDate, date),
+      mergeAndFilterSiteFeatures(allSites, sitesByDate, date),
     );
   }, [allSitesQuery.promise, sitesByDateQuery.promise, shouldFetchByDate, date, map, product]);
 

@@ -5,7 +5,7 @@
 
 import { describe, expect, it } from 'vitest';
 import type { SiteFeatureCollection } from '@/types';
-import { mergeAndFilterBuoyFeatures } from './mergeAndFilterBuoyFeatures';
+import { mergeAndFilterSiteFeatures } from './mergeAndFilterSiteFeatures';
 
 function fc(
   entries: { date: string; site: string; coords?: [number, number] }[],
@@ -27,11 +27,11 @@ const selectedDate = '2026-05-29';
 // assertions type-check.
 type WithFlag = { properties: { site: string; date: string; hasDataForDate: boolean } };
 
-describe('mergeAndFilterBuoyFeatures', () => {
+describe('mergeAndFilterSiteFeatures', () => {
   it('marks buoys present in `buoySites` as hasDataForDate: true', () => {
     const all = fc([{ date: selectedDate, site: 'A' }]);
     const active = fc([{ date: selectedDate, site: 'A' }]);
-    const result = mergeAndFilterBuoyFeatures(all, active, selectedDate) as unknown as WithFlag[];
+    const result = mergeAndFilterSiteFeatures(all, active, selectedDate) as unknown as WithFlag[];
     expect(result).toHaveLength(1);
     expect(result[0].properties.hasDataForDate).toBe(true);
   });
@@ -42,7 +42,7 @@ describe('mergeAndFilterBuoyFeatures', () => {
       { date: '2026-05-28', site: 'B' },
     ]);
     const active = fc([{ date: selectedDate, site: 'A' }]);
-    const result = mergeAndFilterBuoyFeatures(all, active, selectedDate) as unknown as WithFlag[];
+    const result = mergeAndFilterSiteFeatures(all, active, selectedDate) as unknown as WithFlag[];
     const a = result.find(f => f.properties.site === 'A')!;
     const b = result.find(f => f.properties.site === 'B')!;
     expect(a.properties.hasDataForDate).toBe(true);
@@ -54,7 +54,7 @@ describe('mergeAndFilterBuoyFeatures', () => {
     // on `selectedDate`. After merge, A's date should reflect the active feature.
     const all = fc([{ date: '2026-01-01', site: 'A' }]);
     const active = fc([{ date: selectedDate, site: 'A' }]);
-    const result = mergeAndFilterBuoyFeatures(all, active, selectedDate);
+    const result = mergeAndFilterSiteFeatures(all, active, selectedDate);
     expect(result[0].properties.date).toBe(selectedDate);
   });
 
@@ -65,13 +65,13 @@ describe('mergeAndFilterBuoyFeatures', () => {
       { date: '2026-05-15', site: 'RECENT' },
     ]);
     const active = fc([]);
-    const result = mergeAndFilterBuoyFeatures(all, active, selectedDate);
+    const result = mergeAndFilterSiteFeatures(all, active, selectedDate);
     expect(result.map(f => f.properties.site)).toEqual(['RECENT']);
   });
 
   it('filters out buoys whose date is after selected (future)', () => {
     const all = fc([{ date: '2026-06-15', site: 'FUTURE' }]);
-    const result = mergeAndFilterBuoyFeatures(all, fc([]), selectedDate);
+    const result = mergeAndFilterSiteFeatures(all, fc([]), selectedDate);
     expect(result).toHaveLength(0);
   });
 
@@ -80,7 +80,7 @@ describe('mergeAndFilterBuoyFeatures', () => {
     const active = fc([{ date: selectedDate, site: 'A' }]);
     const allSnapshot = JSON.parse(JSON.stringify(all));
     const activeSnapshot = JSON.parse(JSON.stringify(active));
-    mergeAndFilterBuoyFeatures(all, active, selectedDate);
+    mergeAndFilterSiteFeatures(all, active, selectedDate);
     expect(all).toEqual(allSnapshot);
     expect(active).toEqual(activeSnapshot);
   });

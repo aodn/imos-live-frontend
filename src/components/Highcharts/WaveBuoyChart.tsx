@@ -1,5 +1,5 @@
 import { getWaveBuoyDetails, siteLatestDateQueryOptions } from '@/api';
-import { PRODUCT, WAVE_BUOY_MIN_DATE } from '@/constants';
+import { PRODUCT } from '@/constants';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
 import type { SiteFeature } from '@/types';
@@ -14,6 +14,7 @@ import {
   noneDirectionVariants,
   PRIMARY_COLOR,
   readableVariantName,
+  SITE_MIN_DATE,
   VariantReadableName,
 } from './config';
 import { LatestObservation } from './LatestObservation';
@@ -211,7 +212,7 @@ export function WaveBuoyChart({ waveBuoysData, showDirection }: WaveBuoyChartPro
       1,
       'day',
     ); // Include the full selectedDate day
-    const start = parse(selectedDate).subtract(WAVE_BUOY_MIN_DATE, 'day'); // Start from 30 days before the selected date
+    const start = parse(selectedDate).subtract(SITE_MIN_DATE, 'day'); // Start from 30 days before the selected date
     return { from: start.toDate(), to: end.toDate() };
   }, [selectedDate, latestWaveBuoyDate, timezone]);
 
