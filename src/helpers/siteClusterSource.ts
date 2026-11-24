@@ -8,13 +8,19 @@ type SiteFeatures = RawSiteFeatureCollection['features'];
 // hook can write to the one shared clustered source.
 const featuresByProduct = new Map<SiteProduct, SiteFeatures>();
 
-// Tags each feature with its product and merges all products in a stable order.
+// Stable per-site id, so feature state (selection) survives other products loading or unloading.
+function siteId(product: SiteProduct, feature: SiteFeatures[number]) {
+  const [lng, lat] = feature.geometry.coordinates;
+  return `${product}:${feature.properties.site ?? `${lng},${lat}`}`;
+}
+
+// Tags each feature with its product and a stable `_id`, and merges all products in a stable order.
 export function combineSiteFeatures(byProduct: ReadonlyMap<SiteProduct, SiteFeatures>) {
   return SITE_GROUP.flatMap(product =>
-    (byProduct.get(product) ?? []).map(f => ({
-      ...f,
-      properties: { ...f.properties, product },
-    })),
+    (byProduct.get(product) ?? []).map(f => {
+      const _id = siteId(product, f);
+      return { ...f, id: _id, properties: { ...f.properties, product, _id } };
+    }),
   );
 }
 
@@ -26,6 +32,7 @@ export function updateSiteClusterSource(map: mapboxgl.Map) {
     data: { type: 'FeatureCollection', features: combineSiteFeatures(featuresByProduct) },
     enableCluster: true,
     clusterRadius: 40,
+    assignIds: false,
   });
 }
 

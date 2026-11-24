@@ -26,6 +26,33 @@ describe('combineSiteFeatures', () => {
     ]);
   });
 
+  it("keeps a site's _id when other products load or unload", () => {
+    const mooring = [feature('NRSKAI')];
+    const idOf = (byProduct: Parameters<typeof combineSiteFeatures>[0]) =>
+      combineSiteFeatures(byProduct).find(f => f.properties.site === 'NRSKAI')?.properties._id;
+
+    const alone = idOf(new Map([[PRODUCT.MOORING_TIMESERIES_REALTIME, mooring]]));
+    const withBuoys = idOf(
+      new Map([
+        [PRODUCT.WAVE_BUOYS, [feature('buoy-a'), feature('buoy-b')]],
+        [PRODUCT.MOORING_TIMESERIES_REALTIME, mooring],
+      ]),
+    );
+
+    expect(alone).toBe(`${PRODUCT.MOORING_TIMESERIES_REALTIME}:NRSKAI`);
+    expect(withBuoys).toBe(alone);
+  });
+
+  it('gives same-named sites of different products distinct ids', () => {
+    const result = combineSiteFeatures(
+      new Map([
+        [PRODUCT.WAVE_BUOYS, [feature('SAME')]],
+        [PRODUCT.MOORING_TIMESERIES_REALTIME, [feature('SAME')]],
+      ]),
+    );
+    expect(new Set(result.map(f => f.properties._id)).size).toBe(2);
+  });
+
   it('does not mutate the input features', () => {
     const input = feature('buoy');
     combineSiteFeatures(new Map([[PRODUCT.WAVE_BUOYS, [input]]]));
