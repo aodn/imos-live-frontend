@@ -78,8 +78,7 @@ Reusable code, for the duplicate-implementation check:
 - API: Axios instances and React Query `queryOptions` in `src/api/`; a new
   Axios instance or fetch function may duplicate an existing one.
 - Constants: layer IDs, layer paint/layout specs and layer order in
-  `src/constants/` (`layerIds.ts`, `layerSpecs.ts`, `layerOrder.ts`); inline
-  paint config in a hook belongs in `layerSpecs.ts`.
+  `src/constants/layers.ts`; inline paint config in a hook belongs there too.
 - Styling: Tailwind classes merged with `cn` from `@/utils`; a hand-rolled
   class-concatenation helper or new hard-coded colour may duplicate existing
   ones.
