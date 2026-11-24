@@ -507,7 +507,7 @@ describe('syncSchedulersOnMove', () => {
 });
 
 describe('date change while zoomed in (LOD2+LOD3 active) — integration', () => {
-  // Mirrors the real GSLA/SSTA product thresholds (src/constants/lodZoomThresholds.ts):
+  // Mirrors the real GSLA/SSTA product thresholds (src/constants/products.ts):
   // LOD2 activates above zoom 4, LOD3 above zoom 5. At zoom 5.5 both are active
   // simultaneously alongside the always-on LOD1 preload.
   const PRODUCT_LOD_ZOOM_THRESHOLDS = { '2': 4, '3': 5, '4': 6 };

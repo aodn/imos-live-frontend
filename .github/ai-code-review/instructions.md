@@ -16,7 +16,7 @@ Pay particular attention to:
   removed, and work done before the map or style has loaded (a style switch
   removes custom layers). Layers must be added through `addLayerInOrder`
   (`src/helpers/`), never `map.addLayer` directly, and every new layer ID
-  must be registered in `LAYERS_ORDER` (`src/constants/layerOrder.ts`).
+  must be registered in `LAYERS_ORDER` (`src/constants/layers.ts`).
   Layer objects passed to hooks should be memoised with `useMemo`.
 - WebGL / `src/AtlasRenderingSystem/`: leaked textures, buffers, framebuffers
   or programs; missing cleanup on layer removal or context loss; changes to
@@ -78,8 +78,7 @@ Reusable code, for the duplicate-implementation check:
 - API: Axios instances and React Query `queryOptions` in `src/api/`; a new
   Axios instance or fetch function may duplicate an existing one.
 - Constants: layer IDs, layer paint/layout specs and layer order in
-  `src/constants/` (`layerIds.ts`, `layerSpecs.ts`, `layerOrder.ts`); inline
-  paint config in a hook belongs in `layerSpecs.ts`.
+  `src/constants/layers.ts`; inline paint config in a hook belongs there too.
 - Styling: Tailwind classes merged with `cn` from `@/utils`; a hand-rolled
   class-concatenation helper or new hard-coded colour may duplicate existing
   ones.

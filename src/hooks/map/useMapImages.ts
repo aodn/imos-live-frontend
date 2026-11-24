@@ -2,7 +2,7 @@ import { TRIANGLE_MARKER_IMAGE_ID } from '@/constants';
 import { drawTriangleMarkerImage } from '@/helpers';
 import { useEffect } from 'react';
 
-// Image id -> draw function. Ids match the `icon-image` used in layerSpecs.
+// Image id -> draw function. Ids match the `icon-image` used in `layers.ts`.
 const MAP_IMAGES: Record<string, () => { width: number; height: number; data: Uint8Array }> = {
   [TRIANGLE_MARKER_IMAGE_ID]: drawTriangleMarkerImage,
 };
@@ -11,7 +11,7 @@ const MAP_IMAGES: Record<string, () => { width: number; height: number; data: Ui
  * Registers drawn images to Mapbox so symbol layers can use them.
  * 1. draw image (helpers, e.g. drawTriangleMarkerImage)
  * 2. register here
- * 3. symbol layers use it via `icon-image` (layerSpecs).
+ * 3. symbol layers use it via `icon-image` (`layers.ts`).
  */
 export function useMapImages(map: React.RefObject<mapboxgl.Map | null>) {
   useEffect(() => {

@@ -74,3 +74,6 @@ function buildProductBooleanMap(value: boolean): ProductEnabled {
 
 export const INITIAL_PRODUCT_ERROR = buildProductBooleanMap(false);
 export const INITIAL_PRODUCT_LOADING = buildProductBooleanMap(false);
+
+// Days of history shown in site charts and kept on the map
+export const SITE_MIN_DATE = 30;

@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useMapUIStore } from '@/store';
 import { naiveToUTCDate, addUTCTime, utcToDateOnly, utcToTimezoneString } from '@/utils';
-import { DATE_RANGE } from '@/constants/mapInitialState';
+import { DATE_RANGE } from '@/constants/mapConfig';
 
 // Returns naive (timezone-free) date strings — DateSlider's convention.
 export const useDateSliderDates = () => {

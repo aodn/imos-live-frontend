@@ -1,5 +1,5 @@
 import { getEstuarineMooringDetails, getMooringDetails, siteLatestDateQueryOptions } from '@/api';
-import { PRODUCT, type MooringProduct } from '@/constants';
+import { PRODUCT, SITE_MIN_DATE, type MooringProduct } from '@/constants';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
 import type {
@@ -29,8 +29,6 @@ import { useMapUIStore } from '@/store';
 import type Highcharts from 'highcharts/highstock';
 
 dayjs.extend(utc);
-
-export const MOORING_MIN_DATE = 30;
 
 const MOORING_DATA_GAP_THRESHOLD_MS = 60 * 60 * 1000;
 
@@ -246,7 +244,7 @@ export function MooringChart({ product, mooringData }: MooringChartProps) {
   const { from, to } = useMemo(() => {
     const parse = timezone === 'UTC' ? dayjs.utc : dayjs;
     const end = parse(latestMooringDate ?? utcToTimezoneString(new Date(), timezone)).add(1, 'day'); // Include the full selectedDate day
-    const start = parse(selectedDate).subtract(MOORING_MIN_DATE, 'day'); // Start from 30 days before the selected date
+    const start = parse(selectedDate).subtract(SITE_MIN_DATE, 'day'); // Start from 30 days before the selected date
     return { from: start.toDate(), to: end.toDate() };
   }, [selectedDate, latestMooringDate, timezone]);
 

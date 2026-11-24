@@ -78,12 +78,12 @@ When adding a new product, touch these files in order:
 2. **`src/constants/legends.ts`** — add a `PRODUCTLEGENDS` entry whose `colorKey` selects a palette from `COLOR_OPTIONS` in `src/constants/colors.ts`
 3. **`src/hooks/layers/`** — wire the layer:
    - **Tiles products** (scalar/particle) — create a dedicated `use<ProductName>Layer.ts` that calls `createScalarAtlasLayer` / `createParticleAtlasLayer`, reusing `useMapboxLayerSetup` (init lifecycle) and `useDidMountEffect` (re-fetch on date change).
-   - **Site products** (clustered points like wave buoys & moorings) — don't write a new hook. Register the shared `useUnclusteredSiteLayer` + `useSiteUnclusteredLayerEventHandler`, both parameterized by `product`/fetch fns/unclustered layer ID (these reuse `useMapboxLayerVisibility` for show/hide), add the product to `SITE_GROUP` and to the enabled check of `useSiteClusterLayer`/`useSiteClusterEventHandler` in `MapComponent`. Add the product's unclustered layer ID to `src/constants/layerIds.ts`, and its unclustered point styling to `src/constants/layerSpecs.ts`. Clusters are shared, so don't add per-product cluster layers.
+   - **Site products** (clustered points like wave buoys & moorings) — don't write a new hook. Register the shared `useUnclusteredSiteLayer` + `useSiteUnclusteredLayerEventHandler`, both parameterized by `product`/fetch fns/unclustered layer ID (these reuse `useMapboxLayerVisibility` for show/hide), add the product to `SITE_GROUP` and to the enabled check of `useSiteClusterLayer`/`useSiteClusterEventHandler` in `MapComponent`. Add the product's unclustered layer ID and its unclustered point styling to `src/constants/layers.ts`. Clusters are shared, so don't add per-product cluster layers.
 4. **`src/components/MapComponent/MapComponent.tsx`** — register the hook(s)
 5. **`src/components/MainSidebar/products.tsx`** — add an entry to `featuredPresentation` with the sidebar-only presentation (`product`, display `title`, `image`, `icon`); `featuredDataset` is derived from it, pulling `description`/`portalLink`/`layerId` from `PRODUCTS` — don't restate those here
 6. **`src/pages/Map.tsx`** — add the product icon entry to the `LayersIndicator`
 
-Layer paint/layout config belongs in `src/constants/layerSpecs.ts`. Always add layers to the map via `addLayerInOrder` (not Mapbox's `addLayer` directly) — and register the new layer's ID in `LAYERS_ORDER` in `src/constants/layerOrder.ts`, where the last entry is the top-most layer.
+Layer IDs, paint/layout config and `LAYERS_ORDER` all live in `src/constants/layers.ts`. Always add layers to the map via `addLayerInOrder` (not Mapbox's `addLayer` directly) — and register the new layer's ID in `LAYERS_ORDER`, where the last entry is the top-most layer.
 
 ## E2E Tests
 

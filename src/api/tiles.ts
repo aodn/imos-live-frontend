@@ -1,6 +1,6 @@
 import type { ProductManifest } from '@/AtlasRenderingSystem';
 import type { PRODUCTS, TilesProduct } from '@/constants';
-import { extractProductVariables, getCollectionIdForProduct } from '@/constants';
+import { COLLECTION_IDS, extractProductVariables, getCollectionIdForProduct } from '@/constants';
 import type { TIMEZONE } from '@/store';
 import { utcToDateOnly, utcToLocalDateTime } from '@/utils';
 import { queryOptions } from '@tanstack/react-query';
@@ -80,11 +80,7 @@ export const metaDataManifestQueryOptions = () =>
   queryOptions({
     queryKey: ['tiles_product_latest_date'] as const,
     queryFn: () => {
-      const collectionIDS = [
-        '0c9eb39c-9cbe-4c6a-8a10-5867087e703a',
-        '2ffccdad-1197-4e41-b412-a9033517cfb2',
-      ];
-      const promises = collectionIDS.map(collectionId => getMetaDataManifest({ collectionId }));
+      const promises = COLLECTION_IDS.map(collectionId => getMetaDataManifest({ collectionId }));
       return Promise.allSettled(promises)
         .then(results =>
           results
