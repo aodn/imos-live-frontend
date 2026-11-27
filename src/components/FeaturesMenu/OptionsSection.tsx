@@ -5,6 +5,7 @@ import type { TIMEZONE } from '@/store';
 import {
   useMapUIStore,
   setWorldBoundariesEnabled,
+  setIsobathsEnabled,
   setParticleConfig,
   setDistanceMeasurementEnabled,
   setTimezone,
@@ -40,15 +41,21 @@ const SPEED_FACTOR_OPTIONS = {
 };
 
 export function OptionsSection() {
-  const { distanceMeasurementEnabled, worldBoundariesEnabled, particleConfig, timezone } =
-    useMapUIStore(
-      useShallow(s => ({
-        distanceMeasurementEnabled: s.distanceMeasurementEnabled,
-        worldBoundariesEnabled: s.worldBoundariesEnabled,
-        particleConfig: s.particleConfig,
-        timezone: s.timezone,
-      })),
-    );
+  const {
+    distanceMeasurementEnabled,
+    worldBoundariesEnabled,
+    isobathsEnabled,
+    particleConfig,
+    timezone,
+  } = useMapUIStore(
+    useShallow(s => ({
+      distanceMeasurementEnabled: s.distanceMeasurementEnabled,
+      worldBoundariesEnabled: s.worldBoundariesEnabled,
+      isobathsEnabled: s.isobathsEnabled,
+      particleConfig: s.particleConfig,
+      timezone: s.timezone,
+    })),
+  );
 
   const handleParticleConfigChange =
     (key: keyof ParticleConfig) => (value: string | number | (string | number)[]) => {
@@ -121,6 +128,14 @@ export function OptionsSection() {
             labelPosition="left"
             initialValue={worldBoundariesEnabled}
             onChange={setWorldBoundariesEnabled}
+          />
+
+          <Switch
+            label="Isobaths"
+            labelPosition="left"
+            initialValue={isobathsEnabled}
+            onChange={setIsobathsEnabled}
+            dataTestId="switch-isobathsEnabled"
           />
         </div>
       </div>

@@ -4,6 +4,7 @@ import {
   INITIAL_DISTANCE_MEASUREMENT_ENABLED,
   INITIAL_STYLE,
   INITIAL_WORLD_BOUNDARIES_ENABLED,
+  INITIAL_ISOBATHS_ENABLED,
   INITIAL_PARTICLE_CONFIG,
   PRODUCTLEGENDS,
   INITIAL_PRODUCT_ENABLED,
@@ -42,6 +43,7 @@ export type MapUIState = {
   particleConfig: ParticleConfig;
   distanceMeasurementEnabled: boolean;
   worldBoundariesEnabled: boolean;
+  isobathsEnabled: boolean;
   date: string;
   productEnabled: ProductEnabled;
   productError: ProductError;
@@ -55,6 +57,7 @@ export type MapUIState = {
   setParticleConfig: (config: Partial<ParticleConfig>) => void;
   setDistanceMeasurementEnabled: (v: boolean) => void;
   setWorldBoundariesEnabled: (v: boolean) => void;
+  setIsobathsEnabled: (v: boolean) => void;
   setDate: (d: string) => void;
   setProductErrorByProduct: (product: ProductType, error: boolean) => void;
   setProductLoadingByProduct: (product: ProductType, loading: boolean) => void;
@@ -74,6 +77,7 @@ export const useMapUIStore = create(
       particleConfig: INITIAL_PARTICLE_CONFIG,
       distanceMeasurementEnabled: INITIAL_DISTANCE_MEASUREMENT_ENABLED,
       worldBoundariesEnabled: INITIAL_WORLD_BOUNDARIES_ENABLED,
+      isobathsEnabled: INITIAL_ISOBATHS_ENABLED,
       date: INITIAL_DATE,
       productEnabled: INITIAL_PRODUCT_ENABLED,
       productError: INITIAL_PRODUCT_ERROR,
@@ -93,6 +97,7 @@ export const useMapUIStore = create(
       setDistanceMeasurementEnabled: distanceMeasurementEnabled =>
         set({ distanceMeasurementEnabled }),
       setWorldBoundariesEnabled: worldBoundariesEnabled => set({ worldBoundariesEnabled }),
+      setIsobathsEnabled: isobathsEnabled => set({ isobathsEnabled }),
       setDate: date => {
         assertNaiveDateString(date, 'setDate');
         set({ date });
@@ -150,6 +155,7 @@ export const {
   setParticleConfig,
   setStyle,
   setWorldBoundariesEnabled,
+  setIsobathsEnabled,
   setZoom,
   setProductErrorByProduct,
   setProductLoadingByProduct,

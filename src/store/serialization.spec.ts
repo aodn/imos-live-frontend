@@ -11,6 +11,8 @@ describe('per-key round-trip', () => {
     { key: 'date', value: '2026-05-31' },
     { key: 'worldBoundariesEnabled', value: true },
     { key: 'worldBoundariesEnabled', value: false },
+    { key: 'isobathsEnabled', value: true },
+    { key: 'isobathsEnabled', value: false },
     {
       key: 'particleConfig',
       value: {

@@ -6,6 +6,7 @@ export * from './useSiteClusterLayer';
 export * from './useSiteUnclusteredLayerEventHandler';
 export * from './useSiteClusterEventHandler';
 export * from './useWorldLandLayer';
+export * from './useIsobathLayer';
 export * from './useDistanceMeasurementLayers';
 export * from './useDistanceMeasurementLayersEventHandler';
 export * from './useProductDateAvailabilitySync';
