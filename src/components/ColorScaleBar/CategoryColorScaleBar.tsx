@@ -39,7 +39,7 @@ export function CategoryColorScaleBar({
         <div className="flex">
           {segments.map(({ displayLabel }, i) => (
             <div key={`label-${i}`} className="flex-1 flex justify-center">
-              <span className="text-xs text-black font-medium">{displayLabel}</span>
+              <span className="text-xs text-ink font-medium">{displayLabel}</span>
             </div>
           ))}
         </div>

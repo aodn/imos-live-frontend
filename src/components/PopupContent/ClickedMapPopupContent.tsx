@@ -130,7 +130,7 @@ export function ClickedMapPopupContent({ onClose, lngLat }: ClickedMapPopupConte
       className="w-50 md:w-90 min-h-25 flex flex-col bg-white rounded-lg shadow-lg overflow-hidden"
       aria-label="Current value from coordinates"
     >
-      <div className="relative bg-primary-soft text-black p-2 flex justify-between items-center">
+      <div className="relative bg-primary-soft text-ink p-2 flex justify-between items-center">
         <h4 className="text-base text-center w-full">
           ({lat}, {lng})
         </h4>
@@ -138,7 +138,7 @@ export function ClickedMapPopupContent({ onClose, lngLat }: ClickedMapPopupConte
           <button
             onClick={onClose}
             aria-label="Close popup"
-            className="absolute top-1 right-1 text-black hover:text-ink-muted text-xl w-6 h-6 flex items-center justify-center cursor-pointer"
+            className="absolute top-1 right-1 text-ink hover:text-ink-muted text-xl w-6 h-6 flex items-center justify-center cursor-pointer"
           >
             ×
           </button>

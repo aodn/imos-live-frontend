@@ -207,7 +207,7 @@ function Toast({ toast }: { toast: ToastData }) {
     >
       {toast.showProgressBar !== false && !toast.persistent && duration !== 0 && (
         <div
-          className="absolute inset-0 h-full bg-black/10 pointer-events-none overflow-hidden"
+          className="absolute inset-0 h-full bg-ink/10 pointer-events-none overflow-hidden"
           aria-hidden="true"
         >
           <div
@@ -246,7 +246,7 @@ function Toast({ toast }: { toast: ToastData }) {
           }}
           className={clsx(
             'shrink-0 p-1 rounded-md transition-colors',
-            'hover:bg-black hover:bg-opacity-10 focus:outline-none focus:ring-2 focus:ring-offset-2',
+            'hover:bg-ink/10 focus:outline-none focus:ring-2 focus:ring-offset-2',
             getIconColorClass(),
             toast.closeButtonClassName,
           )}

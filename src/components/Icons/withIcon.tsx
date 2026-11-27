@@ -22,7 +22,7 @@ const SIZE_MAP: Record<IconSize, string> = {
 
 const COLOR_MAP: Record<Color, string> = {
   white: 'text-white',
-  ink: 'text-black',
+  ink: 'text-ink',
   danger: 'text-danger',
   'ink-muted': 'text-ink-muted',
 };

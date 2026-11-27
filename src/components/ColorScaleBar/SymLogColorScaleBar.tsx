@@ -74,7 +74,7 @@ export function SymLogColorScaleBar({
         className="absolute flex flex-col items-center"
         style={{ left: `${position}%`, transform: 'translateX(-50%)' }}
       >
-        <span className="text-xs text-black font-medium">{label}</span>
+        <span className="text-xs text-ink font-medium">{label}</span>
       </div>
     ));
   }, [tickPositions]);
