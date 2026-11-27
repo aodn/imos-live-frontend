@@ -32,6 +32,7 @@ export const DATE_RANGE = {
 };
 export const INITIAL_DATE = DATE_RANGE.end;
 export const INITIAL_WORLD_BOUNDARIES_ENABLED = true;
+export const INITIAL_ISOBATHS_ENABLED = false;
 export const INITIAL_DISTANCE_MEASUREMENT_ENABLED = false;
 
 // Minimum map width in CSS (logical) pixels below which the export button is disabled.

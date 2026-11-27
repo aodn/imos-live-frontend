@@ -13,6 +13,7 @@ import {
   useUnclusteredSiteLayer,
   useSiteUnclusteredLayerEventHandler,
   useWorldLandLayer,
+  useIsobathLayer,
 } from '@/hooks';
 import {
   getEstuarineMooringSitesByDate,
@@ -89,6 +90,7 @@ export const MapComponent = memo(function MapComponent() {
   //2. create layer, set data to layer and add layer to map.
   const { measurePointsGeojson, setMeasurePointsGeojson } = useDistanceMeasurementLayers(map);
   useWorldLandLayer(map);
+  useIsobathLayer(map);
   useParticleAtlasLayer({
     map,
     product: PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT,

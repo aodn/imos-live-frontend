@@ -90,6 +90,7 @@ const KEY_CODECS: Record<string, KeyCodec> = {
   style: strCodec,
   date: strCodec,
   worldBoundariesEnabled: boolCodec,
+  isobathsEnabled: boolCodec,
   particleConfig: particleCodec,
   productEnabled: productEnabledCodec,
 };

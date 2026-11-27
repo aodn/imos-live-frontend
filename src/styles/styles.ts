@@ -22,6 +22,11 @@ export type StyleSource =
   | typeof ESRIWorldImagery
   | typeof StreetWithBathymetry;
 
+export const isobathStyle = {
+  title: 'bathymetry',
+  source: 'mapbox://mapbox.mapbox-bathymetry-v2',
+};
+
 export const worldLandStyle = {
   title: 'countryBoundaries',
   source: 'mapbox://mapbox.country-boundaries-v1',

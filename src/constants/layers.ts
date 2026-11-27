@@ -42,6 +42,11 @@ export const WORLD_LAND_SOURCE_ID = 'world-land-source';
 export const WORLD_LAND_BORDER_LAYER_ID = 'world-land-border-layer';
 export const WORLD_LAND_FILL_LAYER_ID = 'world-land-fill-layer';
 
+//isobaths (depth contours), from Mapbox bathymetry tileset
+export const ISOBATH_SOURCE_ID = 'isobath-source';
+export const ISOBATH_LINE_LAYER_ID = 'isobath-line-layer';
+export const ISOBATH_LABEL_LAYER_ID = 'isobath-label-layer';
+
 // ---------- Layer specs ----------
 // Site marker config. Its `type` decides circle or symbol.
 export type SiteLayerConfig =
@@ -279,6 +284,42 @@ export const WORLD_LAND_FILL_CONFIG: Partial<FillLayerSpecification> = {
   },
 } as const;
 
+// Depth band outlines from `mapbox-bathymetry-v2`; each polygon is one depth band.
+// Shelf and slope only: skip the coastline (0 m) and noisy abyssal bands (>= 3000 m).
+const ISOBATH_FILTER: LineLayerSpecification['filter'] = [
+  'all',
+  ['>', ['get', 'min_depth'], 0],
+  ['<', ['get', 'min_depth'], 3000],
+];
+
+export const ISOBATH_LINE_CONFIG: Partial<LineLayerSpecification> = {
+  'source-layer': 'depth',
+  filter: ISOBATH_FILTER,
+  paint: {
+    'line-color': '#0b4f6c',
+    'line-opacity': 0.7,
+    'line-width': ['interpolate', ['linear'], ['zoom'], 3, 0.5, 10, 1.5],
+  },
+} as const;
+
+// Depth labels placed along the isobath lines, e.g. "200 m".
+export const ISOBATH_LABEL_CONFIG: Partial<SymbolLayerSpecification> = {
+  'source-layer': 'depth',
+  filter: ISOBATH_FILTER,
+  layout: {
+    'symbol-placement': 'line',
+    'symbol-spacing': 400,
+    'text-field': ['concat', ['to-string', ['get', 'min_depth']], ' m'],
+    'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Regular'],
+    'text-size': 11,
+  },
+  paint: {
+    'text-color': '#0b4f6c',
+    'text-halo-color': '#ffffff',
+    'text-halo-width': 1,
+  },
+} as const;
+
 // ---------- Render order ----------
 //last one is the top layer.
 export const LAYERS_ORDER = [
@@ -287,6 +328,8 @@ export const LAYERS_ORDER = [
   PRODUCTS[PRODUCT.AUSTEMP_HEATWAVE_SST_MOSAIC].layerId,
   PRODUCTS[PRODUCT.AUSTEMP_HEATWAVE_MHW_CATEGORY_MOSAIC].layerId,
   PRODUCTS[PRODUCT.GSLA_OCEAN_GEOSTROPHIC_CURRENT].layerId,
+  ISOBATH_LINE_LAYER_ID,
+  ISOBATH_LABEL_LAYER_ID,
   WORLD_LAND_BORDER_LAYER_ID,
   WORLD_LAND_FILL_LAYER_ID,
   SITE_CLUSTER_LAYER_ID,

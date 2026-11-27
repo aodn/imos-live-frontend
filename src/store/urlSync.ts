@@ -4,6 +4,7 @@ import {
   INITIAL_PRODUCT_ENABLED,
   INITIAL_STYLE,
   INITIAL_WORLD_BOUNDARIES_ENABLED,
+  INITIAL_ISOBATHS_ENABLED,
 } from '@/constants';
 import type { StateStorage } from 'zustand/middleware';
 import { createJSONStorage } from 'zustand/middleware';
@@ -16,6 +17,7 @@ export const URL_SYNCED_KEYS = [
   'style',
   'particleConfig',
   'worldBoundariesEnabled',
+  'isobathsEnabled',
   'date',
   'productEnabled',
 ] as const satisfies readonly (keyof MapUIState)[];
@@ -28,6 +30,7 @@ const INITIAL_URL_STATE = {
   style: INITIAL_STYLE,
   particleConfig: INITIAL_PARTICLE_CONFIG,
   worldBoundariesEnabled: INITIAL_WORLD_BOUNDARIES_ENABLED,
+  isobathsEnabled: INITIAL_ISOBATHS_ENABLED,
   date: INITIAL_DATE,
   productEnabled: INITIAL_PRODUCT_ENABLED,
 } satisfies Record<(typeof URL_SYNCED_KEYS)[number], unknown>;
