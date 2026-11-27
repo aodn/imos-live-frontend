@@ -69,6 +69,13 @@ export const mapComponent = {
       )
       .toBeTruthy();
   },
+  // Waits until a Mapbox style layer exists and is shown.
+  waitUntilLayerVisible: async (page: Page, layerID: string) => {
+    await page.waitForFunction(layerID => {
+      const map = (window as MapWindow).map;
+      return !!map?.getLayer(layerID) && map.getLayoutProperty(layerID, 'visibility') === 'visible';
+    }, layerID);
+  },
   openPopup: async (page: Page, coordinates?: LngLat) => {
     await expect(async () => {
       const point = await page.evaluate(coords => {
