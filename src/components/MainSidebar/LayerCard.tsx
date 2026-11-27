@@ -47,7 +47,7 @@ export function LayerCard({
 
   return (
     <CollapsibleComponent
-      wrapperClassName="md:rounded-lg md:shadow-lg bg-white md:border border-b border-gray-300 md:p-4 pb-4"
+      wrapperClassName="md:rounded-lg md:shadow-lg bg-white md:border border-b border-line md:p-4 pb-4"
       defaultOpen
       isWidthFixed
       overlayEnabled={isError}
@@ -58,7 +58,7 @@ export function LayerCard({
       <div className="grid grid-cols-12  gap-4 md:gap-x-6  overflow-hidden">
         <div className="col-span-12 md:col-span-8">
           <div>
-            <p className="text-body text-imos-grey line-clamp-5" title={description}>
+            <p className="text-body text-ink-muted line-clamp-5" title={description}>
               {description}
             </p>
           </div>
@@ -74,13 +74,13 @@ export function LayerCard({
               onClick={handleClick}
               variant={(visible && 'default') || 'outline'}
               className={cn('text-btn-mobile md:text-btn', {
-                'text-imos-grey': !visible,
-                'text-white bg-imos-blue': visible,
+                'text-ink-muted': !visible,
+                'text-white bg-primary': visible,
                 'relative z-10': isError && visible,
               })}
             >
               {visible ? 'Remove from map' : 'Add to map'}
-              {visible ? <MinusCircleIcon color="imos-white" /> : <AddCircleIcon />}
+              {visible ? <MinusCircleIcon color="white" /> : <AddCircleIcon />}
             </Button>
 
             <LatestDateButton product={product} />
@@ -89,11 +89,11 @@ export function LayerCard({
           <Button
             variant="outline"
             asChild
-            className="text-btn-mobile md:text-btn text-imos-grey relative z-10"
+            className="text-btn-mobile md:text-btn text-ink-muted relative z-10"
           >
             <a href={portalLink} target="_blank" rel="noopener noreferrer">
               More details
-              <VectorIcon color="imos-grey" size="xs" />
+              <VectorIcon color="ink-muted" size="xs" />
             </a>
           </Button>
         </div>
@@ -140,7 +140,7 @@ function LatestDateButton({ product }: { product: ProductType }) {
       variant="outline"
       onClick={jumpToLatest}
       disabled={isLoading || !date}
-      className="text-btn-mobile md:text-btn text-imos-grey w-fit relative z-10"
+      className="text-btn-mobile md:text-btn text-ink-muted w-fit relative z-10"
     >
       Latest Date
     </Button>
@@ -230,7 +230,7 @@ function CardTrigger({
         <Button
           variant="ghost"
           size="icon"
-          className={cn('hover:bg-transparent focus:ring-2 focus:ring-imos-white/20', {
+          className={cn('hover:bg-transparent focus:ring-2 focus:ring-white/20', {
             'relative z-10': isError,
           })}
           onClick={toggle}
@@ -238,7 +238,7 @@ function CardTrigger({
           aria-label={`${open ? 'Collapse' : 'Expand'} content`}
         >
           <ArrowIcon
-            color="imos-grey"
+            color="ink-muted"
             className={cn(
               'transition-transform duration-300 ease-in-out',
               shouldRotate && 'rotate-180',

@@ -43,7 +43,7 @@ export const ScalesUnitLabels = memo(function ScalesUnitLabels({
         <span
           key={`${date.getTime()}-${index}`}
           className={cn(
-            'bottom-0 whitespace-nowrap text-center text-xs font-medium text-slate-700 shadow-sm absolute',
+            'bottom-0 whitespace-nowrap text-center text-xs font-medium text-ink shadow-sm absolute',
             classNames?.scaleLabel,
           )}
           style={{ left: `${position}%` }}

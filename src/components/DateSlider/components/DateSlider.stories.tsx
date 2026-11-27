@@ -63,7 +63,7 @@ const SelectionDisplay = memo(({ selection }: { selection?: SelectionResult }) =
   return (
     <div className="mt-6 font-mono">
       <strong>Selection:</strong>
-      <pre className="bg-gray-50 p-3 rounded border border-gray-200 text-xs mt-2">{result}</pre>
+      <pre className="bg-surface-muted p-3 rounded border border-line text-xs mt-2">{result}</pre>
     </div>
   );
 });
@@ -75,7 +75,7 @@ function Template(args: Partial<SliderProps>) {
   const sliderRef = useRef<SliderExposedMethod>(null);
 
   return (
-    <div className="p-8 bg-linear-to-br from-gray-50 to-gray-100 min-h-[400px] rounded-lg">
+    <div className="p-8 bg-linear-to-br from-surface-muted to-surface-sunken min-h-[400px] rounded-lg">
       <div className="bg-white p-6 rounded-lg shadow-sm">
         <DateSlider {...(args as any)} onChange={setSelection} imperativeRef={sliderRef} />
         <SelectionDisplay selection={selection} />

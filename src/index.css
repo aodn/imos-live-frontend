@@ -1,17 +1,39 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
-/* Tailwind v4 native theme configuration */
+/* Tailwind v4 native theme configuration.
+   Single source of truth for UI colors. JS consumers (Mapbox, Highcharts, SVG)
+   read the mirrored values in src/constants/theme.ts — keep both in sync. */
 @theme {
-  /* Custom colors */
-  --color-imos-white: #fff;
-  --color-imos-black: #090c02;
-  --color-imos-red: #e53935;
-  --color-imos-grey: #595959;
-  --color-imos-light: #c5d8e7;
-  --color-imos-blue: #3b6e8f;
-  --color-imos-light-blue: #a7e9f3;
-  --color-imos-mint: #a7f3d8;
+  /* Brand */
+  --color-primary: #3b6e8f;
+  --color-primary-dark: #2f566f;
+  --color-primary-soft: #c5d8e7;
+  --color-accent-mint: #a7f3d8;
+  --color-accent-aqua: #a7e9f3;
+  --color-accent-sky: #7fb6d1;
+
+  /* Text */
+  --color-ink: #1a2a3a;
+  --color-ink-muted: #4a5b68;
+  --color-ink-subtle: #7a8a97;
+
+  /* Surfaces and borders */
+  --color-surface-muted: #f3f6f9;
+  --color-surface-sunken: #e4ebf1;
+  --color-line: #d3e0ea;
+  --color-line-strong: #a9bccb;
+
+  /* Status */
+  --color-danger: #d32f2f;
+  --color-danger-dark: #b71c1c;
+  --color-warning: #f59e0b;
+  --color-warning-dark: #8a5a00;
+  --color-success: #2e7d32;
+
+  /* Map data (sites) */
+  --color-data-wave-buoy: #11b4da;
+  --color-data-mooring: #f97316;
 }
 
 html,

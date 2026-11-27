@@ -22,7 +22,7 @@ export const Primary: Story = {
       </div>
     ),
     children: (
-      <div className="w-full h-screen bg-gray-200">
+      <div className="w-full h-screen bg-surface-sunken">
         <h1 className="text-2xl font-bold mb-4 text-center">main area</h1>
         <div className="w-full flex items-center justify-center">
           Lorem ipsum dolor sit amet consectetur adipisicing elit. Ea sint cupiditate quos dicta

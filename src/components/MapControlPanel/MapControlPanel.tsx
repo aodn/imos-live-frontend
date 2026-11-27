@@ -96,51 +96,51 @@ export function MapControlPanel({
         size="icon"
         aria-label="Zoom in"
         onClick={isSidebarOpen ? handleCloseFullScreen : handleOpenFullScreen}
-        className="bg-imos-white  p-2 hover:[&_svg]:text-imos-grey"
+        className="bg-white  p-2 hover:[&_svg]:text-ink-muted"
         disabled={isMapOnOperation}
       >
         {isSidebarOpen ? (
-          <FullScreenIcon className="text-imos-grey" size="sm" />
+          <FullScreenIcon className="text-ink-muted" size="sm" />
         ) : (
-          <CloseFullScreenIcon className="text-imos-grey" size="sm" />
+          <CloseFullScreenIcon className="text-ink-muted" size="sm" />
         )}
       </Button>
       <Button
         size="icon"
         aria-label="Zoom in"
         onClick={handleZoomIn}
-        className="bg-imos-white rounded-full p-1 hover:[&_svg]:text-imos-grey"
+        className="bg-white rounded-full p-1 hover:[&_svg]:text-ink-muted"
         disabled={isMapOnOperation}
       >
-        <PlusIcon className="text-imos-grey" size="lg" />
+        <PlusIcon className="text-ink-muted" size="lg" />
       </Button>
       <Button
         size="icon"
         aria-label="Zoom out"
         onClick={handleZoomOut}
-        className="bg-imos-white rounded-full p-1 hover:[&_svg]:text-imos-grey"
+        className="bg-white rounded-full p-1 hover:[&_svg]:text-ink-muted"
         disabled={isMapOnOperation}
       >
-        <MinusIcon className="text-imos-grey" size="lg" />
+        <MinusIcon className="text-ink-muted" size="lg" />
       </Button>
       <Button
         size="icon"
         aria-label="Zoom reset"
         onClick={handleResetZoom}
-        className="bg-imos-white rounded-full p-1 hover:[&_svg]:text-imos-grey"
+        className="bg-white rounded-full p-1 hover:[&_svg]:text-ink-muted"
         disabled={isMapOnOperation}
       >
-        <RenewIcon className="text-imos-grey" size="lg" />
+        <RenewIcon className="text-ink-muted" size="lg" />
       </Button>
       <Button
         size="icon"
         aria-label="download map"
         onClick={downloadMapImage}
-        className="bg-imos-white rounded-full p-1 hover:[&_svg]:text-imos-grey"
+        className="bg-white rounded-full p-1 hover:[&_svg]:text-ink-muted"
         disabled={isMapOnOperation || isMapTooNarrow}
         title={isMapTooNarrow ? 'Widen the map to enable image export' : undefined}
       >
-        <DownloadIcon className="text-imos-grey" size="lg" />
+        <DownloadIcon className="text-ink-muted" size="lg" />
       </Button>
     </div>
   );

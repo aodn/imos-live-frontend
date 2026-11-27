@@ -133,7 +133,7 @@ export const Avatar: Story = {
     imageClassName: 'w-32 h-32 object-cover',
     skeletonHeight: 'h-32',
     skeletonWidth: 'w-32',
-    skeletonClassName: 'h-32 w-32 bg-gray-200 animate-pulse rounded-full',
+    skeletonClassName: 'h-32 w-32 bg-surface-sunken animate-pulse rounded-full',
   },
   parameters: {
     docs: {

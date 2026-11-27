@@ -67,7 +67,7 @@ export function OptionsSection() {
   };
 
   return (
-    <div className="w-full flex flex-col items-start divide-y divide-gray-200">
+    <div className="w-full flex flex-col items-start divide-y divide-line">
       {/* Particle Controls */}
       <div className="w-full pb-3">
         <div className="flex flex-col gap-y-2">
@@ -118,7 +118,7 @@ export function OptionsSection() {
           <Switch
             label="Measure distance"
             labelPosition="left"
-            initialValue={distanceMeasurementEnabled}
+            checked={distanceMeasurementEnabled}
             onChange={setDistanceMeasurementEnabled}
             dataTestId="switch-distancemeasurementEnabled"
           />

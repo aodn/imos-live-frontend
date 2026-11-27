@@ -1,3 +1,4 @@
+import { CLUSTER_COLORS, THEME_COLORS } from './theme';
 import type {
   CircleLayerSpecification,
   FillLayerSpecification,
@@ -62,11 +63,11 @@ export const SITE_CLUSTER_LAYER_CONFIG: SiteLayerConfig = {
     'circle-color': [
       'step',
       ['get', 'point_count'],
-      '#51bbd6', // Color for clusters with < 100 points
+      CLUSTER_COLORS[0], // Color for clusters with < 100 points
       100,
-      '#f1f075', // Color for clusters with 100-750 points
+      CLUSTER_COLORS[1], // Color for clusters with 100-750 points
       750,
-      '#f28cb1', // Color for clusters with > 750 points
+      CLUSTER_COLORS[2], // Color for clusters with > 750 points
     ],
     'circle-radius': [
       'step',
@@ -89,7 +90,7 @@ export const UNCLUSTERED_WAVE_BUOYS_LAYER_CONFIG: SiteLayerConfig = {
       ['boolean', ['feature-state', 'selected'], false],
       '#ffffff', // selected: white fill
       ['boolean', ['get', 'hasDataForDate'], true],
-      '#11b4da', // active: blue
+      THEME_COLORS.dataWaveBuoy, // active: blue
       '#aaaaaa', // inactive: gray
     ],
     'circle-opacity': [
@@ -149,7 +150,7 @@ export const UNCLUSTERED_MOORING_LAYER_CONFIG: SiteLayerConfig = {
       ['boolean', ['feature-state', 'selected'], false],
       '#ffffff', // selected: white fill
       ['boolean', ['get', 'hasDataForDate'], true],
-      '#f97316', // active: amber (distinct from wave-buoy blue)
+      THEME_COLORS.dataMooring, // active: amber (distinct from wave-buoy blue)
       '#aaaaaa', // inactive: gray
     ],
     'circle-opacity': 1,
@@ -229,10 +230,10 @@ export const ZOOM_LIMIT_TEMPPOINT_LAYER_PARTIAL: Partial<CircleLayerSpecificatio
         'match',
         ['get', 'product'],
         PRODUCT.MOORING_TIMESERIES_REALTIME,
-        '#f97316', // timeseries mooring: amber
+        THEME_COLORS.dataMooring, // timeseries mooring: amber
         PRODUCT.MOORING_ESTUARINE_COASTAL_WATER_QUALITY_MONITORING_REALTIME_QC,
         ESTUARINE_MOORING_COLOR,
-        '#11b4da', // wave buoys (default): blue
+        THEME_COLORS.dataWaveBuoy, // wave buoys (default): blue
       ],
       '#aaaaaa', // inactive: gray
     ],
@@ -244,7 +245,7 @@ export const ZOOM_LIMIT_TEMPPOINT_LAYER_PARTIAL: Partial<CircleLayerSpecificatio
 
 export const ZOOM_LIMIT_TEMP_CONNECTION_LINES_LAYER_PARTIAL: Partial<LineLayerSpecification> = {
   paint: {
-    'line-color': '#666',
+    'line-color': THEME_COLORS.inkMuted,
     'line-width': 1,
     'line-dasharray': [2, 2],
   },
@@ -252,8 +253,10 @@ export const ZOOM_LIMIT_TEMP_CONNECTION_LINES_LAYER_PARTIAL: Partial<LineLayerSp
 
 export const MEASURE_POINT_CONFIG: Partial<CircleLayerSpecification> = {
   paint: {
-    'circle-radius': 5,
+    'circle-radius': 4,
     'circle-color': '#fff',
+    'circle-stroke-color': THEME_COLORS.primary, // primary
+    'circle-stroke-width': 2,
   },
   filter: ['in', '$type', 'Point'],
 } as const;
@@ -261,8 +264,8 @@ export const MEASURE_POINT_CONFIG: Partial<CircleLayerSpecification> = {
 export const MEASURE_LINES_CONFIG: Partial<LineLayerSpecification> = {
   layout: { 'line-cap': 'round', 'line-join': 'round' },
   paint: {
-    'line-color': '#ff0000',
-    'line-width': 4,
+    'line-color': THEME_COLORS.primary, // primary
+    'line-width': 2,
     'line-opacity': 1,
   },
   filter: ['in', '$type', 'LineString'],
@@ -271,7 +274,7 @@ export const MEASURE_LINES_CONFIG: Partial<LineLayerSpecification> = {
 export const WORLD_LAND_BORDER_CONFIG: Partial<LineLayerSpecification> = {
   'source-layer': 'country_boundaries',
   paint: {
-    'line-color': '#333333',
+    'line-color': THEME_COLORS.ink,
     'line-width': 2,
     'line-blur': 0.5,
   },
@@ -297,7 +300,7 @@ export const ISOBATH_LINE_CONFIG: Partial<LineLayerSpecification> = {
   'source-layer': 'depth',
   filter: ISOBATH_FILTER,
   paint: {
-    'line-color': '#0b4f6c',
+    'line-color': THEME_COLORS.primaryDark,
     'line-opacity': 0.7,
     'line-width': ['interpolate', ['linear'], ['zoom'], 3, 0.5, 10, 1.5],
   },
@@ -313,7 +316,7 @@ export const ISOBATH_LABEL_CONFIG: Partial<SymbolLayerSpecification> = {
     'text-rotation-alignment': 'viewport',
   },
   paint: {
-    'text-color': '#0b4f6c',
+    'text-color': THEME_COLORS.primaryDark,
     'text-halo-color': '#ffffff',
     'text-halo-width': 1,
   },

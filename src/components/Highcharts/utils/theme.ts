@@ -1,24 +1,13 @@
+import { SERIES_COLORS, THEME_COLORS } from '@/constants/theme';
 /**
  * Fallback theme values applied when a `ThemeConfig` field is missing.
- * Treated by every config-builder as "what Highcharts effectively ships
- * with, made explicit" so behaviour is deterministic regardless of the
- * caller's theme.
+ * Uses the app theme (see `constants/theme.ts`), not the Highcharts defaults,
+ * so charts without an explicit theme match the rest of the UI.
  */
 export const DEFAULT_THEME = {
-  colors: [
-    '#7cb5ec',
-    '#434348',
-    '#90ed7d',
-    '#f7a35c',
-    '#8085e9',
-    '#f15c80',
-    '#e4d354',
-    '#2b908f',
-    '#f45b5b',
-    '#91e8e1',
-  ],
+  colors: [...SERIES_COLORS],
   backgroundColor: 'transparent',
-  textColor: '#333333',
-  gridColor: '#e6e6e6',
-  lineColor: '#ccd6eb',
+  textColor: THEME_COLORS.ink,
+  gridColor: THEME_COLORS.line,
+  lineColor: THEME_COLORS.line,
 };

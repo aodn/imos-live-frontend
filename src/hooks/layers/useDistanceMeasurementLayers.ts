@@ -73,12 +73,7 @@ export function useDistanceMeasurementLayers(map: React.RefObject<mapboxgl.Map |
 
   const { loadComplete } = useMapboxLayerSetup(map, setupLayer, [measurePointsGeojson]);
 
-  useMapboxLayerVisibility(
-    map,
-    loadComplete,
-    [measurePointsLayer, measureLineLayer],
-    distanceMeasurementEnabled,
-  );
+  useMapboxLayerVisibility(map, loadComplete, layers, distanceMeasurementEnabled);
 
   useDidMountEffect(() => {
     if (!map.current || !loadComplete) return;

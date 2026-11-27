@@ -74,7 +74,7 @@ export function SymLogColorScaleBar({
         className="absolute flex flex-col items-center"
         style={{ left: `${position}%`, transform: 'translateX(-50%)' }}
       >
-        <span className="text-xs text-black font-medium">{label}</span>
+        <span className="text-xs text-ink font-medium">{label}</span>
       </div>
     ));
   }, [tickPositions]);
@@ -94,7 +94,7 @@ export function SymLogColorScaleBar({
       </div>
 
       {label && (
-        <div className="mt-2 text-caption text-imos-grey  text-center">
+        <div className="mt-2 text-caption text-ink-muted  text-center">
           <span>{label}</span>
         </div>
       )}

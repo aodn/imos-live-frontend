@@ -112,7 +112,7 @@ export function Image({
           className={cn(
             typeof skeletonHeight === 'string' ? skeletonHeight : '',
             typeof skeletonWidth === 'string' ? skeletonWidth : '',
-            'bg-gray-100 flex items-center justify-center rounded border-2 border-dashed border-gray-300',
+            'bg-surface-muted flex items-center justify-center rounded border-2 border-dashed border-line',
           )}
           style={{
             ...(typeof skeletonHeight === 'number' ? { height: skeletonHeight } : {}),
@@ -120,8 +120,8 @@ export function Image({
           }}
         >
           {showErrorIcon && (
-            <div className="text-center text-gray-500">
-              <ImageErrorIcon size="xl" className="mx-auto text-gray-500" aria-hidden="true" />
+            <div className="text-center text-ink-muted">
+              <ImageErrorIcon size="xl" className="mx-auto text-ink-muted" aria-hidden="true" />
               <p className="text-xs">Failed to load image</p>
             </div>
           )}

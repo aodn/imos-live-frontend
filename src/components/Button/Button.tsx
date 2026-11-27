@@ -3,16 +3,16 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/utils';
 
 const buttonVariants = cva(
-  "cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-btn transition-all disabled:pointer-events-none disabled:opacity-70 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:w-4 [&_svg:not([class*='size-'])]:h-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-blue-500 focus-visible:ring-blue-500/50 focus-visible:ring-4 [&[aria-invalid='true']]:ring-red-500/20 [&[aria-invalid='true']]:border-red-500 hover:opacity-90",
+  "cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-btn transition-all disabled:pointer-events-none disabled:opacity-70 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:w-4 [&_svg:not([class*='size-'])]:h-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-primary focus-visible:ring-primary/50 focus-visible:ring-4 [&[aria-invalid='true']]:ring-red-500/20 [&[aria-invalid='true']]:border-red-500 hover:opacity-90",
   {
     variants: {
       variant: {
-        default: 'bg-blue-600 text-white shadow-sm',
-        destructive: 'bg-red-600 text-white shadow-sm focus-visible:ring-red-500/20',
-        outline: 'border border-gray-200 bg-white shadow-sm ',
-        secondary: 'bg-gray-100 text-gray-900 shadow-sm ',
+        default: 'bg-primary text-white shadow-sm',
+        destructive: 'bg-danger text-white shadow-sm focus-visible:ring-danger/20',
+        outline: 'border border-line bg-white shadow-sm ',
+        secondary: 'bg-surface-muted text-ink shadow-sm ',
         ghost: '',
-        link: 'text-blue-600 underline-offset-4 hover:underline',
+        link: 'text-primary underline-offset-4 hover:underline',
       },
       size: {
         default: 'h-9 px-3 py-[2px] [&:has(>svg)]:px-3',
@@ -29,11 +29,11 @@ const buttonVariants = cva(
 );
 
 const activeBgByVariant: Record<string, string> = {
-  default: 'bg-blue-700',
-  destructive: 'bg-red-700',
-  outline: 'bg-gray-50',
-  secondary: 'bg-gray-200',
-  ghost: 'bg-gray-100',
+  default: 'bg-primary-dark',
+  destructive: 'bg-danger-dark',
+  outline: 'bg-surface-muted',
+  secondary: 'bg-surface-sunken',
+  ghost: 'bg-surface-muted',
   link: '',
 };
 

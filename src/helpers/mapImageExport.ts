@@ -1,3 +1,4 @@
+import { THEME_COLORS } from '@/constants/theme';
 import type { ReactNode } from 'react';
 import { createElement } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -49,7 +50,7 @@ const NORMAL_THEME: CanvasTheme = {
   tickLen: 6,
   frameFontSize: 12,
   minTickLabelGapPx: 60,
-  frameColor: '#1a2a3a',
+  frameColor: THEME_COLORS.ink,
   scaleBarTargetPx: 150,
   scaleMarginRight: 15,
   scaleMarginBottom: 20,
@@ -65,7 +66,7 @@ const COMPACT_THEME: CanvasTheme = {
   tickLen: 4,
   frameFontSize: 10,
   minTickLabelGapPx: 45,
-  frameColor: '#1a2a3a',
+  frameColor: THEME_COLORS.ink,
   scaleBarTargetPx: 100,
   scaleMarginRight: 10,
   scaleMarginBottom: 12,

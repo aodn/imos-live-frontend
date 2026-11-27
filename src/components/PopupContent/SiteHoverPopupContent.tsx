@@ -18,7 +18,7 @@ export function SiteHoverPopupContent({ site, date, label = 'Buoy' }: SiteHoverP
         <button
           onClick={onClose}
           aria-label="Close popup"
-          className="absolute top-1 right-1 text-black hover:text-gray-200 text-xl  w-6 h-6 flex items-center justify-center cursor-pointer"
+          className="absolute top-1 right-1 text-ink hover:text-ink-muted text-xl  w-6 h-6 flex items-center justify-center cursor-pointer"
         >
           ×
         </button>

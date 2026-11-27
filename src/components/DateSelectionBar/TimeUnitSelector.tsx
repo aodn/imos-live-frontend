@@ -42,7 +42,7 @@ export function TimeUnitSelector({ store, sliderRef }: TimeUnitSelectorProps) {
   }));
 
   return (
-    <div className="flex flex-col items-center justify-between frosted px-3 border-l border-r border-imos-black/70 w-20 shrink-0">
+    <div className="flex flex-col items-center justify-between frosted px-3 border-l border-r border-ink/70 w-20 shrink-0">
       <Dropdown
         options={timeUnitOptions}
         value={currentUnit}
@@ -50,9 +50,9 @@ export function TimeUnitSelector({ store, sliderRef }: TimeUnitSelectorProps) {
         position="top"
         closeOnMouseLeave
         maxHeight="160px"
-        dropdownClassName="frosted-glass border-imos-black/70 overflow-hidden min-w-20 mb-0 left-1/2 -translate-x-1/2"
+        dropdownClassName="frosted-glass border-ink/70 overflow-hidden min-w-20 mb-0 left-1/2 -translate-x-1/2"
         showSelectedCheck={false}
-        optionClassName="justify-center uppercase text-xs font-bold tracking-wide text-imos-black bg-transparent hover:bg-white/30"
+        optionClassName="justify-center uppercase text-xs font-bold tracking-wide text-ink bg-transparent hover:bg-white/30"
         selectedOptionClassName="bg-white/40"
         renderTrigger={({ open, toggle, isOpen }) => (
           <Button
@@ -62,7 +62,7 @@ export function TimeUnitSelector({ store, sliderRef }: TimeUnitSelectorProps) {
             onClick={toggle}
             aria-haspopup="listbox"
             aria-expanded={isOpen}
-            className="text-xs font-bold text-imos-black uppercase tracking-wide select-none"
+            className="text-xs font-bold text-ink uppercase tracking-wide select-none"
           >
             {currentUnit}
           </Button>
@@ -73,10 +73,10 @@ export function TimeUnitSelector({ store, sliderRef }: TimeUnitSelectorProps) {
         size="icon"
         onClick={() => selectTimeUnit(ALLOWED_TIME_UNITS[index - 1])}
         disabled={isPrevDisabled}
-        className="hover:bg-blue-50 rounded disabled:opacity-40 disabled:cursor-not-allowed"
+        className="hover:bg-primary/10 rounded disabled:opacity-40 disabled:cursor-not-allowed"
         aria-label="Previous time unit"
       >
-        <ChevronLeftIcon className="w-4 h-4 text-imos-black rotate-90" />
+        <ChevronLeftIcon className="w-4 h-4 text-ink rotate-90" />
       </Button>
 
       <Button
@@ -84,10 +84,10 @@ export function TimeUnitSelector({ store, sliderRef }: TimeUnitSelectorProps) {
         size="icon"
         onClick={() => nextUnit && selectTimeUnit(nextUnit)}
         disabled={isNextDisabled}
-        className="hover:bg-blue-50 rounded disabled:opacity-40 disabled:cursor-not-allowed"
+        className="hover:bg-primary/10 rounded disabled:opacity-40 disabled:cursor-not-allowed"
         aria-label="Next time unit"
       >
-        <ChevronRightIcon className="w-4 h-4 text-imos-black rotate-90" />
+        <ChevronRightIcon className="w-4 h-4 text-ink rotate-90" />
       </Button>
     </div>
   );

@@ -29,18 +29,18 @@ function ToastStory({ toastConfig }: { toastConfig: Omit<ToastData, 'id'> }) {
       <div className="flex gap-4">
         <button
           onClick={handleShowToast}
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+          className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
         >
           Show Toast
         </button>
         <button
           onClick={hideAllToasts}
-          className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+          className="px-4 py-2 bg-danger text-white rounded-lg hover:bg-danger/90 transition-colors"
         >
           Clear All
         </button>
       </div>
-      <div className="text-sm text-gray-600">
+      <div className="text-sm text-ink-muted">
         <p>Click "Show Toast" to see the toast notification.</p>
         <p>The toast will appear in the configured position.</p>
       </div>
@@ -88,12 +88,12 @@ function MultipleToastsStory() {
         </button>
         <button
           onClick={hideAllToasts}
-          className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+          className="px-4 py-2 bg-danger text-white rounded-lg hover:bg-danger/90 transition-colors"
         >
           Clear All
         </button>
       </div>
-      <div className="text-sm text-gray-600">
+      <div className="text-sm text-ink-muted">
         <p>Click "Show All Positions" to see toasts in all 6 positions simultaneously.</p>
       </div>
     </div>
@@ -468,12 +468,12 @@ export const AnimationShowcase: Story = {
           </button>
           <button
             onClick={hideAllToasts}
-            className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+            className="px-4 py-2 bg-danger text-white rounded-lg hover:bg-danger/90 transition-colors"
           >
             Clear All
           </button>
         </div>
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-ink-muted">
           <p>Shows a sequence of toasts with custom emoji icons and smooth transitions.</p>
         </div>
       </div>

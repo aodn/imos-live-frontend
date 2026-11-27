@@ -27,11 +27,11 @@ export const Default: Story = {
           variant={'secondary'}
           className="hover:scale-110 active:scale-110 transition-transform"
         >
-          <ConfigIcon color="imos-grey" />
+          <ConfigIcon color="ink-muted" />
         </Button>
 
         <Button size={'icon'} className="hover:scale-110 active:scale-110 transition-transform">
-          <SearchIcon color="imos-white" />
+          <SearchIcon color="white" />
         </Button>
       </div>
     ),

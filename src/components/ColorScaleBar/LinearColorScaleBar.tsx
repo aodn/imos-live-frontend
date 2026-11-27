@@ -52,7 +52,7 @@ export function LinearColorScaleBar({
         className="absolute flex flex-col items-center"
         style={{ left: `${position}%`, transform: 'translateX(-50%)' }}
       >
-        <span className="text-xs text-black font-medium">{formatTickValue(value)}</span>
+        <span className="text-xs text-ink font-medium">{formatTickValue(value)}</span>
       </div>
     ));
   }, [tickPositions]);
@@ -72,7 +72,7 @@ export function LinearColorScaleBar({
       </div>
 
       {label && (
-        <div className="mt-2 text-caption text-imos-grey  text-center">
+        <div className="mt-2 text-caption text-ink-muted  text-center">
           <span>{label}</span>
         </div>
       )}

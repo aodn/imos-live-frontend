@@ -130,7 +130,7 @@ export function ClickedMapPopupContent({ onClose, lngLat }: ClickedMapPopupConte
       className="w-50 md:w-90 min-h-25 flex flex-col bg-white rounded-lg shadow-lg overflow-hidden"
       aria-label="Current value from coordinates"
     >
-      <div className="relative bg-imos-light text-black p-2 flex justify-between items-center">
+      <div className="relative bg-primary-soft text-ink p-2 flex justify-between items-center">
         <h4 className="text-base text-center w-full">
           ({lat}, {lng})
         </h4>
@@ -138,7 +138,7 @@ export function ClickedMapPopupContent({ onClose, lngLat }: ClickedMapPopupConte
           <button
             onClick={onClose}
             aria-label="Close popup"
-            className="absolute top-1 right-1 text-black hover:text-gray-200 text-xl w-6 h-6 flex items-center justify-center cursor-pointer"
+            className="absolute top-1 right-1 text-ink hover:text-ink-muted text-xl w-6 h-6 flex items-center justify-center cursor-pointer"
           >
             ×
           </button>
@@ -148,10 +148,10 @@ export function ClickedMapPopupContent({ onClose, lngLat }: ClickedMapPopupConte
       <div className="p-2 space-y-2 flex-1 flex flex-col">
         {isLoading ? (
           <div className="flex justify-center items-center flex-1">
-            <LoaderIcon className="animate-spin" color="imos-grey" size="lg" />
+            <LoaderIcon className="animate-spin" color="ink-muted" size="lg" />
           </div>
         ) : rows.length === 0 ? (
-          <div className="flex justify-center items-center flex-1 text-gray-500 text-sm">
+          <div className="flex justify-center items-center flex-1 text-ink-muted text-sm">
             No data at this location
           </div>
         ) : (
@@ -162,8 +162,8 @@ export function ClickedMapPopupContent({ onClose, lngLat }: ClickedMapPopupConte
                 className="flex-col md:flex-row flex justify-between md:items-center"
                 aria-label={`${row.label} details`}
               >
-                <span className="text-gray-600 text-left">{row.label}:</span>
-                <span className="text-gray-900 text-left">{row.display}</span>
+                <span className="text-ink-muted text-left">{row.label}:</span>
+                <span className="text-ink text-left">{row.display}</span>
               </div>
             ))}
           </div>

@@ -65,8 +65,8 @@ export function MainSidebarContent({ className = '' }: MainSidebarProps) {
 function UserFeedback() {
   return (
     <div className="md:px-2 mt-4">
-      <div className="md:rounded-lg md:shadow-lg bg-white md:border border-b border-gray-300 p-4 flex items-start gap-2">
-        <span className="text-xs text-gray-700 mb-2">
+      <div className="md:rounded-lg md:shadow-lg bg-white md:border border-b border-line p-4 flex items-start gap-2">
+        <span className="text-xs text-ink-muted mb-2">
           Have you identified a bug, or have suggestions for new features? Please submit your
           feedback and help us improve.
         </span>

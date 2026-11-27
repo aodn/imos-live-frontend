@@ -29,4 +29,19 @@ test.describe('Measurement', () => {
     await expect(measurementPopup.getByRole('button', { name: 'clear' })).not.toBeVisible();
     await expect(measurementPopup).toBeVisible();
   });
+
+  test('User can close the measure panel', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('menuitem', { name: 'Options' }).click();
+    const measureSwitch = page.getByTestId('switch-distancemeasurementEnabled');
+    await measureSwitch.click();
+
+    const measurementPopup = page.getByLabel('Distance measurement', { exact: true });
+    await expect(measurementPopup).toBeVisible();
+    await expect(measureSwitch).toHaveAttribute('aria-checked', 'true');
+
+    await page.getByRole('button', { name: 'Close measure panel' }).click();
+    await expect(measurementPopup).not.toBeVisible();
+    await expect(measureSwitch).toHaveAttribute('aria-checked', 'false');
+  });
 });

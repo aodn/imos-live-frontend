@@ -1,3 +1,4 @@
+import { THEME_COLORS } from '@/constants/theme';
 import type Highcharts from 'highcharts/highstock';
 import type {
   AnimationConfig,
@@ -41,7 +42,7 @@ export function buildRangeSelectorConfig(rangeSelector?: RangeSelectorConfig, th
       fontSize: '12px',
       fontFamily: 'Arial, sans-serif',
       background: 'white',
-      border: '1px solid #cccccc',
+      border: `1px solid ${THEME_COLORS.line}`,
       zIndex: 10,
       opacity: 1,
     },
@@ -66,7 +67,7 @@ export function buildRangeSelectorConfig(rangeSelector?: RangeSelectorConfig, th
       },
       states: {
         hover: {
-          fill: theme?.gridColor || '#f0f0f0',
+          fill: theme?.gridColor || THEME_COLORS.surfaceMuted,
           style: {
             color: theme?.textColor || DEFAULT_THEME.textColor,
           },
@@ -97,14 +98,14 @@ export function buildNavigatorConfig(navigator?: NavigatorConfig, theme?: ThemeC
     outlineColor: theme?.lineColor || DEFAULT_THEME.lineColor,
     outlineWidth: 1,
     handles: {
-      backgroundColor: theme?.backgroundColor || '#f2f2f2',
+      backgroundColor: theme?.backgroundColor || THEME_COLORS.surfaceMuted,
       borderColor: theme?.lineColor || DEFAULT_THEME.lineColor,
     },
     xAxis: {
       gridLineColor: theme?.gridColor || DEFAULT_THEME.gridColor,
       labels: {
         style: {
-          color: theme?.textColor || '#666666',
+          color: theme?.textColor || THEME_COLORS.inkMuted,
           fontSize: '10px',
         },
       },
@@ -206,7 +207,7 @@ export function buildTitleConfig(
       ? {
           text: subtitle,
           style: {
-            color: theme?.textColor || '#666666',
+            color: theme?.textColor || THEME_COLORS.inkMuted,
           },
         }
       : undefined,
@@ -229,7 +230,7 @@ export function buildAxisConfig<T extends Highcharts.XAxisOptions | Highcharts.Y
     tickColor: theme?.lineColor || DEFAULT_THEME.lineColor,
     labels: {
       style: {
-        color: theme?.textColor || '#666666',
+        color: theme?.textColor || THEME_COLORS.inkMuted,
       },
     },
     title: {

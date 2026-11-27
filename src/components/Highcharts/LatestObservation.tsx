@@ -68,10 +68,10 @@ function ObservationCell({
   return (
     <div className={cn('col-span-1', { 'border-r': !isLast })}>
       <div className="px-3 py-2">
-        <div className="text-xs text-gray-600 mb-1" data-testid="latest-observation-label">
+        <div className="text-xs text-ink-muted mb-1" data-testid="latest-observation-label">
           {field.label} {field.unit && `(${field.unit})`}
         </div>
-        <div className="text-sm font-medium text-gray-900" data-testid="latest-observation-value">
+        <div className="text-sm font-medium text-ink" data-testid="latest-observation-value">
           {field.value}
         </div>
         {showTime && field.timeStamp && (
@@ -95,9 +95,9 @@ export function ObservationPanel({ observationData }: { observationData: Observa
 
   return (
     <div className="w-full">
-      <div className="border border-gray-300">
-        <div className="bg-gray-50 border-b border-gray-300 px-3 py-2">
-          <h2 className="text-sm font-medium text-gray-800">
+      <div className="border border-line">
+        <div className="bg-surface-muted border-b border-line px-3 py-2">
+          <h2 className="text-sm font-medium text-ink">
             <span>Latest Observations</span>
             {latestTimeStamp && !hasMixedTimes && (
               <span className="text-xs font-light ml-2" data-testid="latest-observation-timestamp">

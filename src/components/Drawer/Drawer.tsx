@@ -240,7 +240,7 @@ export function Drawer({
   const getDrawerStyles = () => {
     const size = getDrawerSize();
     const baseClasses =
-      'fixed overflow-hidden rounded bg-white shadow-2xl transition-all duration-300 ease-out z-50 border-gray-200';
+      'fixed overflow-hidden rounded bg-white shadow-2xl transition-all duration-300 ease-out z-50 border-line';
 
     if (!isOpen) {
       switch (direction) {
@@ -311,7 +311,7 @@ export function Drawer({
 
   const getResizeHandleStyles = () => {
     const handleClasses =
-      'absolute flex items-center justify-center hover:bg-imos-grey/20 transition-colors duration-200 z-10';
+      'absolute flex items-center justify-center hover:bg-ink-muted/20 transition-colors duration-200 z-10';
 
     switch (direction) {
       case 'left':

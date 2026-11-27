@@ -55,7 +55,7 @@ export function DateSelectionPanel({
     <div
       style={{ width: SELECTION_PANEL_WIDTH }}
       className={cn(
-        'flex items-center gap-1 frosted rounded-lg md:rounded-r-none h-16 px-2 py-1.5 shrink-0 overflow-hidden md:border-r border-imos-black/70',
+        'flex items-center gap-1 frosted rounded-lg md:rounded-r-none h-16 px-2 py-1.5 shrink-0 overflow-hidden md:border-r border-ink/70',
         className,
       )}
     >
@@ -66,9 +66,9 @@ export function DateSelectionPanel({
         className="p-1 hover:bg-white/30 rounded"
         aria-label="Previous date"
       >
-        <ChevronLeftIcon className="w-4 h-4 text-imos-black" />
+        <ChevronLeftIcon className="w-4 h-4 text-ink" />
       </Button>
-      <span className="text-sm font-semibold text-imos-black flex-1 text-center whitespace-nowrap">
+      <span className="text-sm font-semibold text-ink flex-1 text-center whitespace-nowrap">
         {dateLabel}
       </span>
       {/* Picking drives the slider via the imperative path: it moves the handle
@@ -86,7 +86,7 @@ export function DateSelectionPanel({
         className="p-1 hover:bg-white/30 rounded"
         aria-label="Next date"
       >
-        <ChevronRightIcon className="w-4 h-4 text-imos-black" />
+        <ChevronRightIcon className="w-4 h-4 text-ink" />
       </Button>
     </div>
   );

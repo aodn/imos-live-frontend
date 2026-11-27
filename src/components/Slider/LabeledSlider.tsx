@@ -30,7 +30,7 @@ export const LabeledSlider = forwardRef<HTMLInputElement, LabeledSliderProps>(
       <div className={cn('flex items-center gap-3 w-full', className)} data-testid="labeled-slider">
         <label
           className={cn(
-            'text-sm font-medium text-imos-grey  whitespace-nowrap min-w-fit',
+            'text-sm font-medium text-ink-muted  whitespace-nowrap min-w-fit',
             labelClassName,
           )}
         >
@@ -43,7 +43,7 @@ export const LabeledSlider = forwardRef<HTMLInputElement, LabeledSliderProps>(
           {...sliderProps}
         />
         <span
-          className={cn('text-sm font-medium text-imos-grey min-w-fit', valueClassName)}
+          className={cn('text-sm font-medium text-ink-muted min-w-fit', valueClassName)}
           data-testid="slider-value"
         >
           max

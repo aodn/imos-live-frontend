@@ -136,45 +136,45 @@ function Toast({ toast }: { toast: ToastData }) {
   const getTypeClasses = () => {
     switch (toast.type) {
       case 'success':
-        return 'bg-green-50 border-green-200 text-green-800';
+        return 'bg-success/10 border-success/30 text-success';
       case 'error':
-        return 'bg-red-50 border-red-200 text-red-800';
+        return 'bg-danger/10 border-danger/30 text-danger';
       case 'warning':
-        return 'bg-yellow-50 border-yellow-200 text-yellow-800';
+        return 'bg-warning/10 border-warning/30 text-warning-dark';
       case 'info':
-        return 'bg-blue-50 border-blue-200 text-blue-800';
+        return 'bg-primary/10 border-primary/30 text-primary-dark';
       default:
-        return 'bg-gray-50 border-gray-200 text-gray-800';
+        return 'bg-surface-muted border-line text-ink';
     }
   };
 
   const getIconColorClass = () => {
     switch (toast.type) {
       case 'success':
-        return 'text-green-500';
+        return 'text-success';
       case 'error':
-        return 'text-red-500';
+        return 'text-danger';
       case 'warning':
-        return 'text-yellow-500';
+        return 'text-warning';
       case 'info':
-        return 'text-blue-500';
+        return 'text-primary';
       default:
-        return 'text-gray-500';
+        return 'text-ink-muted';
     }
   };
 
   const getProgressBarColor = () => {
     switch (toast.type) {
       case 'success':
-        return 'bg-green-500/50';
+        return 'bg-success/50';
       case 'error':
-        return 'bg-red-500/50';
+        return 'bg-danger/50';
       case 'warning':
-        return 'bg-yellow-500/50';
+        return 'bg-warning/50';
       case 'info':
-        return 'bg-blue-500/50';
+        return 'bg-primary/50';
       default:
-        return 'bg-gray-500/50';
+        return 'bg-ink-muted/50';
     }
   };
 
@@ -207,7 +207,7 @@ function Toast({ toast }: { toast: ToastData }) {
     >
       {toast.showProgressBar !== false && !toast.persistent && duration !== 0 && (
         <div
-          className="absolute inset-0 h-full bg-black/10 pointer-events-none overflow-hidden"
+          className="absolute inset-0 h-full bg-ink/10 pointer-events-none overflow-hidden"
           aria-hidden="true"
         >
           <div
@@ -246,7 +246,7 @@ function Toast({ toast }: { toast: ToastData }) {
           }}
           className={clsx(
             'shrink-0 p-1 rounded-md transition-colors',
-            'hover:bg-black hover:bg-opacity-10 focus:outline-none focus:ring-2 focus:ring-offset-2',
+            'hover:bg-ink/10 focus:outline-none focus:ring-2 focus:ring-offset-2',
             getIconColorClass(),
             toast.closeButtonClassName,
           )}

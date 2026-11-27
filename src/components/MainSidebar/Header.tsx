@@ -13,11 +13,11 @@ export function Header({ image, title, className, onMenuClick }: HeaderProps) {
   return (
     <div
       className={cn(
-        'flex items-center gap-x-4 px-8 py-2 md:py-4 -mx-4 shadow-lg  border-b border-gray-200',
+        'flex items-center gap-x-4 px-8 py-2 md:py-4 -mx-4 shadow-lg  border-b border-line',
         className,
       )}
     >
-      <div className="border-r border-imos-blue flex-1 flex items-center md:justify-center justify-between">
+      <div className="border-r border-primary flex-1 flex items-center md:justify-center justify-between">
         <Button
           variant="ghost"
           size="icon"
@@ -46,7 +46,7 @@ export function Header({ image, title, className, onMenuClick }: HeaderProps) {
 
       <div className="flex-1">
         <a href="/">
-          <h1 className="text-title-lg text-imos-blue text-left md:text-center">{title}</h1>
+          <h1 className="text-title-lg text-primary text-left md:text-center">{title}</h1>
         </a>
       </div>
     </div>
