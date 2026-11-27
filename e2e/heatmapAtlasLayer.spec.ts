@@ -57,10 +57,14 @@ test.describe('HeatmapAtlasLayer / HeatmapAtlasField', () => {
   test('setVisible flips the wrapper.visible flag', async ({ page }) => {
     // Tile fetches are aborted, which keeps the product in `isError` state so the
     // host hook never calls setVisible(true). Exercise the wrapper API directly.
-    expect((await invokeLayerMethod(page, GSLA_ANOMALY_LAYER_ID, 'setVisible', [true])).ok).toBe(
-      true,
-    );
-    expect((await snapshotLayer(page, GSLA_ANOMALY_LAYER_ID))!.visible).toBe(true);
+    // The host hook calls setVisible(false) while the product's loading/error
+    // state settles after setup, which can overwrite our call. Retry until it sticks.
+    await expect(async () => {
+      expect((await invokeLayerMethod(page, GSLA_ANOMALY_LAYER_ID, 'setVisible', [true])).ok).toBe(
+        true,
+      );
+      expect((await snapshotLayer(page, GSLA_ANOMALY_LAYER_ID))!.visible).toBe(true);
+    }).toPass();
 
     expect((await invokeLayerMethod(page, GSLA_ANOMALY_LAYER_ID, 'setVisible', [false])).ok).toBe(
       true,
