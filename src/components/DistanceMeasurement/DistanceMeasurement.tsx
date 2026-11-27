@@ -29,14 +29,15 @@ export function DistanceMeasurement({
       aria-label="Distance measurement"
     >
       <div className="frosted px-4 py-2 rounded flex flex-col gap-y-4 relative">
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={closePanel}
-          aria-label="Close distance measurement"
-          className="absolute top-2 right-2 cursor-pointer"
+          aria-label="Close measure panel"
+          className="absolute top-2 right-2"
         >
           <CloseIcon />
-        </button>
+        </Button>
         <p>Measure distance</p>
         {distance === '' && <small>Click on the map to trace a path you want to measure</small>}
         {distance !== '' && (

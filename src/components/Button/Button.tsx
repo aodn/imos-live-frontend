@@ -30,7 +30,7 @@ const buttonVariants = cva(
 
 const activeBgByVariant: Record<string, string> = {
   default: 'bg-primary-dark',
-  destructive: 'bg-danger',
+  destructive: 'bg-danger-dark',
   outline: 'bg-surface-muted',
   secondary: 'bg-surface-sunken',
   ghost: 'bg-surface-muted',

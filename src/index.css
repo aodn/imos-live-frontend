@@ -11,6 +11,7 @@
   --color-primary-soft: #c5d8e7;
   --color-accent-mint: #a7f3d8;
   --color-accent-aqua: #a7e9f3;
+  --color-accent-sky: #7fb6d1;
 
   /* Text */
   --color-ink: #1a2a3a;
@@ -25,6 +26,7 @@
 
   /* Status */
   --color-danger: #d32f2f;
+  --color-danger-dark: #b71c1c;
   --color-warning: #f59e0b;
   --color-warning-dark: #8a5a00;
   --color-success: #2e7d32;

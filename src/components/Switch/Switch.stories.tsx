@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { Switch } from './Switch';
 
@@ -157,6 +158,21 @@ export const SquareRounded: Story = {
     initialValue: true,
     rounded: 'md',
     variant: 'info',
+  },
+};
+
+// Value is owned by the parent, e.g. a store-backed toggle
+export const Controlled: Story = {
+  render: function ControlledSwitch(args) {
+    const [on, setOn] = useState(true);
+    return (
+      <div className="flex flex-col items-start gap-4">
+        <Switch {...args} checked={on} onChange={setOn} label="Controlled by parent state" />
+        <button type="button" className="underline text-sm" onClick={() => setOn(false)}>
+          Switch off from outside
+        </button>
+      </div>
+    );
   },
 };
 
