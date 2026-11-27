@@ -118,7 +118,7 @@ export function OptionsSection() {
           <Switch
             label="Measure distance"
             labelPosition="left"
-            initialValue={distanceMeasurementEnabled}
+            checked={distanceMeasurementEnabled}
             onChange={setDistanceMeasurementEnabled}
             dataTestId="switch-distancemeasurementEnabled"
           />

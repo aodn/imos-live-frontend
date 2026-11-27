@@ -4,6 +4,8 @@ import { CheckIcon, CloseIcon } from '../Icons';
 
 type SwitchProps = {
   initialValue?: boolean;
+  // Controlled value; overrides internal state when set
+  checked?: boolean;
   onChange?: (value: boolean) => void;
   disabled?: boolean;
   size?: 'sm' | 'md' | 'lg';
@@ -29,6 +31,7 @@ type SwitchProps = {
 
 export function Switch({
   initialValue = false,
+  checked,
   onChange,
   disabled = false,
   size = 'md',
@@ -46,7 +49,8 @@ export function Switch({
   descriptionClassName,
   dataTestId,
 }: SwitchProps) {
-  const [isOn, setIsOn] = useState(initialValue);
+  const [internalOn, setIsOn] = useState(initialValue);
+  const isOn = checked ?? internalOn;
 
   const handleToggle = () => {
     if (disabled) return;
