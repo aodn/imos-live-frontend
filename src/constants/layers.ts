@@ -285,7 +285,7 @@ export const WORLD_LAND_FILL_CONFIG: Partial<FillLayerSpecification> = {
   },
 } as const;
 
-// Depth band outlines from `mapbox-bathymetry-v2`; each polygon is one depth band.
+// Isobaths from `mapbox-bathymetry-v2`: polygons are nested (min_depth N = area deeper than N), so each outline is the N m contour.
 // Shelf and slope only: skip the coastline (0 m) and noisy abyssal bands (>= 3000 m).
 const ISOBATH_FILTER: LineLayerSpecification['filter'] = [
   'all',
