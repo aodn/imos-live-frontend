@@ -1,3 +1,4 @@
+import { THEME_COLORS } from '@/constants/theme';
 import { getWaveBuoyDetails, siteLatestDateQueryOptions } from '@/api';
 import { PRODUCT, SITE_MIN_DATE } from '@/constants';
 import dayjs from 'dayjs';
@@ -168,15 +169,15 @@ const BUOY_RANGE_SELECTOR: Omit<RangeSelectorConfig, 'selected' | 'buttons'> = {
   inputEnabled: false,
   buttonPosition: { align: 'left', x: 0, y: 0 },
   inputPosition: { align: 'right', x: 0, y: 0 },
-  inputBoxBorderColor: '#cccccc',
+  inputBoxBorderColor: THEME_COLORS.line,
   inputBoxWidth: 120,
   inputBoxHeight: 20,
   inputStyle: {
-    color: '#333333',
+    color: THEME_COLORS.ink,
     fontSize: '12px',
     fontFamily: 'Arial, sans-serif',
     background: 'white',
-    border: '1px solid #cccccc',
+    border: `1px solid ${THEME_COLORS.line}`,
     zIndex: 10,
     opacity: 1,
     textAlign: 'center',

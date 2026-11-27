@@ -40,7 +40,7 @@ export function LayersIndicator({ layers, className }: LayersIndicatorProps) {
             <Icon size="lg" />
             <CloseIcon
               size="xs"
-              color="imos-red"
+              color="danger"
               className="absolute right-0 top-0 border rounded-4xl"
             />
           </Button>

@@ -115,16 +115,16 @@ export const DateSelectionBar = memo(function DateSelectionBar({
             initialTimeUnit="day"
             dateFormat={dateFormat}
             icons={{
-              point: <TriangleIcon size="lg" className="text-slate-700! text-shadow" />,
+              point: <TriangleIcon size="lg" className="text-ink! text-shadow" />,
             }}
             classNames={{
               slider: 'frosted',
               sliderContainer: 'rounded-none',
               trackActive: 'hidden',
-              trackInactive: 'top-0 h-3 bg-imos-blue/60',
-              scaleMark: 'bg-imos-black',
-              scaleLabel: 'text-imos-black ml-2',
-              cursorLine: 'bg-imos-blue/60',
+              trackInactive: 'top-0 h-3 bg-primary/60',
+              scaleMark: 'bg-ink',
+              scaleLabel: 'text-ink ml-2',
+              cursorLine: 'bg-primary/60',
             }}
             onChange={handleSelect}
             layout={{

@@ -123,7 +123,7 @@ export function Map() {
           >
             <CollapsibleComponent
               defaultOpen={!isSmallScreen}
-              wrapperClassName="w-14 md:min-w-72 bg-imos-light rounded-xl"
+              wrapperClassName="w-14 md:min-w-72 bg-primary-soft rounded-xl"
               trigger={({ open, toggle, toggleIconHidden }) => (
                 <CollapsibleTrigger
                   open={open}

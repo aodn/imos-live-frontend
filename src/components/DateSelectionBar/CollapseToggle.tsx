@@ -17,14 +17,14 @@ export function CollapseToggle({ collapsed, onToggle, className }: CollapseToggl
       aria-label={collapsed ? 'Expand date slider' : 'Shrink date slider'}
       aria-expanded={!collapsed}
       className={cn(
-        'frosted h-16 w-fit self-stretch rounded-l-none rounded-r-lg hover:bg-white/30 hover:opacity-100 border-imos-black/70',
+        'frosted h-16 w-fit self-stretch rounded-l-none rounded-r-lg hover:bg-white/30 hover:opacity-100 border-ink/70',
         className,
       )}
     >
       {collapsed ? (
-        <ChevronsRight className="size-5 text-imos-black" />
+        <ChevronsRight className="size-5 text-ink" />
       ) : (
-        <ChevronsLeft className="size-5 text-imos-black" />
+        <ChevronsLeft className="size-5 text-ink" />
       )}
     </Button>
   );

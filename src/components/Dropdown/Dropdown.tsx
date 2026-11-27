@@ -16,11 +16,11 @@ const SIZE_CLASSES = {
 
 const VARIANT_CLASSES = {
   default:
-    'bg-white border border-gray-300 hover:border-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200',
+    'bg-white border border-line hover:border-line-strong focus:border-primary focus:ring-2 focus:ring-primary/20',
   outline:
-    'bg-transparent border-2 border-gray-300 hover:border-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200',
+    'bg-transparent border-2 border-line hover:border-line-strong focus:border-primary focus:ring-2 focus:ring-primary/20',
   ghost:
-    'bg-transparent border border-transparent hover:bg-gray-50 focus:bg-white focus:border-gray-300 focus:ring-2 focus:ring-blue-200',
+    'bg-transparent border border-transparent hover:bg-surface-muted focus:bg-white focus:border-line focus:ring-2 focus:ring-primary/20',
 } as const;
 
 export function Dropdown({
@@ -178,9 +178,9 @@ export function Dropdown({
       onMouseLeave={closeOnMouseLeave ? close : undefined}
     >
       {label && (
-        <label className="block text-sm font-medium text-imos-grey mb-1">
+        <label className="block text-sm font-medium text-ink-muted mb-1">
           {label}
-          {required && <span className="text-red-500 ml-1">*</span>}
+          {required && <span className="text-danger ml-1">*</span>}
         </label>
       )}
 
@@ -211,15 +211,15 @@ export function Dropdown({
             {
               'opacity-50 cursor-not-allowed': disabled,
               'cursor-pointer': !disabled,
-              'border-red-500 focus:border-red-500 focus:ring-red-200': error,
-              'ring-2 ring-blue-200': isOpen,
+              'border-danger focus:border-danger focus:ring-danger/20': error,
+              'ring-2 ring-primary/20': isOpen,
             },
           )}
         >
           <span
             className={cn('truncate', {
-              'text-gray-500': !hasValue,
-              'text-gray-900': hasValue,
+              'text-ink-muted': !hasValue,
+              'text-ink': hasValue,
             })}
           >
             {getDisplayValue()}
@@ -227,16 +227,16 @@ export function Dropdown({
 
           <div className="flex items-center gap-1 ml-2">
             {loading && (
-              <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-blue-600" />
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-line border-t-primary" />
             )}
             {clearable && hasValue && !disabled && (
               <CloseIcon
-                className="text-gray-400 hover:text-gray-600 cursor-pointer"
+                className="text-ink-subtle hover:text-ink-muted cursor-pointer"
                 onClick={handleClear}
               />
             )}
             <ArrowIcon
-              className={cn('text-gray-400 transition-transform duration-200', {
+              className={cn('text-ink-subtle transition-transform duration-200', {
                 'rotate-180': isOpen,
               })}
             />
@@ -244,7 +244,7 @@ export function Dropdown({
         </button>
       )}
 
-      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-1 text-sm text-danger">{error}</p>}
 
       {isOpen &&
         (usePortal ? (

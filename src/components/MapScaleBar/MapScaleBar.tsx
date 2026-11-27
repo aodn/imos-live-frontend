@@ -1,3 +1,4 @@
+import { THEME_COLORS } from '@/constants/theme';
 import { cn } from '@/utils';
 
 export type MapScaleBarProps = {
@@ -23,7 +24,7 @@ export function MapScaleBar({ scaleKm, barWidthCss, compact = false }: MapScaleB
       <div className="flex flex-col gap-[3px]">
         <div
           className={cn(
-            'flex justify-between font-sans leading-none text-[#1a2a3a]',
+            'flex justify-between font-sans leading-none text-ink',
             compact ? 'text-[11px]' : 'text-[13px]',
           )}
           style={{ width: barWidthCss }}
@@ -33,15 +34,22 @@ export function MapScaleBar({ scaleKm, barWidthCss, compact = false }: MapScaleB
           <span>{scaleKm} km</span>
         </div>
         <svg width={barWidthCss} height={s.barH} className="block">
-          <line x1={0} y1={s.barH} x2={barWidthCss} y2={s.barH} stroke="#1a2a3a" strokeWidth={2} />
-          <line x1={0} y1={0} x2={0} y2={s.barH} stroke="#1a2a3a" strokeWidth={2} />
+          <line
+            x1={0}
+            y1={s.barH}
+            x2={barWidthCss}
+            y2={s.barH}
+            stroke={THEME_COLORS.ink}
+            strokeWidth={2}
+          />
+          <line x1={0} y1={0} x2={0} y2={s.barH} stroke={THEME_COLORS.ink} strokeWidth={2} />
           {segments > 1 && (
             <line
               x1={barWidthCss / 2}
               y1={0}
               x2={barWidthCss / 2}
               y2={s.barH}
-              stroke="#1a2a3a"
+              stroke={THEME_COLORS.ink}
               strokeWidth={2}
             />
           )}
@@ -50,7 +58,7 @@ export function MapScaleBar({ scaleKm, barWidthCss, compact = false }: MapScaleB
             y1={0}
             x2={barWidthCss}
             y2={s.barH}
-            stroke="#1a2a3a"
+            stroke={THEME_COLORS.ink}
             strokeWidth={2}
           />
         </svg>
@@ -60,7 +68,7 @@ export function MapScaleBar({ scaleKm, barWidthCss, compact = false }: MapScaleB
         <path
           d={`M${s.arrowHalfW},0 L${arrowW},${arrowH} L${s.arrowHalfW},${notchY} L0,${arrowH} Z`}
           fill="none"
-          stroke="#333333"
+          stroke={THEME_COLORS.ink}
           strokeWidth={2}
         />
       </svg>

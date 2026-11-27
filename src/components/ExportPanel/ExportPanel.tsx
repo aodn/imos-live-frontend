@@ -21,7 +21,7 @@ export function ExportPanel({ date, product, compact = false, frostedBgSrc }: Ex
   return (
     <div
       className={cn(
-        'relative inline-block overflow-hidden border border-[#3b5068]/25',
+        'relative inline-block overflow-hidden border border-ink-muted/25',
         compact ? 'rounded-lg' : 'rounded-[10px]',
       )}
     >
@@ -51,19 +51,19 @@ export function ExportPanel({ date, product, compact = false, frostedBgSrc }: Ex
         <div className="flex flex-col justify-between h-full gap-y-1">
           <p
             style={{ lineHeight: 1 }}
-            className={cn('font-bold text-[#1a2a3a]', compact ? 'text-[11px]' : 'text-[18px]')}
+            className={cn('font-bold text-ink', compact ? 'text-[11px]' : 'text-[18px]')}
           >
             IMOS Live
           </p>
           <p
             style={{ lineHeight: 1 }}
-            className={cn('text-[#3b5068]', compact ? 'text-[9px]' : 'text-[13px]')}
+            className={cn('text-ink-muted', compact ? 'text-[9px]' : 'text-[13px]')}
           >
             {date}
           </p>
           <p
             style={{ lineHeight: 1 }}
-            className={cn('text-[#6b8a9e]', compact ? 'text-[9px]' : 'text-[12px]')}
+            className={cn('text-ink-subtle', compact ? 'text-[9px]' : 'text-[12px]')}
           >
             {window.location.origin}
           </p>
@@ -73,7 +73,7 @@ export function ExportPanel({ date, product, compact = false, frostedBgSrc }: Ex
           <div className={cn('flex flex-col', compact ? 'gap-1 pl-2' : 'gap-1.5 pl-4')}>
             <p
               className={cn(
-                'font-bold leading-none text-[#1a2a3a]',
+                'font-bold leading-none text-ink',
                 compact ? 'text-[10px]' : 'text-[14px]',
               )}
             >

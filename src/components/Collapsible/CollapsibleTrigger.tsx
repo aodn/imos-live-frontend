@@ -39,12 +39,12 @@ export function CollapsibleTrigger({
         >
           {FirstIcon ? (
             <FirstIcon
-              color="imos-grey"
+              color="ink-muted"
               className={cn('transition-transform duration-300', open && 'rotate-180')}
             />
           ) : (
             <ArrowIcon
-              color="imos-grey"
+              color="ink-muted"
               className={cn('transition-transform duration-300', open && 'rotate-180')}
             />
           )}
@@ -61,9 +61,9 @@ export function CollapsibleTrigger({
           aria-label="drag"
         >
           {SecondIcon ? (
-            <SecondIcon color="imos-grey" size="xl" className="md:rotate-180" />
+            <SecondIcon color="ink-muted" size="xl" className="md:rotate-180" />
           ) : (
-            <DragIndicatorIcon color="imos-grey" size="xl" className="rotate-180" />
+            <DragIndicatorIcon color="ink-muted" size="xl" className="rotate-180" />
           )}
         </Button>
 
@@ -77,9 +77,9 @@ export function CollapsibleTrigger({
           aria-label="drag and toggle collapsible"
         >
           {SecondIcon ? (
-            <SecondIcon color="imos-grey" size="xl" className="md:rotate-180" />
+            <SecondIcon color="ink-muted" size="xl" className="md:rotate-180" />
           ) : (
-            <LayersIcon color="imos-grey" size="xl" />
+            <LayersIcon color="ink-muted" size="xl" />
           )}
         </Button>
       </>

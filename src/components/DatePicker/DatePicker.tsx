@@ -64,15 +64,15 @@ export type DatePickerClassNames = {
 
 const DEFAULTS = {
   trigger: 'p-1 hover:bg-white/30 rounded',
-  popover: 'frosted-glass rounded-lg border border-imos-black/70 p-2 w-64 text-imos-black',
+  popover: 'frosted-glass rounded-lg border border-ink/70 p-2 w-64 text-ink',
   header: 'mb-2',
   navButton: 'p-1 hover:bg-white/30 rounded disabled:opacity-40 disabled:cursor-not-allowed',
   select:
-    'bg-transparent text-imos-black text-sm font-semibold rounded px-1 py-0.5 cursor-pointer hover:bg-white/30 focus-visible:outline focus-visible:outline-offset-1',
-  weekday: 'text-center text-[10px] font-semibold uppercase tracking-wide text-imos-black/60',
+    'bg-transparent text-ink text-sm font-semibold rounded px-1 py-0.5 cursor-pointer hover:bg-white/30 focus-visible:outline focus-visible:outline-offset-1',
+  weekday: 'text-center text-[10px] font-semibold uppercase tracking-wide text-ink/60',
   day: 'h-8 rounded text-sm transition-colors hover:bg-white/30 focus-visible:outline focus-visible:outline-offset-1',
-  dayOutsideMonth: 'text-imos-black/35',
-  daySelected: 'bg-imos-blue/60 font-semibold hover:bg-imos-blue/60',
+  dayOutsideMonth: 'text-ink/35',
+  daySelected: 'bg-primary/60 font-semibold hover:bg-primary/60',
   dayDisabled: 'opacity-30 cursor-not-allowed hover:bg-transparent',
 } as const;
 
@@ -253,9 +253,9 @@ function HeaderSelect({ options, value, onChange, ariaLabel, className }: Header
       position="auto"
       maxHeight="200px"
       showSelectedCheck={false}
-      dropdownClassName="bg-white/90 backdrop-blur-md shadow-lg border border-imos-black/70 rounded-md overflow-hidden z-50 min-w-[80px] w-fit"
-      optionClassName="text-sm text-imos-black hover:bg-imos-black/10"
-      selectedOptionClassName="bg-imos-blue/40 font-semibold"
+      dropdownClassName="bg-white/90 backdrop-blur-md shadow-lg border border-ink/70 rounded-md overflow-hidden z-50 min-w-[80px] w-fit"
+      optionClassName="text-sm text-ink hover:bg-ink/10"
+      selectedOptionClassName="bg-primary/40 font-semibold"
       renderTrigger={({ toggle, isOpen }) => (
         <Button
           type="button"
@@ -268,7 +268,7 @@ function HeaderSelect({ options, value, onChange, ariaLabel, className }: Header
           className={cn(DEFAULTS.select, 'gap-1', className)}
         >
           {selected?.label}
-          <ChevronDownIcon className="w-3 h-3 text-imos-black" />
+          <ChevronDownIcon className="w-3 h-3 text-ink" />
         </Button>
       )}
     />
@@ -428,7 +428,7 @@ export function DatePicker({
         aria-label={triggerAriaLabel}
         className={cn(DEFAULTS.trigger, classNames?.trigger)}
       >
-        {icon ?? <CalendarIcon className="w-4 h-4 text-imos-black" />}
+        {icon ?? <CalendarIcon className="w-4 h-4 text-ink" />}
       </Button>
 
       {isOpen &&
@@ -460,7 +460,7 @@ export function DatePicker({
                 className={cn(DEFAULTS.navButton, classNames?.navButton)}
                 aria-label="Previous month"
               >
-                <ChevronLeftIcon className="w-4 h-4 text-imos-black" />
+                <ChevronLeftIcon className="w-4 h-4 text-ink" />
               </Button>
               <div className="flex items-center gap-1">
                 <HeaderSelect
@@ -486,7 +486,7 @@ export function DatePicker({
                 className={cn(DEFAULTS.navButton, classNames?.navButton)}
                 aria-label="Next month"
               >
-                <ChevronRightIcon className="w-4 h-4 text-imos-black" />
+                <ChevronRightIcon className="w-4 h-4 text-ink" />
               </Button>
             </div>
 

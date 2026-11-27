@@ -3,7 +3,7 @@ import { forwardRef } from 'react';
 import { cn } from '@/utils';
 
 type IconSize = 'xs' | 'sm' | 'base' | 'lg' | 'xl' | 'xxl';
-type Color = 'imos-white' | 'imos-black' | 'imos-red' | 'imos-grey';
+type Color = 'white' | 'ink' | 'danger' | 'ink-muted';
 
 export type IconProps = React.SVGProps<SVGSVGElement> & {
   size?: IconSize;
@@ -21,17 +21,17 @@ const SIZE_MAP: Record<IconSize, string> = {
 };
 
 const COLOR_MAP: Record<Color, string> = {
-  'imos-white': 'text-white',
-  'imos-black': 'text-black',
-  'imos-red': 'text-imos-red',
-  'imos-grey': 'text-imos-grey',
+  white: 'text-white',
+  ink: 'text-black',
+  danger: 'text-danger',
+  'ink-muted': 'text-ink-muted',
 };
 
 export function withIcon(
   IconComponent: React.ComponentType<React.SVGProps<SVGSVGElement>>,
 ): React.FC<IconProps> {
   const WrappedIcon = forwardRef<SVGSVGElement, IconProps>(
-    ({ size = 'base', color = 'imos-black', className, ...rest }, ref) => {
+    ({ size = 'base', color = 'ink', className, ...rest }, ref) => {
       //size-X is to override shadcn/ui button's behavior to force all direct SVG children to have a consistent size.
       const defaultClass = 'size-X';
       const sizeClass = `${SIZE_MAP[size as IconSize]}`;

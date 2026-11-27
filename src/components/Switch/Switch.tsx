@@ -86,11 +86,11 @@ export function Switch({
 
   // Variant colors
   const variantColors = {
-    default: 'bg-blue-600',
-    success: 'bg-green-600',
-    warning: 'bg-yellow-600',
-    danger: 'bg-red-600',
-    info: 'bg-cyan-600',
+    default: 'bg-primary',
+    success: 'bg-success',
+    warning: 'bg-warning',
+    danger: 'bg-danger',
+    info: 'bg-primary',
   };
 
   // Rounded configurations
@@ -104,7 +104,7 @@ export function Switch({
 
   const config = sizeConfig[size];
   const activeColor = customColors?.on || variantColors[variant];
-  const inactiveColor = customColors?.off || 'bg-gray-300';
+  const inactiveColor = customColors?.off || 'bg-line-strong';
   const thumbColor = isOn ? customColors?.thumbOn || 'bg-white' : customColors?.thumb || 'bg-white';
 
   const switchElement = (
@@ -113,7 +113,7 @@ export function Switch({
       disabled={disabled}
       className={cn(
         'relative inline-flex items-center transition-colors duration-200 ease-in-out',
-        'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ',
+        'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary ',
         config.track,
         config.padding,
         isOn ? activeColor : inactiveColor,
@@ -141,9 +141,9 @@ export function Switch({
         {showIcons && (
           <span className="flex items-center justify-center">
             {isOn ? (
-              <CheckIcon className={cn(config.icon, 'text-green-500')} />
+              <CheckIcon className={cn(config.icon, 'text-success')} />
             ) : (
-              <CloseIcon className={cn(config.icon, 'text-red-500')} />
+              <CloseIcon className={cn(config.icon, 'text-danger')} />
             )}
           </span>
         )}
@@ -153,9 +153,9 @@ export function Switch({
 
   const labelElement = label && (
     <div className="flex flex-col">
-      <span className={cn('text-sm font-medium text-imos-grey', labelClassName)}>{label}</span>
+      <span className={cn('text-sm font-medium text-ink-muted', labelClassName)}>{label}</span>
       {description && (
-        <span className={cn('text-xs text-imos-grey', descriptionClassName)}>{description}</span>
+        <span className={cn('text-xs text-ink-muted', descriptionClassName)}>{description}</span>
       )}
     </div>
   );

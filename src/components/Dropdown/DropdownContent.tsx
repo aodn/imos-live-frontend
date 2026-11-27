@@ -10,15 +10,15 @@ import { SearchIcon, CheckIcon } from '../Icons';
 
 function SearchInput({ value, onChange, placeholder = 'Search options...' }: SearchInputProps) {
   return (
-    <div className="p-2 border-b border-gray-200 bg-white sticky top-0 z-10">
+    <div className="p-2 border-b border-line bg-white sticky top-0 z-10">
       <div className="relative">
-        <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+        <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-ink-subtle" />
         <input
           type="text"
           placeholder={placeholder}
           value={value}
           onChange={e => onChange(e.target.value)}
-          className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
+          className="w-full pl-9 pr-3 py-2 text-sm border border-line rounded focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
           // eslint-disable-next-line jsx-a11y/no-autofocus
           autoFocus
         />
@@ -46,9 +46,9 @@ export function OptionItem({
         'w-full px-3 py-2 cursor-pointer flex items-center justify-between text-left',
         {
           'opacity-50 cursor-not-allowed': option.disabled,
-          'hover:bg-gray-50': !option.disabled,
-          'bg-blue-50 text-blue-700': isSelected,
-          'text-gray-900': !isSelected,
+          'hover:bg-surface-muted': !option.disabled,
+          'bg-primary/10 text-primary-dark': isSelected,
+          'text-ink': !isSelected,
         },
         className,
         isSelected && selectedClassName,
@@ -62,12 +62,12 @@ export function OptionItem({
           <div className="grow text-left">
             <div className="text-sm font-medium">{option.label}</div>
             {option.description && (
-              <div className="text-xs text-gray-500">{option.description}</div>
+              <div className="text-xs text-ink-muted">{option.description}</div>
             )}
           </div>
         </div>
       )}
-      {isSelected && showSelectedCheck && <CheckIcon className="text-blue-600 shrink-0 ml-2" />}
+      {isSelected && showSelectedCheck && <CheckIcon className="text-primary shrink-0 ml-2" />}
     </button>
   );
 }
@@ -114,7 +114,7 @@ export function OptionsList({
       }}
     >
       {options.length === 0 ? (
-        <div className="px-3 py-2 text-sm text-gray-500 text-center">{emptyMessage}</div>
+        <div className="px-3 py-2 text-sm text-ink-muted text-center">{emptyMessage}</div>
       ) : (
         options.map(option => {
           const isSelected = multiple
@@ -185,7 +185,7 @@ export function DropdownContent({
       ref={portalDropdownRef}
       data-dropdown-portal={usePortal ? 'true' : 'false'}
       className={cn(
-        'bg-white border border-gray-300 rounded-md shadow-lg',
+        'bg-white border border-line rounded-md shadow-lg',
         usePortal ? 'fixed' : 'absolute z-50 w-full',
         {
           'bottom-full mb-1': !usePortal && dropdownPosition === 'top',

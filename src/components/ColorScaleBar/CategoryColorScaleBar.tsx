@@ -46,7 +46,7 @@ export function CategoryColorScaleBar({
       </div>
 
       {label && (
-        <div className="mt-2 text-caption text-imos-grey text-center">
+        <div className="mt-2 text-caption text-ink-muted text-center">
           <span>{label}</span>
         </div>
       )}

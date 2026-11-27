@@ -2,7 +2,7 @@ import type { DateFormat, DateFormatFn, DateLabelRenderProps } from '../DateSlid
 
 export function renderDateLabel({ label }: DateLabelRenderProps) {
   return (
-    <span className="frosted  text-sm text-imos-black px-3 py-1 rounded whitespace-nowrap shadow-lg">
+    <span className="frosted  text-sm text-ink px-3 py-1 rounded whitespace-nowrap shadow-lg">
       {label}
     </span>
   );

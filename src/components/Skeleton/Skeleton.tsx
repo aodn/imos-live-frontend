@@ -11,7 +11,7 @@ type SkeletonProps = {
 export function Skeleton({ className, width, height, fill = false, style }: SkeletonProps) {
   return (
     <div
-      className={cn('relative overflow-hidden bg-gray-300 rounded', className)}
+      className={cn('relative overflow-hidden bg-surface-sunken rounded', className)}
       style={{
         ...(typeof height === 'number' ? { height } : {}),
         ...(typeof width === 'number' ? { width } : {}),

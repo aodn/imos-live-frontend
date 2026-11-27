@@ -1,17 +1,9 @@
+import { SERIES_COLORS, THEME_COLORS } from '@/constants/theme';
 import type { BuoyDataVariants } from '@/types';
 
-export const PRIMARY_COLOR = '#3b6e8f';
+export const PRIMARY_COLOR = THEME_COLORS.primary;
 
-export const colors = [
-  PRIMARY_COLOR,
-  '#0984e3',
-  '#00b894',
-  '#6c5ce7',
-  '#fdcb6e',
-  '#d63031',
-  '#74b9ff',
-  '#55efc4',
-];
+export const colors = SERIES_COLORS;
 
 export const noneDirectionVariants: BuoyDataVariants[] = ['WSSH', 'WHTH'];
 

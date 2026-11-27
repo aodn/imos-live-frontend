@@ -40,14 +40,14 @@ type Story = StoryObj<typeof meta>;
 
 function DragHandle({ children }: { children: React.ReactNode }) {
   return (
-    <div className="drag-me cursor-move bg-imos-grey/50 p-2 rounded-t border-b border-imos-red/10">
+    <div className="drag-me cursor-move bg-ink-muted/50 p-2 rounded-t border-b border-danger/10">
       <div className="flex items-center gap-2">
         <div className="flex gap-1">
-          <div className="w-1 h-1 bg-imos-white/40 rounded-full"></div>
-          <div className="w-1 h-1 bg-imos-white/40 rounded-full"></div>
-          <div className="w-1 h-1 bg-imos-white/40 rounded-full"></div>
+          <div className="w-1 h-1 bg-white/40 rounded-full"></div>
+          <div className="w-1 h-1 bg-white/40 rounded-full"></div>
+          <div className="w-1 h-1 bg-white/40 rounded-full"></div>
         </div>
-        <span className="text-imos-white/60 text-xs font-medium">{children}</span>
+        <span className="text-white/60 text-xs font-medium">{children}</span>
       </div>
     </div>
   );
@@ -55,11 +55,11 @@ function DragHandle({ children }: { children: React.ReactNode }) {
 
 function SimpleCard({ title, content }: { title: string; content: string }) {
   return (
-    <div className="rounded-lg shadow-lg border w-80 bg-imos-grey border-imos-red/20">
+    <div className="rounded-lg shadow-lg border w-80 bg-ink-muted border-danger/20">
       <DragHandle>Drag me around</DragHandle>
       <div className="p-4">
-        <h3 className="text-imos-white font-semibold mb-2">{title}</h3>
-        <p className="text-imos-white/70 text-sm">{content}</p>
+        <h3 className="text-white font-semibold mb-2">{title}</h3>
+        <p className="text-white/70 text-sm">{content}</p>
       </div>
     </div>
   );
@@ -92,8 +92,8 @@ export const ParentBoundary: Story = {
     relative: 'topLeft',
   },
   render: args => (
-    <div className="w-[700px] h-[600px] border-2 border-dashed border-imos-red/30 bg-imos-white/5 rounded-lg relative">
-      <div className="absolute top-2 left-2 text-imos-white/60 text-xs font-medium">
+    <div className="w-[700px] h-[600px] border-2 border-dashed border-danger/30 bg-white/5 rounded-lg relative">
+      <div className="absolute top-2 left-2 text-white/60 text-xs font-medium">
         Parent Container (700×600px)
       </div>
       <DragWrapper {...args}>
@@ -116,11 +116,11 @@ export const DisabledDragging: Story = {
   },
   render: args => (
     <DragWrapper {...args}>
-      <div className={cn('rounded-lg shadow-lg border w-80 bg-imos-grey/50 border-imos-red/10')}>
+      <div className={cn('rounded-lg shadow-lg border w-80 bg-ink-muted/50 border-danger/10')}>
         <DragHandle>Dragging disabled</DragHandle>
         <div className="p-4">
-          <h3 className="text-imos-white/60 font-semibold mb-2">Disabled Dragging</h3>
-          <p className="text-imos-white/50 text-sm">
+          <h3 className="text-white/60 font-semibold mb-2">Disabled Dragging</h3>
+          <p className="text-white/50 text-sm">
             This component has dragging disabled via the `disableDragging` prop.
           </p>
         </div>
