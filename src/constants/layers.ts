@@ -46,6 +46,7 @@ export const WORLD_LAND_FILL_LAYER_ID = 'world-land-fill-layer';
 export const ISOBATH_SOURCE_ID = 'isobath-source';
 export const ISOBATH_LINE_LAYER_ID = 'isobath-line-layer';
 export const ISOBATH_LABEL_LAYER_ID = 'isobath-label-layer';
+export const ISOBATH_LABEL_SOURCE_ID = 'isobath-label-source';
 
 // ---------- Layer specs ----------
 // Site marker config. Its `type` decides circle or symbol.
@@ -302,16 +303,14 @@ export const ISOBATH_LINE_CONFIG: Partial<LineLayerSpecification> = {
   },
 } as const;
 
-// Depth labels placed along the isobath lines, e.g. "200 m".
+// One label per depth, placed at the contour point nearest the viewport centre (see `buildIsobathLabels`).
 export const ISOBATH_LABEL_CONFIG: Partial<SymbolLayerSpecification> = {
-  'source-layer': 'depth',
-  filter: ISOBATH_FILTER,
   layout: {
-    'symbol-placement': 'line',
-    'symbol-spacing': 400,
-    'text-field': ['concat', ['to-string', ['get', 'min_depth']], ' m'],
+    'text-field': ['concat', ['to-string', ['get', 'depth']], ' m'],
     'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Regular'],
     'text-size': 11,
+    'text-rotate': ['get', 'angle'],
+    'text-rotation-alignment': 'viewport',
   },
   paint: {
     'text-color': '#0b4f6c',
